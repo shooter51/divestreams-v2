@@ -54,8 +54,8 @@ export default function AdminLayout() {
                       to={item.href}
                       className={`flex items-center gap-2 px-3 py-1 rounded transition-colors ${
                         isActive
-                          ? "bg-surface-raised text-white"
-                          : "text-foreground-muted hover:text-white hover:bg-surface-overlay"
+                          ? "bg-white/15 text-white"
+                          : "text-gray-400 hover:text-white hover:bg-white/10"
                       }`}
                     >
                       <span>{item.icon}</span>
@@ -67,7 +67,7 @@ export default function AdminLayout() {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-sm">
-                <span className="text-foreground-subtle">{user.email}</span>
+                <span className="text-gray-400">{user.email}</span>
                 {isOwner && (
                   <span className="ml-2 px-2 py-0.5 text-xs bg-warning/20 text-warning rounded">
                     Owner
@@ -77,7 +77,7 @@ export default function AdminLayout() {
               <form action="/logout" method="post">
                 <button
                   type="submit"
-                  className="text-foreground-muted hover:text-white text-sm"
+                  className="text-gray-400 hover:text-white text-sm"
                 >
                   Logout
                 </button>
@@ -124,32 +124,6 @@ export function ErrorBoundary() {
             Try Again
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-export function ErrorBoundary() {
-  const error = useRouteError();
-  const isResponse = isRouteErrorResponse(error);
-
-  return (
-    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
-      <div className="bg-surface-raised p-8 rounded-xl shadow-lg max-w-md text-center">
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          {isResponse ? `${error.status} - ${error.statusText}` : "Something went wrong"}
-        </h1>
-        <p className="text-foreground-muted mb-6">
-          {isResponse
-            ? "The page you're looking for could not be found."
-            : "An unexpected error occurred. Please try again."}
-        </p>
-        <a
-          href="/dashboard"
-          className="inline-block bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800"
-        >
-          Back to Dashboard
-        </a>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { organization, member, user } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Notifications - DiveStreams" }];
 
@@ -138,6 +139,7 @@ export default function NotificationsPage() {
       )}
 
       <fetcher.Form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Customer Notifications */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Customer Notifications</h2>
@@ -273,16 +275,10 @@ export default function NotificationsPage() {
                 value="true"
                 defaultChecked={settings.emailDailyDigest}
                 className="mt-1 rounded"
-                disabled={!isPremium}
               />
               <div>
                 <p className="font-medium">
                   Daily Digest
-                  {!isPremium && (
-                    <span className="ml-2 text-xs bg-surface-overlay text-foreground-muted px-2 py-0.5 rounded-full">
-                      Premium
-                    </span>
-                  )}
                 </p>
                 <p className="text-sm text-foreground-muted">
                   Receive a daily summary of bookings and activity
@@ -297,16 +293,10 @@ export default function NotificationsPage() {
                 value="true"
                 defaultChecked={settings.emailWeeklyReport}
                 className="mt-1 rounded"
-                disabled={!isPremium}
               />
               <div>
                 <p className="font-medium">
                   Weekly Report
-                  {!isPremium && (
-                    <span className="ml-2 text-xs bg-surface-overlay text-foreground-muted px-2 py-0.5 rounded-full">
-                      Premium
-                    </span>
-                  )}
                 </p>
                 <p className="text-sm text-foreground-muted">
                   Receive weekly analytics and performance reports

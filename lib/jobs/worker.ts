@@ -24,7 +24,7 @@ import { startQuickBooksSyncWorker } from "./quickbooks-sync.server";
 import { db } from "../db";
 import { organization } from "../db/schema/auth";
 import { bookings, trips, tours, customers } from "../db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { jobLogger } from "../logger";
 
 // Redis connection

@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getAppUrl } from "../../../../lib/utils/url";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Booking Widget - DiveStreams" }];
 
@@ -106,7 +107,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function BookingWidgetPage() {
-  const { settings, embedUrl, orgSlug, orgName } = useLoaderData<typeof loader>();
+  const { settings, embedUrl, orgName } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean }>();
   const isSubmitting = fetcher.state === "submitting";
   const [copied, setCopied] = useState(false);
@@ -146,6 +147,7 @@ export default function BookingWidgetPage() {
         {/* Settings Form */}
         <div>
           <fetcher.Form method="post" className="space-y-6">
+            <CsrfInput />
             {/* Appearance */}
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Appearance</h2>

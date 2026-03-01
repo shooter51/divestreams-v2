@@ -9,9 +9,7 @@ import Stripe from "stripe";
 import {
   syncSubscriptionToDatabase,
   syncInvoiceToDatabase,
-  syncPaymentToDatabase,
   getInvoiceHistory,
-  getPaymentHistory,
   getCurrentSubscription,
   getOrCreateStripeCustomer,
 } from "../../../../lib/stripe/stripe-billing.server";
@@ -44,7 +42,7 @@ describe("Stripe Billing Integration", () => {
 
       // Mock database response
       const { db } = await import("../../../../lib/db");
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([
@@ -65,7 +63,7 @@ describe("Stripe Billing Integration", () => {
       const { db } = await import("../../../../lib/db");
 
       // Mock existing customer check (none found)
-      (db.select as any).mockReturnValueOnce({
+      (db.select as unknown as Mock).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([]),
@@ -74,7 +72,7 @@ describe("Stripe Billing Integration", () => {
       });
 
       // Mock organization lookup
-      (db.select as any).mockReturnValueOnce({
+      (db.select as unknown as Mock).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([
@@ -117,16 +115,16 @@ describe("Stripe Billing Integration", () => {
                 currency: "usd",
                 nickname: "Professional Monthly",
                 recurring: { interval: "month" },
-              } as any,
-            } as any,
+              } as Record<string, unknown>,
+            } as Record<string, unknown>,
           ],
-        } as any,
+        } as Record<string, unknown>,
       };
 
       const { db } = await import("../../../../lib/db");
 
       // Mock existing check (none found)
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([]),
@@ -136,7 +134,7 @@ describe("Stripe Billing Integration", () => {
 
       // Mock insert
       const mockInsert = vi.fn().mockResolvedValue(undefined);
-      (db.insert as any).mockReturnValue({
+      (db.insert as unknown as Mock).mockReturnValue({
         values: mockInsert,
       });
 
@@ -160,16 +158,16 @@ describe("Stripe Billing Integration", () => {
                 id: "price_test",
                 unit_amount: 4900,
                 currency: "usd",
-              } as any,
-            } as any,
+              } as Record<string, unknown>,
+            } as Record<string, unknown>,
           ],
-        } as any,
+        } as Record<string, unknown>,
       };
 
       const { db } = await import("../../../../lib/db");
 
       // Mock existing check (found)
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([
@@ -181,7 +179,7 @@ describe("Stripe Billing Integration", () => {
 
       // Mock update
       const mockUpdate = vi.fn().mockResolvedValue(undefined);
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: mockUpdate,
         }),
@@ -219,16 +217,16 @@ describe("Stripe Billing Integration", () => {
               amount: 4900,
               quantity: 1,
               currency: "usd",
-            } as any,
+            } as Record<string, unknown>,
           ],
-        } as any,
+        } as Record<string, unknown>,
         metadata: {},
       };
 
       const { db } = await import("../../../../lib/db");
 
       // Mock customer lookup
-      (db.select as any).mockReturnValueOnce({
+      (db.select as unknown as Mock).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([
@@ -239,7 +237,7 @@ describe("Stripe Billing Integration", () => {
       });
 
       // Mock existing invoice check
-      (db.select as any).mockReturnValueOnce({
+      (db.select as unknown as Mock).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue([]),
@@ -249,7 +247,7 @@ describe("Stripe Billing Integration", () => {
 
       // Mock insert
       const mockInsert = vi.fn().mockResolvedValue(undefined);
-      (db.insert as any).mockReturnValue({
+      (db.insert as unknown as Mock).mockReturnValue({
         values: mockInsert,
       });
 
@@ -283,7 +281,7 @@ describe("Stripe Billing Integration", () => {
 
       const { db } = await import("../../../../lib/db");
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             orderBy: vi.fn().mockReturnValue({
@@ -311,7 +309,7 @@ describe("Stripe Billing Integration", () => {
 
       const { db } = await import("../../../../lib/db");
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             orderBy: vi.fn().mockReturnValue({
@@ -331,7 +329,7 @@ describe("Stripe Billing Integration", () => {
 
       const { db } = await import("../../../../lib/db");
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
             orderBy: vi.fn().mockReturnValue({

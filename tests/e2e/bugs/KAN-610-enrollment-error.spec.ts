@@ -18,6 +18,7 @@
 
 import { test, expect } from "@playwright/test";
 import { TenantBasePage } from "../page-objects/base.page";
+import { getTenantUrl } from "../helpers/urls";
 
 // Helper page object for tenant navigation
 class TrainingPage extends TenantBasePage {
@@ -45,8 +46,8 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     await page.waitForLoadState("load");
 
     // Fill in login credentials using accessibility-based selectors
-    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-    await page.locator('input[type="password"]').first().fill("demo1234");
+    await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
+    await page.locator('input[type="password"]').first().fill("DemoPass1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     // Wait for redirect to tenant dashboard after successful login
@@ -136,7 +137,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test("should still work with sessionId query parameter (existing flow)", async ({ page }) => {
     // Create a test session first
     // This assumes there's at least one session available
-    await page.goto("http://demo.localhost:5173/tenant/training/sessions");
+    await page.goto(getTenantUrl("demo", "/tenant/training/sessions"));
     await page.waitForLoadState("load");
 
     // Wait for sessions page to load

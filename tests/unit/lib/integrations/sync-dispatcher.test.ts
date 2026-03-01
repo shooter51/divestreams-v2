@@ -111,7 +111,7 @@ describe('Sync Dispatcher', () => {
     it('should return error for unknown integration', async () => {
       const result = await dispatchSync({
         organizationId: 'org-1',
-        integrationId: 'unknown-integration' as any,
+        integrationId: 'unknown-integration' as unknown,
       });
 
       expect(result.success).toBe(false);
@@ -183,7 +183,7 @@ describe('Sync Dispatcher', () => {
     });
 
     it('should return default capabilities for unknown integration', () => {
-      const caps = getSyncCapabilities('unknown-integration' as any);
+      const caps = getSyncCapabilities('unknown-integration' as unknown);
 
       expect(caps.canSync).toBe(false);
       expect(caps.syncTypes).toHaveLength(0);

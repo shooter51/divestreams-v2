@@ -26,7 +26,8 @@ export const zapierWebhookWorker = new Worker(
       eventType,
       eventData,
       targetUrl,
-      organizationId,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      organizationId: _organizationId,
     } = job.data;
 
     console.log(

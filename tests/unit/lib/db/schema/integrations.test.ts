@@ -6,7 +6,6 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  type Integration,
   type NewIntegration,
   type IntegrationProvider,
   type IntegrationDisplay,

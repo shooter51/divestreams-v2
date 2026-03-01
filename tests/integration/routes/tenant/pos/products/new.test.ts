@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getRedirectPathname } from "../../../../../helpers/redirect";
-import { loader, action } from "../../../../../../app/routes/tenant/pos/products/new";
+import { action } from "../../../../../../app/routes/tenant/pos/products/new";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
 
@@ -13,16 +13,19 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("action", () => {
     it("should create product and redirect", async () => {
       const mockProduct = { id: "prod-123" };
-      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as unknown);
 
       const formData = new FormData();
       formData.append("name", "New Dive Mask");
@@ -107,7 +110,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
 
     it("should handle unchecked trackInventory checkbox", async () => {
       const mockProduct = { id: "prod-123" };
-      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as unknown);
 
       const formData = new FormData();
       formData.append("name", "Dive Mask");
@@ -132,7 +135,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
 
     it("should handle optional cost field", async () => {
       const mockProduct = { id: "prod-123" };
-      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as unknown);
 
       const formData = new FormData();
       formData.append("name", "Dive Mask");
@@ -152,7 +155,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
 
     it("should handle optional stockQuantity field", async () => {
       const mockProduct = { id: "prod-123" };
-      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as unknown);
 
       const formData = new FormData();
       formData.append("name", "Dive Mask");
@@ -172,7 +175,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
 
     it("should handle all fields provided", async () => {
       const mockProduct = { id: "prod-123" };
-      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.createProduct).mockResolvedValue(mockProduct as unknown);
 
       const formData = new FormData();
       formData.append("name", "Premium Dive Mask");

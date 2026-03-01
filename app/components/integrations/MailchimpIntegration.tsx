@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 import type { MailchimpAudience, MailchimpSettings } from "./types";
@@ -8,24 +8,24 @@ interface MailchimpIntegrationProps {
   mailchimpSettings: MailchimpSettings | null;
   mailchimpAudiences: MailchimpAudience[];
   onNotification: (notification: { type: "success" | "error"; message: string }) => void;
+  openModal?: boolean;
 }
 
 export function MailchimpIntegration({
-  isConnected,
-  mailchimpSettings,
-  mailchimpAudiences,
   onNotification,
+  openModal,
 }: MailchimpIntegrationProps) {
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
+
+  useEffect(() => {
+    if (openModal) setShowOAuthModal(true);
+  }, [openModal]);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 
-  // Config modal state
+  // Config modal state (not yet implemented)
   const [showConfigModal, setShowConfigModal] = useState(false);
-  const [selectedAudience, setSelectedAudience] = useState(mailchimpSettings?.selectedAudienceId || "");
-  const [syncOnBooking, setSyncOnBooking] = useState(mailchimpSettings?.syncOnBooking ?? true);
-  const [syncOnCustomerCreate, setSyncOnCustomerCreate] = useState(mailchimpSettings?.syncOnCustomerCreate ?? true);
 
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;

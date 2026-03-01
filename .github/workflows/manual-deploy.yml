@@ -87,28 +87,39 @@ jobs:
             -H "Content-Type: application/json" \
             --fail
 
-      - name: Wait for deployment to stabilize
-        run: sleep 45
-
-      - name: Verify containers are running
+      - name: Wait for containers to start (retry up to 120s)
         run: |
-          echo "Checking container status..."
-          RESPONSE=$(curl -s -X GET \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ steps.config.outputs.vps_id }}/docker/${{ steps.config.outputs.project }}/containers" \
-            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
-            -H "Content-Type: application/json")
+          EXPECTED=${{ steps.config.outputs.min_containers }}
+          VPS_ID=${{ steps.config.outputs.vps_id }}
+          PROJECT=${{ steps.config.outputs.project }}
+          MAX_ATTEMPTS=12
+          WAIT=10
 
-          echo "$RESPONSE" | jq .
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Check $i/$MAX_ATTEMPTS (waiting ${WAIT}s between checks)..."
+            RESPONSE=$(curl -s -X GET \
+              "https://developers.hostinger.com/api/vps/v1/virtual-machines/${VPS_ID}/docker/${PROJECT}/containers" \
+              -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+              -H "Content-Type: application/json")
 
-          RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
-          echo "Running containers: $RUNNING_COUNT"
+            RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+            TOTAL_COUNT=$(echo "$RESPONSE" | jq 'length')
+            echo "  Containers: $RUNNING_COUNT/$TOTAL_COUNT running (need $EXPECTED)"
 
-          if [ "$RUNNING_COUNT" -lt ${{ steps.config.outputs.min_containers }} ]; then
-            echo "ERROR: Expected ${{ steps.config.outputs.min_containers }} containers running, found $RUNNING_COUNT"
-            exit 1
-          fi
+            if [ "$RUNNING_COUNT" -ge "$EXPECTED" ]; then
+              echo "$RESPONSE" | jq .
+              echo "✅ All containers are running"
+              exit 0
+            fi
 
-          echo "✅ All containers are running"
+            if [ "$i" -eq "$MAX_ATTEMPTS" ]; then
+              echo "$RESPONSE" | jq .
+              echo "ERROR: Expected $EXPECTED containers running, found $RUNNING_COUNT after $((MAX_ATTEMPTS * WAIT))s"
+              exit 1
+            fi
+
+            sleep $WAIT
+          done
 
       - name: Deployment Summary
         run: |

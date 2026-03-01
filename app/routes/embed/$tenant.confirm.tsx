@@ -71,7 +71,7 @@ function formatPrice(price: string | number, currency: string): string {
 }
 
 export default function BookingConfirmationPage() {
-  const { booking, tenantSlug, tenantName } = useLoaderData<typeof loader>();
+  const { booking, tenantName } = useLoaderData<typeof loader>();
   const { branding } = useOutletContext<{
     organization: { slug: string };
     branding: { primaryColor: string };

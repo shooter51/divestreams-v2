@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/settings/team";
 
 // Mock crypto.randomUUID for invitation IDs
@@ -105,6 +104,16 @@ vi.mock("../../../../../lib/plan-features", () => ({
 // Mock the email module
 vi.mock("../../../../../lib/email", () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock getAppUrl
+vi.mock("../../../../../lib/utils/url", () => ({
+  getAppUrl: vi.fn().mockReturnValue("http://localhost:5173"),
+}));
+
+// Mock admin password reset
+vi.mock("../../../../../lib/auth/admin-password-reset.server", () => ({
+  resetUserPassword: vi.fn().mockResolvedValue({ temporaryPassword: "temp123" }),
 }));
 
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
@@ -558,7 +567,7 @@ describe("tenant/settings/team route", () => {
 
         const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result).toEqual({ error: "This email already has a pending invitation" });
+        expect(result).toEqual({ error: "This email already has a pending invitation. See the Pending Invitations section below to resend or cancel it." });
         expect(db.insert).not.toHaveBeenCalled();
       });
     });

@@ -9,6 +9,7 @@ interface Product {
   name: string;
   category: string;
   price: string;
+  taxRate?: string | null;
   salePrice: string | null;
   saleStartDate: Date | string | null;
   saleEndDate: Date | string | null;
@@ -25,13 +26,6 @@ function isOnSale(product: Product, now: Date): boolean {
   return true;
 }
 
-// Helper to get the effective price (sale price if on sale, otherwise regular price)
-function getEffectivePrice(product: Product, now: Date): number {
-  if (isOnSale(product, now)) {
-    return Number(product.salePrice);
-  }
-  return Number(product.price);
-}
 
 interface Equipment {
   id: string;

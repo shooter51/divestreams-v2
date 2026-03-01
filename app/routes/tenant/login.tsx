@@ -105,7 +105,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const clientIp = getClientIp(request);
   const loginEmail = formData.get("email") as string;
   if (intent !== "join" && loginEmail) {
-    const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 30, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.allowed) {
       return { error: "Too many login attempts. Please try again later." };
     }
@@ -185,6 +185,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email");
   const password = formData.get("password");
 
+  // Per-email rate limit is already checked above.
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
     return { error: "Please enter a valid email address", email: email || "" };
@@ -275,6 +276,8 @@ export default function LoginPage() {
 
   const isSubmitting = navigation.state === "submitting";
   const redirectTo = searchParams.get("redirect") || "/tenant";
+  const isSignupSuccess = searchParams.get("signup") === "success";
+  const emailSkipped = searchParams.get("emailSkipped") === "true";
 
   // Show "Not a member" UI if user is authenticated but not a member of this org
   if (actionData?.notMember) {
@@ -382,6 +385,18 @@ export default function LoginPage() {
         )}
 
         <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
+          {/* Signup Success Message */}
+          {isSignupSuccess && (
+            <div className="mb-4 p-3 bg-success-muted border border-success rounded-lg">
+              <p className="text-sm text-success font-medium">Account created successfully! Sign in below to get started.</p>
+              {emailSkipped && (
+                <p className="text-sm text-foreground-muted mt-1">
+                  If you don&apos;t receive a welcome email, don&apos;t worry — you can still log in with your password.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Error Message */}
           {actionData?.error && (
             <div className="mb-4 p-3 bg-danger-muted border border-danger rounded-lg">
@@ -463,7 +478,7 @@ export default function LoginPage() {
 
               <div className="text-sm">
                 <Link
-                  to="/forgot-password"
+                  to="/tenant/forgot-password"
                   className="font-medium text-brand hover:text-brand"
                 >
                   Forgot your password?

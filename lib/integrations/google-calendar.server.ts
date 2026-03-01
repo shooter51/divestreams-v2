@@ -21,7 +21,8 @@ import {
 } from "./index.server";
 import { db } from "../db";
 import { eq, and, gte, lte } from "drizzle-orm";
-import { trips, bookings, tours, customers } from "../db/schema";
+import { trips, tours } from "../db/schema";
+import { createHmac, timingSafeEqual } from "crypto";
 
 // ============================================================================
 // CONSTANTS
@@ -97,10 +98,13 @@ export function getGoogleAuthUrl(
   const { clientId } = getGoogleCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
-  // State contains org ID and a nonce for security
-  const state = Buffer.from(
+  // State contains org ID and a nonce — signed with HMAC to prevent CSRF
+  const payload = Buffer.from(
     JSON.stringify({ orgId, nonce: Date.now() })
   ).toString("base64url");
+  const secret = process.env.AUTH_SECRET || "";
+  const sig = createHmac("sha256", secret).update(payload).digest("base64url");
+  const state = `${payload}.${sig}`;
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -120,7 +124,16 @@ export function getGoogleAuthUrl(
  */
 export function parseOAuthState(state: string): { orgId: string; nonce: number } {
   try {
-    const decoded = Buffer.from(state, "base64url").toString("utf-8");
+    const lastDot = state.lastIndexOf(".");
+    if (lastDot === -1) throw new Error("Missing signature");
+    const payload = state.slice(0, lastDot);
+    const sig = state.slice(lastDot + 1);
+    const secret = process.env.AUTH_SECRET || "";
+    const expected = createHmac("sha256", secret).update(payload).digest("base64url");
+    if (!timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+      throw new Error("Invalid signature");
+    }
+    const decoded = Buffer.from(payload, "base64url").toString("utf-8");
     return JSON.parse(decoded);
   } catch {
     throw new Error("Invalid OAuth state parameter");

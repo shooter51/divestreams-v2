@@ -2,9 +2,10 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getTripWithFullDetails, getAllBoats, getAllTours } from "../../../../../lib/db/queries.server";
+import { getTripWithFullDetails, getAllBoats, getAllTours, getStaff } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
@@ -18,10 +19,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Trip ID required", { status: 400 });
   }
 
-  const [tripData, boats, tours] = await Promise.all([
+  const [tripData, boats, tours, staffData] = await Promise.all([
     getTripWithFullDetails(organizationId, tripId),
     getAllBoats(organizationId),
     getAllTours(organizationId),
+    getStaff(organizationId, { activeOnly: true }),
   ]);
 
   if (!tripData) {
@@ -52,9 +54,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     weatherNotes: tripData.weatherNotes || "",
     notes: tripData.notes || "",
     isPublic: tripData.isPublic ?? true,
+    staffIds: tripData.staffIds ?? [],
+    diveSites: tripData.diveSites ?? [],
   };
 
-  return { trip, boats, tours };
+  const staff = staffData.map((s) => ({ id: s.id, name: s.name, role: s.role }));
+
+  return { trip, boats, tours, staff };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -80,6 +86,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const weatherNotes = formData.get("weatherNotes") as string;
   const notes = formData.get("notes") as string;
   const isPublic = formData.get("isPublic") === "true";
+  const staffIds = formData.getAll("staffIds") as string[];
 
   // Update trip in database
   const { db, schema } = getTenantDb(organizationId);
@@ -98,6 +105,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       weatherNotes,
       notes,
       isPublic,
+      staffIds: staffIds.length > 0 ? staffIds : null,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.trips.organizationId, organizationId), eq(schema.trips.id, tripId)));
@@ -106,7 +114,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function EditTripPage() {
-  const { trip, boats, tours } = useLoaderData<typeof loader>();
+  const { trip, boats, tours, staff } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -121,6 +129,7 @@ export default function EditTripPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Trip Details */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Trip Details</h2>
@@ -317,6 +326,49 @@ export default function EditTripPage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Dive Sites (from tour, read-only) */}
+        {trip.diveSites.length > 0 && (
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-1">Dive Sites</h2>
+            <p className="text-xs text-foreground-muted mb-3">From the selected tour</p>
+            <div className="space-y-2">
+              {trip.diveSites.map((site) => (
+                <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
+                  <span className="text-sm font-medium">{site.name}</span>
+                  <div className="flex items-center gap-3 text-xs text-foreground-muted">
+                    {site.maxDepth && <span>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft max</span>}
+                    {site.difficulty && <span className="capitalize">{site.difficulty}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Staff Assignment */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Staff Assignment</h2>
+          {staff.length === 0 ? (
+            <p className="text-sm text-foreground-muted">No staff members found. Add staff in Settings → Team.</p>
+          ) : (
+            <div className="space-y-2">
+              {staff.map((member) => (
+                <label key={member.id} className="flex items-center gap-3 p-2 hover:bg-surface-inset rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="staffIds"
+                    value={member.id}
+                    defaultChecked={trip.staffIds.includes(member.id)}
+                    className="rounded"
+                  />
+                  <span>{member.name}</span>
+                  <span className="text-sm text-foreground-muted">({member.role})</span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Actions */}

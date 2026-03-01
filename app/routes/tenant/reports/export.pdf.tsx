@@ -13,7 +13,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, desc } from "drizzle-orm";
+import { eq, gte, lte, and, sql, count, desc } from "drizzle-orm";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -59,7 +59,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startDate)
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         )
       );
     currentMonthRevenue = Number(currentMonthResult?.total || 0);
@@ -84,7 +85,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startDate)
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         )
       );
     bookingsThisMonth = bookingCountResult?.count || 0;
@@ -104,7 +106,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(customers.organizationId, ctx.org.id),
-          gte(customers.createdAt, startDate)
+          gte(customers.createdAt, startDate),
+          lte(customers.createdAt, endDate)
         )
       );
     newCustomersThisMonth = newCustomerResult?.count || 0;
@@ -141,7 +144,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startDate)
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         )
       )
       .orderBy(desc(bookings.createdAt))

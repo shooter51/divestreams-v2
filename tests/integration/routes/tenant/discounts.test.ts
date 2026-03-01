@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
-import { getRedirectPathname } from "../../../helpers/redirect";
 
 /**
  * Integration tests for discount management

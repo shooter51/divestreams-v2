@@ -102,7 +102,7 @@ export class NewTripPage extends TenantBasePage {
   }
 
   async selectBoat(boatName: string): Promise<void> {
-    await this.page.getByLabel(/boat/i).selectOption(boatName);
+    await this.page.getByLabel(/select boat/i).selectOption(boatName);
   }
 
   async submit(): Promise<void> {

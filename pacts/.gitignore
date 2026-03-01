@@ -1,0 +1,6 @@
+# Pact logs
+logs/
+
+# Temporary files
+*.tmp
+*.log

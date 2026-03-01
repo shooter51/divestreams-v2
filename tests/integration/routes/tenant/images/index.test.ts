@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/images/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as tenantServer from "../../../../../lib/db/tenant.server";
@@ -9,14 +8,16 @@ vi.mock("../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../lib/db/tenant.server");
 
 describe("app/routes/tenant/images/index.tsx", () => {
-  const mockTenant = { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: mockTenant,
-      organizationId: "org-123",
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: "org-123", name: "Test Org", subdomain: "test", slug: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -55,12 +56,12 @@ describe("app/routes/tenant/images/index.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images?entityType=tour&entityId=123");
       const result = await loader({ request, params: {}, context: {} });
 
-      expect(tenantServer.getTenantDb).toHaveBeenCalledWith(mockTenant.subdomain);
+      expect(tenantServer.getTenantDb).toHaveBeenCalledWith("test");
 
       const json = await result.json();
       expect(json.images).toHaveLength(2);
@@ -96,7 +97,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images?entityType=tour&entityId=456");
       const result = await loader({ request, params: {}, context: {} });
@@ -115,7 +116,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images?entityType=boat&entityId=789");
       const result = await loader({ request, params: {}, context: {} });

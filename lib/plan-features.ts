@@ -55,12 +55,12 @@ export const FEATURE_UPGRADE_INFO: Record<PlanFeatureKey, {
   has_tours_bookings: {
     title: "Tours & Bookings",
     description: "Create tours, manage trips, and accept bookings from customers.",
-    requiredPlan: "Free",
+    requiredPlan: "Standard",
   },
   has_equipment_boats: {
     title: "Equipment & Boats",
     description: "Manage your dive equipment inventory and boat fleet.",
-    requiredPlan: "Starter",
+    requiredPlan: "Pro",
   },
   has_training: {
     title: "Training Management",
@@ -75,7 +75,7 @@ export const FEATURE_UPGRADE_INFO: Record<PlanFeatureKey, {
   has_public_site: {
     title: "Public Website",
     description: "Your own branded website for customers to browse and book.",
-    requiredPlan: "Starter",
+    requiredPlan: "Pro",
   },
   has_advanced_notifications: {
     title: "Advanced Notifications",
@@ -85,12 +85,12 @@ export const FEATURE_UPGRADE_INFO: Record<PlanFeatureKey, {
   has_integrations: {
     title: "Integrations",
     description: "Connect with Zapier, QuickBooks, and other business tools.",
-    requiredPlan: "Enterprise",
+    requiredPlan: "Pro",
   },
   has_api_access: {
     title: "API Access",
     description: "Build custom integrations with our REST API.",
-    requiredPlan: "Enterprise",
+    requiredPlan: "Pro",
   },
   // Individual integrations - requiredPlan is determined dynamically from plan configuration
   has_stripe: {
@@ -140,7 +140,7 @@ export const FEATURE_UPGRADE_INFO: Record<PlanFeatureKey, {
  * Used when creating new plans or as fallback
  */
 export const DEFAULT_PLAN_FEATURES: Record<string, Record<PlanFeatureKey, boolean>> = {
-  free: {
+  standard: {
     has_tours_bookings: true,
     has_equipment_boats: false,
     has_training: false,
@@ -159,45 +159,7 @@ export const DEFAULT_PLAN_FEATURES: Record<string, Record<PlanFeatureKey, boolea
     has_whatsapp: false,
     has_xero: false,
   },
-  starter: {
-    has_tours_bookings: true,
-    has_equipment_boats: true,
-    has_training: false,
-    has_pos: false,
-    has_public_site: true,
-    has_advanced_notifications: false,
-    has_integrations: false,
-    has_api_access: false,
-    // Integrations
-    has_stripe: true,
-    has_google_calendar: true,
-    has_mailchimp: false,
-    has_quickbooks: false,
-    has_zapier: false,
-    has_twilio: false,
-    has_whatsapp: false,
-    has_xero: false,
-  },
   pro: {
-    has_tours_bookings: true,
-    has_equipment_boats: true,
-    has_training: true,
-    has_pos: true,
-    has_public_site: true,
-    has_advanced_notifications: true,
-    has_integrations: true,
-    has_api_access: false,
-    // Integrations
-    has_stripe: true,
-    has_google_calendar: true,
-    has_mailchimp: true,
-    has_quickbooks: true,
-    has_zapier: true,
-    has_twilio: true,
-    has_whatsapp: false,
-    has_xero: false,
-  },
-  enterprise: {
     has_tours_bookings: true,
     has_equipment_boats: true,
     has_training: true,
@@ -230,10 +192,8 @@ export interface PlanLimits {
 }
 
 export const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
-  free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 },
-  starter: { users: 3, customers: 500, toursPerMonth: 25, storageGb: 5 },
-  pro: { users: 10, customers: 5000, toursPerMonth: 100, storageGb: 25 },
-  enterprise: { users: -1, customers: -1, toursPerMonth: -1, storageGb: 100 },
+  standard: { users: 3, customers: 500, toursPerMonth: 25, storageGb: 5 },
+  pro: { users: -1, customers: -1, toursPerMonth: -1, storageGb: 100 },
 };
 
 export const LIMIT_WARNING_THRESHOLD = 0.8;

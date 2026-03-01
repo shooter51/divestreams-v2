@@ -6,7 +6,7 @@ import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { equipment } from "../../../../lib/db/schema";
-import { eq, or, ilike, sql, count, and } from "drizzle-orm";
+import { eq, or, ilike, sql, and } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 import { useNotification } from "../../../../lib/use-notification";
@@ -139,11 +139,25 @@ const statusColors: Record<string, string> = {
   retired: "bg-surface-inset text-foreground-muted",
 };
 
+const statusLabels: Record<string, string> = {
+  available: "Available",
+  rented: "Rented",
+  maintenance: "Maintenance",
+  retired: "Retired",
+};
+
 const conditionColors: Record<string, string> = {
   excellent: "text-success",
   good: "text-brand",
   fair: "text-warning",
   poor: "text-danger",
+};
+
+const conditionLabels: Record<string, string> = {
+  excellent: "Excellent",
+  good: "Good",
+  fair: "Fair",
+  poor: "Poor",
 };
 
 export default function EquipmentPage() {
@@ -376,7 +390,7 @@ export default function EquipmentPage() {
                   </td>
                   <td className="py-3 px-4">
                     <span className={`text-sm ${item.condition ? conditionColors[item.condition] : ''}`}>
-                      {item.condition || "Unknown"}
+                      {item.condition ? (conditionLabels[item.condition] || item.condition) : "Unknown"}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -385,7 +399,7 @@ export default function EquipmentPage() {
                         statusColors[item.status]
                       }`}
                     >
-                      {item.status}
+                      {statusLabels[item.status] || item.status}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">

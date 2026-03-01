@@ -12,7 +12,7 @@
  */
 
 import { useState } from "react";
-import { Link, useLoaderData, useNavigate, Form } from "react-router";
+import { useLoaderData, useNavigate } from "react-router";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
@@ -328,7 +328,7 @@ export default function BookingDetail() {
         const data = await response.json();
         alert(data.error || "Failed to cancel booking");
       }
-    } catch (error) {
+    } catch {
       alert("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);

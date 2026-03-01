@@ -5,6 +5,7 @@ import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-conte
 import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
 
@@ -92,6 +93,7 @@ export default function EditBookingPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Booking Info (Read-only) */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Booking Details</h2>

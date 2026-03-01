@@ -1,8 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginToAdmin, testConfig } from "./fixtures/test-fixtures";
-
-// Admin URL helper - admin routes use subdomain-based routing
-const getAdminUrl = (path: string) => `http://admin.localhost:5173${path}`;
+import { getAdminUrl, getTenantUrl } from "./helpers/urls";
 
 test.describe("Admin Password Reset", () => {
   // Skip: Platform admin seeding in global-setup.ts is not working in CI environment
@@ -21,7 +19,7 @@ test.describe("Admin Password Reset", () => {
     await page.goto(getAdminUrl("/settings/team"));
 
     // Wait for page to load
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Find a non-owner team member's reset button
     const memberRows = page.locator('tr').filter({ hasNot: page.locator('text="Owner"') });
@@ -53,7 +51,7 @@ test.describe("Admin Password Reset", () => {
     await page.goto(getAdminUrl("/settings/team"));
 
     // Wait for page to load
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Find owner row and try to reset
     const ownerRow = page.locator('tr:has-text("Owner")');
@@ -72,7 +70,7 @@ test.describe("Forced Password Change", () => {
     // Then logging in as that user - skipped as it requires specific test data setup
 
     // Login as user with forced password change (on tenant subdomain)
-    await page.goto("http://demo.localhost:5173/auth/login");
+    await page.goto(getTenantUrl("demo", "/auth/login"));
     await page.fill('input[name="email"]', "forceduser@example.com");
     await page.fill('input[name="password"]', "temp_password");
     await page.click('button[type="submit"]');

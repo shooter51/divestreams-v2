@@ -92,21 +92,21 @@ describe("Dashboard Statistics Logic", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset chain mocks
-    (db.select as any).mockReturnValue(db);
-    (db.from as any).mockReturnValue(db);
-    (db.where as any).mockReturnValue(db);
-    (db.innerJoin as any).mockReturnValue(db);
-    (db.leftJoin as any).mockReturnValue(db);
-    (db.insert as any).mockReturnValue(db);
-    (db.values as any).mockReturnValue(db);
-    (db.update as any).mockReturnValue(db);
-    (db.set as any).mockReturnValue(db);
-    (db.delete as any).mockReturnValue(db);
-    (db.groupBy as any).mockReturnValue(db);
-    (db.orderBy as any).mockReturnValue(db);
-    (db.limit as any).mockReturnValue(db);  // Return db to allow further chaining
-    (db.offset as any).mockResolvedValue([]);
-    (db.returning as any).mockResolvedValue([]);
+    (db.select as unknown as Mock).mockReturnValue(db);
+    (db.from as unknown as Mock).mockReturnValue(db);
+    (db.where as unknown as Mock).mockReturnValue(db);
+    (db.innerJoin as unknown as Mock).mockReturnValue(db);
+    (db.leftJoin as unknown as Mock).mockReturnValue(db);
+    (db.insert as unknown as Mock).mockReturnValue(db);
+    (db.values as unknown as Mock).mockReturnValue(db);
+    (db.update as unknown as Mock).mockReturnValue(db);
+    (db.set as unknown as Mock).mockReturnValue(db);
+    (db.delete as unknown as Mock).mockReturnValue(db);
+    (db.groupBy as unknown as Mock).mockReturnValue(db);
+    (db.orderBy as unknown as Mock).mockReturnValue(db);
+    (db.limit as unknown as Mock).mockReturnValue(db);  // Return db to allow further chaining
+    (db.offset as unknown as Mock).mockResolvedValue([]);
+    (db.returning as unknown as Mock).mockResolvedValue([]);
   });
 
   // ============================================================================
@@ -122,7 +122,7 @@ describe("Dashboard Statistics Logic", () => {
       const totalCustomersResult = [{ count: 150 }];
 
       // where is terminal for all 4 queries (no limit call)
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockResolvedValueOnce(todayBookingsResult)
         .mockResolvedValueOnce(weekRevenueResult)
         .mockResolvedValueOnce(activeTripsResult)
@@ -142,7 +142,7 @@ describe("Dashboard Statistics Logic", () => {
       const activeTripsResult = [{ count: 2 }];
       const totalCustomersResult = [{ count: 100 }];
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockResolvedValueOnce(todayBookingsResult)
         .mockResolvedValueOnce(weekRevenueResult)
         .mockResolvedValueOnce(activeTripsResult)
@@ -159,7 +159,7 @@ describe("Dashboard Statistics Logic", () => {
       const activeTripsResult = [{ count: 1 }];
       const totalCustomersResult = [{ count: 50 }];
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockResolvedValueOnce(todayBookingsResult)
         .mockResolvedValueOnce(weekRevenueResult)
         .mockResolvedValueOnce(activeTripsResult)
@@ -176,7 +176,7 @@ describe("Dashboard Statistics Logic", () => {
       const activeTripsResult = [{ count: 0 }];
       const totalCustomersResult = [{ count: 75 }];
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockResolvedValueOnce(todayBookingsResult)
         .mockResolvedValueOnce(weekRevenueResult)
         .mockResolvedValueOnce(activeTripsResult)
@@ -191,7 +191,7 @@ describe("Dashboard Statistics Logic", () => {
       const emptyResult = [{ count: 0 }];
       const zeroRevenue = [{ total: 0 }];
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockResolvedValueOnce(emptyResult)
         .mockResolvedValueOnce(zeroRevenue)
         .mockResolvedValueOnce(emptyResult)
@@ -211,7 +211,7 @@ describe("Dashboard Statistics Logic", () => {
       const activeTripsResult = [{ count: 25 }];
       const totalCustomersResult = [{ count: 5000 }];
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockResolvedValueOnce(todayBookingsResult)
         .mockResolvedValueOnce(weekRevenueResult)
         .mockResolvedValueOnce(activeTripsResult)
@@ -261,7 +261,7 @@ describe("Dashboard Statistics Logic", () => {
 
       // Mock for first query (trips query) - where → orderBy → limit
       // Mock for second query (participant counts) - where → groupBy
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -292,7 +292,7 @@ describe("Dashboard Statistics Logic", () => {
       const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
       // Mock for trips query + participant counts query
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -317,7 +317,7 @@ describe("Dashboard Statistics Logic", () => {
       const mockGroupBy = vi.fn().mockResolvedValue([]); // No participant counts
 
       // Mock for trips query + participant counts query
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -344,7 +344,7 @@ describe("Dashboard Statistics Logic", () => {
       const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
       // Mock for trips query + participant counts query
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -359,7 +359,7 @@ describe("Dashboard Statistics Logic", () => {
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
 
       // Only one query when trips array is empty - no participant count query
-      (db.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (db.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const result = await getUpcomingTrips(testOrgId);
 
@@ -384,7 +384,7 @@ describe("Dashboard Statistics Logic", () => {
       const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
       // Mock for trips query + participant counts query
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -421,7 +421,7 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      (db.limit as any).mockResolvedValue(mockBookings);
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings);
 
       const result = await getRecentBookings(testOrgId, 5);
 
@@ -442,7 +442,7 @@ describe("Dashboard Statistics Logic", () => {
         tourName: "Tour",
       }));
 
-      (db.limit as any).mockResolvedValue(mockBookings.slice(0, 3));
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings.slice(0, 3));
 
       const result = await getRecentBookings(testOrgId, 3);
 
@@ -480,7 +480,7 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      (db.limit as any).mockResolvedValue(mockBookings);
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings);
 
       const result = await getRecentBookings(testOrgId);
 
@@ -502,7 +502,7 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      (db.limit as any).mockResolvedValue(mockBookings);
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings);
 
       const result = await getRecentBookings(testOrgId);
 
@@ -511,7 +511,7 @@ describe("Dashboard Statistics Logic", () => {
     });
 
     it("should return empty array when no bookings", async () => {
-      (db.limit as any).mockResolvedValue([]);
+      (db.limit as unknown as Mock).mockResolvedValue([]);
 
       const result = await getRecentBookings(testOrgId);
 
@@ -531,7 +531,7 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      (db.limit as any).mockResolvedValue(mockBookings);
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings);
 
       const result = await getRecentBookings(testOrgId);
 
@@ -551,7 +551,7 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      (db.limit as any).mockResolvedValue(mockBookings);
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings);
 
       const result = await getRecentBookings(testOrgId);
 
@@ -581,7 +581,7 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      (db.limit as any).mockResolvedValue(mockBookings);
+      (db.limit as unknown as Mock).mockResolvedValue(mockBookings);
 
       const result = await getRecentBookings(testOrgId);
 

@@ -6,15 +6,16 @@ import { createTour } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
-import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
+import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireRole(ctx, ["owner", "admin"]);
-  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
   const limitCheck = await requireLimit(ctx.org.id, "toursPerMonth", limits);
   return {
     limitRemaining: limitCheck.remaining,
@@ -106,9 +107,10 @@ export async function action({ request }: ActionFunctionArgs) {
       minCertLevel: (formData.get("minCertLevel") as string) || undefined,
       minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle unique constraint violation
-    if (error?.code === "23505" || error?.message?.includes("duplicate") || error?.message?.includes("unique")) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "23505" || err?.message?.includes("duplicate") || err?.message?.includes("unique")) {
       return {
         errors: { name: "A tour with this name already exists" },
         values: getFormValues(formData)
@@ -165,13 +167,13 @@ export async function action({ request }: ActionFunctionArgs) {
         const thumbnailKey = `${baseKey}-thumb.webp`;
 
         // Upload to S3/B2
-        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
         if (!originalUpload) {
           failedFiles.push(`${file.name} (storage error)`);
           continue;
         }
 
-        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+        const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
         // Save to database
         await db.insert(schema.images).values({
@@ -256,6 +258,7 @@ export default function NewTourPage() {
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>

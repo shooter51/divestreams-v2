@@ -4,8 +4,9 @@ import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
-import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
+import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
@@ -103,13 +104,13 @@ export async function action({ request }: ActionFunctionArgs) {
         const thumbnailKey = `${baseKey}-thumb.webp`;
 
         // Upload to S3/B2
-        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
         if (!originalUpload) {
           failedFiles.push(`${file.name} (storage error)`);
           continue;
         }
 
-        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+        const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
         // Save to database
         await db.insert(schema.images).values({
@@ -181,6 +182,7 @@ export default function NewDiveSitePage() {
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
@@ -199,24 +201,6 @@ export default function NewDiveSitePage() {
               />
               {actionData?.errors?.name && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium mb-1">
-                Location *
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                required
-                placeholder="e.g., South Bay, Outer Reef"
-                defaultValue={actionData?.values?.location}
-                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-              />
-              {actionData?.errors?.location && (
-                <p className="text-danger text-sm mt-1">{actionData.errors.location}</p>
               )}
             </div>
 

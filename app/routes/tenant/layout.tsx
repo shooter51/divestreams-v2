@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Determine subscription status from subscription table
-  const subscriptionStatus = ctx.subscription?.status ?? "free";
+  const subscriptionStatus = ctx.subscription?.status ?? "standard";
 
   // Get plan features and limits
   // Features can be PlanFeaturesObject or legacy string[] format
@@ -33,9 +33,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const features: PlanFeaturesObject =
     rawFeatures && typeof rawFeatures === "object" && !Array.isArray(rawFeatures)
       ? (rawFeatures as PlanFeaturesObject)
-      : DEFAULT_PLAN_FEATURES.free;
-  const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
-  const planName = ctx.subscription?.planDetails?.displayName ?? "Free";
+      : DEFAULT_PLAN_FEATURES.standard;
+  const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
+  const planName = ctx.subscription?.planDetails?.displayName ?? "Standard";
 
   // Compute baseDomain on the server – getBaseDomain() accesses process.env
   // which is unavailable in the browser and would crash client-side hydration.
@@ -91,7 +91,7 @@ export default function TenantLayout() {
     { href: "/tenant/dive-sites", label: "Dive Sites", icon: "🌊" },
     { href: "/tenant/boats", label: "Boats", icon: "⛵", feature: "has_equipment_boats" },
     { href: "/tenant/equipment", label: "Equipment", icon: "🤿", feature: "has_equipment_boats" },
-    { href: "/tenant/products", label: "Products", icon: "📦", feature: "has_pos" },
+    { href: "/tenant/pos/products", label: "Products", icon: "📦", feature: "has_pos" },
     { href: "/tenant/discounts", label: "Discounts", icon: "🏷️", feature: "has_pos" },
     { href: "/tenant/training", label: "Training", icon: "🎓", feature: "has_training" },
     { href: "/tenant/gallery", label: "Gallery", icon: "📸" },
@@ -199,7 +199,8 @@ export default function TenantLayout() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{user?.name || "User"}</p>
-                  <p className="text-xs text-foreground-muted">{membership?.role || "Member"}</p>
+                  <p className="text-xs text-foreground-muted truncate">{user?.email}</p>
+                  <p className="text-xs text-foreground-muted capitalize">{membership?.role || "Member"}</p>
                 </div>
                 <form method="post" action="/auth/logout">
                   <button

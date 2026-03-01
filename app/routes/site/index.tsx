@@ -181,6 +181,7 @@ function TripCard({
     weekday: "short",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 
   const price = trip.price || trip.tour?.price || "0";

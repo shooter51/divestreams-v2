@@ -29,7 +29,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -95,10 +95,10 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as any);
-      vi.mocked(queries.getEquipmentRentalHistory).mockResolvedValue(mockRentalHistory as any);
-      vi.mocked(queries.getEquipmentRentalStats).mockResolvedValue(mockStats as any);
-      vi.mocked(queries.getEquipmentServiceHistory).mockResolvedValue(mockServiceHistory as any);
+      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as unknown);
+      vi.mocked(queries.getEquipmentRentalHistory).mockResolvedValue(mockRentalHistory as unknown);
+      vi.mocked(queries.getEquipmentRentalStats).mockResolvedValue(mockStats as unknown);
+      vi.mocked(queries.getEquipmentServiceHistory).mockResolvedValue(mockServiceHistory as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -128,7 +128,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment/eq-456");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
@@ -183,7 +183,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         updatedAt: new Date("2024-06-01T14:20:00Z"),
       };
 
-      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as any);
+      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as unknown);
       vi.mocked(queries.getEquipmentRentalHistory).mockResolvedValue([
         {
           id: "rental-1",
@@ -196,8 +196,8 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
           totalCharge: "75.00",
           status: "completed",
         },
-      ] as any);
-      vi.mocked(queries.getEquipmentRentalStats).mockResolvedValue({ totalRentals: 0 } as any);
+      ] as unknown);
+      vi.mocked(queries.getEquipmentRentalStats).mockResolvedValue({ totalRentals: 0 } as unknown);
       vi.mocked(queries.getEquipmentServiceHistory).mockResolvedValue([
         {
           id: "service-1",
@@ -207,7 +207,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
           notes: null,
           cost: "50.00",
         },
-      ] as any);
+      ] as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -218,7 +218,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment/eq-456");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
@@ -250,9 +250,9 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as any);
+      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as unknown);
       vi.mocked(queries.getEquipmentRentalHistory).mockResolvedValue([]);
-      vi.mocked(queries.getEquipmentRentalStats).mockResolvedValue({ totalRentals: 0 } as any);
+      vi.mocked(queries.getEquipmentRentalStats).mockResolvedValue({ totalRentals: 0 } as unknown);
       vi.mocked(queries.getEquipmentServiceHistory).mockResolvedValue([]);
 
       const mockSelectBuilder = {
@@ -264,7 +264,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment/eq-456");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
@@ -303,7 +303,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         values: vi.fn().mockResolvedValue(undefined),
       };
 
-      vi.mocked(db.insert).mockReturnValue(mockInsertBuilder as any);
+      vi.mocked(db.insert).mockReturnValue(mockInsertBuilder as unknown);
 
       const formData = new FormData();
       formData.append("intent", "log-service");

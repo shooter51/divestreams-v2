@@ -49,37 +49,25 @@ describe("admin/plans route", () => {
   const mockPlans = [
     {
       id: "plan-1",
-      name: "free",
-      displayName: "Free",
-      description: "Basic features",
-      monthlyPrice: 0,
-      yearlyPrice: 0,
-      features: ["Limited customers", "Basic reports"],
+      name: "standard",
+      displayName: "Standard",
+      description: "Tours & bookings",
+      monthlyPrice: 3000,
+      yearlyPrice: 28800,
+      features: ["Up to 3 users", "500 customers"],
       isActive: true,
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-01-01"),
     },
     {
       id: "plan-2",
-      name: "professional",
-      displayName: "Professional",
-      description: "Advanced features",
-      monthlyPrice: 4900,
-      yearlyPrice: 49000,
-      features: ["Unlimited customers", "Advanced reports"],
+      name: "pro",
+      displayName: "Pro",
+      description: "Everything enabled",
+      monthlyPrice: 10000,
+      yearlyPrice: 96000,
+      features: ["Unlimited users", "Unlimited customers"],
       isActive: true,
-      createdAt: new Date("2024-01-01"),
-      updatedAt: new Date("2024-01-01"),
-    },
-    {
-      id: "plan-3",
-      name: "enterprise",
-      displayName: "Enterprise",
-      description: "Full features",
-      monthlyPrice: 19900,
-      yearlyPrice: 199000,
-      features: ["Everything in Pro", "Priority support"],
-      isActive: false,
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-01-01"),
     },
@@ -141,7 +129,7 @@ describe("admin/plans route", () => {
 
       const formData = new FormData();
       formData.append("intent", "toggleActive");
-      formData.append("planId", "plan-3");
+      formData.append("planId", "plan-2");
       formData.append("isActive", "false");
 
       const request = new Request("https://admin.divestreams.com/plans", {
@@ -171,7 +159,7 @@ describe("admin/plans route", () => {
 
       const formData = new FormData();
       formData.append("intent", "delete");
-      formData.append("planId", "plan-3");
+      formData.append("planId", "plan-2");
 
       const request = new Request("https://admin.divestreams.com/plans", {
         method: "POST",

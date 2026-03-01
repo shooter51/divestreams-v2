@@ -13,6 +13,7 @@ import {
   deleteProduct,
   type Product,
 } from "../../../../../lib/db/queries.server";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -61,9 +62,26 @@ const categoryColors: Record<string, string> = {
   rental: "bg-accent-muted text-accent",
 };
 
+const categoryLabels: Record<string, string> = {
+  regulator: "Regulator",
+  bcd: "BCD",
+  wetsuit: "Wetsuit",
+  mask: "Mask",
+  fins: "Fins",
+  tank: "Tank",
+  computer: "Dive Computer",
+  torch: "Torch",
+  equipment: "Equipment",
+  apparel: "Apparel",
+  accessories: "Accessories",
+  courses: "Courses",
+  rental: "Rental",
+  other: "Other",
+};
+
 export default function ProductsPage() {
   const { products, categories } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const currentCategory = searchParams.get("category") || "";
   const currentSearch = searchParams.get("search") || "";
@@ -169,7 +187,7 @@ export default function ProductsPage() {
                         categoryColors[product.category] || "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {product.category}
+                      {categoryLabels[product.category] || (product.category.charAt(0).toUpperCase() + product.category.slice(1))}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-foreground-muted">
@@ -213,6 +231,7 @@ export default function ProductsPage() {
                         Edit
                       </Link>
                       <Form method="post" className="inline">
+                        <CsrfInput />
                         <input type="hidden" name="intent" value="delete" />
                         <input type="hidden" name="id" value={product.id} />
                         <button

@@ -215,7 +215,7 @@ export async function action({ request }: ActionFunctionArgs) {
         "Set-Cookie": cookieValue,
       },
     });
-  } catch (error) {
+  } catch {
     // Login failed
     const loginErrors: ActionErrors = { form: "Invalid email or password" };
     return {
@@ -274,7 +274,7 @@ export default function SiteLoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="mt-2 opacity-75">
-            Sign in to your {organization?.name || "account"}
+            Sign in to your {organization?.name ? `${organization.name} account` : "account"}
           </p>
         </div>
 
@@ -386,7 +386,7 @@ export default function SiteLoginPage() {
                   Password
                 </label>
                 <Link
-                  to="/site/forgot-password"
+                  to="/auth/forgot-password"
                   className="text-sm font-medium hover:opacity-80 transition-opacity"
                   style={{ color: "var(--primary-color)" }}
                 >

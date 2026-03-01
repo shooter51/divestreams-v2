@@ -197,20 +197,20 @@ describe("Server Queries Module", () => {
     const mockOffset = vi.fn(() => Promise.resolve([]));
     const mockLimitWithOffset = vi.fn(() => ({
       offset: mockOffset,
-      then: (resolve: any) => resolve([]),
+      then: (resolve: (value: unknown) => void) => resolve([]),
     }));
     mockLimit.mockResolvedValue([]);
     mockReturning.mockResolvedValue([{ id: "item-1" }]);
     // Reset where to return mockable chain by default
     const mockOrderBy = vi.fn(() => ({
       limit: mockLimitWithOffset,
-      then: (resolve: any) => resolve([]),
+      then: (resolve: (value: unknown) => void) => resolve([]),
     }));
     dbMock.where = vi.fn(() => ({
       limit: mockLimit,
       orderBy: mockOrderBy,
       returning: mockReturning,
-      then: (resolve: any) => resolve([]), // For direct await on where()
+      then: (resolve: (value: unknown) => void) => resolve([]), // For direct await on where()
     }));
   });
 
@@ -959,13 +959,13 @@ describe("Server Queries Module", () => {
       // Mock the count query to return 0 trips (allow deletion)
       const mockOrderBy = vi.fn(() => ({
         limit: mockLimit,
-        then: (resolve: any) => resolve([]),
+        then: (resolve: (value: unknown) => void) => resolve([]),
       }));
       dbMock.where = vi.fn(() => ({
         limit: mockLimit,
         orderBy: mockOrderBy,
         returning: mockReturning,
-        then: (resolve: any) => resolve([{ count: 0 }]),
+        then: (resolve: (value: unknown) => void) => resolve([{ count: 0 }]),
       }));
 
       const { deleteTour } = await import("../../../../lib/db/queries.server");
@@ -1121,7 +1121,7 @@ describe("Server Queries Module", () => {
   describe("getEquipmentById", () => {
     it("calls database with correct parameters", async () => {
       const { getEquipmentById } = await import("../../../../lib/db/queries.server");
-      const equipment = await getEquipmentById("org-1", "equip-1");
+      await getEquipmentById("org-1", "equip-1");
 
       // Verifies function runs without error
       expect(dbMock.select).toHaveBeenCalled();
@@ -1162,7 +1162,7 @@ describe("Server Queries Module", () => {
   describe("getBoatById", () => {
     it("calls database with correct parameters", async () => {
       const { getBoatById } = await import("../../../../lib/db/queries.server");
-      const boat = await getBoatById("org-1", "boat-1");
+      await getBoatById("org-1", "boat-1");
 
       // Verifies function runs without error
       expect(dbMock.select).toHaveBeenCalled();
@@ -1213,7 +1213,7 @@ describe("Server Queries Module", () => {
   describe("getDiveSiteById", () => {
     it("calls database with correct parameters", async () => {
       const { getDiveSiteById } = await import("../../../../lib/db/queries.server");
-      const site = await getDiveSiteById("org-1", "site-1");
+      await getDiveSiteById("org-1", "site-1");
 
       // Verifies function runs without error
       expect(dbMock.select).toHaveBeenCalled();

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, bookings, subscriptionPlans } from "../../../../lib/db/schema";
-import { eq, sql, count, gte, and, asc } from "drizzle-orm";
+import { eq, count, gte, and, asc } from "drizzle-orm";
 import {
   createCheckoutSession,
   cancelSubscription,
@@ -63,7 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Map database plans to billing page format
   const finalPlans = dbPlans.length > 0 ? dbPlans.map((plan, index) => ({
-    id: plan.name, // Plan name (e.g., "free", "professional", "enterprise")
+    id: plan.name, // Plan name (e.g., "standard", "pro")
     name: plan.displayName, // Display name for UI
     price: plan.monthlyPrice / 100, // cents to dollars
     yearlyPrice: plan.yearlyPrice / 100,
@@ -77,8 +77,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })) : [
     // Fallback if no plans in database
     {
-      id: "free",
-      name: "Free",
+      id: "standard",
+      name: "Standard",
       price: 0,
       yearlyPrice: 0,
       features: ["Up to 25 tours/month", "50 customers", "1 team member", "Basic features"],
@@ -96,11 +96,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       isFree: false,
     },
     {
-      id: "enterprise",
-      name: "Enterprise",
+      id: "pro",
+      name: "Pro",
       price: 199,
       yearlyPrice: 1910,
-      features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
+      features: ["Everything in Standard", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
       isFree: false,
     },
@@ -133,8 +133,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const nextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   // Get plan price based on subscription
-  // subscription.plan stores the plan name (e.g., "free", "professional", "enterprise")
-  const subscriptionPlanName = ctx.subscription?.plan || "free";
+  // subscription.plan stores the plan name (e.g., "standard", "pro")
+  const subscriptionPlanName = ctx.subscription?.plan || "standard";
 
   // Find the matching plan from database
   // Try exact match first, then fall back to free plan logic
@@ -143,9 +143,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // If no exact match and subscription is "free" or "premium" (legacy values),
   // map to appropriate plan
   if (!currentPlanData) {
-    if (subscriptionPlanName === "free" || subscriptionPlanName === "premium") {
-      // "free" -> first free plan, "premium" -> first paid plan
-      currentPlanData = subscriptionPlanName === "free"
+    if (subscriptionPlanName === "standard" || subscriptionPlanName === "premium") {
+      // "standard" -> first free plan, "premium" -> first paid plan
+      currentPlanData = subscriptionPlanName === "standard"
         ? finalPlans.find(p => p.isFree) || finalPlans[0]
         : finalPlans.find(p => !p.isFree) || finalPlans[1] || finalPlans[0];
     } else {
@@ -154,7 +154,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  const currentPlan = currentPlanData?.id || "free";
+  const currentPlan = currentPlanData?.id || "standard";
 
   // Parse metadata if it exists
   let metadata: { stripeCustomerId?: string } = {};
@@ -270,7 +270,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const billingPeriod = (formData.get("billingPeriod") as "monthly" | "yearly") || "monthly";
 
     // Map planId to plan name for Stripe
-    const planName = planId as "starter" | "pro" | "enterprise";
+    const planName = planId as "standard" | "pro";
 
     try {
       const sessionUrl = await createCheckoutSession(
@@ -324,6 +324,14 @@ export async function action({ request }: ActionFunctionArgs) {
   return null;
 }
 
+const subscriptionStatusLabels: Record<string, string> = {
+  active: "Active",
+  trialing: "Trialing",
+  canceled: "Canceled",
+  past_due: "Past Due",
+  incomplete: "Incomplete",
+};
+
 export default function BillingPage() {
   const { billing, plans } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string; cancelled?: boolean; message?: string }>();
@@ -334,8 +342,6 @@ export default function BillingPage() {
   } | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
 
-  // Find current plan data for features display
-  const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
   const isTrialing = billing.subscriptionStatus === "trialing";
   // Use pre-calculated trialDaysLeft from loader to avoid hydration mismatch
   const trialDaysLeft = billing.trialDaysLeft;
@@ -445,12 +451,12 @@ export default function BillingPage() {
                     : "bg-warning-muted text-warning"
                 }`}
               >
-                {billing.subscriptionStatus === "active" ? "Active" : billing.subscriptionStatus === "trialing" ? "Trial" : billing.subscriptionStatus === "past_due" ? "Past Due" : billing.subscriptionStatus.charAt(0).toUpperCase() + billing.subscriptionStatus.slice(1)}
+                {subscriptionStatusLabels[billing.subscriptionStatus] || billing.subscriptionStatus}
               </span>
             </div>
             <p className="text-foreground-muted mt-1">
               ${billing.amount}/{billing.billingCycle === "monthly" ? "month" : "year"}
-              {!isTrialing && ` • Next billing: ${billing.nextBillingDate}`}
+              {!isTrialing && ` • Next billing: ${new Date(billing.nextBillingDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -551,8 +557,8 @@ export default function BillingPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Yearly
-              <span className="ml-1.5 text-xs text-success font-semibold">
+              Yearly{" "}
+              <span className="ml-1 text-xs text-success font-semibold">
                 Save {plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20}%
               </span>
             </button>

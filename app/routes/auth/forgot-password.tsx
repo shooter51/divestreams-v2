@@ -74,10 +74,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
+    // Build full redirectTo URL from request to preserve tenant subdomain.
+    // Use X-Forwarded-Proto when behind a reverse proxy (Caddy) so the URL is https://.
+    const url = new URL(request.url);
+    const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
+    const redirectTo = `${proto}://${url.host}/auth/reset-password`;
+
     await auth.api.requestPasswordReset({
-      body: { email, redirectTo: "/auth/reset-password" },
+      body: { email, redirectTo },
     });
-  } catch (error) {
+  } catch {
     // Don't reveal if email exists - always show success
   }
 

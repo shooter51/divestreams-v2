@@ -53,7 +53,7 @@ export type FormErrorResponse<T = Record<string, never>> = {
  * // Returns: { name: "John Doe", email: "john@example.com" }
  * ```
  */
-export function preserveFormFields<T extends Record<string, any>>(
+export function preserveFormFields<T extends Record<string, unknown>>(
   formData: FormData,
   fields: (keyof T)[]
 ): Partial<T> {
@@ -101,7 +101,7 @@ export function preserveFormFields<T extends Record<string, any>>(
  * });
  * ```
  */
-export function createFieldPreserver<T extends Record<string, any>>() {
+export function createFieldPreserver<T extends Record<string, unknown>>() {
   return (formData: FormData, fields: (keyof T)[]) =>
     preserveFormFields<T>(formData, fields);
 }
@@ -311,7 +311,7 @@ export function combineValidations(
  * });
  * ```
  */
-export function extractFormData<T extends Record<string, any>>(
+export function extractFormData<T extends Record<string, unknown>>(
   formData: FormData,
   schema: { [K in keyof T]: (value: FormDataEntryValue | null) => T[K] }
 ): T {

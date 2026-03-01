@@ -18,10 +18,13 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -39,7 +42,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
         preferences: "Morning dives",
       };
 
-      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as any);
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
 
       const request = new Request("http://test.com/tenant/customers/cust-456/edit");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
@@ -94,7 +97,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
           medicalConditions: "No allergies",
           medications: null,
           notes: null,
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -113,7 +116,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("firstName", "John");
@@ -212,7 +215,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
           medicalConditions: null,
           medications: null,
           notes: null,
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -231,7 +234,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("firstName", "John");

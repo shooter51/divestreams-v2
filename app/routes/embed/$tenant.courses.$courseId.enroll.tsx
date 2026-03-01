@@ -16,7 +16,6 @@ import {
   useActionData,
   useNavigation,
   Link,
-  useSearchParams,
 } from "react-router";
 import { redirect } from "react-router";
 import {

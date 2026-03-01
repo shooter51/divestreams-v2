@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Form, useLoaderData, useActionData, useNavigation } from "react-router";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
@@ -6,6 +5,7 @@ import { db } from "../../../../lib/db";
 import { invitation, user, member, organization, account } from "../../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { hashPassword } from "../../../../lib/auth/password.server";
+import { getTenantUrl } from "../../../../lib/utils/url";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -107,6 +107,17 @@ export async function action({ request }: ActionFunctionArgs) {
   let userId: string;
 
   if (existingUserId) {
+    // Verify the existing user's email matches the invitation
+    const [existingUser] = await db
+      .select({ id: user.id, email: user.email })
+      .from(user)
+      .where(eq(user.id, existingUserId))
+      .limit(1);
+
+    if (!existingUser || existingUser.email.toLowerCase() !== invite.email.toLowerCase()) {
+      return { error: "This invitation was sent to a different email address" };
+    }
+
     // User already exists, just add them as a member
     userId = existingUserId;
   } else {
@@ -185,8 +196,18 @@ export async function action({ request }: ActionFunctionArgs) {
     .set({ status: "accepted" })
     .where(eq(invitation.id, token));
 
-  // Redirect to admin login
-  return redirect("/login?message=Invitation accepted! Please log in.");
+  // Look up org slug to redirect to the correct tenant login
+  const [org] = await db
+    .select({ slug: organization.slug })
+    .from(organization)
+    .where(eq(organization.id, invite.organizationId))
+    .limit(1);
+
+  const loginUrl = org
+    ? getTenantUrl(org.slug, "/login?message=Invitation+accepted%21+Please+log+in.")
+    : "/login?message=Invitation accepted! Please log in.";
+
+  return redirect(loginUrl);
 }
 
 export default function AcceptInvite() {

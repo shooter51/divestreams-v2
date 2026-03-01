@@ -4,15 +4,15 @@
  * View and manage active equipment rentals.
  */
 
-import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, redirect } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
-import { eq, and, or, gte, lte, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Manage Rentals - DiveStreams" }];
 
@@ -166,10 +166,17 @@ export async function action({ request }: ActionFunctionArgs) {
   return null;
 }
 
+const rentalStatusLabels: Record<string, string> = {
+  active: "Active",
+  overdue: "Overdue",
+  returned: "Returned",
+  cancelled: "Cancelled",
+};
+
 export default function RentalsPage() {
   useNotification();
 
-  const { rentals, stats, status: activeStatus, isPremium } = useLoaderData<typeof loader>();
+  const { rentals, stats, status: activeStatus } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const setFilter = (value: string) => {
@@ -348,12 +355,13 @@ export default function RentalsPage() {
                           : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
-                      {rental.status}
+                      {rentalStatusLabels[rental.status] || rental.status}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
                     {rental.status !== "returned" && (
                       <form method="post" className="inline">
+                        <CsrfInput />
                         <input type="hidden" name="rentalId" value={rental.id} />
                         <button
                           type="submit"

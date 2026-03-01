@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { db } from "../../../lib/db";
 import { organization, customers, customerCredentials, customerSessions } from "../../../lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { randomBytes, randomUUID } from "node:crypto";
 

@@ -1,74 +1,75 @@
 import { describe, it, expect } from "vitest";
 import { getPasswordChangedByAdminEmail } from "../../../../../lib/email/templates/password-changed-by-admin";
 
-describe("Password Changed By Admin Email", () => {
-  it("should generate email with admin name and method", () => {
-    const result = getPasswordChangedByAdminEmail({
-      userName: "John Doe",
-      userEmail: "john@example.com",
-      adminName: "Admin User",
-      method: "auto_generated",
-      organizationName: "Test Dive Shop",
-      changedAt: "January 15, 2026 at 10:30 AM",
-      loginUrl: "https://test.divestreams.com/login",
-    });
+describe("getPasswordChangedByAdminEmail", () => {
+  const defaultData = {
+    userName: "John Doe",
+    userEmail: "john@example.com",
+    adminName: "Admin User",
+    method: "auto_generated" as const,
+    organizationName: "Test Dive Shop",
+    changedAt: "January 15, 2026 at 10:30 AM",
+    loginUrl: "https://test.divestreams.com/login",
+  };
 
-    expect(result.subject).toContain("password was changed");
-    expect(result.subject).toContain("Test Dive Shop");
-    expect(result.html).toContain("John Doe");
-    expect(result.html).toContain("Admin User");
-    expect(result.html).toContain("January 15, 2026 at 10:30 AM");
-    expect(result.text).toContain("John Doe");
+  it("should generate correct output for auto_generated method", () => {
+    const result = getPasswordChangedByAdminEmail(defaultData);
+    expect(result.subject).toMatchInlineSnapshot(
+      `"Your password was changed - Test Dive Shop"`
+    );
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
   });
 
-  it("should show different message for each method", () => {
-    const autoGen = getPasswordChangedByAdminEmail({
-      userName: "Test",
-      userEmail: "test@example.com",
-      adminName: "Admin",
-      method: "auto_generated",
-      organizationName: "Shop",
-      changedAt: "Jan 1, 2026",
-      loginUrl: "https://example.com",
-    });
-
-    const manual = getPasswordChangedByAdminEmail({
-      userName: "Test",
-      userEmail: "test@example.com",
-      adminName: "Admin",
+  it("should generate correct output for manual_entry method", () => {
+    const result = getPasswordChangedByAdminEmail({
+      ...defaultData,
       method: "manual_entry",
-      organizationName: "Shop",
-      changedAt: "Jan 1, 2026",
-      loginUrl: "https://example.com",
     });
-
-    const emailReset = getPasswordChangedByAdminEmail({
-      userName: "Test",
-      userEmail: "test@example.com",
-      adminName: "Admin",
-      method: "email_reset",
-      organizationName: "Shop",
-      changedAt: "Jan 1, 2026",
-      loginUrl: "https://example.com",
-    });
-
-    expect(autoGen.html).toContain("temporary password");
-    expect(manual.html).toContain("new password was set");
-    expect(emailReset.html).toContain("reset link");
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
   });
 
-  it("should escape HTML in user data", () => {
+  it("should generate correct output for email_reset method", () => {
     const result = getPasswordChangedByAdminEmail({
-      userName: "<script>alert('xss')</script>",
-      userEmail: "test@example.com",
-      adminName: "<b>Admin</b>",
-      method: "auto_generated",
-      organizationName: "Shop",
-      changedAt: "Jan 1, 2026",
-      loginUrl: "https://example.com",
+      ...defaultData,
+      method: "email_reset",
+    });
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
+  });
+
+  it("should not contain HTML tags in text version", () => {
+    const result = getPasswordChangedByAdminEmail(defaultData);
+    expect(result.text).not.toContain("<html>");
+    expect(result.text).not.toContain("<div>");
+  });
+
+  describe("HTML sanitization", () => {
+    it("should escape HTML in user name", () => {
+      const result = getPasswordChangedByAdminEmail({
+        ...defaultData,
+        userName: "<script>alert('xss')</script>",
+      });
+      expect(result.html).not.toContain("<script>");
+      expect(result.html).toContain("&lt;script&gt;");
     });
 
-    expect(result.html).not.toContain("<script>");
-    expect(result.html).toContain("&lt;script&gt;");
+    it("should escape HTML in admin name", () => {
+      const result = getPasswordChangedByAdminEmail({
+        ...defaultData,
+        adminName: "<b>Admin</b>",
+      });
+      expect(result.html).not.toContain("<b>Admin</b>");
+      expect(result.html).toContain("&lt;b&gt;");
+    });
+
+    it("should escape HTML in organization name", () => {
+      const result = getPasswordChangedByAdminEmail({
+        ...defaultData,
+        organizationName: "<img src=x onerror=alert(1)>",
+      });
+      expect(result.html).not.toContain("<img");
+    });
   });
 });

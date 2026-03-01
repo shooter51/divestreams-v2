@@ -185,7 +185,7 @@ describe("Integration Service", () => {
 
       const integration = {
         tokenExpiresAt: null,
-      } as any;
+      } as Record<string, unknown>;
 
       expect(tokenNeedsRefresh(integration)).toBe(false);
     });
@@ -195,7 +195,7 @@ describe("Integration Service", () => {
 
       const integration = {
         tokenExpiresAt: new Date(Date.now() + 3 * 60 * 1000), // 3 minutes from now
-      } as any;
+      } as Record<string, unknown>;
 
       expect(tokenNeedsRefresh(integration)).toBe(true);
     });
@@ -205,7 +205,7 @@ describe("Integration Service", () => {
 
       const integration = {
         tokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
-      } as any;
+      } as Record<string, unknown>;
 
       expect(tokenNeedsRefresh(integration)).toBe(false);
     });
@@ -215,7 +215,7 @@ describe("Integration Service", () => {
 
       const integration = {
         tokenExpiresAt: new Date(Date.now() - 60 * 1000), // 1 minute ago
-      } as any;
+      } as Record<string, unknown>;
 
       expect(tokenNeedsRefresh(integration)).toBe(true);
     });

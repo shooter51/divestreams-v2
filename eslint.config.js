@@ -15,6 +15,7 @@ export default tseslint.config(
       "test-results/**",
       "scripts/**", // Ignore scripts folder
       "public/**", // Ignore public assets (browser-compatible JS)
+      "orchestrator/**", // Separate project with own tsconfig
     ],
   },
   {
@@ -135,9 +136,23 @@ export default tseslint.config(
       "zapier-app/**",                                 // Zapier app JS files
       "lib/themes/**",                                 // Theme definitions need actual color values
       "lib/db/seed-demo-data.server.ts",               // Seed data generation
+      "lib/utils/public-site.ts",                      // Theme utility defaults
+      "app/routes/embed/**",                           // Embed widget branding defaults & CSS fallbacks
+      "app/routes/site/**",                             // Public site with own theming (agency colors, overlays)
+      "app/routes/tenant/settings/booking-widget.tsx", // Widget color configuration
+      "app/components/pos/CheckoutModals.tsx",          // Stripe Elements CSS variable fallbacks
     ],
     rules: {
       "no-restricted-syntax": "off",  // Allow hardcoded colors in these specific files
+    },
+  },
+  // Exempt test files that contain color data as test fixtures/assertions
+  {
+    files: [
+      "tests/**/*.test.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": "off",  // Allow color literals in test assertions
     },
   },
   // Playwright E2E test-specific rules

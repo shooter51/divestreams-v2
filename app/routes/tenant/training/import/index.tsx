@@ -5,6 +5,7 @@ import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-conte
 import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 import { escapeHtml } from "../../../../../lib/security/sanitize";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -322,6 +323,7 @@ export async function action({ request }: ActionFunctionArgs) {
           medicalRequirements: template.medicalRequirements ?? undefined,
           materialsIncluded: template.materialsIncluded ?? undefined,
           requiredItems: template.requiredItems ?? undefined,
+          images: template.images ?? undefined,
           price: "0.00", // Default price - user will set
           currency: "USD",
           isActive: true,
@@ -398,6 +400,7 @@ export default function TrainingImportPage() {
               Download CSV Template
             </a>
             <Form method="post" encType="multipart/form-data" className="flex-1 flex gap-2">
+              <CsrfInput />
               <input type="hidden" name="step" value="csv-upload" />
               <input
                 type="file"
@@ -534,6 +537,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: 
       </p>
 
       <Form method="post" className="max-w-md">
+        <CsrfInput />
         <input type="hidden" name="step" value="select-agency" />
         <input type="hidden" name="agencyCode" value={selectedAgency} />
         <input type="hidden" name="agencyName" value={selectedAgencyData?.name || ""} />
@@ -647,6 +651,7 @@ function SelectCoursesStep({
       </div>
 
       <Form method="post">
+        <CsrfInput />
         <input type="hidden" name="step" value="select-courses" />
         <input type="hidden" name="agencyCode" value={agency.code} />
         <input type="hidden" name="agencyName" value={agency.name} />
@@ -758,6 +763,7 @@ function PreviewStep({
       </div>
 
       <Form method="post" className="space-y-4">
+        <CsrfInput />
         <input type="hidden" name="step" value="execute-import" />
         <input type="hidden" name="agencyCode" value={agency.code} />
         <input type="hidden" name="agencyName" value={agency.name} />

@@ -1,0 +1,524 @@
+{
+  "consumer": {
+    "name": "Zapier"
+  },
+  "interactions": [
+    {
+      "description": "a request for available triggers",
+      "providerStates": [
+        {
+          "name": "valid API key exists"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-API-Key": "valid-key-123"
+        },
+        "method": "GET",
+        "path": "/api/zapier/triggers"
+      },
+      "response": {
+        "body": {
+          "count": 3,
+          "triggers": [
+            {
+              "description": "Triggered when a new booking is created",
+              "key": "booking.created",
+              "name": "Booking Created",
+              "sample": {
+                "booking_number": "BK001",
+                "customer_id": 1,
+                "id": 123,
+                "participants": 2,
+                "status": "confirmed",
+                "total": 300,
+                "trip_id": 5
+              }
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.count": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.triggers[*].description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].key": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.booking_number": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.customer_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.participants": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.triggers[*].sample.trip_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to create booking",
+      "providerStates": [
+        {
+          "name": "valid API key and trip exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "customer_email": "customer@example.com",
+          "customer_first_name": "John",
+          "customer_last_name": "Doe",
+          "notes": "Special request: vegetarian meals",
+          "participants": 2,
+          "trip_id": "trip-123"
+        },
+        "headers": {
+          "Content-Type": "application/json",
+          "X-API-Key": "valid-key-123"
+        },
+        "matchingRules": {
+          "body": {
+            "$.customer_email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.customer_first_name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.customer_last_name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.notes": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.participants": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.trip_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/zapier/actions/create-booking"
+      },
+      "response": {
+        "body": {
+          "booking_number": "BK-booking-",
+          "created_at": "2024-01-01T12:00:00.000Z",
+          "customer_id": "cust-1",
+          "id": "booking-abc123",
+          "participants": 2,
+          "status": "pending",
+          "trip_id": "trip-123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.booking_number": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+                  "match": "datetime"
+                }
+              ]
+            },
+            "$.customer_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.participants": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.trip_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to subscribe to trigger",
+      "providerStates": [
+        {
+          "name": "valid API key and event type"
+        }
+      ],
+      "request": {
+        "body": {
+          "event_type": "booking.created",
+          "target_url": "https://hooks.zapier.com/hooks/catch/123456/abcdef"
+        },
+        "headers": {
+          "Content-Type": "application/json",
+          "X-API-Key": "valid-key-123"
+        },
+        "matchingRules": {
+          "body": {
+            "$.event_type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.target_url": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/zapier/subscribe"
+      },
+      "response": {
+        "body": {
+          "created_at": "2024-01-01T12:00:00.000Z",
+          "event_type": "booking.created",
+          "id": "sub-xyz",
+          "target_url": "https://hooks.zapier.com/hooks/catch/123456/abcdef"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+                  "match": "datetime"
+                }
+              ]
+            },
+            "$.event_type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.target_url": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to test API connection",
+      "providerStates": [
+        {
+          "name": "valid API key exists for organization"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-API-Key": "valid-key-123"
+        },
+        "method": "GET",
+        "path": "/api/zapier/test"
+      },
+      "response": {
+        "body": {
+          "message": "API key is valid",
+          "organization": {
+            "id": "org-123",
+            "name": "Test Dive Shop",
+            "slug": "test-dive-shop"
+          },
+          "success": true,
+          "timestamp": "2024-01-01T12:00:00.000Z"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.organization.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.organization.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.organization.slug": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.success": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.timestamp": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+                  "match": "datetime"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request with invalid API key",
+      "providerStates": [
+        {
+          "name": "API key is invalid"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-API-Key": "invalid-key"
+        },
+        "method": "GET",
+        "path": "/api/zapier/test"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid API key"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.error": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 401
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "16.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.28",
+      "models": "1.3.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "DiveStreamsAPI"
+  }
+}

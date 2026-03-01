@@ -358,7 +358,7 @@ export default function SiteContactPage() {
     );
   }
 
-  const { contactInfo, organization } = loaderData;
+  const { contactInfo } = loaderData;
 
   // Parse business hours into array for display
   const parseHours = (hoursString: string | null | undefined): string[] => {
@@ -414,13 +414,14 @@ export default function SiteContactPage() {
             <Form method="post" className="space-y-6">
               {/* Honeypot field - hidden from users, bots will fill it */}
               <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
-                <label htmlFor="website">Website</label>
+                <label htmlFor="website" aria-hidden="true">Website</label>
                 <input
                   type="text"
                   id="website"
                   name="website"
                   tabIndex={-1}
                   autoComplete="off"
+                  aria-hidden="true"
                 />
               </div>
 
@@ -444,7 +445,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.name
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.name ? "true" : undefined}
@@ -483,7 +484,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.email
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.email ? "true" : undefined}
@@ -521,7 +522,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.phone
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.phone ? "true" : undefined}
@@ -559,7 +560,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.message
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.message ? "true" : undefined}
@@ -716,7 +717,7 @@ export default function SiteContactPage() {
                 !contactInfo?.email &&
                 !contactInfo?.hours && (
                   <p className="opacity-75">
-                    Contact information coming soon. Please check back later.
+                    Contact us using the form below.
                   </p>
                 )}
             </div>

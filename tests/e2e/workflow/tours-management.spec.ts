@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Tours Management E2E Workflow Tests
@@ -58,9 +59,9 @@ const testData = {
   },
 };
 
-// Helper to get tenant URL
+// URL helper - bind subdomain for convenience
 const getTenantUrl = (path: string = "/") =>
-  `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  _getTenantUrl(testData.tenant.subdomain, path);
 
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
@@ -71,7 +72,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -364,7 +365,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     // Submit form
     await Promise.all([
       page.getByRole("button", { name: /create|save|add/i }).click(),
-      page.waitForLoadState("networkidle").catch(() => {}),
+      page.waitForLoadState("load").catch(() => {}),
     ]).catch(() => null);
 
     const redirectedToList = page.url().includes("/tenant/tours") && !page.url().includes("/new");
@@ -574,7 +575,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
 
     const redirected = page.url().includes("/tenant/tours") && !page.url().includes("/edit");

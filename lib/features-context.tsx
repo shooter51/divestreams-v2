@@ -13,11 +13,11 @@ export const FeaturesContext = createContext<FeaturesContextValue | null>(null);
 export function useFeatures(): FeaturesContextValue {
   const ctx = useContext(FeaturesContext);
   if (!ctx) {
-    // Return free tier defaults if no context (shouldn't happen in normal use)
+    // Return standard tier defaults if no context (shouldn't happen in normal use)
     return {
-      features: DEFAULT_PLAN_FEATURES.free,
-      limits: DEFAULT_PLAN_LIMITS.free,
-      planName: "Free",
+      features: DEFAULT_PLAN_FEATURES.standard,
+      limits: DEFAULT_PLAN_LIMITS.standard,
+      planName: "Standard",
     };
   }
   return ctx;

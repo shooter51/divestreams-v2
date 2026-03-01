@@ -10,13 +10,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, act, fireEvent } from "@testing-library/react";
-import { userEvent } from "@testing-library/user-event";
+import { render, screen, act, fireEvent } from "@testing-library/react";
+import "@testing-library/user-event";
 import { ToastContainer, type Toast } from "../../../../../app/components/ui/Toast";
 
 describe("Toast Component", () => {
   const mockOnDismiss = vi.fn();
-  const user = userEvent.setup();
 
   beforeEach(() => {
     vi.clearAllMocks();

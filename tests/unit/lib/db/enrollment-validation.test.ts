@@ -55,7 +55,7 @@ vi.mock("../../../../lib/db/schema", () => ({
 }));
 
 describe("Enrollment Validation Tests", () => {
-  let dbMock: any;
+  let dbMock: Record<string, unknown>;
 
   beforeEach(async () => {
     vi.clearAllMocks();

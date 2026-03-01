@@ -24,8 +24,8 @@ vi.mock("../../lib/redis.server", () => ({
 // The business logic is tested via E2E tests in admin-subscription-upgrade.spec.ts
 describe.skip("Admin Subscription Upgrade", () => {
   let testOrgId: string;
-  let freePlanId: string;
-  let enterprisePlanId: string;
+  let standardPlanId: string;
+  let proPlanId: string;
 
   beforeEach(async () => {
     // Create test organization
@@ -42,33 +42,33 @@ describe.skip("Admin Subscription Upgrade", () => {
     testOrgId = org.id;
 
     // Get plan IDs from database - only select essential columns
-    const [freePlan] = await db
+    const [standardPlan] = await db
       .select({
         id: subscriptionPlans.id,
         name: subscriptionPlans.name,
       })
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "free"))
+      .where(eq(subscriptionPlans.name, "standard"))
       .limit(1);
 
-    if (!freePlan) {
-      throw new Error("Free plan not found in database. Run seed migration first.");
+    if (!standardPlan) {
+      throw new Error("Standard plan not found in database. Run seed migration first.");
     }
-    freePlanId = freePlan.id;
+    standardPlanId = standardPlan.id;
 
-    const [enterprisePlan] = await db
+    const [proPlan] = await db
       .select({
         id: subscriptionPlans.id,
         name: subscriptionPlans.name,
       })
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "enterprise"))
+      .where(eq(subscriptionPlans.name, "pro"))
       .limit(1);
 
-    if (!enterprisePlan) {
-      throw new Error("Enterprise plan not found in database. Run seed migration first.");
+    if (!proPlan) {
+      throw new Error("Pro plan not found in database. Run seed migration first.");
     }
-    enterprisePlanId = enterprisePlan.id;
+    proPlanId = proPlan.id;
   });
 
   it("should set both plan and planId when creating subscription", async () => {
@@ -76,8 +76,8 @@ describe.skip("Admin Subscription Upgrade", () => {
     await db.insert(subscription).values({
       id: randomUUID(),
       organizationId: testOrgId,
-      plan: "enterprise",
-      planId: enterprisePlanId,
+      plan: "pro",
+      planId: proPlanId,
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -90,8 +90,8 @@ describe.skip("Admin Subscription Upgrade", () => {
       .where(eq(subscription.organizationId, testOrgId))
       .limit(1);
 
-    expect(sub.plan).toBe("enterprise");
-    expect(sub.planId).toBe(enterprisePlanId);
+    expect(sub.plan).toBe("pro");
+    expect(sub.planId).toBe(proPlanId);
     expect(sub.planId).not.toBeNull();
   });
 
@@ -100,8 +100,8 @@ describe.skip("Admin Subscription Upgrade", () => {
     await db.insert(subscription).values({
       id: randomUUID(),
       organizationId: testOrgId,
-      plan: "free",
-      planId: freePlanId,
+      plan: "standard",
+      planId: standardPlanId,
       status: "trialing",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -111,8 +111,8 @@ describe.skip("Admin Subscription Upgrade", () => {
     await db
       .update(subscription)
       .set({
-        plan: "enterprise",
-        planId: enterprisePlanId,
+        plan: "pro",
+        planId: proPlanId,
         status: "active",
         updatedAt: new Date(),
       })
@@ -125,8 +125,8 @@ describe.skip("Admin Subscription Upgrade", () => {
       .where(eq(subscription.organizationId, testOrgId))
       .limit(1);
 
-    expect(sub.plan).toBe("enterprise");
-    expect(sub.planId).toBe(enterprisePlanId);
+    expect(sub.plan).toBe("pro");
+    expect(sub.planId).toBe(proPlanId);
     expect(sub.planId).not.toBeNull();
   });
 
@@ -135,8 +135,8 @@ describe.skip("Admin Subscription Upgrade", () => {
     await db.insert(subscription).values({
       id: randomUUID(),
       organizationId: testOrgId,
-      plan: "free",
-      planId: freePlanId, // Always set planId
+      plan: "standard",
+      planId: standardPlanId, // Always set planId
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -162,25 +162,25 @@ describe.skip("Admin Subscription Upgrade", () => {
 
   it("should verify planId matches plan name", async () => {
     // Get enterprise plan - select only needed columns
-    const [enterprisePlan] = await db
+    const [proPlan] = await db
       .select({
         id: subscriptionPlans.id,
         name: subscriptionPlans.name,
       })
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "enterprise"))
+      .where(eq(subscriptionPlans.name, "pro"))
       .limit(1);
 
-    if (!enterprisePlan) {
-      throw new Error("Enterprise plan not found");
+    if (!proPlan) {
+      throw new Error("Pro plan not found");
     }
 
     // Create subscription - use UUID for id
     await db.insert(subscription).values({
       id: randomUUID(),
       organizationId: testOrgId,
-      plan: "enterprise",
-      planId: enterprisePlan.id,
+      plan: "pro",
+      planId: proPlan.id,
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -199,8 +199,8 @@ describe.skip("Admin Subscription Upgrade", () => {
       .limit(1);
 
     // Verify FK relationship works correctly
-    expect(result.planName).toBe("enterprise");
-    expect(result.subscriptionPlan).toBe("enterprise");
-    expect(result.subscriptionPlanId).toBe(enterprisePlan.id);
+    expect(result.planName).toBe("pro");
+    expect(result.subscriptionPlan).toBe("pro");
+    expect(result.subscriptionPlanId).toBe(proPlan.id);
   });
 });

@@ -6,9 +6,10 @@ import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { createProduct } from "../../../../../lib/db/queries.server";
-import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../../lib/storage";
+import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../../lib/storage";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
@@ -98,13 +99,13 @@ export async function action({ request }: ActionFunctionArgs) {
         const thumbnailKey = `${baseKey}-thumb.webp`;
 
         // Upload to S3/B2
-        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
         if (!originalUpload) {
           failedFiles.push(`${file.name} (storage error)`);
           continue;
         }
 
-        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+        const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
         // Save to database
         await db.insert(schema.images).values({
@@ -185,6 +186,7 @@ export default function NewProductPage() {
       )}
 
       <Form method="post" encType="multipart/form-data" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">

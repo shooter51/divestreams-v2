@@ -8,6 +8,7 @@ import {
   updateCourse,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Course Details - DiveStreams" }];
 
@@ -321,6 +322,7 @@ export default function CourseDetailPage() {
                 Schedule Session
               </Link>
               <fetcher.Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="toggle-active" />
                 <button
                   type="submit"
@@ -330,6 +332,7 @@ export default function CourseDetailPage() {
                 </button>
               </fetcher.Form>
               <fetcher.Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="toggle-public" />
                 <button
                   type="submit"

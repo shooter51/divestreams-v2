@@ -11,10 +11,11 @@ import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.ser
 import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { redirectWithNotification, useNotification } from "../../../lib/use-notification";
+import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { CsrfInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
@@ -250,6 +251,14 @@ function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; 
   return { label: "Active", color: "bg-success-muted text-success" };
 }
 
+const applicableToLabels: Record<string, string> = {
+  all: "All",
+  tours: "Tours",
+  equipment: "Equipment",
+  products: "Products",
+  courses: "Courses",
+};
+
 function formatDiscountValue(type: string, value: string): string {
   if (type === "percentage") {
     return `${Number(value)}%`;
@@ -377,7 +386,7 @@ export default function DiscountsPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 capitalize text-sm">{discount.applicableTo}</td>
+                      <td className="px-4 py-3 text-sm">{applicableToLabels[discount.applicableTo] || discount.applicableTo}</td>
                       <td className="px-4 py-3 text-sm text-foreground-muted">
                         {discount.validFrom ? (
                           <>
@@ -391,8 +400,9 @@ export default function DiscountsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {discount.usedCount}
-                        {discount.maxUses && ` / ${discount.maxUses}`}
+                        {discount.maxUses
+                          ? `${discount.usedCount} / ${discount.maxUses}`
+                          : `${discount.usedCount} / \u221e`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
@@ -413,6 +423,7 @@ export default function DiscountsPage() {
                             Edit
                           </button>
                           <fetcher.Form method="post">
+                            <CsrfInput />
                             <input type="hidden" name="intent" value="toggle-active" />
                             <input type="hidden" name="id" value={discount.id} />
                             <input type="hidden" name="isActive" value="false" />
@@ -479,8 +490,9 @@ export default function DiscountsPage() {
                         {formatDiscountValue(discount.discountType, discount.discountValue)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {discount.usedCount}
-                        {discount.maxUses && ` / ${discount.maxUses}`}
+                        {discount.maxUses
+                          ? `${discount.usedCount} / ${discount.maxUses}`
+                          : `${discount.usedCount} / \u221e`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
@@ -491,6 +503,7 @@ export default function DiscountsPage() {
                         <div className="flex items-center justify-end gap-2">
                           {status.label === "Inactive" && (
                             <fetcher.Form method="post">
+                              <CsrfInput />
                               <input type="hidden" name="intent" value="toggle-active" />
                               <input type="hidden" name="id" value={discount.id} />
                               <input type="hidden" name="isActive" value="true" />
@@ -534,6 +547,7 @@ export default function DiscountsPage() {
               </h2>
 
               <fetcher.Form method="post" className="space-y-4">
+                <CsrfInput />
                 <input type="hidden" name="intent" value={editingDiscount ? "update" : "create"} />
                 {editingDiscount && <input type="hidden" name="id" value={editingDiscount.id} />}
 
@@ -707,6 +721,7 @@ export default function DiscountsPage() {
                 {editingDiscount && (
                   <div className="pt-4 border-t">
                     <fetcher.Form method="post">
+                      <CsrfInput />
                       <input type="hidden" name="intent" value="delete" />
                       <input type="hidden" name="id" value={editingDiscount.id} />
                       <button

@@ -15,6 +15,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
@@ -175,6 +176,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
+function formatDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
 const categoryLabels: Record<string, string> = {
   bcd: "BCD",
   regulator: "Regulator",
@@ -194,11 +200,25 @@ const statusColors: Record<string, string> = {
   retired: "bg-surface-inset text-foreground-muted",
 };
 
+const statusLabels: Record<string, string> = {
+  available: "Available",
+  rented: "Rented",
+  maintenance: "Maintenance",
+  retired: "Retired",
+};
+
 const conditionColors: Record<string, string> = {
   excellent: "bg-success-muted text-success",
   good: "bg-brand-muted text-brand",
   fair: "bg-warning-muted text-warning",
   poor: "bg-danger-muted text-danger",
+};
+
+const conditionLabels: Record<string, string> = {
+  excellent: "Excellent",
+  good: "Good",
+  fair: "Fair",
+  poor: "Poor",
 };
 
 export default function EquipmentDetailPage() {
@@ -233,12 +253,12 @@ export default function EquipmentDetailPage() {
             <span
               className={`text-sm px-3 py-1 rounded-full ${statusColors[equipment.status]}`}
             >
-              {equipment.status}
+              {statusLabels[equipment.status] || equipment.status}
             </span>
             <span
               className={`text-sm px-3 py-1 rounded-full ${conditionColors[equipment.condition ?? "good"]}`}
             >
-              {equipment.condition}
+              {conditionLabels[equipment.condition ?? "good"] || equipment.condition}
             </span>
           </div>
           <p className="text-foreground-muted">
@@ -254,6 +274,7 @@ export default function EquipmentDetailPage() {
           </Link>
           {equipment.status !== "retired" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="retire" />
               <button
                 type="submit"
@@ -310,6 +331,7 @@ export default function EquipmentDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Status Change</h2>
             <fetcher.Form method="post" className="flex gap-2">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-status" />
               <select
                 name="status"
@@ -393,6 +415,7 @@ export default function EquipmentDetailPage() {
               <p className="text-foreground-muted text-sm mb-4">No service records yet.</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
+              <CsrfInput />
               <input type="hidden" name="intent" value="log-service" />
               <div>
                 <label className="block text-xs text-foreground-muted mb-1">Type</label>
@@ -539,12 +562,12 @@ export default function EquipmentDetailPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Last Service</span>
-                <span>{equipment.lastServiceDate || "Never"}</span>
+                <span>{equipment.lastServiceDate ? formatDate(equipment.lastServiceDate) : "Never"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Next Due</span>
                 <span className={serviceDue ? "text-warning font-medium" : ""}>
-                  {equipment.nextServiceDate || "Not set"}
+                  {equipment.nextServiceDate ? formatDate(equipment.nextServiceDate) : "Not set"}
                 </span>
               </div>
               {serviceDue && (
@@ -567,7 +590,7 @@ export default function EquipmentDetailPage() {
                 {equipment.purchaseDate && (
                   <div className="flex justify-between">
                     <span className="text-foreground-muted">Date</span>
-                    <span>{equipment.purchaseDate}</span>
+                    <span>{formatDate(equipment.purchaseDate)}</span>
                   </div>
                 )}
                 {equipment.purchasePrice && (
@@ -582,8 +605,8 @@ export default function EquipmentDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Created: {equipment.createdAt}</p>
-            <p>Updated: {equipment.updatedAt}</p>
+            <p>Created: {formatDate(equipment.createdAt)}</p>
+            <p>Updated: {formatDate(equipment.updatedAt)}</p>
             <p>ID: {equipment.id}</p>
           </div>
         </div>

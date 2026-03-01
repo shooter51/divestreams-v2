@@ -24,7 +24,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Login as demo user
     await loginPage.goto();
-    await loginPage.login('owner@demo.com', 'demo1234');
+    await loginPage.login('e2e-tester@demo.com', 'DemoPass1234');
 
     // Navigate to POS
     await posPage.goto();
@@ -33,7 +33,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-A: Split payment modal opens and shows correct UI', async ({ page }) => {
     // Add a product to cart (click first product)
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -47,12 +47,12 @@ test.describe('KAN-634: POS Split Payment', () => {
     await expect(page.getByRole('heading', { name: /split payment/i })).toBeVisible();
     await expect(page.getByText(/total/i).first()).toBeVisible();
     await expect(page.getByPlaceholder(/amount/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /^add$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /add.*payment/i })).toBeVisible();
   });
 
   test('KAN-634-B: Cash-only split payment works', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -66,7 +66,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Add full amount as cash
     await page.getByPlaceholder(/amount/i).fill(totalAmount.toString());
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /add.*payment/i }).click();
 
     // Complete sale button should be enabled when full amount is paid
     const completeButton = page.getByRole('button', { name: /complete sale/i });
@@ -74,12 +74,12 @@ test.describe('KAN-634: POS Split Payment', () => {
     await completeButton.click();
 
     // Verify success toast appears
-    await expect(page.locator('.bg-green-600')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.bg-success-muted')).toBeVisible({ timeout: 5000 });
   });
 
   test('KAN-634-C: Multiple cash payments in split mode', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -94,18 +94,18 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add first payment (half of total)
     const firstPayment = Math.floor(totalAmount / 2);
     await page.getByPlaceholder(/amount/i).fill(firstPayment.toString());
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /add.*payment/i }).click();
 
     // Verify first payment is listed
     await expect(page.getByText(`$${firstPayment.toFixed(2)}`).first()).toBeVisible();
 
     // Verify remaining amount is calculated
     const remaining = totalAmount - firstPayment;
-    await expect(page.getByText(/remaining/i).locator('..')).toContainText(`$${remaining.toFixed(2)}`);
+    await expect(page.locator('.flex.justify-between').filter({ hasText: /remaining/i })).toContainText(`$${remaining.toFixed(2)}`);
 
     // Add second payment (remaining amount)
-    await page.getByRole('button', { name: /rest/i }).click(); // Use "Rest" button
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /remaining/i }).click(); // Use "Remaining" button
+    await page.getByRole('button', { name: /add.*payment/i }).click();
 
     // Complete sale button should be enabled
     const completeButton = page.getByRole('button', { name: /complete sale/i });
@@ -113,12 +113,12 @@ test.describe('KAN-634: POS Split Payment', () => {
     await completeButton.click();
 
     // Verify success
-    await expect(page.locator('.bg-green-600')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.bg-success-muted')).toBeVisible({ timeout: 5000 });
   });
 
   test('KAN-634-D: Can remove payments from split payment', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -133,7 +133,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Add cash payment
     await page.getByPlaceholder(/amount/i).fill(paymentAmount.toString());
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /add.*payment/i }).click();
 
     // Verify payment is listed
     await expect(page.getByText(`$${paymentAmount.toFixed(2)}`).first()).toBeVisible();
@@ -148,7 +148,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-E: Complete sale button disabled when amount does not match total', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -163,7 +163,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add less than total amount (use 50% to work with any product price)
     const partialAmount = Math.floor(totalAmount / 2);
     await page.getByPlaceholder(/amount/i).fill(partialAmount.toString());
-    await page.getByRole('button', { name: /^add$/i }).click();
+    await page.getByRole('button', { name: /add.*payment/i }).click();
 
     // Complete sale button should be disabled
     const completeButton = page.getByRole('button', { name: /complete sale/i });

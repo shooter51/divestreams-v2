@@ -343,7 +343,7 @@ function formatPrice(price: string, currency: string): string {
 // ============================================================================
 
 export default function SiteTripDetailPage() {
-  const { trip, images, diveSites, organizationName, organizationSlug } = useLoaderData<typeof loader>();
+  const { trip, images, diveSites, organizationSlug } = useLoaderData<typeof loader>();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
 
@@ -539,7 +539,7 @@ export default function SiteTripDetailPage() {
                       )}
                       <div className="mt-2 flex flex-wrap gap-3 text-sm">
                         {site.maxDepth && (
-                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>Max Depth: {site.maxDepth}m</span>
+                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>Max Depth: {site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</span>
                         )}
                         {site.highlights.length > 0 && (
                           <span className="opacity-60" style={{ color: "var(--text-color)" }}>

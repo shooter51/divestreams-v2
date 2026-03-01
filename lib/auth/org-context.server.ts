@@ -96,8 +96,8 @@ export function buildTierLimits(
  * as a safe fallback when the plan lookup fails or no subscription exists.
  */
 export const FREE_TIER_LIMITS: TierLimits = buildTierLimits(
-  DEFAULT_PLAN_LIMITS.free,
-  DEFAULT_PLAN_FEATURES.free
+  DEFAULT_PLAN_LIMITS.standard,
+  DEFAULT_PLAN_FEATURES.standard
 );
 
 /**
@@ -108,8 +108,8 @@ export const FREE_TIER_LIMITS: TierLimits = buildTierLimits(
  * @deprecated Use DB-driven plan limits instead.
  */
 export const PREMIUM_LIMITS: TierLimits = buildTierLimits(
-  DEFAULT_PLAN_LIMITS.enterprise,
-  DEFAULT_PLAN_FEATURES.enterprise
+  DEFAULT_PLAN_LIMITS.pro,
+  DEFAULT_PLAN_FEATURES.pro
 );
 
 // ============================================================================
@@ -257,7 +257,7 @@ export async function getOrgContext(
 
   // Fetch the plan details from subscriptionPlans table
   // Prefer planId (modern FK) over legacy plan name field
-  const planName = sub?.plan || "free";
+  const planName = sub?.plan || "standard";
   let planDetails;
   if (sub?.planId) {
     [planDetails] = await db
@@ -414,7 +414,25 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
       .limit(1);
 
     if (tenant && !tenant.isActive) {
-      // Tenant is deactivated - show error page
+      // Check if this is a data fetch request (React Router .data requests)
+      const url = new URL(request.url);
+      const isDataRequest = url.pathname.endsWith(".data") || request.headers.get("Accept")?.includes("application/json");
+
+      if (isDataRequest) {
+        // Return JSON response for data fetches
+        throw new Response(
+          JSON.stringify({
+            error: "Account Deactivated",
+            message: "This account has been deactivated and is no longer accessible. If you believe this is an error, please contact support@divestreams.com",
+          }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+
+      // Return HTML response for page navigations
       throw new Response(
         `
         <!DOCTYPE html>
@@ -635,7 +653,7 @@ export async function requireTenant(
       subdomain: context.org.slug,
       schemaName: `tenant_${context.org.slug}`, // Legacy schema name format
       name: context.org.name,
-      subscriptionStatus: context.subscription?.status ?? "free",
+      subscriptionStatus: context.subscription?.status ?? "standard",
       trialEndsAt: context.subscription?.trialEndsAt ?? null,
     },
     organizationId: context.org.id,

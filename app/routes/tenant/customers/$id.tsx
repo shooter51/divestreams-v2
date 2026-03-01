@@ -64,6 +64,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     dateOfBirth: formatDate(customer.dateOfBirth),
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),
+    lastDiveAt: formatDate(customer.lastDiveAt),
     certifications: formattedCertifications,
   };
 
@@ -110,12 +111,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
       return { error: "Subject and body are required" };
     }
 
-    // Fetch customer email from DB — never trust client-supplied email
-    const customer = await getCustomerById(organizationId, customerId);
-    if (!customer || !customer.email) {
+    // Fetch customer email from DB — never trust client-supplied email address
+    const customerData = await getCustomerById(organizationId, customerId);
+    if (!customerData?.email) {
       return { error: "Customer not found or has no email address" };
     }
-    const customerEmail = customer.email;
+    const customerEmail = customerData.email;
 
     // Actually send the email via SMTP [KAN-607 FIX]
     try {
@@ -168,6 +169,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   return null;
+}
+
+function formatDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 export default function CustomerDetailPage() {
@@ -256,7 +262,7 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt ? new Date(customer.lastDiveAt).toLocaleDateString() : "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDate(customer.lastDiveAt) : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
@@ -275,7 +281,7 @@ export default function CustomerDetailPage() {
               </div>
               <div>
                 <p className="text-foreground-muted">Date of Birth</p>
-                <p>{customer.dateOfBirth || "—"}</p>
+                <p>{customer.dateOfBirth ? formatDate(customer.dateOfBirth) : "—"}</p>
               </div>
               <div>
                 <p className="text-foreground-muted">Language</p>
@@ -344,7 +350,7 @@ export default function CustomerDetailPage() {
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
                   {cert.number && <p className="text-foreground-muted">#{cert.number}</p>}
-                  {cert.date && <p className="text-foreground-muted">{cert.date}</p>}
+                  {cert.date && <p className="text-foreground-muted">{formatDate(cert.date)}</p>}
                 </div>
               ))
             ) : (
@@ -405,8 +411,8 @@ export default function CustomerDetailPage() {
                   <div key={comm.id} className="text-sm border-l-2 border-brand pl-3">
                     <p className="font-medium">{comm.subject || "(No subject)"}</p>
                     <p className="text-foreground-muted text-xs">
-                      {new Date(comm.createdAt).toLocaleDateString()} at{" "}
-                      {new Date(comm.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(comm.createdAt).toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })} at{" "}
+                      {new Date(comm.createdAt).toLocaleTimeString("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 ))}
@@ -424,7 +430,7 @@ export default function CustomerDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Customer since {customer.createdAt}</p>
+            <p>Customer since {formatDate(customer.createdAt)}</p>
             <p>Marketing: {customer.marketingOptIn ? "Opted in" : "Opted out"}</p>
           </div>
         </div>

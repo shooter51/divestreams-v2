@@ -112,7 +112,6 @@ import {
   checkRateLimit,
   resetRateLimit,
   getClientIp,
-  type RateLimitConfig,
 } from "../../../../lib/utils/rate-limit";
 
 describe("Rate Limit Module", () => {

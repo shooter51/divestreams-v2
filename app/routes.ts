@@ -15,6 +15,9 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Demo seed reset endpoint (protected by SEED_KEY)
+  route("api/seed/reset", "routes/api/seed/reset.ts"),
+
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 
@@ -55,6 +58,8 @@ export default [
 
     // Tenant login (outside layout - no auth required)
     route("login", "routes/tenant/login.tsx"),
+    route("forgot-password", "routes/tenant/forgot-password.tsx"),
+    route("reset-password", "routes/tenant/reset-password.tsx"),
 
     // Tenant dashboard layout
     layout("routes/tenant/layout.tsx", [

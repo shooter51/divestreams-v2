@@ -102,6 +102,7 @@ export async function createCustomer(organizationId: string, data: {
   emergencyContactRelation?: string;
   medicalConditions?: string;
   medications?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   certifications?: any;
   address?: string;
   city?: string;
@@ -148,6 +149,7 @@ export async function updateCustomer(organizationId: string, id: string, data: P
   emergencyContactRelation: string;
   medicalConditions: string;
   medications: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   certifications: any;
   address: string;
   city: string;

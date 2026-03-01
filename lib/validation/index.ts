@@ -199,7 +199,6 @@ export type BookingInput = z.infer<typeof bookingSchema>;
 
 export const diveSiteSchema = z.object({
   name: z.string().min(1, "Site name required").max(200),
-  location: z.string().min(1, "Location required").max(200),
   description: z.string().optional(),
   latitude: z.preprocess(
     (val) => (val === "" || val === undefined || val === null ? undefined : val),

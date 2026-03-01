@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
-import { getRedirectPathname } from "../../../helpers/redirect";
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
@@ -10,7 +9,7 @@ vi.mock("../../../../lib/auth/org-context.server", () => ({
 }));
 
 vi.mock("../../../../lib/storage", () => ({
-  uploadToB2: vi.fn(),
+  uploadToS3: vi.fn(),
   getImageKey: vi.fn((tenant, entityType, entityId, filename) =>
     `${tenant}/${entityType}/${entityId}/${filename}`
   ),
@@ -30,21 +29,17 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 import { action } from "../../../../app/routes/tenant/images/upload";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
-import { uploadToB2, processImage, isValidImageType } from "../../../../lib/storage";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { uploadToS3, processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 describe("tenant/images/upload route", () => {
-  const mockTenantContext = {
-    tenant: {
-      id: "tenant-1",
-      subdomain: "demo",
-      schemaName: "tenant_demo",
-      name: "Demo Dive Shop",
-      subscriptionStatus: "active",
-      trialEndsAt: null,
-    },
-    organizationId: "org-uuid-123",
+  const mockOrgContext = {
+    org: { id: "org-uuid-123", name: "Demo Dive Shop", subdomain: "demo" },
+    canAddCustomer: true,
+    usage: { customers: 0 },
+    limits: { customers: 100 },
+    isPremium: false,
   };
 
   const mockDb = {
@@ -67,7 +62,7 @@ describe("tenant/images/upload route", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getTenantDb as Mock).mockReturnValue({ db: mockDb, schema: mockSchema });
     (isValidImageType as Mock).mockReturnValue(true);
     (processImage as Mock).mockResolvedValue({
@@ -103,7 +98,7 @@ describe("tenant/images/upload route", () => {
         body: formData,
       });
 
-      (uploadToB2 as Mock).mockResolvedValue({
+      (uploadToS3 as Mock).mockResolvedValue({
         cdnUrl: "https://cdn.example.com/image.webp",
       });
       mockDb.returning.mockResolvedValue([{
@@ -120,7 +115,7 @@ describe("tenant/images/upload route", () => {
 
       await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(requireTenant).toHaveBeenCalled();
+      expect(requireOrgContext).toHaveBeenCalled();
     });
 
     it("returns error when no file provided", async () => {
@@ -197,7 +192,7 @@ describe("tenant/images/upload route", () => {
 
       for (const entityType of validTypes) {
         vi.clearAllMocks();
-        (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+        (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
         (getTenantDb as Mock).mockReturnValue({ db: mockDb, schema: mockSchema });
         (isValidImageType as Mock).mockReturnValue(true);
         (processImage as Mock).mockResolvedValue({
@@ -207,7 +202,7 @@ describe("tenant/images/upload route", () => {
           height: 600,
         });
         mockDb.where.mockResolvedValue([{ count: 0 }]);
-        (uploadToB2 as Mock).mockResolvedValue({ cdnUrl: "https://cdn.example.com/image.webp" });
+        (uploadToS3 as Mock).mockResolvedValue({ cdnUrl: "https://cdn.example.com/image.webp" });
         mockDb.returning.mockResolvedValue([{
           id: "img-1",
           url: "https://cdn.example.com/image.webp",
@@ -275,7 +270,7 @@ describe("tenant/images/upload route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toContain("File too large");
+      expect(data.error).toContain("too large");
     });
 
     it("returns error when max images reached", async () => {
@@ -298,8 +293,8 @@ describe("tenant/images/upload route", () => {
       expect(data.error).toContain("Maximum 5 images allowed");
     });
 
-    it("returns error when B2 upload fails", async () => {
-      (uploadToB2 as Mock).mockResolvedValue(null);
+    it("returns error when S3 upload fails", async () => {
+      (uploadToS3 as Mock).mockResolvedValue(null);
 
       const formData = new FormData();
       formData.append("file", new Blob(["test"], { type: "image/jpeg" }), "test.jpg");
@@ -319,7 +314,7 @@ describe("tenant/images/upload route", () => {
     });
 
     it("uploads image successfully", async () => {
-      (uploadToB2 as Mock).mockResolvedValue({
+      (uploadToS3 as Mock).mockResolvedValue({
         cdnUrl: "https://cdn.example.com/demo/tour/tour-123/test.webp",
       });
       mockDb.returning.mockResolvedValue([{
@@ -359,7 +354,7 @@ describe("tenant/images/upload route", () => {
     });
 
     it("uses custom alt text when provided", async () => {
-      (uploadToB2 as Mock).mockResolvedValue({ cdnUrl: "https://cdn.example.com/image.webp" });
+      (uploadToS3 as Mock).mockResolvedValue({ cdnUrl: "https://cdn.example.com/image.webp" });
       mockDb.returning.mockResolvedValue([{
         id: "img-1",
         url: "https://cdn.example.com/image.webp",
@@ -392,7 +387,7 @@ describe("tenant/images/upload route", () => {
     it("sets first image as primary", async () => {
       mockDb.where.mockResolvedValue([{ count: 0 }]); // First image
 
-      (uploadToB2 as Mock).mockResolvedValue({ cdnUrl: "https://cdn.example.com/image.webp" });
+      (uploadToS3 as Mock).mockResolvedValue({ cdnUrl: "https://cdn.example.com/image.webp" });
       mockDb.returning.mockResolvedValue([{
         id: "img-1",
         url: "https://cdn.example.com/image.webp",

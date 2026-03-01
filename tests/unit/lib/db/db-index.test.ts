@@ -4,7 +4,7 @@
  * Tests for database connection exports.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 
 describe("Database Index", () => {
   describe("Module exports", () => {
@@ -52,12 +52,12 @@ describe("Database Index", () => {
     it("db proxy allows property access without error", async () => {
       const { db } = await import("../../../../lib/db/index");
       // Accessing any property on proxy should not throw
-      expect(() => (db as any).unknownProperty).not.toThrow();
+      expect(() => (db as unknown).unknownProperty).not.toThrow();
     });
 
     it("migrationDb proxy allows property access without error", async () => {
       const { migrationDb } = await import("../../../../lib/db/index");
-      expect(() => (migrationDb as any).unknownProperty).not.toThrow();
+      expect(() => (migrationDb as unknown).unknownProperty).not.toThrow();
     });
 
     it("db proxy is not null or undefined", async () => {

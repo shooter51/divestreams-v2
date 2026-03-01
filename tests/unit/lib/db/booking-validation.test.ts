@@ -102,26 +102,26 @@ describe("Booking Validation and Pricing Logic", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset chain mocks
-    (db.select as any).mockReturnValue(db);
-    (db.from as any).mockReturnValue(db);
-    (db.where as any).mockReturnValue(db);
-    (db.innerJoin as any).mockReturnValue(db);
-    (db.leftJoin as any).mockReturnValue(db);
-    (db.insert as any).mockReturnValue(db);
-    (db.values as any).mockReturnValue(db);
-    (db.update as any).mockReturnValue(db);
-    (db.set as any).mockReturnValue(db);
-    (db.delete as any).mockReturnValue(db);
-    (db.groupBy as any).mockReturnValue(db);
-    (db.orderBy as any).mockReturnValue(db);
+    (db.select as unknown as Mock).mockReturnValue(db);
+    (db.from as unknown as Mock).mockReturnValue(db);
+    (db.where as unknown as Mock).mockReturnValue(db);
+    (db.innerJoin as unknown as Mock).mockReturnValue(db);
+    (db.leftJoin as unknown as Mock).mockReturnValue(db);
+    (db.insert as unknown as Mock).mockReturnValue(db);
+    (db.values as unknown as Mock).mockReturnValue(db);
+    (db.update as unknown as Mock).mockReturnValue(db);
+    (db.set as unknown as Mock).mockReturnValue(db);
+    (db.delete as unknown as Mock).mockReturnValue(db);
+    (db.groupBy as unknown as Mock).mockReturnValue(db);
+    (db.orderBy as unknown as Mock).mockReturnValue(db);
     // limit returns db (chain) so .for() can be chained; .for() resolves to []
-    (db.limit as any).mockReturnValue(db);
-    (db.for as any).mockResolvedValue([]);
-    (db.offset as any).mockResolvedValue([]);
-    (db.returning as any).mockResolvedValue([]);
-    (db.execute as any).mockResolvedValue([]);
+    (db.limit as unknown as Mock).mockReturnValue(db);
+    (db.for as unknown as Mock).mockResolvedValue([]);
+    (db.offset as unknown as Mock).mockResolvedValue([]);
+    (db.returning as unknown as Mock).mockResolvedValue([]);
+    (db.execute as unknown as Mock).mockResolvedValue([]);
     // Setup transaction mock to execute callback with db as tx
-    (db.transaction as any).mockImplementation(async (callback: any) => {
+    (db.transaction as unknown as Mock).mockImplementation(async (callback) => {
       return callback(db);
     });
   });
@@ -170,12 +170,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -211,7 +211,7 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripFor = vi.fn().mockResolvedValue(tripData);
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings);
 
@@ -246,7 +246,7 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripFor = vi.fn().mockResolvedValue(tripData);
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings);
 
@@ -281,7 +281,7 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripFor = vi.fn().mockResolvedValue(tripData);
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings);
 
@@ -323,7 +323,7 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripFor = vi.fn().mockResolvedValue(tripData);
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings);
 
@@ -380,12 +380,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -440,12 +440,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -505,12 +505,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -564,12 +564,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -624,12 +624,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -684,12 +684,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -715,7 +715,7 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripFor = vi.fn().mockResolvedValue([]);
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
-      (db.where as any).mockReturnValueOnce({ limit: mockTripLimit });
+      (db.where as unknown as Mock).mockReturnValueOnce({ limit: mockTripLimit });
 
       await expect(
         createWidgetBooking(testOrgId, {
@@ -733,7 +733,7 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripFor = vi.fn().mockResolvedValue([]);
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
-      (db.where as any).mockReturnValueOnce({ limit: mockTripLimit });
+      (db.where as unknown as Mock).mockReturnValueOnce({ limit: mockTripLimit });
 
       await expect(
         createWidgetBooking(testOrgId, {
@@ -785,12 +785,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -850,12 +850,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -908,12 +908,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any).mockResolvedValueOnce(newBooking);
+      (db.returning as unknown as Mock).mockResolvedValueOnce(newBooking);
 
       const result = await createWidgetBooking(testOrgId, {
         tripId: "trip-1",
@@ -925,7 +925,7 @@ describe("Booking Validation and Pricing Logic", () => {
 
       expect(result.customerId).toBe("cust-existing");
       // Security: existing customer profile should NOT be overwritten from unauthenticated booking
-      expect((db.update as any)).not.toHaveBeenCalled();
+      expect(db.update).not.toHaveBeenCalled();
     });
 
     it("should normalize email to lowercase", async () => {
@@ -967,12 +967,12 @@ describe("Booking Validation and Pricing Logic", () => {
       const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
-      (db.where as any)
+      (db.where as unknown as Mock)
         .mockReturnValueOnce({ limit: mockTripLimit })
         .mockResolvedValueOnce(existingBookings)
         .mockReturnValueOnce({ limit: mockCustomerLimit });
 
-      (db.returning as any)
+      (db.returning as unknown as Mock)
         .mockResolvedValueOnce(newCustomer)
         .mockResolvedValueOnce(newBooking);
 
@@ -985,7 +985,7 @@ describe("Booking Validation and Pricing Logic", () => {
       });
 
       // Email should be normalized to lowercase when checking/creating customer
-      expect((db.values as any)).toHaveBeenCalled();
+      expect(db.values).toHaveBeenCalled();
     });
   });
 });

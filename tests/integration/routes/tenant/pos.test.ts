@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
-import { getRedirectPathname } from "../../../helpers/redirect";
 import { loader, action } from "../../../../app/routes/tenant/pos";
 
 // Mock the org-context module
@@ -325,10 +324,9 @@ describe("tenant/pos route", () => {
         (processPOSCheckout as Mock).mockResolvedValue({ receiptNumber: "R-0001" });
 
         const checkoutData = {
-          items: [{ type: "product", productId: "p1", quantity: 2 }],
-          customerId: "c1",
-          userId: null,
-          payments: [{ method: "card", amount: 100 }],
+          items: [{ type: "product", productId: "00000000-0000-0000-0000-000000000001", name: "Tank", quantity: 2, unitPrice: 50, total: 100 }],
+          customerId: "00000000-0000-0000-0000-000000000002",
+          payments: [{ method: "card", amount: 100, stripePaymentIntentId: "pi_test" }],
           subtotal: 100,
           tax: 0,
           total: 100,
@@ -357,8 +355,8 @@ describe("tenant/pos route", () => {
         (processPOSCheckout as Mock).mockRejectedValue(new Error("Insufficient stock"));
 
         const checkoutData = {
-          items: [{ type: "product", productId: "p1", quantity: 100 }],
-          payments: [{ method: "cash", amount: 5000 }],
+          items: [{ type: "product", productId: "00000000-0000-0000-0000-000000000001", name: "Tank", quantity: 100, unitPrice: 50, total: 5000 }],
+          payments: [{ method: "cash", amount: 5000, tendered: 5000, change: 0 }],
           subtotal: 5000,
           tax: 0,
           total: 5000,
@@ -382,11 +380,11 @@ describe("tenant/pos route", () => {
         (processPOSCheckout as Mock).mockRejectedValue("Unknown error");
 
         const checkoutData = {
-          items: [],
-          payments: [],
-          subtotal: 0,
+          items: [{ type: "product", productId: "00000000-0000-0000-0000-000000000001", name: "Tank", quantity: 1, unitPrice: 10, total: 10 }],
+          payments: [{ method: "cash", amount: 10, tendered: 10, change: 0 }],
+          subtotal: 10,
           tax: 0,
-          total: 0,
+          total: 10,
         };
 
         const formData = new FormData();

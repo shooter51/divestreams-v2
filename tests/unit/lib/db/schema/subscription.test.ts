@@ -28,12 +28,12 @@ describe("Subscription Schema", () => {
       expect(subscription.status).toBe("active");
     });
 
-    it("supports free plan", () => {
+    it("supports standard plan", () => {
       const subscription: Partial<Subscription> = {
-        plan: "free",
+        plan: "standard",
         status: "active",
       };
-      expect(subscription.plan).toBe("free");
+      expect(subscription.plan).toBe("standard");
     });
 
     it("supports trialing status", () => {
@@ -75,9 +75,9 @@ describe("Subscription Schema", () => {
       expect(subscription.stripePriceId).toMatch(/^price_/);
     });
 
-    it("allows null Stripe fields for free tier", () => {
+    it("allows null Stripe fields for standard tier", () => {
       const subscription: Partial<Subscription> = {
-        plan: "free",
+        plan: "standard",
         status: "active",
         stripeCustomerId: null,
         stripeSubscriptionId: null,
@@ -92,11 +92,11 @@ describe("Subscription Schema", () => {
     it("requires organizationId and plan", () => {
       const newSubscription: Partial<NewSubscription> = {
         organizationId: "org-123",
-        plan: "free",
+        plan: "standard",
       };
 
       expect(newSubscription.organizationId).toBe("org-123");
-      expect(newSubscription.plan).toBe("free");
+      expect(newSubscription.plan).toBe("standard");
     });
 
     it("id is optional (auto-generated)", () => {

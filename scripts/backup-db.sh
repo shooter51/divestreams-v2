@@ -9,7 +9,7 @@ set -e
 BACKUP_DIR="/backups/divestreams"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="${BACKUP_DIR}/divestreams_${TIMESTAMP}.sql.gz"
-DOCKER_COMPOSE="docker-compose -f docker-compose.staging.yml"
+DOCKER_COMPOSE="docker-compose -f docker-compose.test.yml"
 LOG_FILE="/var/log/divestreams-backup.log"
 
 # Colors for output

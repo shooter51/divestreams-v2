@@ -11,8 +11,9 @@ import {
   time,
   uniqueIndex,
   index,
+  check,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ============================================================================
 // RE-EXPORT AUTH, SUBSCRIPTION, AND INTEGRATIONS SCHEMAS
@@ -91,6 +92,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   // [KAN-627] Stores Stripe product ID and other integration metadata
   metadata: jsonb("metadata").$type<{
     stripeProductId?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   }>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -362,6 +364,7 @@ export const trips = pgTable("trips", {
   index("trips_org_idx").on(table.organizationId),
   index("trips_org_date_idx").on(table.organizationId, table.date),
   index("trips_org_status_idx").on(table.organizationId, table.status),
+  index("trips_org_date_status_idx").on(table.organizationId, table.date, table.status),
   index("trips_recurring_template_idx").on(table.recurringTemplateId),
 ]);
 
@@ -508,6 +511,7 @@ export const transactions = pgTable("transactions", {
   notes: text("notes"),
 
   // Refund tracking
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   refundedTransactionId: uuid("refunded_transaction_id").references((): any => transactions.id, { onDelete: "set null" }),
   refundReason: text("refund_reason"),
 
@@ -585,6 +589,7 @@ export const products = pgTable("products", {
   index("products_org_category_idx").on(table.organizationId, table.category),
   index("products_org_sku_idx").on(table.organizationId, table.sku),
   index("products_org_barcode_idx").on(table.organizationId, table.barcode),
+  check("stock_quantity_non_negative", sql`${table.stockQuantity} >= 0`),
 ]);
 
 // Discount codes for bookings
@@ -652,7 +657,7 @@ export const customerCommunications = pgTable("customer_communications", {
 export const images = pgTable("images", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
-  entityType: text("entity_type").notNull(), // 'tour', 'dive_site', 'boat', 'equipment', 'staff'
+  entityType: text("entity_type").notNull(), // 'tour', 'dive-site', 'boat', 'equipment', 'staff', 'course', 'product'
   entityId: uuid("entity_id").notNull(),
 
   url: text("url").notNull(), // Full CDN URL

@@ -304,7 +304,7 @@ describe("recurring.server database functions", () => {
         "../../../../lib/trips/recurring.server"
       );
 
-      const instances = await getNextOccurrences("org-1", "template-1", 5);
+      await getNextOccurrences("org-1", "template-1", 5);
 
       expect(dbMock.select).toHaveBeenCalled();
       expect(dbMock.where).toHaveBeenCalled();

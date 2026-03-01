@@ -359,7 +359,7 @@ describe("queries.server database functions", () => {
 
       // Mock for tours query - where → orderBy (terminal)
       // Mock for trip counts - where → groupBy (terminal)
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -376,7 +376,7 @@ describe("queries.server database functions", () => {
       const mockOrderBy = vi.fn().mockResolvedValue([]);
 
       // Only one query when tours array is empty
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getTours } = await import("../../../../lib/db/queries.server");
 
@@ -447,7 +447,7 @@ describe("queries.server database functions", () => {
       // Mock for trips query - where → orderBy → limit (terminal)
       // Mock for participant counts - where → groupBy (terminal)
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 
@@ -465,7 +465,7 @@ describe("queries.server database functions", () => {
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
 
       // Only one query when trips array is empty
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getTrips } = await import("../../../../lib/db/queries.server");
 
@@ -478,7 +478,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn = vi.fn().mockResolvedValue([]);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getTrips } = await import("../../../../lib/db/queries.server");
 
@@ -512,7 +512,7 @@ describe("queries.server database functions", () => {
     it("should update trip status", async () => {
       const mockReturningFn = vi.fn().mockResolvedValue([{ id: "trip-1", status: "completed" }]);
 
-      (dbMock.where as any).mockReturnValue({ returning: mockReturningFn });
+      (dbMock.where as unknown as Mock).mockReturnValue({ returning: mockReturningFn });
 
       const { updateTripStatus } = await import("../../../../lib/db/queries.server");
 
@@ -548,7 +548,7 @@ describe("queries.server database functions", () => {
 
       // Mock for bookings query - where → orderBy → limit → offset (terminal)
       // Mock for count query - where (terminal, no limit)
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockResolvedValueOnce([{ count: 1 }]);
 
@@ -566,7 +566,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn1 = vi.fn().mockReturnValue({ offset: mockOffsetFn });
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn1 });
 
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockResolvedValueOnce([{ count: 0 }]);
 
@@ -582,7 +582,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn1 = vi.fn().mockReturnValue({ offset: mockOffsetFn });
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn1 });
 
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockResolvedValueOnce([{ count: 0 }]);
 
@@ -621,7 +621,7 @@ describe("queries.server database functions", () => {
     it("should update booking status", async () => {
       const mockReturningFn = vi.fn().mockResolvedValue([{ id: "book-1", status: "confirmed" }]);
 
-      (dbMock.where as any).mockReturnValue({ returning: mockReturningFn });
+      (dbMock.where as unknown as Mock).mockReturnValue({ returning: mockReturningFn });
 
       const { updateBookingStatus } = await import("../../../../lib/db/queries.server");
 
@@ -640,7 +640,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn = vi.fn().mockResolvedValue([]);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getEquipment } = await import("../../../../lib/db/queries.server");
 
@@ -655,7 +655,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn = vi.fn().mockResolvedValue([]);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getEquipment } = await import("../../../../lib/db/queries.server");
 
@@ -668,7 +668,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn = vi.fn().mockResolvedValue([]);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getEquipment } = await import("../../../../lib/db/queries.server");
 
@@ -681,7 +681,7 @@ describe("queries.server database functions", () => {
       const mockLimitFn = vi.fn().mockResolvedValue([]);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimitFn });
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getEquipment } = await import("../../../../lib/db/queries.server");
 
@@ -695,7 +695,7 @@ describe("queries.server database functions", () => {
     it("should create new equipment", async () => {
       const mockReturningFn = vi.fn().mockResolvedValue([{ id: "eq-1" }]);
 
-      (dbMock.values as any).mockReturnValue({ returning: mockReturningFn });
+      (dbMock.values as unknown as Mock).mockReturnValue({ returning: mockReturningFn });
 
       const { createEquipment } = await import("../../../../lib/db/queries.server");
 
@@ -719,7 +719,7 @@ describe("queries.server database functions", () => {
     it("should return boats list", async () => {
       const mockOrderBy = vi.fn().mockResolvedValue([]);
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getBoats } = await import("../../../../lib/db/queries.server");
 
@@ -733,7 +733,7 @@ describe("queries.server database functions", () => {
     it("should filter by activeOnly", async () => {
       const mockOrderBy = vi.fn().mockResolvedValue([]);
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getBoats } = await import("../../../../lib/db/queries.server");
 
@@ -747,7 +747,7 @@ describe("queries.server database functions", () => {
     it("should create new boat", async () => {
       const mockReturningFn = vi.fn().mockResolvedValue([{ id: "boat-1" }]);
 
-      (dbMock.values as any).mockReturnValue({ returning: mockReturningFn });
+      (dbMock.values as unknown as Mock).mockReturnValue({ returning: mockReturningFn });
 
       const { createBoat } = await import("../../../../lib/db/queries.server");
 
@@ -770,7 +770,7 @@ describe("queries.server database functions", () => {
     it("should return dive sites list", async () => {
       const mockOrderBy = vi.fn().mockResolvedValue([]);
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getDiveSites } = await import("../../../../lib/db/queries.server");
 
@@ -784,7 +784,7 @@ describe("queries.server database functions", () => {
     it("should filter by difficulty", async () => {
       const mockOrderBy = vi.fn().mockResolvedValue([]);
 
-      (dbMock.where as any).mockReturnValue({ orderBy: mockOrderBy });
+      (dbMock.where as unknown as Mock).mockReturnValue({ orderBy: mockOrderBy });
 
       const { getDiveSites } = await import("../../../../lib/db/queries.server");
 
@@ -798,7 +798,7 @@ describe("queries.server database functions", () => {
     it("should create new dive site", async () => {
       const mockReturningFn = vi.fn().mockResolvedValue([{ id: "site-1" }]);
 
-      (dbMock.values as any).mockReturnValue({ returning: mockReturningFn });
+      (dbMock.values as unknown as Mock).mockReturnValue({ returning: mockReturningFn });
 
       const { createDiveSite } = await import("../../../../lib/db/queries.server");
 
@@ -819,7 +819,7 @@ describe("queries.server database functions", () => {
     it("should update dive site active status", async () => {
       const mockReturningFn = vi.fn().mockResolvedValue([{ id: "site-1", isActive: false }]);
 
-      (dbMock.where as any).mockReturnValue({ returning: mockReturningFn });
+      (dbMock.where as unknown as Mock).mockReturnValue({ returning: mockReturningFn });
 
       const { updateDiveSiteActiveStatus } = await import("../../../../lib/db/queries.server");
 
@@ -834,7 +834,7 @@ describe("queries.server database functions", () => {
     it("should delete dive site", async () => {
       // First query: check tour count - where (terminal)
       // Second query: delete - where (terminal)
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockResolvedValueOnce([{ count: 0 }])
         .mockResolvedValueOnce([]);
 
@@ -873,7 +873,7 @@ describe("queries.server database functions", () => {
 
       // Mock for trips query - where → orderBy (terminal)
       // Mock for participant counts - where → groupBy (terminal)
-      (dbMock.where as any)
+      (dbMock.where as unknown as Mock)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
 

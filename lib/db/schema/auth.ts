@@ -188,6 +188,7 @@ export const member = pgTable(
     index("member_user_id_idx").on(table.userId),
     index("member_organization_id_idx").on(table.organizationId),
     uniqueIndex("member_user_org_idx").on(table.userId, table.organizationId),
+    index("member_org_role_idx").on(table.organizationId, table.role),
   ]
 );
 
@@ -214,6 +215,7 @@ export const invitation = pgTable(
     index("invitation_email_idx").on(table.email),
     index("invitation_organization_id_idx").on(table.organizationId),
     index("invitation_status_idx").on(table.status),
+    index("invitation_inviter_id_idx").on(table.inviterId),
   ]
 );
 

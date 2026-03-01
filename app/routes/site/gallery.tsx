@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Link, useLoaderData, useRouteLoaderData, useSearchParams } from "react-router";
+import { useLoaderData, useSearchParams } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { eq } from "drizzle-orm";
 import { db } from "../../../lib/db";
@@ -24,7 +24,6 @@ import {
   type GalleryAlbumWithImages,
 } from "../../../lib/db/gallery.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
-import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
 // Types
@@ -104,13 +103,11 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
 
 export default function GalleryPage() {
   const { images, albums, categories, tags, filters } = useLoaderData<typeof loader>();
-  const siteData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedImage, setSelectedImage] = useState<GalleryImageWithAlbum | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number>(0);
 
-  const siteName = siteData?.organization?.name || "Dive Shop";
 
   // Keyboard navigation for lightbox
   useEffect(() => {

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/boats/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -17,9 +16,13 @@ vi.mock("../../../../../lib/require-feature.server", () => ({
   requireFeature: vi.fn(),
 }));
 
-vi.mock("../../../../../lib/plan-features", () => ({
-  PLAN_FEATURES: { HAS_EQUIPMENT_BOATS: "has_equipment_boats" },
-}));
+vi.mock("../../../../../lib/plan-features", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    PLAN_FEATURES: { HAS_EQUIPMENT_BOATS: "has_equipment_boats" },
+  };
+});
 
 describe("app/routes/tenant/boats/index.tsx", () => {
   const mockOrganizationId = "org-123";
@@ -33,7 +36,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -122,9 +125,9 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        if (selectCallCount === 1) return mockBoatsBuilder as any;
-        if (selectCallCount === 2) return mockTripCountsBuilder as any;
-        return mockImagesBuilder as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as unknown;
+        if (selectCallCount === 2) return mockTripCountsBuilder as unknown;
+        return mockImagesBuilder as unknown;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -150,7 +153,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         },
       ];
 
-      const mockTripCounts: any[] = [];
+      const mockTripCounts: unknown[] = [];
 
       const mockBoatsBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -171,9 +174,9 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        if (selectCallCount === 1) return mockBoatsBuilder as any;
-        if (selectCallCount === 2) return mockTripCountsBuilder as any;
-        return mockImagesBuilder as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as unknown;
+        if (selectCallCount === 2) return mockTripCountsBuilder as unknown;
+        return mockImagesBuilder as unknown;
       });
 
       const request = new Request("http://test.com/tenant/boats?q=explorer");
@@ -195,7 +198,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         },
       ];
 
-      const mockTripCounts: any[] = [];
+      const mockTripCounts: unknown[] = [];
 
       const mockBoatsBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -216,9 +219,9 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        if (selectCallCount === 1) return mockBoatsBuilder as any;
-        if (selectCallCount === 2) return mockTripCountsBuilder as any;
-        return mockImagesBuilder as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as unknown;
+        if (selectCallCount === 2) return mockTripCountsBuilder as unknown;
+        return mockImagesBuilder as unknown;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -258,7 +261,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         },
       ];
 
-      const mockTripCounts: any[] = [];
+      const mockTripCounts: unknown[] = [];
 
       const mockBoatsBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -279,9 +282,9 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        if (selectCallCount === 1) return mockBoatsBuilder as any;
-        if (selectCallCount === 2) return mockTripCountsBuilder as any;
-        return mockImagesBuilder as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as unknown;
+        if (selectCallCount === 2) return mockTripCountsBuilder as unknown;
+        return mockImagesBuilder as unknown;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -300,7 +303,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         { id: "boat-3", capacity: 6, isActive: false },
       ];
 
-      const mockTripCounts: any[] = [];
+      const mockTripCounts: unknown[] = [];
 
       const mockBoatsBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -321,9 +324,9 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        if (selectCallCount === 1) return mockBoatsBuilder as any;
-        if (selectCallCount === 2) return mockTripCountsBuilder as any;
-        return mockImagesBuilder as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as unknown;
+        if (selectCallCount === 2) return mockTripCountsBuilder as unknown;
+        return mockImagesBuilder as unknown;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -334,8 +337,8 @@ describe("app/routes/tenant/boats/index.tsx", () => {
     });
 
     it("should return isPremium flag", async () => {
-      const mockBoats: any[] = [];
-      const mockTripCounts: any[] = [];
+      const mockBoats: unknown[] = [];
+      const mockTripCounts: unknown[] = [];
 
       const mockBoatsBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -356,9 +359,9 @@ describe("app/routes/tenant/boats/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        if (selectCallCount === 1) return mockBoatsBuilder as any;
-        if (selectCallCount === 2) return mockTripCountsBuilder as any;
-        return mockImagesBuilder as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as unknown;
+        if (selectCallCount === 2) return mockTripCountsBuilder as unknown;
+        return mockImagesBuilder as unknown;
       });
 
       vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
@@ -368,7 +371,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 1000 },
         isPremium: true,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/boats");
       const result = await loader({ request, params: {}, context: {} });

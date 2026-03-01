@@ -11,7 +11,7 @@ import { requireOrgContext } from "../../../lib/auth/org-context.server";
  */
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const ctx = await requireOrgContext(request);
+  await requireOrgContext(request);
   const url = new URL(request.url);
 
   // Check for session_id parameter from Stripe Checkout

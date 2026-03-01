@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, useOutletContext } from "react-router";
+import { useLoaderData, useFetcher } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
@@ -9,6 +9,7 @@ import {
   deleteTeamMember,
   reorderTeamMembers,
 } from "../../../../lib/db/team.server";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Team Profiles - Public Site Settings" }];
 
@@ -130,14 +131,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function PublicSiteTeamPage() {
   const { teamMembers } = useLoaderData<typeof loader>();
-  const context = useOutletContext<{
-    settings: any;
-    publicSiteUrl: string;
-  }>();
   const fetcher = useFetcher();
   const [showModal, setShowModal] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editingMember, setEditingMember] = useState<any>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEdit = (member: any) => {
     setEditingMember(member);
     setShowModal(true);
@@ -148,6 +147,7 @@ export default function PublicSiteTeamPage() {
     setShowModal(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDelete = (member: any) => {
     if (confirm(`Are you sure you want to delete ${member.name}?`)) {
       const formData = new FormData();
@@ -259,8 +259,10 @@ export default function PublicSiteTeamPage() {
             </h2>
             <fetcher.Form
               method="post"
-              onSubmit={() => setShowModal(false)}
+              onSubmit={() =>
+              setShowModal(false)}
             >
+              <CsrfInput />
               <input type="hidden" name="intent" value={editingMember ? "update" : "create"} />
               {editingMember && <input type="hidden" name="memberId" value={editingMember.id} />}
 

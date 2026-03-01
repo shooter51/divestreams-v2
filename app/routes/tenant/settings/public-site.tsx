@@ -93,11 +93,6 @@ export default function PublicSiteSettingsLayout() {
           />
           {settings.enabled ? "Site Enabled" : "Site Disabled"}
         </span>
-        {!isPremium && (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-warning-muted text-warning">
-            Free Plan - Limited Features
-          </span>
-        )}
       </div>
 
       {/* Tab Navigation */}

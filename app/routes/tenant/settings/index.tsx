@@ -7,140 +7,7 @@ import { member, certificationAgencies, certificationLevels, tenants, organizati
 import { eq, count, and } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/email.server";
 import { cancelSubscription } from "../../../../lib/stripe/index";
-
-/**
- * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
- * This is idempotent and safe to call multiple times.
- */
-async function seedTrainingAgencies(organizationId: string) {
-  // Check existing agencies
-  const existingAgencies = await db
-    .select({ code: certificationAgencies.code })
-    .from(certificationAgencies)
-    .where(eq(certificationAgencies.organizationId, organizationId));
-
-  const hasPadi = existingAgencies.some((a) => a.code.toLowerCase() === "padi");
-  const hasSsi = existingAgencies.some((a) => a.code.toLowerCase() === "ssi");
-  const hasNaui = existingAgencies.some((a) => a.code.toLowerCase() === "naui");
-
-  let seeded = 0;
-
-  // Seed PADI if missing
-  if (!hasPadi) {
-    const [agency] = await db
-      .insert(certificationAgencies)
-      .values({
-        organizationId,
-        code: "padi",
-        name: "PADI",
-        description: "Professional Association of Diving Instructors",
-        website: "https://www.padi.com",
-      })
-      .returning();
-
-    await db.insert(certificationLevels).values([
-      {
-        organizationId,
-        agencyId: agency.id,
-        code: "open-water",
-        name: "Open Water Diver",
-        levelNumber: 3,
-        description: "Entry-level certification",
-        minAge: 10,
-        minDives: 0,
-      },
-      {
-        organizationId,
-        agencyId: agency.id,
-        code: "advanced-ow",
-        name: "Advanced Open Water",
-        levelNumber: 4,
-        description: "Explore specialty diving",
-        minAge: 12,
-        minDives: 0,
-      },
-    ]);
-    seeded++;
-  }
-
-  // Seed SSI if missing
-  if (!hasSsi) {
-    const [agency] = await db
-      .insert(certificationAgencies)
-      .values({
-        organizationId,
-        code: "ssi",
-        name: "SSI",
-        description: "Scuba Schools International",
-        website: "https://www.divessi.com",
-      })
-      .returning();
-
-    await db.insert(certificationLevels).values([
-      {
-        organizationId,
-        agencyId: agency.id,
-        code: "ssi-open-water",
-        name: "Open Water Diver",
-        levelNumber: 3,
-        description: "SSI entry-level certification",
-        minAge: 10,
-        minDives: 0,
-      },
-      {
-        organizationId,
-        agencyId: agency.id,
-        code: "ssi-advanced",
-        name: "Advanced Adventurer",
-        levelNumber: 4,
-        description: "SSI advanced certification",
-        minAge: 12,
-        minDives: 0,
-      },
-    ]);
-    seeded++;
-  }
-
-  // Seed NAUI if missing
-  if (!hasNaui) {
-    const [agency] = await db
-      .insert(certificationAgencies)
-      .values({
-        organizationId,
-        code: "naui",
-        name: "NAUI",
-        description: "National Association of Underwater Instructors",
-        website: "https://www.naui.org",
-      })
-      .returning();
-
-    await db.insert(certificationLevels).values([
-      {
-        organizationId,
-        agencyId: agency.id,
-        code: "naui-scuba-diver",
-        name: "Scuba Diver",
-        levelNumber: 3,
-        description: "NAUI entry-level certification",
-        minAge: 10,
-        minDives: 0,
-      },
-      {
-        organizationId,
-        agencyId: agency.id,
-        code: "naui-advanced",
-        name: "Advanced Scuba Diver",
-        levelNumber: 4,
-        description: "NAUI advanced certification",
-        minAge: 15,
-        minDives: 0,
-      },
-    ]);
-    seeded++;
-  }
-
-  return { seeded, total: 3, existing: 3 - seeded };
-}
+import { CsrfInput } from "../../../components/CsrfInput";
 
 /**
  * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
@@ -297,7 +164,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     tenantName: ctx.org.name,
-    planName: ctx.subscription?.plan || "free",
+    planName: ctx.subscription?.plan || "standard",
     teamCount,
     connectedIntegrations,
     isPremium: ctx.isPremium,
@@ -600,6 +467,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="requestDeletion" />
               <button
                 type="submit"
@@ -615,6 +483,11 @@ export default function SettingsPage() {
               </button>
             </fetcher.Form>
           </div>
+          {fetcher.data?.message && fetcher.state === "idle" && (
+            <p className={`mt-3 text-sm ${fetcher.data.success ? "text-success" : "text-danger"}`}>
+              {fetcher.data.message}
+            </p>
+          )}
         </div>
       </div>
     </div>

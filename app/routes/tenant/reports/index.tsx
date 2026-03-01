@@ -12,8 +12,8 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { bookings, customers, tours, equipment } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, sum, lte } from "drizzle-orm";
+import { bookings, customers, trips, tours, equipment } from "../../../../lib/db/schema";
+import { eq, gte, and, sql, count, lte, desc } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { useState, useRef, useEffect } from "react";
 
@@ -260,39 +260,81 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } | null = null;
 
   if (ctx.isPremium) {
-    let revenueData: RevenueDataItem[] = [];
-    try {
-      const dailyRevenue = await db
-        .select({
-          day: sql<string>`TO_CHAR(${bookings.createdAt}, 'Mon DD')`,
-          revenue: sql<number>`COALESCE(SUM(${bookings.total}), 0)`,
-          bookingCount: count(),
-        })
-        .from(bookings)
-        .where(
-          and(
-            eq(bookings.organizationId, ctx.org.id),
-            gte(bookings.createdAt, dateStart),
-            lte(bookings.createdAt, dateEnd)
-          )
-        )
-        .groupBy(sql`TO_CHAR(${bookings.createdAt}, 'Mon DD')`, sql`DATE(${bookings.createdAt})`)
-        .orderBy(sql`DATE(${bookings.createdAt})`);
+    const revenueData = await db
+      .select({
+        period: sql<string>`DATE(${bookings.createdAt})`,
+        revenue: sql<number>`SUM(${bookings.total})`,
+        bookings: sql<number>`COUNT(*)`,
+      })
+      .from(bookings)
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(sql`DATE(${bookings.createdAt})`)
+      .orderBy(sql`DATE(${bookings.createdAt}) ASC`);
 
-      revenueData = dailyRevenue.map((row) => ({
-        period: String(row.day),
-        revenue: Number(row.revenue),
-        bookings: Number(row.bookingCount),
-      }));
-    } catch {
-      // Fall back to empty if query fails
+    const bookingsByStatus = await db
+      .select({
+        status: bookings.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(bookings)
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(bookings.status);
+
+    const topTours = await db
+      .select({
+        id: tours.id,
+        name: tours.name,
+        bookings: sql<number>`COUNT(${bookings.id})`,
+        revenue: sql<number>`SUM(${bookings.total})`,
+      })
+      .from(bookings)
+      .innerJoin(trips, eq(bookings.tripId, trips.id))
+      .innerJoin(tours, eq(trips.tourId, tours.id))
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(tours.id, tours.name)
+      .orderBy(desc(sql`SUM(${bookings.total})`))
+      .limit(5);
+
+    const equipmentRaw = await db
+      .select({
+        category: equipment.category,
+        status: equipment.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(equipment)
+      .where(eq(equipment.organizationId, ctx.org.id))
+      .groupBy(equipment.category, equipment.status);
+
+    const equipmentMap = new Map<string, { category: string; total: number; available: number; rented: number; maintenance: number }>();
+    for (const row of equipmentRaw) {
+      if (!equipmentMap.has(row.category)) {
+        equipmentMap.set(row.category, { category: row.category, total: 0, available: 0, rented: 0, maintenance: 0 });
+      }
+      const entry = equipmentMap.get(row.category)!;
+      entry.total += Number(row.count);
+      if (row.status === "available") entry.available += Number(row.count);
+      if (row.status === "rented") entry.rented += Number(row.count);
+      if (row.status === "maintenance") entry.maintenance += Number(row.count);
     }
+    const equipmentUtilization = Array.from(equipmentMap.values());
 
     advancedData = {
-      revenueData,
-      bookingsByStatus: [] as BookingStatusItem[],
-      topTours: [] as TopTourItem[],
-      equipmentUtilization: [] as EquipmentUtilizationItem[],
+      revenueData: revenueData.map(r => ({ period: String(r.period), revenue: Number(r.revenue), bookings: Number(r.bookings) })),
+      bookingsByStatus: bookingsByStatus.map(b => ({ status: String(b.status), count: Number(b.count) })),
+      topTours: topTours.map(t => ({ id: t.id, name: t.name, bookings: Number(t.bookings), revenue: Number(t.revenue) })),
+      equipmentUtilization,
     };
   }
 
@@ -316,6 +358,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
   };
 }
+
+// Status label mapping
+const bookingStatusLabels: Record<string, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  checked_in: "Checked In",
+  completed: "Completed",
+  canceled: "Canceled",
+  no_show: "No Show",
+};
+
+// Equipment category display map
+const equipmentCategoryLabels: Record<string, string> = {
+  bcd: "BCD",
+  regulator: "Regulator",
+  wetsuit: "Wetsuit",
+  mask: "Mask",
+  fins: "Fins",
+  tank: "Tank",
+  computer: "Dive Computer",
+  torch: "Torch",
+  other: "Other",
+};
 
 // Status color mapping
 const statusColors: Record<string, { bg: string; text: string; bar: string }> = {
@@ -351,7 +416,7 @@ function DateRangeSelector({
   currentStart?: string;
   currentEnd?: string;
 }) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [showCustom, setShowCustom] = useState(currentPreset === "custom");
   const [customStartDate, setCustomStartDate] = useState(currentStart || "");
@@ -622,7 +687,7 @@ export default function ReportsPage() {
             {revenueData.length > 0 ? (
               <div className="h-48">
                 <div className="flex items-end justify-between h-full gap-1">
-                  {revenueData.map((data, index) => (
+                  {revenueData.map((data) => (
                     <div
                       key={data.period}
                       className="flex-1 flex flex-col items-center group relative"
@@ -668,8 +733,8 @@ export default function ReportsPage() {
                   return (
                     <div key={status.status}>
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-sm font-medium capitalize ${colors.text}`}>
-                          {status.status.replace("_", " ")}
+                        <span className={`text-sm font-medium ${colors.text}`}>
+                          {bookingStatusLabels[status.status] || status.status.replace(/_/g, " ")}
                         </span>
                         <span className="text-sm text-foreground-muted">
                           {status.count} ({percentage}%)
@@ -801,7 +866,7 @@ export default function ReportsPage() {
 
                     return (
                       <tr key={category.category} className="border-b last:border-0">
-                        <td className="py-3 font-medium capitalize">{category.category}</td>
+                        <td className="py-3 font-medium">{equipmentCategoryLabels[category.category] || (category.category.charAt(0).toUpperCase() + category.category.slice(1))}</td>
                         <td className="py-3 text-center">{category.total}</td>
                         <td className="py-3 text-center text-success">{category.available}</td>
                         <td className="py-3 text-center text-brand">{category.rented}</td>

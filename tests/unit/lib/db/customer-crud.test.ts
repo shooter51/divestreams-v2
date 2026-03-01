@@ -82,20 +82,20 @@ describe("Customer CRUD Business Logic", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset chain mocks
-    (db.select as any).mockReturnValue(db);
-    (db.from as any).mockReturnValue(db);
-    (db.where as any).mockReturnValue(db);
-    (db.innerJoin as any).mockReturnValue(db);
-    (db.leftJoin as any).mockReturnValue(db);
-    (db.insert as any).mockReturnValue(db);
-    (db.values as any).mockReturnValue(db);
-    (db.update as any).mockReturnValue(db);
-    (db.set as any).mockReturnValue(db);
-    (db.delete as any).mockReturnValue(db);
-    (db.orderBy as any).mockReturnValue(db);
-    (db.limit as any).mockReturnValue(db);  // Return db to allow offset chaining
-    (db.offset as any).mockResolvedValue([]);  // This is the terminal method
-    (db.returning as any).mockResolvedValue([]);
+    (db.select as unknown as Mock).mockReturnValue(db);
+    (db.from as unknown as Mock).mockReturnValue(db);
+    (db.where as unknown as Mock).mockReturnValue(db);
+    (db.innerJoin as unknown as Mock).mockReturnValue(db);
+    (db.leftJoin as unknown as Mock).mockReturnValue(db);
+    (db.insert as unknown as Mock).mockReturnValue(db);
+    (db.values as unknown as Mock).mockReturnValue(db);
+    (db.update as unknown as Mock).mockReturnValue(db);
+    (db.set as unknown as Mock).mockReturnValue(db);
+    (db.delete as unknown as Mock).mockReturnValue(db);
+    (db.orderBy as unknown as Mock).mockReturnValue(db);
+    (db.limit as unknown as Mock).mockReturnValue(db);  // Return db to allow offset chaining
+    (db.offset as unknown as Mock).mockResolvedValue([]);  // This is the terminal method
+    (db.returning as unknown as Mock).mockResolvedValue([]);
   });
 
   // ============================================================================
@@ -139,7 +139,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockFrom2 = vi.fn().mockReturnValue({ where: mockWhere2 });
 
       // db.select is called twice - once for customers, once for count
-      (db.select as any)
+      (db.select as unknown as Mock)
         .mockReturnValueOnce({ from: mockFrom1 })
         .mockReturnValueOnce({ from: mockFrom2 });
 
@@ -171,7 +171,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockWhere2 = vi.fn().mockResolvedValue([{ count: 1 }]);
       const mockFrom2 = vi.fn().mockReturnValue({ where: mockWhere2 });
 
-      (db.select as any)
+      (db.select as unknown as Mock)
         .mockReturnValueOnce({ from: mockFrom1 })
         .mockReturnValueOnce({ from: mockFrom2 });
 
@@ -190,7 +190,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockWhere2 = vi.fn().mockResolvedValue([{ count: 0 }]);
       const mockFrom2 = vi.fn().mockReturnValue({ where: mockWhere2 });
 
-      (db.select as any)
+      (db.select as unknown as Mock)
         .mockReturnValueOnce({ from: mockFrom1 })
         .mockReturnValueOnce({ from: mockFrom2 });
 
@@ -217,7 +217,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockWhere2 = vi.fn().mockResolvedValue([{ count: 100 }]);
       const mockFrom2 = vi.fn().mockReturnValue({ where: mockWhere2 });
 
-      (db.select as any)
+      (db.select as unknown as Mock)
         .mockReturnValueOnce({ from: mockFrom1 })
         .mockReturnValueOnce({ from: mockFrom2 });
 
@@ -245,7 +245,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockLimit = vi.fn().mockResolvedValue([mockCustomer]);
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-      (db.select as any).mockReturnValue({ from: mockFrom });
+      (db.select as unknown as Mock).mockReturnValue({ from: mockFrom });
 
       const result = await getCustomerById(testOrgId, "cust-123");
 
@@ -258,7 +258,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockLimit = vi.fn().mockResolvedValue([]);
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-      (db.select as any).mockReturnValue({ from: mockFrom });
+      (db.select as unknown as Mock).mockReturnValue({ from: mockFrom });
 
       const result = await getCustomerById(testOrgId, "nonexistent-id");
 
@@ -269,7 +269,7 @@ describe("Customer CRUD Business Logic", () => {
       const mockLimit = vi.fn().mockResolvedValue([]);
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-      (db.select as any).mockReturnValue({ from: mockFrom });
+      (db.select as unknown as Mock).mockReturnValue({ from: mockFrom });
 
       await getCustomerById(testOrgId, "cust-123");
 
@@ -295,7 +295,7 @@ describe("Customer CRUD Business Logic", () => {
         createdAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([newCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([newCustomer]);
 
       const result = await createCustomer(testOrgId, {
         email: "newcustomer@example.com",
@@ -306,8 +306,8 @@ describe("Customer CRUD Business Logic", () => {
       expect(result.email).toBe("newcustomer@example.com");
       expect(result.firstName).toBe("New");
       expect(result.lastName).toBe("Customer");
-      expect((db.insert as any)).toHaveBeenCalled();
-      expect((db.values as any)).toHaveBeenCalled();
+      expect(db.insert).toHaveBeenCalled();
+      expect(db.values).toHaveBeenCalled();
     });
 
     it("should create customer with all optional fields", async () => {
@@ -333,7 +333,7 @@ describe("Customer CRUD Business Logic", () => {
         notes: "VIP customer",
       };
 
-      (db.returning as any).mockResolvedValue([fullCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([fullCustomer]);
 
       const result = await createCustomer(testOrgId, {
         email: "full@example.com",
@@ -373,7 +373,7 @@ describe("Customer CRUD Business Logic", () => {
         ],
       };
 
-      (db.returning as any).mockResolvedValue([certifiedCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([certifiedCustomer]);
 
       const result = await createCustomer(testOrgId, {
         email: "certified@example.com",
@@ -406,7 +406,7 @@ describe("Customer CRUD Business Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedCustomer]);
 
       const result = await updateCustomer(testOrgId, "cust-123", {
         email: "updated@example.com",
@@ -417,8 +417,8 @@ describe("Customer CRUD Business Logic", () => {
 
       expect(result?.email).toBe("updated@example.com");
       expect(result?.phone).toBe("+9999999999");
-      expect((db.update as any)).toHaveBeenCalled();
-      expect((db.set as any)).toHaveBeenCalled();
+      expect(db.update).toHaveBeenCalled();
+      expect(db.set).toHaveBeenCalled();
     });
 
     it("should update only provided fields", async () => {
@@ -432,7 +432,7 @@ describe("Customer CRUD Business Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedCustomer]);
 
       const result = await updateCustomer(testOrgId, "cust-123", {
         phone: "+1111111111",
@@ -442,7 +442,7 @@ describe("Customer CRUD Business Logic", () => {
     });
 
     it("should return null when customer not found", async () => {
-      (db.returning as any).mockResolvedValue([]);
+      (db.returning as unknown as Mock).mockResolvedValue([]);
 
       const result = await updateCustomer(testOrgId, "nonexistent-id", {
         firstName: "Test",
@@ -463,7 +463,7 @@ describe("Customer CRUD Business Logic", () => {
         emergencyContactRelation: "Parent",
       };
 
-      (db.returning as any).mockResolvedValue([updatedCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedCustomer]);
 
       const result = await updateCustomer(testOrgId, "cust-123", {
         emergencyContactName: "New Emergency Contact",
@@ -486,7 +486,7 @@ describe("Customer CRUD Business Logic", () => {
         medications: "Inhaler",
       };
 
-      (db.returning as any).mockResolvedValue([updatedCustomer]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedCustomer]);
 
       const result = await updateCustomer(testOrgId, "cust-123", {
         medicalConditions: "Asthma",
@@ -504,23 +504,23 @@ describe("Customer CRUD Business Logic", () => {
 
   describe("deleteCustomer", () => {
     it("should delete customer successfully", async () => {
-      (db.delete as any) = vi.fn(() => db);
-      (db.where as any) = vi.fn(() => Promise.resolve());
+      (db.delete as unknown as Mock) = vi.fn(() => db);
+      (db.where as unknown as Mock) = vi.fn(() => Promise.resolve());
 
       const result = await deleteCustomer(testOrgId, "cust-123");
 
       expect(result).toBe(true);
-      expect((db.delete as any)).toHaveBeenCalled();
-      expect((db.where as any)).toHaveBeenCalled();
+      expect(db.delete).toHaveBeenCalled();
+      expect(db.where).toHaveBeenCalled();
     });
 
     it("should filter by organization ID when deleting", async () => {
-      (db.delete as any) = vi.fn(() => db);
-      (db.where as any) = vi.fn(() => Promise.resolve());
+      (db.delete as unknown as Mock) = vi.fn(() => db);
+      (db.where as unknown as Mock) = vi.fn(() => Promise.resolve());
 
       await deleteCustomer(testOrgId, "cust-123");
 
-      expect((db.where as any)).toHaveBeenCalled();
+      expect(db.where).toHaveBeenCalled();
     });
   });
 
@@ -539,7 +539,7 @@ describe("Customer CRUD Business Logic", () => {
         phone: null,
       };
 
-      (db.returning as any).mockResolvedValue([customer]);
+      (db.returning as unknown as Mock).mockResolvedValue([customer]);
 
       const result = await createCustomer(testOrgId, {
         email: "nophone@example.com",
@@ -560,7 +560,7 @@ describe("Customer CRUD Business Logic", () => {
         dateOfBirth: null,
       };
 
-      (db.returning as any).mockResolvedValue([customer]);
+      (db.returning as unknown as Mock).mockResolvedValue([customer]);
 
       const result = await createCustomer(testOrgId, {
         email: "nodob@example.com",
@@ -568,7 +568,7 @@ describe("Customer CRUD Business Logic", () => {
         lastName: "DOB",
       });
 
-      expect(result.dateOfBirth).toBeUndefined();
+      expect(result.dateOfBirth).toBeNull();
     });
 
     it("should handle customers with empty certifications array", async () => {
@@ -581,7 +581,7 @@ describe("Customer CRUD Business Logic", () => {
         certifications: [],
       };
 
-      (db.returning as any).mockResolvedValue([customer]);
+      (db.returning as unknown as Mock).mockResolvedValue([customer]);
 
       const result = await createCustomer(testOrgId, {
         email: "nocert@example.com",

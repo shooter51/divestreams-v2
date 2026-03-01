@@ -6,7 +6,6 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect } from "react-router";
 import { Form, useLoaderData, useNavigation, useActionData } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
@@ -16,9 +15,9 @@ import {
   publishPageContent,
   unpublishPageContent,
   getPageContentHistory,
-  restorePageContentVersion,
 } from "../../../../lib/db/page-content.server";
-import type { PageContent, ContentBlock } from "../../../../lib/db/schema/page-content";
+import type { PageContent } from "../../../../lib/db/schema/page-content";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -164,6 +163,7 @@ export default function PageEditPage() {
 
       {/* Editor Form */}
       <Form method="post" className="space-y-6">
+        <CsrfInput />
         <input type="hidden" name="intent" value="save" />
         <input type="hidden" name="contentBlocks" value={contentBlocks} />
 
@@ -307,6 +307,7 @@ export default function PageEditPage() {
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Version History</h2>
           <div className="space-y-3">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {history.slice(0, 5).map((entry: any) => (
               <div
                 key={entry.id}
@@ -322,6 +323,7 @@ export default function PageEditPage() {
                   </div>
                 </div>
                 <Form method="post" className="inline">
+                  <CsrfInput />
                   <input type="hidden" name="intent" value="restore" />
                   <input type="hidden" name="version" value={entry.version} />
                   <button

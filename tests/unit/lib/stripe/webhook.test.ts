@@ -117,9 +117,9 @@ describe("Stripe Webhook Handler", () => {
                   id: "price_test",
                   unit_amount: 4900,
                   currency: "usd",
-                } as any,
-              }] as any,
-            } as any,
+                } as Record<string, unknown>,
+              }] as unknown,
+            } as Record<string, unknown>,
           } as Stripe.Subscription,
         },
       };
@@ -165,9 +165,9 @@ describe("Stripe Webhook Handler", () => {
                   id: "price_test",
                   unit_amount: 4900,
                   currency: "usd",
-                } as any,
-              }] as any,
-            } as any,
+                } as Record<string, unknown>,
+              }] as unknown,
+            } as Record<string, unknown>,
           } as Stripe.Subscription,
         },
       };
@@ -213,9 +213,9 @@ describe("Stripe Webhook Handler", () => {
                   id: "price_test",
                   unit_amount: 4900,
                   currency: "usd",
-                } as any,
-              }] as any,
-            } as any,
+                } as Record<string, unknown>,
+              }] as unknown,
+            } as Record<string, unknown>,
           } as Stripe.Subscription,
         },
       };
@@ -357,7 +357,7 @@ describe("Stripe Webhook Handler", () => {
       vi.resetModules();
 
       const mockEvent: Partial<Stripe.Event> = {
-        type: "unknown.event.type" as any,
+        type: "unknown.event.type" as unknown,
         data: {
           object: {},
         },

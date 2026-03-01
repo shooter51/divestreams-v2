@@ -8,8 +8,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { sql as drizzleSql } from "drizzle-orm";
 import {
-  setupTestDatabase,
-  teardownTestDatabase,
   createTestTenantSchema,
   cleanupTestTenantSchema,
   useTestDatabase,
@@ -73,7 +71,7 @@ describe.skip("Transaction Handling", () => {
             VALUES ('Fail', 'User', 'success@test.com', 'test-org')
           `;
         });
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
 
@@ -117,7 +115,7 @@ describe.skip("Transaction Handling", () => {
             VALUES (99999, ${boatId}, '2024-12-26', '09:00:00', 10, 'scheduled')
           `;
         });
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
 
@@ -174,7 +172,7 @@ describe.skip("Transaction Handling", () => {
         VALUES ('Dirty', 'Read', 'dirty@test.com')
       `;
 
-      let readValue: any;
+      let readValue: unknown;
 
       try {
         await sql.begin(async (tx) => {
@@ -194,7 +192,7 @@ describe.skip("Transaction Handling", () => {
           // Rollback
           throw new Error("Rollback");
         });
-      } catch (error) {
+      } catch {
         // Expected
       }
 
@@ -301,7 +299,7 @@ describe.skip("Transaction Handling", () => {
           // Simulate payment failure
           throw new Error("Payment processing failed");
         });
-      } catch (error) {
+      } catch {
         // Expected
       }
 
@@ -331,7 +329,7 @@ describe.skip("Transaction Handling", () => {
             // Simulate error
             throw new Error("Nested transaction failed");
           });
-        } catch (error) {
+        } catch {
           // Nested transaction rolled back
         }
 
@@ -358,8 +356,8 @@ describe.skip("Transaction Handling", () => {
       await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Lock1', 'Test', 'lock1@test.com')`;
       await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Lock2', 'Test', 'lock2@test.com')`;
 
-      const customer1 = await sql`SELECT id FROM customers WHERE email = 'lock1@test.com'`;
-      const customer2 = await sql`SELECT id FROM customers WHERE email = 'lock2@test.com'`;
+      await sql`SELECT id FROM customers WHERE email = 'lock1@test.com'`;
+      await sql`SELECT id FROM customers WHERE email = 'lock2@test.com'`;
 
       // Simulate potential deadlock scenario
       const operations = [
@@ -370,7 +368,7 @@ describe.skip("Transaction Handling", () => {
               await new Promise((resolve) => setTimeout(resolve, 10));
               await tx`UPDATE customers SET first_name = 'Updated2A' WHERE email = 'lock2@test.com'`;
             });
-          } catch (error) {
+          } catch {
             // May fail due to deadlock
           }
         })(),
@@ -381,7 +379,7 @@ describe.skip("Transaction Handling", () => {
               await new Promise((resolve) => setTimeout(resolve, 10));
               await tx`UPDATE customers SET first_name = 'Updated1B' WHERE email = 'lock1@test.com'`;
             });
-          } catch (error) {
+          } catch {
             // May fail due to deadlock
           }
         })(),

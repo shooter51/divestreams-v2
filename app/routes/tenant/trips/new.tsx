@@ -1,11 +1,12 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
+import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { useState, useEffect } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
-import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
+import { getTours, getBoats, getStaff, createTrip, getDiveSitesForTour } from "../../../../lib/db/queries.server";
 import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 // Client-side helper to preview recurrence dates
 function calculatePreviewDates(
@@ -92,10 +93,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const tourId = url.searchParams.get("tourId");
 
   // Fetch real data from tenant database
-  const [toursData, boatsData, staffData] = await Promise.all([
+  const [toursData, boatsData, staffData, diveSitesForTour] = await Promise.all([
     getTours(organizationId, { activeOnly: true }),
     getBoats(organizationId, { activeOnly: true }),
     getStaff(organizationId, { activeOnly: true }),
+    tourId ? getDiveSitesForTour(organizationId, tourId, 10) : Promise.resolve([]),
   ]);
 
   // Map to expected format for the form
@@ -121,7 +123,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const selectedTour = tourId ? tours.find((t) => t.id === tourId) : null;
 
-  return { tours, boats, staff, selectedTour };
+  return { tours, boats, staff, selectedTour, diveSitesForTour };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -217,6 +219,7 @@ export async function action({ request }: ActionFunctionArgs) {
       price: formData.get("price") ? Number(formData.get("price")) : undefined,
       notes: (formData.get("notes") as string) || undefined,
       isPublic: formData.get("isPublic") === "true",
+      staffIds: staffIds.length > 0 ? staffIds as string[] : undefined,
     });
   }
 
@@ -235,12 +238,10 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function NewTripPage() {
-  const { tours, boats, staff, selectedTour } = useLoaderData<typeof loader>();
+  const { tours, boats, staff, selectedTour, diveSitesForTour } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const [searchParams] = useSearchParams();
-
   // Recurring trip state
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern>("weekly");
@@ -282,6 +283,7 @@ export default function NewTripPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Tour Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Tour</h2>
@@ -323,6 +325,25 @@ export default function NewTripPage() {
             </div>
           )}
         </div>
+
+        {/* Dive Sites (read-only, shown when tour pre-selected) */}
+        {selectedTour && diveSitesForTour.length > 0 && (
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-1">Dive Sites</h2>
+            <p className="text-xs text-foreground-muted mb-3">From the selected tour</p>
+            <div className="space-y-2">
+              {diveSitesForTour.map((site) => (
+                <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
+                  <span className="text-sm font-medium">{site.name}</span>
+                  <div className="flex items-center gap-3 text-xs text-foreground-muted">
+                    {site.maxDepth && <span>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft max</span>}
+                    {site.difficulty && <span className="capitalize">{site.difficulty}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Date & Time */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">

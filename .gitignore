@@ -12,6 +12,7 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.test
 
 # IDE
 .idea/
@@ -32,6 +33,8 @@ yarn-debug.log*
 coverage/
 !tests/e2e/coverage/
 .nyc_output/
+test-results/
+playwright-report/
 
 # TypeScript
 *.tsbuildinfo
@@ -45,8 +48,24 @@ temp/
 .worktrees/
 .mcp.json
 
+# Vibe Kanban workspace context (local only)
+.vibe-workspace.json
+.vibe-context.json
+
 # Coverage artifacts
 coverage-summary.json
 
+# Orchestrator
+.env.orchestrator
+orchestrator/data/
+orchestrator/dist/
+
 # 1Password import files
 github-secrets-1password*.csv
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars

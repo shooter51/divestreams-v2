@@ -83,6 +83,29 @@ export async function action({ request }: ActionFunctionArgs) {
         .where(eq(schema.images.id, img.id));
     }
 
+    // Sync products.imageUrl when the primary image changes for a product
+    if (entityType === "product") {
+      const primaryItem = images.find((img) => img.isPrimary);
+      if (primaryItem) {
+        const [primaryImg] = await db
+          .select({ url: schema.images.url })
+          .from(schema.images)
+          .where(eq(schema.images.id, primaryItem.id));
+
+        if (primaryImg) {
+          await db
+            .update(schema.products)
+            .set({ imageUrl: primaryImg.url })
+            .where(
+              and(
+                eq(schema.products.id, entityId),
+                eq(schema.products.organizationId, ctx.org.id)
+              )
+            );
+        }
+      }
+    }
+
     return Response.json({ success: true });
   } catch (error) {
     console.error("Image reorder error:", error);

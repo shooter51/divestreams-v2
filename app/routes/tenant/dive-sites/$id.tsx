@@ -13,6 +13,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
@@ -76,7 +77,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ? { lat: siteData.latitude, lng: siteData.longitude }
         : null,
     conditions: siteData.currentStrength
-      ? `Current: ${siteData.currentStrength}. Visibility: ${siteData.visibility || "Variable"}.`
+      ? `Current: ${({ none: "None", mild: "Mild", moderate: "Moderate", strong: "Strong", variable: "Variable" })[siteData.currentStrength] ?? siteData.currentStrength}. Visibility: ${siteData.visibility || "Variable"}.`
       : null,
     highlights: siteData.highlights || [],
     isActive: siteData.isActive,
@@ -142,8 +143,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       const siteName = site?.name || "Dive site";
       await deleteDiveSite(organizationId, siteId);
       return redirect(redirectWithNotification("/tenant/dive-sites", `${siteName} has been successfully deleted`, "success"));
-    } catch (error: any) {
-      return { deleteError: error.message || "Failed to delete dive site" };
+    } catch (error: unknown) {
+      return { deleteError: error instanceof Error ? error.message : "Failed to delete dive site" };
     }
   }
 
@@ -163,6 +164,10 @@ const difficultyLabels: Record<string, string> = {
   advanced: "Advanced",
   expert: "Expert",
 };
+
+function formatDepth(depth: number): string {
+  return `${depth}m / ${Math.round(depth * 3.28084)}ft`;
+}
 
 export default function DiveSiteDetailPage() {
   const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
@@ -221,6 +226,7 @@ export default function DiveSiteDetailPage() {
             Edit
           </Link>
           <fetcher.Form method="post">
+            <CsrfInput />
             <input type="hidden" name="intent" value="toggle-active" />
             <button
               type="submit"
@@ -252,7 +258,7 @@ export default function DiveSiteDetailPage() {
               <p className="text-foreground-muted text-sm">Total Divers</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{diveSite.maxDepth}m</p>
+              <p className="text-2xl font-bold">{formatDepth(diveSite.maxDepth)}</p>
               <p className="text-foreground-muted text-sm">Max Depth</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
@@ -433,7 +439,7 @@ export default function DiveSiteDetailPage() {
                       <div class="section">
                         <h2>Details</h2>
                         <div class="grid">
-                          <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m</span></div>
+                          <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m / ${Math.round(diveSite.maxDepth * 3.28084)}ft</span></div>
                           <div class="item"><label>Difficulty</label><span>${diveSite.difficulty.charAt(0).toUpperCase() + diveSite.difficulty.slice(1)}</span></div>
                           ${diveSite.coordinates ? `<div class="item"><label>Coordinates</label><span>${diveSite.coordinates.lat}, ${diveSite.coordinates.lng}</span></div>` : ""}
                           <div class="item"><label>Conditions</label><span>${diveSite.conditions || "Variable"}</span></div>

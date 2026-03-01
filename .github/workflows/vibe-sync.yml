@@ -1,0 +1,83 @@
+name: Vibe Kanban Sync
+
+on:
+  push:
+    branches: [main, staging, develop]
+  pull_request:
+    types: [opened, closed]
+    branches: [main, staging, develop]
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract issue ID from branch name
+        id: extract-issue
+        run: |
+          # Extract VK issue ID from branch name (vk/844e-defect-integrati -> 844e-defect)
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          if [[ "$BRANCH" =~ ^vk/([a-f0-9]{4}-[a-z]+) ]]; then
+            SHORT_ID="${BASH_REMATCH[1]}"
+            echo "short_id=$SHORT_ID" >> $GITHUB_OUTPUT
+            echo "✅ Found Vibe Kanban short ID: $SHORT_ID"
+          else
+            echo "⚠️ No VK issue ID found in branch name: $BRANCH"
+            echo "short_id=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Vibe Kanban - Development Status
+        if: steps.extract-issue.outputs.short_id != '' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
+        env:
+          VK_API_URL: ${{ secrets.VK_API_URL }}
+          VK_API_TOKEN: ${{ secrets.VK_API_TOKEN }}
+        run: |
+          node scripts/vibe-update-status.mjs \
+            --short-id=${{ steps.extract-issue.outputs.short_id }} \
+            --status="In Development" \
+            --comment="Deployed to Dev VPS (commit: ${{ github.sha }})"
+
+      - name: Update Vibe Kanban - In Review Status
+        if: steps.extract-issue.outputs.short_id != '' && github.event_name == 'pull_request' && github.event.action == 'opened' && github.base_ref == 'staging'
+        env:
+          VK_API_URL: ${{ secrets.VK_API_URL }}
+          VK_API_TOKEN: ${{ secrets.VK_API_TOKEN }}
+        run: |
+          node scripts/vibe-update-status.mjs \
+            --short-id=${{ steps.extract-issue.outputs.short_id }} \
+            --status="In Review" \
+            --comment="PR #${{ github.event.pull_request.number }} created: ${{ github.event.pull_request.html_url }}"
+
+      - name: Update Vibe Kanban - QA Testing Status
+        if: steps.extract-issue.outputs.short_id != '' && github.ref == 'refs/heads/staging' && github.event_name == 'push'
+        env:
+          VK_API_URL: ${{ secrets.VK_API_URL }}
+          VK_API_TOKEN: ${{ secrets.VK_API_TOKEN }}
+        run: |
+          node scripts/vibe-update-status.mjs \
+            --short-id=${{ steps.extract-issue.outputs.short_id }} \
+            --status="QA Testing" \
+            --comment="Deployed to Test VPS: https://test.divestreams.com"
+
+      - name: Update Vibe Kanban - Done Status
+        if: steps.extract-issue.outputs.short_id != '' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          VK_API_URL: ${{ secrets.VK_API_URL }}
+          VK_API_TOKEN: ${{ secrets.VK_API_TOKEN }}
+        run: |
+          node scripts/vibe-update-status.mjs \
+            --short-id=${{ steps.extract-issue.outputs.short_id }} \
+            --status="Done" \
+            --comment="🚀 Deployed to Production: https://divestreams.com"

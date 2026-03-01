@@ -8,7 +8,6 @@
  * - Logout button
  */
 
-import { useState } from "react";
 import { Form, useLoaderData, useActionData, useNavigation } from "react-router";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { db } from "../../../../lib/db";

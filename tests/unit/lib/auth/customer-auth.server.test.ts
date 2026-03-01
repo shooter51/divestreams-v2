@@ -158,7 +158,7 @@ describe("Customer Auth Server Functions", () => {
 
       for (const fnName of requiredFunctions) {
         expect(module).toHaveProperty(fnName);
-        expect(typeof (module as any)[fnName]).toBe("function");
+        expect(typeof (module as unknown)[fnName]).toBe("function");
       }
     });
   });

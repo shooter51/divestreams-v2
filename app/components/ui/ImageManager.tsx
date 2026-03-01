@@ -5,7 +5,8 @@
  */
 
 import { useState, useCallback, useRef } from "react";
-import { useFetcher } from "react-router";
+import { useRouteLoaderData } from "react-router";
+import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 import { Button } from "./Button";
 
 export interface Image {
@@ -40,10 +41,8 @@ export function ImageManager({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const uploadFetcher = useFetcher();
-  const deleteFetcher = useFetcher();
-  const reorderFetcher = useFetcher();
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const csrfToken = layoutData?.csrfToken ?? "";
 
   const handleUpload = useCallback(async (file: File) => {
     if (images.length >= maxImages) {
@@ -58,6 +57,7 @@ export function ImageManager({
     formData.append("file", file);
     formData.append("entityType", entityType);
     formData.append("entityId", entityId);
+    formData.append(CSRF_FIELD_NAME, csrfToken);
 
     try {
       const response = await fetch("/tenant/images/upload", {
@@ -105,6 +105,7 @@ export function ImageManager({
   const handleDelete = useCallback(async (imageId: string) => {
     const formData = new FormData();
     formData.append("imageId", imageId);
+    formData.append(CSRF_FIELD_NAME, csrfToken);
 
     try {
       const response = await fetch("/tenant/images/delete", {

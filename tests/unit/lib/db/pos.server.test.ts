@@ -279,7 +279,7 @@ describe("pos.server database functions", () => {
       const { getPOSTrips } = await import("../../../../lib/db/pos.server");
       const tables = await import("../../../../lib/db/schema");
 
-      const result = await getPOSTrips(tables, "org-1", "UTC");
+      await getPOSTrips(tables, "org-1", "UTC");
 
       expect(dbMock.select).toHaveBeenCalled();
       expect(dbMock.from).toHaveBeenCalled();

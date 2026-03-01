@@ -18,10 +18,13 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -58,7 +61,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as any);
+      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -88,7 +91,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment/eq-456/edit");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
@@ -125,7 +128,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment/nonexistent/edit");
 
@@ -158,7 +161,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
         isPublic: false,
       };
 
-      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as any);
+      vi.mocked(queries.getEquipmentById).mockResolvedValue(mockEquipment as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -169,7 +172,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment/eq-456/edit");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
@@ -199,7 +202,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
           purchaseDate: new Date("2024-02-01"),
           lastServiceDate: new Date("2024-07-01"),
           notes: "Updated notes",
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -218,7 +221,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("name", "Updated BCD");
@@ -300,7 +303,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
           status: "available",
           condition: "good",
           isRentable: true,
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -312,7 +315,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: { equipment: {} },
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("name", "Test Equipment");
@@ -338,7 +341,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
         data: {
           name: "Test Equipment",
           category: "bcd",
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -350,7 +353,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: { equipment: {} },
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("name", "Test Equipment");

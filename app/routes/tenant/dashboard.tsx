@@ -162,19 +162,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     date: formatDate(b.tripDate),
   }));
 
-  // Format dates in trips and bookings
-  const formattedTrips = upcomingTrips.map((trip) => ({
-    ...trip,
-    date: formatDate(trip.date),
-  }));
-
-  const formattedBookings = recentBookings.map((booking) => ({
-    ...booking,
-    date: formatDate(booking.date),
-  }));
 
   // Get plan limits from subscription plan details or use defaults
-  const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
 
   // Calculate limit checks using centralized function
   const limitChecks = checkAllLimits(usage, planLimits);
@@ -182,7 +172,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return {
     stats,
     upcomingTrips: formattedTrips,
-    recentBookings: formattedBookings,
+    recentBookings: recentBookings,
     subscription: ctx.subscription,
     usage,
     planLimits,
@@ -243,7 +233,7 @@ export default function DashboardPage() {
                 ? "bg-brand-muted text-brand"
                 : "bg-warning-muted text-warning"
             }`}>
-              {formatLabel(subscription?.plan || "free")} - {formatLabel(subscription?.status || "active")}
+              {formatLabel(subscription?.plan || "standard")} - {formatLabel(subscription?.status || "active")}
             </span>
           </div>
           {!isPremium && (

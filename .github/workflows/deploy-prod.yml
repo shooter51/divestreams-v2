@@ -1,0 +1,80 @@
+name: Deploy Production
+
+# On push to main: retag :test → :latest, deploy to Production VPS.
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: shooter51/divestreams-app
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, divestreams]
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag :test → :latest
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to Production VPS
+        run: |
+          echo "Deploying to Production VPS (${{ vars.PROD_VPS_ID }})"
+          curl -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ vars.PROD_VPS_ID }}/docker/divestreams-prod/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+
+      - name: Wait for containers to start
+        run: |
+          EXPECTED=4
+          VPS_ID=${{ vars.PROD_VPS_ID }}
+          MAX_ATTEMPTS=12
+          WAIT=10
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Check $i/$MAX_ATTEMPTS..."
+            RESPONSE=$(curl -s -X GET \
+              "https://developers.hostinger.com/api/vps/v1/virtual-machines/${VPS_ID}/docker/divestreams-prod/containers" \
+              -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+              -H "Content-Type: application/json")
+            RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+            echo "  Running: $RUNNING_COUNT/$EXPECTED"
+
+            if [ "$RUNNING_COUNT" -ge "$EXPECTED" ]; then
+              echo "All containers running"
+              exit 0
+            fi
+
+            if [ "$i" -eq "$MAX_ATTEMPTS" ]; then
+              echo "ERROR: Expected $EXPECTED containers, found $RUNNING_COUNT after $((MAX_ATTEMPTS * WAIT))s"
+              exit 1
+            fi
+            sleep $WAIT
+          done
+
+      - name: Deployment Summary
+        run: |
+          echo "### Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://divestreams.com" >> $GITHUB_STEP_SUMMARY

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Dev VPS Instance Manager
 # Manages isolated DiveStreams Docker instances on the dev VPS.
-# Each instance gets its own app, worker, postgres, and redis containers.
+# Each instance gets its own app + worker containers, sharing dev-postgres and dev-redis.
 #
 # Usage:
 #   ./scripts/dev-instance.sh create <name> [--tag <image-tag>]
@@ -10,16 +10,22 @@
 #   ./scripts/dev-instance.sh logs <name> [--follow]
 #   ./scripts/dev-instance.sh status <name>
 #   ./scripts/dev-instance.sh pull [--tag <image-tag>]
+#   ./scripts/dev-instance.sh infra-up
+#   ./scripts/dev-instance.sh infra-down
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.dev-vps.yml"
+INFRA_COMPOSE_FILE="$PROJECT_DIR/docker-compose.dev-infra.yml"
 PORTS_FILE="/opt/divestreams/ports.json"
 CADDY_CONFIG="/etc/caddy/Caddyfile"
 MAX_INSTANCES=8
 BASE_PORT=3001
+
+DB_USER="${DB_USER:-divestreams}"
+DB_PASSWORD="${DB_PASSWORD:-divestreams_dev}"
 
 # Ensure ports registry exists
 mkdir -p /opt/divestreams
@@ -64,6 +70,57 @@ get_port() {
 # Count current instances
 instance_count() {
     jq 'length' "$PORTS_FILE"
+}
+
+# Ensure shared infrastructure (dev-postgres + dev-redis) is running
+ensure_infra() {
+    if docker ps --format '{{.Names}}' | grep -q '^dev-postgres$'; then
+        log "Shared infrastructure already running"
+        return 0
+    fi
+
+    log "Starting shared infrastructure (dev-postgres + dev-redis)..."
+    docker compose -f "$INFRA_COMPOSE_FILE" -p dev-infra up -d
+
+    # Wait for postgres to be healthy
+    log "Waiting for dev-postgres to be healthy..."
+    local retries=0
+    while [ $retries -lt 30 ]; do
+        if docker exec dev-postgres pg_isready -U "$DB_USER" &>/dev/null; then
+            log "dev-postgres is ready"
+            return 0
+        fi
+        retries=$((retries + 1))
+        sleep 1
+    done
+    err "dev-postgres did not become healthy in time"
+}
+
+# Create a database for an instance
+create_instance_db() {
+    local name=$1
+    local db_name="ds_${name}"
+
+    log "Creating database '$db_name'..."
+    # Create the database if it doesn't exist
+    docker exec dev-postgres psql -U "$DB_USER" -d divestreams -tc \
+        "SELECT 1 FROM pg_database WHERE datname = '${db_name}'" | grep -q 1 || \
+        docker exec dev-postgres psql -U "$DB_USER" -d divestreams -c \
+        "CREATE DATABASE \"${db_name}\" OWNER \"${DB_USER}\""
+    log "Database '$db_name' ready"
+}
+
+# Drop a database for an instance
+drop_instance_db() {
+    local name=$1
+    local db_name="ds_${name}"
+
+    log "Dropping database '$db_name'..."
+    # Terminate connections then drop
+    docker exec dev-postgres psql -U "$DB_USER" -d divestreams -c \
+        "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${db_name}' AND pid <> pg_backend_pid()" &>/dev/null || true
+    docker exec dev-postgres psql -U "$DB_USER" -d divestreams -c \
+        "DROP DATABASE IF EXISTS \"${db_name}\"" || log "Warning: could not drop database '$db_name'"
 }
 
 # Update Caddy config with current instances
@@ -124,6 +181,12 @@ cmd_create() {
     count=$(instance_count)
     [ "$count" -ge "$MAX_INSTANCES" ] && err "Maximum $MAX_INSTANCES instances reached (currently $count). Destroy one first."
 
+    # Ensure shared infra is running
+    ensure_infra
+
+    # Create per-instance database
+    create_instance_db "$name"
+
     local port
     port=$(next_port)
     log "Creating instance '$name' on port $port with image tag '$tag'..."
@@ -140,7 +203,8 @@ cmd_create() {
     log "Instance '$name' created successfully"
     log "  URL: https://${name}.dev.divestreams.com"
     log "  Port: $port"
-    log "  Containers: ds-${name}-app, ds-${name}-worker, ds-${name}-db, ds-${name}-redis"
+    log "  Database: ds_${name} (on shared dev-postgres)"
+    log "  Containers: ds-${name}-app, ds-${name}-worker"
 }
 
 cmd_destroy() {
@@ -155,7 +219,10 @@ cmd_destroy() {
 
     INSTANCE_NAME="$name" \
     HOST_PORT="$port" \
-    docker compose -f "$COMPOSE_FILE" -p "ds-${name}" down -v
+    docker compose -f "$COMPOSE_FILE" -p "ds-${name}" down
+
+    # Drop per-instance database
+    drop_instance_db "$name"
 
     unregister_port "$name"
     update_caddy
@@ -223,14 +290,35 @@ cmd_pull() {
     log "Pull complete"
 }
 
+cmd_infra_up() {
+    ensure_infra
+    log "Shared infrastructure is running"
+    log "  dev-postgres: port 5432"
+    log "  dev-redis: port 6379"
+}
+
+cmd_infra_down() {
+    local count
+    count=$(instance_count)
+    if [ "$count" -gt 0 ]; then
+        err "Cannot stop shared infra while $count instance(s) are running. Destroy all instances first."
+    fi
+
+    log "Stopping shared infrastructure..."
+    docker compose -f "$INFRA_COMPOSE_FILE" -p dev-infra down
+    log "Shared infrastructure stopped (data volumes preserved)"
+}
+
 # Main dispatch
 case "${1:-}" in
-    create)  shift; cmd_create "$@" ;;
-    destroy) shift; cmd_destroy "$@" ;;
-    list)    cmd_list ;;
-    logs)    shift; cmd_logs "$@" ;;
-    status)  shift; cmd_status "$@" ;;
-    pull)    shift; cmd_pull "$@" ;;
+    create)    shift; cmd_create "$@" ;;
+    destroy)   shift; cmd_destroy "$@" ;;
+    list)      cmd_list ;;
+    logs)      shift; cmd_logs "$@" ;;
+    status)    shift; cmd_status "$@" ;;
+    pull)      shift; cmd_pull "$@" ;;
+    infra-up)  cmd_infra_up ;;
+    infra-down) cmd_infra_down ;;
     *)
         echo "Usage: dev-instance.sh <command> [args]"
         echo ""
@@ -241,6 +329,8 @@ case "${1:-}" in
         echo "  logs <name> [--follow]              View instance logs"
         echo "  status <name>                       Show container status"
         echo "  pull [--tag <image-tag>]            Pull latest image"
+        echo "  infra-up                            Start shared postgres + redis"
+        echo "  infra-down                          Stop shared infra (no instances must be running)"
         exit 1
         ;;
 esac

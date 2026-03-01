@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/reports/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -13,16 +12,21 @@ vi.mock("../../../../../lib/db", () => ({
 }));
 
 // Helper to create thenable mock builder
-function createMockBuilder(results: any[]) {
+function createMockBuilder(results: unknown[]) {
   let callCount = 0;
-  return {
+  const builder = {
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    groupBy: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    innerJoin: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
     then: vi.fn((resolve) => {
       const result = results[callCount++];
       return Promise.resolve(result).then(resolve);
     }),
   };
+  return builder;
 }
 
 describe("app/routes/tenant/reports/index.tsx", () => {
@@ -34,7 +38,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireOrgContext).mockResolvedValue(mockOrgContext as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue(mockOrgContext as unknown);
   });
 
   describe("loader", () => {
@@ -46,7 +50,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 25 }], // Booking count
         [{ count: 150 }], // Total customers
         [{ count: 10 }], // New customers
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
@@ -70,7 +74,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 5 }],
         [{ count: 100 }],
         [{ count: 2 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports?range=today");
       const result = await loader({ request, params: {}, context: {} });
@@ -87,7 +91,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 10 }],
         [{ count: 100 }],
         [{ count: 5 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports?range=this_week");
       const result = await loader({ request, params: {}, context: {} });
@@ -104,7 +108,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 200 }],
         [{ count: 500 }],
         [{ count: 100 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports?range=this_year");
       const result = await loader({ request, params: {}, context: {} });
@@ -121,7 +125,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 15 }],
         [{ count: 120 }],
         [{ count: 8 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request(
         "http://test.com/tenant/reports?range=custom&start=2024-01-01&end=2024-01-31"
@@ -138,7 +142,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
       vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
         ...mockOrgContext,
         isPremium: true,
-      } as any);
+      } as unknown);
 
       vi.mocked(db.select).mockReturnValue(createMockBuilder([
         [{ total: 5000 }],
@@ -147,7 +151,12 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 25 }],
         [{ count: 150 }],
         [{ count: 10 }],
-      ]) as any);
+        // Premium queries: revenueData, bookingsByStatus, topTours, equipmentRaw
+        [{ period: "2024-01-01", revenue: 1000, bookings: 5 }],
+        [{ status: "confirmed", count: 10 }],
+        [{ id: "tour-1", name: "Reef Dive", bookings: 5, revenue: 500 }],
+        [{ category: "wetsuit", status: "available", count: 3 }],
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
@@ -167,7 +176,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 25 }],
         [{ count: 150 }],
         [{ count: 10 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
@@ -187,7 +196,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 0 }],
         [{ count: 0 }],
         [{ count: 0 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
@@ -207,7 +216,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
           return Promise.reject(new Error("Database error"));
         }),
       };
-      vi.mocked(db.select).mockReturnValue(mockBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
@@ -227,7 +236,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 25 }],
         [{ count: 100 }],
         [{ count: 10 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
@@ -243,7 +252,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 20 }],
         [{ count: 100 }],
         [{ count: 5 }],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });

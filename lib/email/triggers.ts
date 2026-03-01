@@ -7,6 +7,7 @@
 
 import { sendEmail } from "../jobs/index";
 import { getTenantUrl, getAppUrl } from "../utils/url";
+import { isEmailConfigured } from "./index";
 
 /**
  * Parse notification settings from org metadata JSON.
@@ -83,6 +84,13 @@ export async function triggerWelcomeEmail(params: {
   subdomain: string;
   tenantId: string;
 }): Promise<void> {
+  if (!isEmailConfigured()) {
+    console.warn(
+      `SMTP not configured — welcome email for ${params.userEmail} will not be delivered. ` +
+      `Set SMTP_HOST, SMTP_USER, and SMTP_PASS environment variables to enable email.`
+    );
+  }
+
   const loginUrl = getTenantUrl(params.subdomain, "/login");
 
   await sendEmail("welcome", {

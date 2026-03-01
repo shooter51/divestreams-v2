@@ -3,7 +3,8 @@ import { useLoaderData, useActionData, Form, Link } from "react-router";
 import { requirePlatformContext } from "../../../../lib/auth/platform-context.server";
 import { db } from "../../../../lib/db";
 import { account } from "../../../../lib/db/schema";
-import { hashPassword } from "../../../../lib/auth/password.server";
+import { and } from "drizzle-orm";
+import { hashPassword, verifyPassword } from "../../../../lib/auth/password.server";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
 
@@ -63,8 +64,18 @@ export async function action({ request }: ActionFunctionArgs) {
     return { error: "Current password is required" };
   }
 
-  // TODO: Verify current password if not forced
-  // This would require Better Auth password verification
+  // Verify current password if not forced
+  if (!forced) {
+    const [existingAccount] = await db
+      .select({ password: account.password })
+      .from(account)
+      .where(and(eq(account.userId, ctx.user.id), eq(account.providerId, "credential")))
+      .limit(1);
+
+    if (!existingAccount?.password || !(await verifyPassword(currentPassword, existingAccount.password))) {
+      return { error: "Current password is incorrect" };
+    }
+  }
 
   // Update password using Better Auth format
   try {

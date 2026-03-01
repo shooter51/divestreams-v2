@@ -2,8 +2,13 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { createGalleryAlbum, getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
+import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { storageLogger } from "../../../../lib/logger";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
+
+const MAX_COVER_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -32,13 +37,50 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: { slug: "An album with this URL slug already exists" } };
   }
 
+  // Handle cover image upload
+  let coverImageUrl: string | null = null;
+  const coverFile = formData.get("coverImage") as File | null;
+
+  if (coverFile && coverFile.size > 0) {
+    if (!isValidImageType(coverFile.type)) {
+      return { errors: { coverImage: "Invalid image type. Allowed: JPEG, PNG, WebP, GIF" } };
+    }
+
+    if (coverFile.size > MAX_COVER_IMAGE_SIZE) {
+      return { errors: { coverImage: "Cover image must be under 10MB" } };
+    }
+
+    const s3Client = getS3Client();
+    if (!s3Client) {
+      return { errors: { coverImage: "Image storage is not configured. Contact support." } };
+    }
+
+    try {
+      const arrayBuffer = await coverFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const processed = await processImage(buffer);
+
+      const timestamp = Date.now();
+      const safeFilename = coverFile.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const coverKey = `${ctx.org.slug}/gallery/covers/${timestamp}-${safeFilename}.webp`;
+
+      const uploadResult = await uploadToS3(coverKey, processed.original, getWebPMimeType());
+      if (uploadResult) {
+        coverImageUrl = uploadResult.cdnUrl;
+      }
+    } catch (error) {
+      storageLogger.error({ err: error, filename: coverFile.name }, "Failed to upload album cover image");
+      return { errors: { coverImage: "Failed to upload cover image. Please try again." } };
+    }
+  }
+
   const album = await createGalleryAlbum(ctx.org.id, {
     name,
     description: description || null,
     slug,
     sortOrder,
     isPublic,
-    coverImageUrl: null,
+    coverImageUrl,
   });
 
   return redirect(`/tenant/gallery/${album.id}`);
@@ -58,7 +100,8 @@ export default function NewGalleryAlbumPage() {
         <h1 className="text-2xl font-bold mt-2">Create New Album</h1>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" encType="multipart/form-data" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Album Information</h2>
@@ -128,6 +171,35 @@ export default function NewGalleryAlbumPage() {
                 Lower numbers appear first (0 = first, 10 = later)
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Cover Image */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Cover Image</h2>
+          <div>
+            <label htmlFor="coverImage" className="block text-sm font-medium mb-2">
+              Cover Image
+            </label>
+            <input
+              type="file"
+              id="coverImage"
+              name="coverImage"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="block w-full text-sm text-foreground-muted
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-medium
+                file:bg-brand file:text-white
+                hover:file:bg-brand-hover
+                file:cursor-pointer cursor-pointer"
+            />
+            <p className="text-xs text-foreground-muted mt-1">
+              Optional. Upload a cover image for this album (JPEG, PNG, WebP, GIF). Max 10MB.
+            </p>
+            {actionData?.errors?.coverImage && (
+              <p className="text-danger text-sm mt-1">{actionData.errors.coverImage}</p>
+            )}
           </div>
         </div>
 

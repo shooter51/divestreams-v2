@@ -6,11 +6,13 @@
 
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Link } from "react-router";
+import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { z } from "zod";
+import { checkoutSchema } from "../../../lib/validation/pos";
 import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -280,7 +282,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "checkout") {
     try {
-      const data = JSON.parse(formData.get("data") as string);
+      const rawData = JSON.parse(formData.get("data") as string);
+      const data = checkoutSchema.parse(rawData);
 
       // Get the actual user ID from the authenticated session
       const userId = ctx.user.id;
@@ -319,6 +322,8 @@ export default function POSPage() {
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { showToast } = useToast();
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const csrfToken = layoutData?.csrfToken;
 
   // State
   const [tab, setTab] = useState<"retail" | "rentals" | "trips">("retail");
@@ -366,7 +371,11 @@ export default function POSPage() {
   } | null>(null);
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * (taxRate / 100);
+  // Use per-product taxRate if available, otherwise fall back to org-level taxRate
+  const tax = cart.reduce((sum, item) => {
+    const itemTaxRate = item.type === "product" && item.taxRate != null ? item.taxRate : taxRate;
+    return sum + item.total * (itemTaxRate / 100);
+  }, 0);
   const total = subtotal + tax;
 
   // Check if cart requires customer (has rentals or bookings)
@@ -375,7 +384,7 @@ export default function POSPage() {
   const requiresCustomer = hasRentals || hasBookings;
 
   // Cart operations
-  const addProduct = useCallback((product: { id: string; name: string; price: string }) => {
+  const addProduct = useCallback((product: { id: string; name: string; price: string; taxRate?: string | null }) => {
     setCart(prev => {
       const existing = prev.findIndex(
         item => item.type === "product" && item.productId === product.id
@@ -393,6 +402,7 @@ export default function POSPage() {
         name: product.name,
         quantity: 1,
         unitPrice: Number(product.price),
+        taxRate: product.taxRate != null ? Number(product.taxRate) : undefined,
         total: Number(product.price),
       }];
     });
@@ -458,7 +468,8 @@ export default function POSPage() {
     setCheckoutMethod(method);
   }, [hasRentals, showRentalAgreement]);
 
-  const handleRentalAgreementConfirm = useCallback((_staffName: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleRentalAgreementConfirm = useCallback((staffName: string) => {
     setShowRentalAgreement(false);
     if (pendingCheckout) {
       setCheckoutMethod(pendingCheckout);
@@ -477,21 +488,23 @@ export default function POSPage() {
       tax,
       total,
     }));
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
 
     // Clear on success
     clearCart();
     setCheckoutMethod(null);
-  }, [cart, customer, subtotal, tax, total, fetcher, clearCart]);
+  }, [cart, customer, subtotal, tax, total, fetcher, clearCart, csrfToken]);
 
   // Customer search
   const handleCustomerSearch = useCallback((query: string) => {
     const formData = new FormData();
     formData.append("intent", "search-customers");
     formData.append("query", query);
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
-  }, [fetcher]);
+  }, [fetcher, csrfToken]);
 
   // Barcode scanning
   const handleBarcodeScan = useCallback((barcode: string) => {
@@ -501,8 +514,9 @@ export default function POSPage() {
     const formData = new FormData();
     formData.append("intent", "scan-barcode");
     formData.append("barcode", barcode);
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
-  }, [fetcher]);
+  }, [fetcher, csrfToken]);
 
   // Refund handling
   const handleTransactionFound = useCallback((transaction: typeof selectedTransaction) => {
@@ -522,9 +536,10 @@ export default function POSPage() {
       stripePaymentId: selectedTransaction.stripePaymentId,
       refundReason,
     }));
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
-  }, [selectedTransaction, fetcher]);
+  }, [selectedTransaction, fetcher, csrfToken]);
 
   // Update search results and handle barcode results when fetcher returns
   useEffect(() => {

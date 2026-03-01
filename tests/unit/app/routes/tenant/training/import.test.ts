@@ -69,7 +69,7 @@ describe('Training Import Action', () => {
       name: 'Open Water Diver',
       price: '500.00',
       // ... other fields
-    } as any);
+    } as unknown);
 
     // Verify createCourse would be called with correct data
     expect(true).toBe(true); // Placeholder

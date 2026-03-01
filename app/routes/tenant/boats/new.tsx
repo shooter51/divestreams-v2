@@ -1,12 +1,13 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
+import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createBoat } from "../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
-import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
+import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
@@ -43,7 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const validation = validateFormData(formData, boatSchema);
-  console.log("[boats/new] Validation result:", validation.success, validation.success ? "" : JSON.stringify((validation as any).errors));
+  console.log("[boats/new] Validation result:", validation.success, validation.success ? "" : JSON.stringify((validation as { errors: unknown }).errors));
 
   if (!validation.success) {
     console.log("[boats/new] Validation failed, returning errors");
@@ -113,13 +114,13 @@ export async function action({ request }: ActionFunctionArgs) {
         const thumbnailKey = `${baseKey}-thumb.webp`;
 
         // Upload to S3/B2
-        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
         if (!originalUpload) {
           failedFiles.push(`${file.name} (storage error)`);
           continue;
         }
 
-        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+        const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
         // Save to database
         await db.insert(schema.images).values({
@@ -220,6 +221,7 @@ export default function NewBoatPage() {
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>

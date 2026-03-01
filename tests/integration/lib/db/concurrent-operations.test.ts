@@ -365,8 +365,6 @@ describe.skip("Concurrent Operations and Data Integrity", () => {
 
       // Create base data
       await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Load', 'Test', 'load@test.com', 'test-org')`;
-      const customer = await sql`SELECT id FROM customers LIMIT 1`;
-      const customerId = customer[0].id;
 
       await sql`INSERT INTO tours (name, price, max_participants, is_active) VALUES ('Tour', 100, 10, true)`;
       const tour = await sql`SELECT id FROM tours LIMIT 1`;

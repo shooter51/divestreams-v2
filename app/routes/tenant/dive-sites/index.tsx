@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
-import { eq, ilike, and, inArray, or } from "drizzle-orm";
+import { eq, ilike, and, or } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
 
@@ -93,6 +93,13 @@ const difficultyColors: Record<string, string> = {
   intermediate: "bg-brand-muted text-brand",
   advanced: "bg-accent-muted text-accent",
   expert: "bg-danger-muted text-danger",
+};
+
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+  expert: "Expert",
 };
 
 export default function DiveSitesPage() {
@@ -228,7 +235,7 @@ export default function DiveSitesPage() {
 
               <div className="flex justify-between items-center text-sm border-t pt-3">
                 <span className="text-foreground-muted">
-                  Max depth: <strong>{site.maxDepth}m</strong>
+                  Max depth: <strong>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</strong>
                 </span>
               </div>
 

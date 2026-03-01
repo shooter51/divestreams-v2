@@ -9,17 +9,12 @@ import {
   type User,
   type NewUser,
   type Session,
-  type NewSession,
   type Account,
-  type NewAccount,
   type Organization,
-  type NewOrganization,
   type Member,
   type NewMember,
   type Invitation,
-  type NewInvitation,
   type Verification,
-  type NewVerification,
 } from "../../../../../lib/db/schema/auth";
 
 describe("Auth Schema", () => {

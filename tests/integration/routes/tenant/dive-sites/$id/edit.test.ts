@@ -18,10 +18,13 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -54,7 +57,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getDiveSiteById).mockResolvedValue(mockSite as any);
+      vi.mocked(queries.getDiveSiteById).mockResolvedValue(mockSite as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -84,7 +87,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites/site-456/edit");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
@@ -120,7 +123,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites/nonexistent/edit");
 
@@ -149,7 +152,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
         isActive: true,
       };
 
-      vi.mocked(queries.getDiveSiteById).mockResolvedValue(mockSite as any);
+      vi.mocked(queries.getDiveSiteById).mockResolvedValue(mockSite as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -160,7 +163,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites/site-456/edit");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
@@ -189,7 +192,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
           currentStrength: "strong",
           highlights: ["Sharks", "Manta Rays"],
           isActive: true,
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -208,7 +211,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("name", "Updated Corner");
@@ -290,7 +293,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
           maxDepth: 20,
           difficulty: "intermediate",
           highlights: ["Sharks", "Coral", "Wreck"],
-        } as any,
+        } as unknown,
       });
 
       const mockDb = {
@@ -302,7 +305,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: { diveSites: {} },
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("name", "Test Site");

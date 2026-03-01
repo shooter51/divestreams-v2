@@ -6,11 +6,10 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import { useLoaderData, Link, useSearchParams, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link, useSearchParams } from "react-router";
 import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
-import type { SiteLoaderData } from "../_layout";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Trips" }];
@@ -95,7 +94,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Build query conditions
   const conditions = [
     eq(trips.organizationId, org.id),
-    eq(trips.isPublic, true),
     eq(trips.status, "scheduled"),
     gte(trips.date, fromDate),
   ];
@@ -262,7 +260,6 @@ function formatPrice(price: string, currency: string): string {
 export default function SiteTripsPage() {
   const { trips, total, page, totalPages, fromDate, toDate } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
 
   const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

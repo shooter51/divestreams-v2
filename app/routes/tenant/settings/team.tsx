@@ -2,7 +2,8 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { useState, useEffect } from "react";
-import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+
+
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -29,6 +30,14 @@ const roles = [
   },
 ];
 
+const roleDisplayLabels: Record<string, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  staff: "Staff",
+  member: "Staff",
+  customer: "Customer",
+};
+
 export async function loader({ request }: LoaderFunctionArgs) {
   // Import server-only modules inline to prevent client bundle leakage
   const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
@@ -41,7 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
 
   // Check users limit - this will redirect if limit exceeded
-  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
   const limitCheck = await requireLimit(ctx.org.id, "users", limits);
 
   // Get team members from Better Auth member table
@@ -213,7 +222,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingInvite) {
-      return { error: "This email already has a pending invitation" };
+      return { error: "This email already has a pending invitation. See the Pending Invitations section below to resend or cancel it." };
     }
 
     // User doesn't exist - create invitation for new user
@@ -270,19 +279,17 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Invalid role" };
     }
 
-    // Check if target is an owner — cannot demote owners
+    // Fetch target member to prevent demoting owners
     const [targetMember] = await db
       .select({ role: member.role })
       .from(member)
-      .where(
-        and(
-          eq(member.userId, userId),
-          eq(member.organizationId, ctx.org.id)
-        )
-      )
+      .where(and(eq(member.userId, userId), eq(member.organizationId, ctx.org.id)))
       .limit(1);
 
-    if (targetMember?.role === "owner") {
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+    if (targetMember.role === "owner") {
       return { error: "Cannot change the role of an organization owner" };
     }
 
@@ -310,6 +317,20 @@ export async function action({ request }: ActionFunctionArgs) {
     // Prevent users from removing themselves
     if (userId === ctx.user.id) {
       return { error: "You cannot modify your own role" };
+    }
+
+    // Prevent removing owners
+    const [targetMember] = await db
+      .select({ role: member.role })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, ctx.org.id)))
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+    if (targetMember.role === "owner") {
+      return { error: "Cannot remove the owner from the team" };
     }
 
     await db.delete(member).where(
@@ -465,7 +486,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TeamPage() {
-  const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const { team, pendingInvites, roles, planLimit, limitRemaining, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();
@@ -609,7 +630,7 @@ export default function TeamPage() {
                         : "bg-surface-inset text-foreground"
                     }`}
                   >
-                    {roles.find((r) => r.id === member.role)?.name || member.role}
+                    {roles.find((r) => r.id === member.role)?.name || roleDisplayLabels[member.role] || member.role}
                   </span>
                   <p className="text-xs text-foreground-subtle mt-1">{member.lastActive}</p>
                 </div>

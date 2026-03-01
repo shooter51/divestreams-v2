@@ -270,14 +270,14 @@ describe("schema.ts", () => {
 
     it("exports NewSubscriptionPlan type", () => {
       const mockNewPlan: Partial<NewSubscriptionPlan> = {
-        name: "starter",
-        displayName: "Starter Plan",
+        name: "standard",
+        displayName: "Standard Plan",
         monthlyPrice: 2900,
         yearlyPrice: 29900,
         features: ["Feature 1", "Feature 2"],
         limits: { users: 2, customers: 100, toursPerMonth: 50, storageGb: 1 },
       };
-      expect(mockNewPlan.name).toBe("starter");
+      expect(mockNewPlan.name).toBe("standard");
     });
   });
 

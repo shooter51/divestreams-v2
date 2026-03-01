@@ -46,7 +46,8 @@ export function getPOSReceiptEmail(data: POSReceiptData): {
     name: escapeHtml(item.name),
   }));
 
-  const subject = `Receipt from ${businessName} - ${currency} ${data.total.toFixed(2)}`;
+  // Subject line is plain text, not HTML — use unescaped values
+  const subject = `Receipt from ${data.businessName} - ${data.currency.toUpperCase()} ${data.total.toFixed(2)}`;
 
   const html = `
 <!DOCTYPE html>

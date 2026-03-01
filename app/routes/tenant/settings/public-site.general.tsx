@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq, and, ne, sql } from "drizzle-orm";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -88,6 +89,7 @@ export default function PublicSiteGeneralSettings() {
       )}
 
       <fetcher.Form method="post">
+        <CsrfInput />
         <input type="hidden" name="intent" value="update-general" />
 
         {/* Enable/Disable Toggle */}
@@ -130,16 +132,7 @@ export default function PublicSiteGeneralSettings() {
               defaultValue={customDomain || ""}
               placeholder="www.yourdiveshop.com"
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-              disabled={!isPremium}
             />
-            {!isPremium && (
-              <p className="text-xs text-warning mt-1">
-                Custom domains are available on paid plans.{" "}
-                <a href="/tenant/settings/billing" className="underline">
-                  Upgrade now
-                </a>
-              </p>
-            )}
           </div>
 
           <div className="bg-brand-muted border border-brand-muted rounded-lg p-4">
@@ -195,9 +188,7 @@ export default function PublicSiteGeneralSettings() {
             ].map((page) => (
               <label
                 key={page.id}
-                className={`flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer ${
-                  page.premium && !isPremium ? "opacity-50" : ""
-                }`}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <input
@@ -205,16 +196,10 @@ export default function PublicSiteGeneralSettings() {
                     name={`page-${page.id}`}
                     value="true"
                     defaultChecked={settings?.pages?.[page.id as keyof typeof settings.pages] ?? false}
-                    disabled={page.premium && !isPremium}
                     className="w-4 h-4 text-brand rounded focus:ring-brand"
                   />
                   <div>
                     <span className="font-medium">{page.label}</span>
-                    {page.premium && (
-                      <span className="ml-2 text-xs bg-warning-muted text-warning px-2 py-0.5 rounded-full">
-                        Premium
-                      </span>
-                    )}
                     <p className="text-sm text-foreground-muted">{page.description}</p>
                   </div>
                 </div>

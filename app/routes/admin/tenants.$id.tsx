@@ -199,7 +199,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const status = formData.get("status") as string;
 
     // [KAN-594 FIX] Get plan details for backwards compatibility AND validation
-    let planName = "free";
+    let planName = "standard";
     let selectedPlan = null;
 
     if (planId) {
@@ -260,7 +260,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "removeMember") {
     const memberId = formData.get("memberId") as string;
     if (memberId) {
-      await db.delete(member).where(eq(member.id, memberId));
+      await db.delete(member).where(and(eq(member.id, memberId), eq(member.organizationId, org.id)));
       return { success: true };
     }
   }
@@ -272,7 +272,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await db
         .update(member)
         .set({ role, updatedAt: new Date() })
-        .where(eq(member.id, memberId));
+        .where(and(eq(member.id, memberId), eq(member.organizationId, org.id)));
       return { success: true };
     }
   }
@@ -283,6 +283,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     if (!userId) {
       return { error: "User ID is required" };
+    }
+
+    // Verify user belongs to this organization
+    const [orgMembership] = await db
+      .select({ userId: member.userId })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, org.id)))
+      .limit(1);
+
+    if (!orgMembership) {
+      return { error: "User not found in this organization" };
     }
 
     // Get the user
@@ -339,6 +350,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     if (!userId || !newEmail) {
       return { error: "User ID and new email are required" };
+    }
+
+    // Verify user belongs to this organization
+    const [emailOrgMembership] = await db
+      .select({ userId: member.userId })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, org.id)))
+      .limit(1);
+
+    if (!emailOrgMembership) {
+      return { error: "User not found in this organization" };
     }
 
     // Validate email format

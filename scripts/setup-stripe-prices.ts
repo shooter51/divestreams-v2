@@ -41,9 +41,9 @@ async function main() {
       continue;
     }
 
-    // Skip free plan
-    if (plan.name === "free" || plan.monthlyPrice === 0) {
-      console.log(`  ⊘ Skipping free plan (no Stripe prices needed)`);
+    // Skip plans with no price (legacy free plans)
+    if (plan.monthlyPrice === 0) {
+      console.log(`  ⊘ Skipping ${plan.name} plan (no Stripe prices needed)`);
       continue;
     }
 

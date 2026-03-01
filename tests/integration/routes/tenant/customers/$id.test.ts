@@ -21,10 +21,13 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -65,8 +68,8 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as any);
-      vi.mocked(queries.getCustomerBookings).mockResolvedValue(mockBookings as any);
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
+      vi.mocked(queries.getCustomerBookings).mockResolvedValue(mockBookings as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -75,9 +78,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         limit: vi.fn().mockResolvedValue(mockCommunications),
       };
 
-      const mockDb = { select: vi.fn().mockReturnValue(mockSelectBuilder) };
-
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown as ReturnType<typeof db.select>);
 
       const request = new Request("http://test.com/tenant/customers/cust-456");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
@@ -135,7 +136,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         updatedAt: new Date("2024-01-16"),
       };
 
-      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as any);
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
       vi.mocked(queries.getCustomerBookings).mockResolvedValue([]);
 
       const mockSelectBuilder = {
@@ -145,7 +146,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         limit: vi.fn().mockRejectedValue(new Error("Table does not exist")),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/customers/cust-456");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
@@ -180,8 +181,8 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as any);
-      vi.mocked(queries.getCustomerBookings).mockResolvedValue(mockBookings as any);
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
+      vi.mocked(queries.getCustomerBookings).mockResolvedValue(mockBookings as unknown);
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -190,7 +191,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/customers/cust-456");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
@@ -229,7 +230,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
         insert: vi.fn().mockReturnThis(),
         values: vi.fn().mockResolvedValue([]),
       };
-      vi.mocked(db.insert).mockReturnValue(mockInsertBuilder as any);
+      vi.mocked(db.insert).mockReturnValue(mockInsertBuilder as unknown);
 
       const formData = new FormData();
       formData.append("intent", "send-email");

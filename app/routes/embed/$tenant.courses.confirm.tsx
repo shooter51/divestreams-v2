@@ -82,7 +82,7 @@ function formatDateTime(dateTimeString: string): string {
 }
 
 export default function EnrollmentConfirmationPage() {
-  const { enrollment, tenantSlug } = useLoaderData<typeof loader>();
+  const { enrollment } = useLoaderData<typeof loader>();
   const { branding } = useOutletContext<{
     organization: { slug: string };
     branding: { primaryColor: string };

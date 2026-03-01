@@ -40,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const ownerEmail = formData.get("ownerEmail") as string;
   const ownerName = formData.get("ownerName") as string;
   const ownerPassword = formData.get("ownerPassword") as string;
-  const plan = formData.get("plan") as string || "free";
+  const plan = formData.get("plan") as string || "standard";
   const createOwnerAccount = formData.get("createOwnerAccount") === "on";
   const seedDemo = formData.get("seedDemoData") === "on";
 
@@ -307,7 +307,7 @@ export default function CreateOrganizationPage() {
             <select
               id="plan"
               name="plan"
-              defaultValue={hasValues && "plan" in actionData.values ? String(actionData.values.plan) : plans[0]?.name || "free"}
+              defaultValue={hasValues && "plan" in actionData.values ? String(actionData.values.plan) : plans[0]?.name || "standard"}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               {plans.map((plan) => (

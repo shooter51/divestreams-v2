@@ -6,7 +6,8 @@ import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus,
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
-import { formatTime, formatCurrency } from "../../../lib/format";
+import { formatCurrency } from "../../../lib/format";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 // Valid booking status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -160,6 +161,31 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "TBD";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function formatDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+const sourceLabels: Record<string, string> = {
+  referral: "Referral",
+  walk_in: "Walk-in",
+  direct: "Direct",
+  online: "Online",
+  phone: "Phone",
+  repeat: "Repeat Customer",
+  website: "Website",
+  partner: "Partner/Agent",
+  other: "Other",
+};
+
 export default function BookingDetailPage() {
   useNotification();
 
@@ -282,11 +308,12 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
             <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
-          <p className="text-foreground-muted">Created {booking.createdAt}</p>
+          <p className="text-foreground-muted">Created {formatDate(booking.createdAt)}</p>
         </div>
         <div className="flex gap-2">
           {booking.status === "pending" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="confirm" />
               <button
                 type="submit"
@@ -298,6 +325,7 @@ export default function BookingDetailPage() {
           )}
           {booking.status === "confirmed" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="complete" />
               <button
                 type="submit"
@@ -352,7 +380,7 @@ export default function BookingDetailPage() {
                 </Link>
                 <div className="mt-2 space-y-1 text-sm">
                   <p>
-                    <span className="text-foreground-muted">Date:</span> {booking.trip.date}
+                    <span className="text-foreground-muted">Date:</span> {formatDate(booking.trip.date)}
                   </p>
                   <p>
                     <span className="text-foreground-muted">Time:</span> {formatTime(booking.trip.startTime)} - {formatTime(booking.trip.endTime)}
@@ -536,6 +564,7 @@ export default function BookingDetailPage() {
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <fetcher.Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="send-confirmation" />
                 <button
                   type="submit"
@@ -558,6 +587,7 @@ export default function BookingDetailPage() {
               </Link>
               {booking.status === "confirmed" && (
                 <fetcher.Form method="post">
+                  <CsrfInput />
                   <input type="hidden" name="intent" value="no-show" />
                   <button
                     type="submit"
@@ -572,8 +602,8 @@ export default function BookingDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Source: {booking.source}</p>
-            <p>Updated: {booking.updatedAt}</p>
+            <p>Source: {booking.source ? (sourceLabels[booking.source] || booking.source) : ""}</p>
+            <p>Updated: {formatDate(booking.updatedAt)}</p>
             <p>ID: {booking.id}</p>
           </div>
         </div>

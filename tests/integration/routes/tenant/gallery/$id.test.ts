@@ -16,10 +16,13 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -72,9 +75,9 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { galleryAlbums: {} },
-      } as any);
+      } as unknown);
 
-      vi.mocked(gallery.getAllGalleryImages).mockResolvedValue(mockImages as any);
+      vi.mocked(gallery.getAllGalleryImages).mockResolvedValue(mockImages as unknown);
 
       const request = new Request("http://test.com/tenant/gallery/album-456");
       const result = await loader({ request, params: { id: mockAlbumId }, context: {} });
@@ -112,7 +115,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { galleryAlbums: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/gallery/nonexistent");
 
@@ -142,7 +145,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { galleryAlbums: {} },
-      } as any);
+      } as unknown);
 
       vi.mocked(gallery.getAllGalleryImages).mockResolvedValue([]);
 
@@ -170,7 +173,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { galleryAlbums: {} },
-      } as any);
+      } as unknown);
 
       vi.mocked(gallery.getAllGalleryImages).mockResolvedValue([]);
 
@@ -247,7 +250,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
     });
 
     it("should update image status", async () => {
-      vi.mocked(gallery.updateGalleryImage).mockResolvedValue({} as any);
+      vi.mocked(gallery.updateGalleryImage).mockResolvedValue({} as unknown);
 
       const formData = new FormData();
       formData.append("intent", "update-image-status");
@@ -270,7 +273,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
     });
 
     it("should set featured image", async () => {
-      vi.mocked(gallery.updateGalleryImage).mockResolvedValue({} as any);
+      vi.mocked(gallery.updateGalleryImage).mockResolvedValue({} as unknown);
 
       const formData = new FormData();
       formData.append("intent", "set-featured");

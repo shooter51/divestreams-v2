@@ -8,7 +8,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Store for mock return values
 let mockLimitValue: unknown[] = [];
-let mockOrderByValue: unknown[] = [];
 
 // Create a unified chain object that supports all Drizzle patterns
 // Every method returns the same object which is also a thenable
@@ -62,6 +61,8 @@ const mockLimit = {
     };
   },
 };
+
+let mockOrderByValue: unknown[] = [];
 
 const mockOrderBy = {
   mockResolvedValue: (value: unknown[]) => {

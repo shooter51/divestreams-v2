@@ -7,7 +7,7 @@
  * This test documents the bug and will FAIL until fixed.
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { TenantBasePage } from "../page-objects/base.page";
 
 // Helper page object for public site navigation
@@ -29,14 +29,13 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
   let sitePage: PublicSitePage;
 
   test.beforeEach(async ({ page }) => {
-    sitePage = new PublicSitePage(page, "e2etest");
+    sitePage = new PublicSitePage(page, "demo");
   });
 
   // Helper function to create a test customer via API
-  async function createTestCustomer(page: any, sitePage: PublicSitePage, email: string, password: string) {
+  async function createTestCustomer(page: Page, sitePage: PublicSitePage, email: string, password: string) {
     // Use cookies to simulate customer login for testing
     // This bypasses the registration UI and focuses on the header bug
-    const context = page.context();
 
     // For now, use the UI flow since we need the actual session cookie
     await sitePage.gotoSiteRegister();
@@ -47,7 +46,7 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
 
     if (!isRegisterPageAvailable) {
       // Public site might not be enabled - skip this test
-      test.skip(true, "Public site not enabled for e2etest tenant");
+      test.skip(true, "Public site not enabled for demo tenant");
       return false;
     }
 

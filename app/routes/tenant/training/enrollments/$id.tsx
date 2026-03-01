@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useNavigate, redirect } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
@@ -9,6 +9,7 @@ import {
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { formatLabel } from "../../../../lib/format";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [
   { title: "Enrollment Details - DiveStreams" },
@@ -185,12 +186,6 @@ const statusColors: Record<string, string> = {
   failed: "bg-danger-muted text-danger",
 };
 
-const paymentStatusColors: Record<string, string> = {
-  pending: "bg-warning-muted text-warning",
-  partial: "bg-warning-muted text-warning",
-  paid: "bg-success-muted text-success",
-  refunded: "bg-surface-inset text-foreground-muted",
-};
 
 export default function EnrollmentDetailPage() {
   useNotification();
@@ -199,7 +194,6 @@ export default function EnrollmentDetailPage() {
   const fetcher = useFetcher<{
     error?: string;
   }>();
-  const navigate = useNavigate();
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [showCertModal, setShowCertModal] = useState(false);
 
@@ -358,6 +352,7 @@ export default function EnrollmentDetailPage() {
               <h2 className="font-semibold">Progress Tracking</h2>
             </div>
             <fetcher.Form method="post" className="space-y-4">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-progress" />
               <div className="grid grid-cols-2 gap-4">
                 <label className="flex items-center gap-2">
@@ -472,6 +467,7 @@ export default function EnrollmentDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Notes</h2>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-notes" />
               <textarea
                 name="notes"
@@ -497,6 +493,7 @@ export default function EnrollmentDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Update Status</h2>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-status" />
               <select
                 name="status"
@@ -523,6 +520,7 @@ export default function EnrollmentDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Payment</h2>
             <fetcher.Form method="post" className="space-y-3">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>

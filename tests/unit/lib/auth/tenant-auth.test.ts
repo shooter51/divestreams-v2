@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   getSubdomainFromRequest,
   FREE_TIER_LIMITS,
@@ -51,12 +51,12 @@ describe("org-context.server - tenant context helpers", () => {
     });
   });
 
-  describe("FREE_TIER_LIMITS (derived from DEFAULT_PLAN_LIMITS.free)", () => {
-    it("has limits matching DEFAULT_PLAN_LIMITS.free", () => {
-      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.free.customers);
-      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
-      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
-      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.free.users);
+  describe("FREE_TIER_LIMITS (derived from DEFAULT_PLAN_LIMITS.standard)", () => {
+    it("has limits matching DEFAULT_PLAN_LIMITS.standard", () => {
+      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.standard.customers);
+      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.standard.toursPerMonth);
+      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.standard.toursPerMonth);
+      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.standard.users);
       expect(FREE_TIER_LIMITS.hasPOS).toBe(false);
       expect(FREE_TIER_LIMITS.hasEquipmentRentals).toBe(false);
       expect(FREE_TIER_LIMITS.hasAdvancedReports).toBe(false);
@@ -64,7 +64,7 @@ describe("org-context.server - tenant context helpers", () => {
     });
   });
 
-  describe("PREMIUM_LIMITS (derived from DEFAULT_PLAN_LIMITS.enterprise)", () => {
+  describe("PREMIUM_LIMITS (derived from DEFAULT_PLAN_LIMITS.pro)", () => {
     it("has unlimited premium tier limits", () => {
       expect(PREMIUM_LIMITS.customers).toBe(Infinity);
       expect(PREMIUM_LIMITS.bookingsPerMonth).toBe(Infinity);
@@ -81,10 +81,10 @@ describe("org-context.server - tenant context helpers", () => {
     // Create mock context for testing
     function createMockContext(overrides: Partial<OrgContext> = {}): OrgContext {
       return {
-        user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-        session: { id: "session-1" } as any,
-        org: { id: "org-1", name: "Test Org", slug: "test" } as any,
-        membership: { role: "owner" } as any,
+        user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+        session: { id: "session-1" } as Record<string, unknown>,
+        org: { id: "org-1", name: "Test Org", slug: "test" } as Record<string, unknown>,
+        membership: { role: "owner" } as Record<string, unknown>,
         subscription: null,
         limits: FREE_TIER_LIMITS,
         usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },

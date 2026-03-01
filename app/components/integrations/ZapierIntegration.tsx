@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 import type { ZapierSettings } from "./types";
@@ -10,6 +10,7 @@ interface ZapierIntegrationProps {
   zapierWebhookUrl: string;
   zapierSettings: ZapierSettings | null;
   onNotification: (notification: { type: "success" | "error"; message: string }) => void;
+  openModal?: boolean;
 }
 
 export function ZapierIntegration({
@@ -19,12 +20,16 @@ export function ZapierIntegration({
   zapierWebhookUrl,
   zapierSettings,
   onNotification,
+  openModal,
 }: ZapierIntegrationProps) {
   const fetcher = useFetcher();
-  const [copied, setCopied] = useState(false);
 
   // Connect modal state
   const [showConnectModal, setShowConnectModal] = useState(false);
+
+  useEffect(() => {
+    if (openModal) setShowConnectModal(true);
+  }, [openModal]);
   const [userWebhookUrl, setUserWebhookUrl] = useState(zapierSettings?.webhookUrl || "");
   const [enabledTriggers, setEnabledTriggers] = useState<string[]>(
     zapierSettings?.enabledTriggers || [...zapierTriggers]
@@ -40,8 +45,6 @@ export function ZapierIntegration({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -49,8 +52,6 @@ export function ZapierIntegration({
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 

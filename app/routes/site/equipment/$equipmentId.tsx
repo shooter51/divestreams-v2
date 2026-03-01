@@ -45,14 +45,6 @@ interface EquipmentDetail {
   notes: string | null;
 }
 
-interface EquipmentImage {
-  id: string;
-  url: string;
-  thumbnailUrl: string | null;
-  alt: string | null;
-  isPrimary: boolean;
-  sortOrder: number;
-}
 
 // ============================================================================
 // LOADER
@@ -203,7 +195,7 @@ const EQUIPMENT_CATEGORIES: Record<string, { label: string; icon: string }> = {
 };
 
 export default function SiteEquipmentDetailPage() {
-  const { equipment, images, organizationName } = useLoaderData<typeof loader>();
+  const { equipment, images } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
 

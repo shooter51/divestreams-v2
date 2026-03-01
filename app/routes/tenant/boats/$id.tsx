@@ -14,6 +14,7 @@ import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { maintenanceLogs } from "../../../../lib/db/schema";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
@@ -263,6 +264,7 @@ export default function BoatDetailPage() {
             Edit
           </Link>
           <fetcher.Form method="post">
+            <CsrfInput />
             <input type="hidden" name="intent" value="toggle-active" />
             <button
               type="submit"
@@ -458,6 +460,7 @@ export default function BoatDetailPage() {
               <p className="text-foreground-muted text-sm mb-4">No maintenance records yet.</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
+              <CsrfInput />
               <input type="hidden" name="intent" value="log-maintenance" />
               <div>
                 <label className="block text-xs text-foreground-muted mb-1">Type</label>

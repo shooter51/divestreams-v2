@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import postgres from "postgres";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 // CI/CD Stability Test - Pass 3 of 3 (Final)
 // Test data
@@ -14,10 +15,10 @@ const testData = {
 };
 
 function getTenantUrl(path: string) {
-  return `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  return _getTenantUrl(testData.tenant.subdomain, path);
 }
 
-async function loginToTenant(page: any) {
+async function loginToTenant(page: import("@playwright/test").Page) {
   await page.goto(getTenantUrl("/auth/login"));
   await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.locator('input[type="password"]').first().fill(testData.user.password);
@@ -25,7 +26,7 @@ async function loginToTenant(page: any) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -85,7 +86,7 @@ test.describe("Stripe Integration", () => {
 
     // Wait for page to load
     await page.waitForLoadState("load");
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Find the Stripe integration card by its unique structure
     const stripeCard = page.locator('div.bg-surface-raised.rounded-xl:has(h3:text-is("Stripe"))').first();
@@ -93,7 +94,7 @@ test.describe("Stripe Integration", () => {
     if (!(await stripeCard.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
     await expect(stripeCard).toBeVisible({ timeout: 8000 });
 

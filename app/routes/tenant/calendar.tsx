@@ -99,6 +99,7 @@ const tourTypeColors: Record<string, { bg: string; border: string; text: string;
 
 // Status colors for capacity indicator using theme variables
 function getCapacityColor(booked: number, max: number): string {
+  if (max === 0) return "var(--success)"; // Unlimited - always green
   const ratio = booked / max;
   if (ratio >= 1) return "var(--danger)"; // Full - red
   if (ratio >= 0.75) return "var(--accent)"; // Almost full - orange
@@ -130,7 +131,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
 
   const colors = tourTypeColors[trip.tourType] || tourTypeColors.other;
   const capacityColor = getCapacityColor(trip.bookedParticipants, trip.maxParticipants);
-  const isFull = trip.bookedParticipants >= trip.maxParticipants;
+  const isFull = trip.maxParticipants > 0 && trip.bookedParticipants >= trip.maxParticipants;
 
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(":");
@@ -214,7 +215,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <div className="flex items-center gap-2">
-              <span>{trip.bookedParticipants} / {trip.maxParticipants} booked</span>
+              <span>{trip.bookedParticipants} / {trip.maxParticipants === 0 ? "Unlimited" : trip.maxParticipants} booked</span>
               <span
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: capacityColor }}
@@ -300,7 +301,7 @@ export default function CalendarPage() {
   }, []);
 
   // Custom event content renderer
-  const renderEventContent = useCallback((eventInfo: any) => {
+  const renderEventContent = useCallback((eventInfo: { event: { extendedProps: { capacityColor: string; booked: number; max: number }; title: string }; timeText: string }) => {
     const { capacityColor, booked, max } = eventInfo.event.extendedProps;
     const timeText = eventInfo.timeText;
 
@@ -316,7 +317,7 @@ export default function CalendarPage() {
         {timeText && (
           <div className="text-xs opacity-75 mt-0.5">{timeText}</div>
         )}
-        <div className="text-xs opacity-75">{booked}/{max} booked</div>
+        <div className="text-xs opacity-75">{booked}/{max === 0 ? "Unlimited" : max} booked</div>
       </div>
     );
   }, []);

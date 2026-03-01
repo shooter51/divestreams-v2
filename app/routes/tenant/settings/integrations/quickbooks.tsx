@@ -25,8 +25,9 @@ import {
   syncBookingToQuickBooks,
 } from "../../../../../lib/integrations/quickbooks.server";
 import { db } from "../../../../../lib/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { integrationSyncLog } from "../../../../../lib/db/schema/integrations";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [
   { title: "QuickBooks Integration - DiveStreams" },
@@ -127,7 +128,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function QuickBooksSettings() {
-  const { integration, status, items, accounts, syncLogs, settings } = useLoaderData<typeof loader>();
+  const { status, items, syncLogs, settings } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showSyncHistory, setShowSyncHistory] = useState(false);
 
@@ -192,6 +193,7 @@ export default function QuickBooksSettings() {
           <div>
             {isConnected ? (
               <Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="disconnect" />
                 <button
                   type="submit"

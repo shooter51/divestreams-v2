@@ -14,7 +14,6 @@ import {
   updateIntegrationSettings,
 } from "../../../../lib/integrations/index.server";
 import { getGoogleAuthUrl } from "../../../../lib/integrations/google-calendar.server";
-import { connectTwilio, sendSMS } from "../../../../lib/integrations/twilio.server";
 import {
   connectZapier,
   getZapierIntegration,
@@ -30,7 +29,6 @@ import { getXeroAuthUrl } from "../../../../lib/integrations/xero.server";
 import { getMailchimpAuthUrl, listAudiences } from "../../../../lib/integrations/mailchimp.server";
 import { getQuickBooksAuthUrl } from "../../../../lib/integrations/quickbooks.server";
 import { getStripeSettings, connectStripe } from "../../../../lib/integrations/stripe.server";
-import { connectWhatsApp, sendWhatsApp } from "../../../../lib/integrations/whatsapp.server";
 
 // Per-provider UI components
 import {
@@ -40,8 +38,6 @@ import {
   QuickBooksIntegration,
   XeroIntegration,
   ZapierIntegration,
-  TwilioIntegration,
-  WhatsAppIntegration,
   Icons,
 } from "../../../components/integrations";
 import type {
@@ -51,6 +47,7 @@ import type {
   MailchimpAudience,
   StripeSettings,
 } from "../../../components/integrations";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Integrations - DiveStreams" }];
 
@@ -99,24 +96,6 @@ const availableIntegrations = [
     icon: "Zap",
     features: ["Custom workflows", "Triggers", "Multi-step automations"],
     requiredPlan: "professional",
-  },
-  {
-    id: "twilio",
-    name: "Twilio SMS",
-    description: "Send SMS notifications to customers",
-    category: "notifications",
-    icon: "MessageSquare",
-    features: ["Booking confirmations", "Reminders", "Custom messages"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "whatsapp",
-    name: "WhatsApp Business",
-    description: "Chat with customers on WhatsApp",
-    category: "notifications",
-    icon: "MessageCircle",
-    features: ["Booking updates", "Customer support", "Automated responses"],
-    requiredPlan: "enterprise",
   },
   {
     id: "xero",
@@ -177,7 +156,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Get current plan name and features from subscription
-  const currentPlan = ctx.subscription?.plan || "free";
+  const currentPlan = ctx.subscription?.plan || "standard";
   const planFeatures = ctx.subscription?.planDetails?.features || {};
 
   // Load all active plans to determine which plan is required for each integration
@@ -199,8 +178,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     "has_mailchimp",
     "has_quickbooks",
     "has_zapier",
-    "has_twilio",
-    "has_whatsapp",
     "has_xero",
   ] as const;
 
@@ -287,99 +264,13 @@ export async function action({ request }: ActionFunctionArgs) {
     const integrationId = formData.get("integrationId") as string;
 
     if (integrationId === "google-calendar") return { showGoogleOAuthModal: true };
-    if (integrationId === "twilio") return { showTwilioModal: true };
     if (integrationId === "zapier") return { showZapierModal: true };
     if (integrationId === "mailchimp") return { showMailchimpOAuthModal: true };
     if (integrationId === "xero") return { showXeroOAuthModal: true };
     if (integrationId === "quickbooks") return { showQuickBooksOAuthModal: true };
-    if (integrationId === "whatsapp") return { showWhatsAppModal: true };
     if (integrationId === "stripe") return { showStripeModal: true };
 
     return { error: `${integrationId} integration is coming soon!` };
-  }
-
-  // Connect Twilio with API credentials
-  if (intent === "connectTwilio") {
-    const accountSid = formData.get("accountSid") as string;
-    const authToken = formData.get("authToken") as string;
-    const phoneNumber = formData.get("phoneNumber") as string;
-    const messagingServiceSid = formData.get("messagingServiceSid") as string;
-
-    if (!accountSid || !authToken || !phoneNumber) {
-      return { error: "Account SID, Auth Token, and Phone Number are required" };
-    }
-
-    try {
-      const result = await connectTwilio(ctx.org.id, {
-        accountSid,
-        authToken,
-        phoneNumber,
-        messagingServiceSid: messagingServiceSid || undefined,
-      });
-      if (!result.success) return { error: result.error || "Failed to connect Twilio" };
-      return { success: true, message: "Twilio connected successfully!" };
-    } catch (error) {
-      console.error("Error connecting Twilio:", error);
-      return { error: "Failed to connect Twilio" };
-    }
-  }
-
-  // Connect WhatsApp with API credentials
-  if (intent === "connectWhatsApp") {
-    const apiType = formData.get("apiType") as "meta" | "twilio";
-    const phoneNumberId = formData.get("phoneNumberId") as string;
-    const businessAccountId = formData.get("businessAccountId") as string;
-    const accessToken = formData.get("accessToken") as string;
-    const twilioAccountSid = formData.get("twilioAccountSid") as string;
-    const twilioAuthToken = formData.get("twilioAuthToken") as string;
-    const twilioWhatsAppNumber = formData.get("twilioWhatsAppNumber") as string;
-
-    if (apiType === "meta") {
-      if (!phoneNumberId || !businessAccountId || !accessToken) {
-        return { error: "Phone Number ID, Business Account ID, and Access Token are required for Meta API" };
-      }
-    } else if (apiType === "twilio") {
-      if (!twilioAccountSid || !twilioAuthToken || !twilioWhatsAppNumber) {
-        return { error: "Account SID, Auth Token, and WhatsApp Number are required for Twilio" };
-      }
-    } else {
-      return { error: "Please select an API type" };
-    }
-
-    try {
-      type WhatsAppCredentials =
-        | { provider: "meta"; phoneNumberId: string; businessAccountId: string; accessToken: string }
-        | { provider: "twilio"; accountSid: string; authToken: string; phoneNumber: string };
-
-      const credentials: WhatsAppCredentials = apiType === "meta"
-        ? { provider: "meta" as const, phoneNumberId, businessAccountId, accessToken }
-        : { provider: "twilio" as const, accountSid: twilioAccountSid, authToken: twilioAuthToken, phoneNumber: twilioWhatsAppNumber };
-
-      const result = await connectWhatsApp(ctx.org.id, credentials);
-      if (!result.success) return { error: result.error || "Failed to connect WhatsApp" };
-      return { success: true, message: "WhatsApp Business connected successfully!" };
-    } catch (error) {
-      console.error("Error connecting WhatsApp:", error);
-      return { error: "Failed to connect WhatsApp" };
-    }
-  }
-
-  // Test WhatsApp message
-  if (intent === "testWhatsApp") {
-    const phoneNumber = formData.get("phoneNumber") as string;
-    if (!phoneNumber) return { error: "Phone number is required" };
-
-    try {
-      const result = await sendWhatsApp(ctx.org.id, {
-        to: phoneNumber,
-        body: "Test message from DiveStreams! Your WhatsApp Business integration is working.",
-      });
-      if (!result.success) return { error: result.error || "Failed to send test WhatsApp message" };
-      return { success: true, message: "Test WhatsApp message sent successfully!" };
-    } catch (error) {
-      console.error("Error sending test WhatsApp message:", error);
-      return { error: "Failed to send test WhatsApp message" };
-    }
   }
 
   // Connect Stripe with API credentials
@@ -564,24 +455,6 @@ export async function action({ request }: ActionFunctionArgs) {
     return { showXeroConfigModal: true };
   }
 
-  // Test SMS (for Twilio)
-  if (intent === "testSMS") {
-    const phoneNumber = formData.get("phoneNumber") as string;
-    if (!phoneNumber) return { error: "Phone number is required" };
-
-    try {
-      const result = await sendSMS(ctx.org.id, {
-        to: phoneNumber,
-        body: "Test message from DiveStreams! Your Twilio integration is working.",
-      });
-      if (!result.success) return { error: result.error || "Failed to send test SMS" };
-      return { success: true, message: "Test SMS sent successfully!" };
-    } catch (error) {
-      console.error("Error sending test SMS:", error);
-      return { error: "Failed to send test SMS" };
-    }
-  }
-
   // Zapier actions
   if (intent === "connectZapier") {
     const zapierWebhookUrl = formData.get("zapierWebhookUrl") as string;
@@ -670,22 +543,13 @@ export default function IntegrationsPage() {
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
 
-  // OAuth configuration modal state
-  const [showGoogleOAuthModal, setShowGoogleOAuthModal] = useState(false);
-  const [googleClientId, setGoogleClientId] = useState("");
-  const [googleClientSecret, setGoogleClientSecret] = useState("");
 
-  const [showMailchimpOAuthModal, setShowMailchimpOAuthModal] = useState(false);
-  const [mailchimpClientId, setMailchimpClientId] = useState("");
-  const [mailchimpClientSecret, setMailchimpClientSecret] = useState("");
-
-  const [showQuickBooksOAuthModal, setShowQuickBooksOAuthModal] = useState(false);
-  const [quickBooksClientId, setQuickBooksClientId] = useState("");
-  const [quickBooksClientSecret, setQuickBooksClientSecret] = useState("");
-
-  const [showXeroOAuthModal, setShowXeroOAuthModal] = useState(false);
-  const [xeroClientId, setXeroClientId] = useState("");
-  const [xeroClientSecret, setXeroClientSecret] = useState("");
+  // Track which integration's modal to open (client-side only, no server round-trip needed)
+  const [openModalFor, setOpenModalFor] = useState<string | null>(null);
+  // Reset after one render so the prop acts as a one-shot trigger
+  useEffect(() => {
+    if (openModalFor) setOpenModalFor(null);
+  }, [openModalFor]);
 
   // Success/error messages from URL params (OAuth callbacks)
   const urlSuccess = searchParams.get("success");
@@ -719,8 +583,6 @@ export default function IntegrationsPage() {
     mailchimp: "has_mailchimp",
     quickbooks: "has_quickbooks",
     zapier: "has_zapier",
-    twilio: "has_twilio",
-    whatsapp: "has_whatsapp",
     xero: "has_xero",
   };
 
@@ -745,7 +607,6 @@ export default function IntegrationsPage() {
     { id: "calendar", name: "Calendar" },
     { id: "marketing", name: "Marketing" },
     { id: "accounting", name: "Accounting" },
-    { id: "notifications", name: "Notifications" },
     { id: "automation", name: "Automation" },
   ];
 
@@ -833,18 +694,6 @@ export default function IntegrationsPage() {
                           onNotification={handleNotification}
                         />
                       )}
-                      {connection.id === "twilio" && (
-                        <TwilioIntegration
-                          isConnected={true}
-                          onNotification={handleNotification}
-                        />
-                      )}
-                      {connection.id === "whatsapp" && (
-                        <WhatsAppIntegration
-                          isConnected={true}
-                          onNotification={handleNotification}
-                        />
-                      )}
                       {connection.id === "xero" && (
                         <XeroIntegration
                           isConnected={true}
@@ -871,12 +720,14 @@ export default function IntegrationsPage() {
                       {/* Disconnect button (always shown) */}
                       <fetcher.Form
                         method="post"
-                        onSubmit={(e) => {
+                        onSubmit={(e) =>
+                        {
                           if (!confirm(`Are you sure you want to disconnect ${integration.name}?`)) {
                             e.preventDefault();
                           }
                         }}
                       >
+                        <CsrfInput />
                         <input type="hidden" name="intent" value="disconnect" />
                         <input type="hidden" name="integrationId" value={connection.id} />
                         <button
@@ -941,16 +792,13 @@ export default function IntegrationsPage() {
                     </ul>
 
                     {available ? (
-                      <fetcher.Form method="post">
-                        <input type="hidden" name="intent" value="connect" />
-                        <input type="hidden" name="integrationId" value={integration.id} />
-                        <button
-                          type="submit"
-                          className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
-                        >
-                          Connect
-                        </button>
-                      </fetcher.Form>
+                      <button
+                        type="button"
+                        onClick={() => setOpenModalFor(integration.id)}
+                        className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
+                      >
+                        Connect
+                      </button>
                     ) : (
                       <div className="text-center">
                         <p className="text-xs text-foreground-muted mb-2">
@@ -975,30 +823,35 @@ export default function IntegrationsPage() {
         );
       })}
 
-      {/* Provider modals for not-yet-connected integrations (triggered by "connect" action) */}
+      {/* Provider modals for not-yet-connected integrations */}
       <StripeIntegration
         connection={null}
         stripeSettings={stripeSettings as StripeSettings | null}
         onNotification={handleNotification}
+        openModal={openModalFor === "stripe"}
       />
       <GoogleCalendarIntegration
         isConnected={false}
         onNotification={handleNotification}
+        openModal={openModalFor === "google-calendar"}
       />
       <MailchimpIntegration
         isConnected={false}
         mailchimpSettings={mailchimpSettings as { selectedAudienceId?: string; syncOnBooking?: boolean; syncOnCustomerCreate?: boolean } | null}
         mailchimpAudiences={mailchimpAudiences as MailchimpAudience[]}
         onNotification={handleNotification}
+        openModal={openModalFor === "mailchimp"}
       />
       <QuickBooksIntegration
         isConnected={false}
         onNotification={handleNotification}
+        openModal={openModalFor === "quickbooks"}
       />
       <XeroIntegration
         isConnected={false}
         xeroSettings={xeroSettings as XeroSettings | null}
         onNotification={handleNotification}
+        openModal={openModalFor === "xero"}
       />
       <ZapierIntegration
         isConnected={false}
@@ -1007,14 +860,7 @@ export default function IntegrationsPage() {
         zapierWebhookUrl={zapierWebhookUrl}
         zapierSettings={zapierSettings as { webhookUrl?: string | null; enabledTriggers?: string[] } | null}
         onNotification={handleNotification}
-      />
-      <TwilioIntegration
-        isConnected={false}
-        onNotification={handleNotification}
-      />
-      <WhatsAppIntegration
-        isConnected={false}
-        onNotification={handleNotification}
+        openModal={openModalFor === "zapier"}
       />
     </div>
   );

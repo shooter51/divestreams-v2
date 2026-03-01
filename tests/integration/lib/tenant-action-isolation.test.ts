@@ -38,7 +38,7 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
-import { requireOrgContext, requireTenant } from "../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { eq, and } from "drizzle-orm";
 
@@ -46,12 +46,6 @@ describe("Tenant Action Isolation", () => {
   const tenantA = {
     user: { id: "user-a", email: "admin@tenant-a.com" },
     org: { id: "org-a-uuid-123", name: "Dive Shop A", slug: "shop-a" },
-    membership: { role: "owner" },
-  };
-
-  const tenantB = {
-    user: { id: "user-b", email: "admin@tenant-b.com" },
-    org: { id: "org-b-uuid-456", name: "Dive Shop B", slug: "shop-b" },
     membership: { role: "owner" },
   };
 
@@ -81,7 +75,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Customer Creation Isolation", () => {
     it("creates customer with correct organization ID", () => {
-      (requireTenant as Mock).mockResolvedValue(mockTenantContextA);
+      (requireOrgContext as Mock).mockResolvedValue(tenantA);
 
       const customerData = {
         organizationId: mockTenantContextA.organizationId,

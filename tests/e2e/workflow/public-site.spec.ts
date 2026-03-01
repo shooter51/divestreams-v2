@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures/subdomain-page";
 import type { Page } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Public Site E2E Workflow Tests - DiveStreams
@@ -46,10 +47,10 @@ test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage();
   try {
     // Login with shared test user (created by 00-full-workflow.spec.ts)
-    await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 30000, waitUntil: 'domcontentloaded' });
+    await page.goto(_getTenantUrl("e2etest", "/auth/login"), { timeout: 30000, waitUntil: 'domcontentloaded' });
 
     // Wait for page to fully load
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+    await page.waitForLoadState('load', { timeout: 10000 }).catch(() => {
       // Network idle may not be reached, continue anyway
     });
 
@@ -72,7 +73,7 @@ test.beforeAll(async ({ browser }) => {
     // Wait for login to complete with proper error handling
     try {
       await page.waitForURL(/\/tenant/, { timeout: 15000 });
-    } catch (error) {
+    } catch {
       // Check if we got an error message
       const errorMessage = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").textContent().catch(() => "");
       throw new Error(
@@ -82,7 +83,7 @@ test.beforeAll(async ({ browser }) => {
     }
 
     // Navigate to public site settings
-    await page.goto(`http://e2etest.localhost:5173/tenant/settings/public-site`, { timeout: 15000 });
+    await page.goto(_getTenantUrl("e2etest", "/tenant/settings/public-site"), { timeout: 15000 });
     await page.waitForLoadState('domcontentloaded');
     await page.waitForLoadState("load"); // Give time for form to hydrate
 
@@ -100,7 +101,7 @@ test.beforeAll(async ({ browser }) => {
     if (checkboxCount === 0) {
       await page.reload();
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
       checkboxCount = await enabledCheckbox.count();
     }
 
@@ -146,7 +147,7 @@ test.beforeAll(async ({ browser }) => {
     }
 
     // Final verification: Try to access the public site
-    await page.goto(`http://e2etest.localhost:5173/site/`, { timeout: 10000 });
+    await page.goto(_getTenantUrl("e2etest", "/site/"), { timeout: 10000 });
     await page.waitForLoadState("domcontentloaded");
 
     // Check if we got redirected to disabled page
@@ -202,13 +203,13 @@ const publicSiteTestData = {
  * Get tenant URL for standard app pages
  */
 const getTenantUrl = (path: string = "/") =>
-  `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  _getTenantUrl(testData.tenant.subdomain, path);
 
 /**
  * Get public site URL (routes under /site)
  */
 const getPublicSiteUrl = (path: string = "") =>
-  `http://${testData.tenant.subdomain}.localhost:5173/site${path}`;
+  _getTenantUrl(testData.tenant.subdomain, "/site" + path);
 
 /**
  * Login to tenant admin panel
@@ -221,7 +222,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -243,7 +244,7 @@ async function loginCustomer(page: Page) {
   try {
     await page.waitForURL(/\/site\/account/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -470,7 +471,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
     // Submit
     await page.getByRole("button", { name: /create account|register|sign up/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Should redirect to account or show success
     const redirectedToAccount = page.url().includes("/account");
@@ -578,7 +579,6 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // Check for password requirements text or validation
-    const hasPasswordReqs = await page.getByText(/character|uppercase|lowercase|number|password must/i).isVisible().catch(() => false);
     const hasPasswordField = await page.locator("input[type='password']").first().isVisible().catch(() => false);
 
     // At minimum should have password field

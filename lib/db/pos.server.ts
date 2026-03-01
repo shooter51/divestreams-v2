@@ -18,6 +18,7 @@ type POSProduct = {
   name: string;
   category: string;
   price: string;
+  taxRate: string | null;
   salePrice: string | null;
   saleStartDate: Date | null;
   saleEndDate: Date | null;
@@ -37,6 +38,7 @@ export async function getPOSProducts(tables: TenantTables, organizationId: strin
         name: tables.products.name,
         category: tables.products.category,
         price: tables.products.price,
+        taxRate: tables.products.taxRate,
         salePrice: tables.products.salePrice,
         saleStartDate: tables.products.saleStartDate,
         saleEndDate: tables.products.saleEndDate,
@@ -75,6 +77,7 @@ export async function getPOSProducts(tables: TenantTables, organizationId: strin
     // Add null sale fields to match the expected type
     return basicProducts.map(p => ({
       ...p,
+      taxRate: null,
       salePrice: null,
       saleStartDate: null,
       saleEndDate: null,
@@ -103,7 +106,8 @@ export async function getPOSEquipment(tables: TenantTables, organizationId: stri
 /**
  * Get today's and future trips with availability
  */
-export async function getPOSTrips(tables: TenantTables, organizationId: string, _timezone: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getPOSTrips(tables: TenantTables, organizationId: string, _timezone?: string) {
   const today = new Date().toISOString().split("T")[0];
 
   const trips = await db

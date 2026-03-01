@@ -6,7 +6,7 @@ import { db } from "../../../lib/db";
 import { member, user, invitation, organization } from "../../../lib/db/schema/auth";
 import { eq, and, desc } from "drizzle-orm";
 import { sendEmail } from "../../../lib/email";
-import { getAppUrl, getAdminUrl } from "../../../lib/utils/url";
+import { getAdminUrl } from "../../../lib/utils/url";
 import { resetUserPassword, type ResetPasswordParams } from "../../../lib/auth/admin-password-reset.server";
 import { ResetPasswordModal } from "../../components/settings/ResetPasswordModal";
 
@@ -201,6 +201,11 @@ export async function action({ request }: ActionFunctionArgs) {
         return { error: "Only owners can change roles" };
       }
 
+      // Cannot promote to owner
+      if (newRole === "owner") {
+        return { error: "Cannot promote members to owner role" };
+      }
+
       // Cannot change own role
       const [targetMember] = await db
         .select()
@@ -313,11 +318,11 @@ export async function action({ request }: ActionFunctionArgs) {
       const method = formData.get("method") as ResetPasswordParams["method"];
       const newPassword = formData.get("newPassword") as string | undefined;
 
-      // Get target member to check role
+      // Get target member to check role - must belong to platform org
       const [targetMember] = await db
         .select()
         .from(member)
-        .where(eq(member.userId, userId))
+        .where(and(eq(member.userId, userId), eq(member.organizationId, platformOrg.id)))
         .limit(1);
 
       if (!targetMember) {
@@ -391,16 +396,21 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function AdminTeamPage() {
   const { members, pendingInvites, currentUserId, isOwner } =
     useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const inviteFetcher = useFetcher();
+  const resendFetcher = useFetcher();
+  const cancelFetcher = useFetcher();
+  const roleFetcher = useFetcher();
+  const removeFetcher = useFetcher();
+  const resetPasswordFetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
   // Close modal on successful invite
   useEffect(() => {
-    if (fetcher.data?.success && fetcher.data?.message && showInviteModal) {
+    if (inviteFetcher.data?.success && inviteFetcher.data?.message && showInviteModal) {
       setShowInviteModal(false);
     }
-  }, [fetcher.data, showInviteModal]);
+  }, [inviteFetcher.data, showInviteModal]);
 
   // Password reset result is passed to modal via fetcher.data
   // Modal will display PasswordDisplayModal for auto-generated passwords
@@ -485,7 +495,7 @@ export default function AdminTeamPage() {
                               <div className="px-3 py-2 text-xs text-foreground-muted font-medium">
                                 Change Role
                               </div>
-                              <fetcher.Form method="post">
+                              <roleFetcher.Form method="post">
                                 <input
                                   type="hidden"
                                   name="intent"
@@ -509,7 +519,7 @@ export default function AdminTeamPage() {
                                       {role.name}
                                     </button>
                                   ))}
-                              </fetcher.Form>
+                              </roleFetcher.Form>
                               <hr className="my-1" />
                             </>
                           )}
@@ -522,7 +532,7 @@ export default function AdminTeamPage() {
                             </button>
                           )}
                           {m.role !== "owner" && <hr className="my-1" />}
-                          <fetcher.Form
+                          <removeFetcher.Form
                             method="post"
                             onSubmit={(e) => {
                               if (
@@ -546,7 +556,7 @@ export default function AdminTeamPage() {
                             >
                               Remove from team
                             </button>
-                          </fetcher.Form>
+                          </removeFetcher.Form>
                         </div>
                       </div>
                     </div>
@@ -578,17 +588,18 @@ export default function AdminTeamPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <fetcher.Form method="post">
+                  <resendFetcher.Form method="post">
                     <input type="hidden" name="intent" value="resend-invite" />
                     <input type="hidden" name="inviteId" value={inv.id} />
                     <button
                       type="submit"
                       className="text-sm text-brand hover:underline"
+                      disabled={resendFetcher.state !== "idle"}
                     >
-                      Resend
+                      {resendFetcher.state !== "idle" ? "Sending..." : "Resend"}
                     </button>
-                  </fetcher.Form>
-                  <fetcher.Form method="post">
+                  </resendFetcher.Form>
+                  <cancelFetcher.Form method="post">
                     <input type="hidden" name="intent" value="cancel-invite" />
                     <input type="hidden" name="inviteId" value={inv.id} />
                     <button
@@ -597,7 +608,7 @@ export default function AdminTeamPage() {
                     >
                       Cancel
                     </button>
-                  </fetcher.Form>
+                  </cancelFetcher.Form>
                 </div>
               </div>
             ))}
@@ -637,13 +648,13 @@ export default function AdminTeamPage() {
           <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
 
-            {fetcher.data?.error && (
+            {inviteFetcher.data?.error && (
               <div className="mb-4 bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg text-sm">
-                {fetcher.data.error}
+                {inviteFetcher.data.error}
               </div>
             )}
 
-            <fetcher.Form method="post">
+            <inviteFetcher.Form method="post">
               <input type="hidden" name="intent" value="invite" />
 
               <div className="space-y-4">
@@ -705,7 +716,7 @@ export default function AdminTeamPage() {
                   Cancel
                 </button>
               </div>
-            </fetcher.Form>
+            </inviteFetcher.Form>
           </div>
         </div>
       )}
@@ -716,13 +727,9 @@ export default function AdminTeamPage() {
           user={resetPasswordUser}
           onClose={() => {
             setResetPasswordUser(null);
-            // Clear fetcher data when closing modal
-            if (fetcher.state === "idle" && fetcher.data) {
-              fetcher.load(window.location.href);
-            }
           }}
           onSubmit={(data) => {
-            fetcher.submit(
+            resetPasswordFetcher.submit(
               {
                 intent: "reset-password",
                 userId: data.userId,
@@ -732,7 +739,7 @@ export default function AdminTeamPage() {
               { method: "post" }
             );
           }}
-          result={fetcher.data}
+          result={resetPasswordFetcher.data}
         />
       )}
     </div>

@@ -176,6 +176,7 @@ export async function createBooking(organizationId: string, data: {
   import("../../integrations/google-calendar-bookings.server")
     .then(({ syncBookingToCalendar }) => {
       const org = getOrganizationById(organizationId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const timezone = org.then((o: any) => o?.timezone || "UTC");
       timezone.then((tz: string) =>
         syncBookingToCalendar(organizationId, data.tripId, tz).catch((error) =>
@@ -203,6 +204,7 @@ export async function updateBookingStatus(organizationId: string, id: string, st
     import("../../integrations/google-calendar-bookings.server")
       .then(({ syncBookingCancellationToCalendar }) => {
         const org = getOrganizationById(organizationId);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const timezone = org.then((o: any) => o?.timezone || "UTC");
         timezone.then((tz: string) =>
           syncBookingCancellationToCalendar(organizationId, booking.tripId, tz).catch((error) =>

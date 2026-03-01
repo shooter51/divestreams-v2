@@ -1,6 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Mock } from "vitest";
-
 /**
  * Integration tests for embed booking route
  * Tests customer-facing booking flow via embed widget
@@ -12,8 +10,6 @@ vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireRole: vi.fn(),
   getSubdomainFromRequest: vi.fn().mockReturnValue("demo"),
 }));
-
-import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
 
 describe("embed/$tenant.book route", () => {
   const mockOrg = {

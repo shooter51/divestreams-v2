@@ -10,6 +10,7 @@ import { useLoaderData, useNavigation, useSearchParams, Link, Form } from "react
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
 import { useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Upload Gallery Images - DiveStreams" }];
 
@@ -48,6 +49,7 @@ export default function GalleryUploadPage() {
         <h1 className="text-2xl font-bold mb-6">Upload Gallery Images</h1>
 
         <Form method="post" action="/tenant/gallery/upload" encType="multipart/form-data" className="space-y-6">
+          <CsrfInput />
           {/* Album Selection */}
           <div>
             <label htmlFor="albumId" className="block text-sm font-medium mb-2">

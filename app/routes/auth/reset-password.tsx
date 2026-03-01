@@ -6,7 +6,6 @@ import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-co
 import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
-import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
@@ -14,18 +13,6 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const subdomain = getSubdomainFromRequest(request);
-
-  if (!subdomain) {
-    return redirect(getAppUrl());
-  }
-
-  // If already logged in, redirect to app
-  const orgContext = await getOrgContext(request);
-  if (orgContext) {
-    return redirect("/tenant");
-  }
-
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
 
@@ -33,27 +20,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("/auth/forgot-password");
   }
 
-  // Verify organization exists
-  const [org] = await db
-    .select()
-    .from(organization)
-    .where(eq(organization.slug, subdomain))
-    .limit(1);
+  // If on a tenant subdomain, check org context
+  const subdomain = getSubdomainFromRequest(request);
+  let tenantName = "DiveStreams";
 
-  if (!org) {
-    return redirect(getAppUrl());
+  if (subdomain) {
+    const orgContext = await getOrgContext(request);
+    if (orgContext) {
+      return redirect("/tenant");
+    }
+
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, subdomain))
+      .limit(1);
+
+    if (org) {
+      tenantName = org.name;
+    }
   }
 
-  return { token, tenantName: org.name };
+  return { token, tenantName };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const subdomain = getSubdomainFromRequest(request);
-
-  if (!subdomain) {
-    return redirect(getAppUrl());
-  }
-
   // Rate limit password reset attempts
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`reset-password:${clientIp}`, {
@@ -88,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     return redirect("/auth/login?reset=success");
-  } catch (error) {
+  } catch {
     return { error: "Invalid or expired reset token" };
   }
 }

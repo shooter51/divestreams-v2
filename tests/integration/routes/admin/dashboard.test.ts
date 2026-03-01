@@ -68,30 +68,6 @@ vi.mock("drizzle-orm", async (importOriginal) => {
 
 import { db } from "../../../../lib/db";
 
-const mockOrganizations = [
-  {
-    id: "org-1",
-    slug: "oceanblue",
-    name: "Ocean Blue Diving",
-    logo: null,
-    createdAt: new Date("2025-01-01"),
-  },
-  {
-    id: "org-2",
-    slug: "deepdive",
-    name: "Deep Dive Center",
-    logo: "https://example.com/logo.png",
-    createdAt: new Date("2025-01-10"),
-  },
-  {
-    id: "org-3",
-    slug: "coralreef",
-    name: "Coral Reef Adventures",
-    logo: null,
-    createdAt: new Date("2024-12-01"),
-  },
-];
-
 describe("admin/dashboard (index) route", () => {
   beforeEach(() => {
     vi.clearAllMocks();

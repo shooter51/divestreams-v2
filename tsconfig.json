@@ -10,7 +10,9 @@
     "build",
     "tests/**/*",
     "scripts/**/*",
-    "drizzle/**/*"
+    "drizzle/**/*",
+    "orchestrator/**/*",
+    "docs/**/*"
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],

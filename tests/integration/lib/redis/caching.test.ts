@@ -5,7 +5,7 @@
  * and cache invalidation strategies.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import IORedis from "ioredis";
 
 describe.skip("Redis Caching", () => {

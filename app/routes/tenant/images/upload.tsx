@@ -8,7 +8,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, count } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
-import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
+import { uploadToS3, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { storageLogger } from "../../../../lib/logger";
@@ -26,7 +26,15 @@ export async function action({ request }: ActionFunctionArgs) {
     requireRole(ctx, ["owner", "admin"]);
     const organizationId = ctx.org.id;
 
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return Response.json(
+        { error: "File is too large. Maximum size: 10MB" },
+        { status: 400 }
+      );
+    }
     const file = formData.get("file") as File | null;
     const entityType = formData.get("entityType") as string;
     const entityId = formData.get("entityId") as string;
@@ -64,7 +72,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return Response.json(
-        { error: "File too large. Maximum size: 10MB" },
+        { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 10MB` },
         { status: 400 }
       );
     }
@@ -77,6 +85,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, entityType),
           eq(schema.images.entityId, entityId)
         )
@@ -100,16 +109,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const thumbnailKey = `${baseKey}-thumb.webp`;
 
     // Upload to B2
-    const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+    const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
     if (!originalUpload) {
       storageLogger.error("B2 storage not configured - missing environment variables");
       return Response.json(
-        { error: "Image storage is not configured. Please contact support." },
+        { error: "Image storage is not configured. Contact your administrator." },
         { status: 503 }
       );
     }
 
-    const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+    const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
     // Determine sort order (next available)
     const nextOrder = countResult.count;
@@ -134,6 +143,19 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .returning();
 
+    // Sync products.imageUrl when a primary product image is uploaded
+    if (entityType === "product" && image.isPrimary) {
+      await db
+        .update(schema.products)
+        .set({ imageUrl: image.url })
+        .where(
+          and(
+            eq(schema.products.id, entityId),
+            eq(schema.products.organizationId, organizationId)
+          )
+        );
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -157,12 +179,23 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     );
   } catch (error) {
+    // Re-throw Response objects (e.g. redirects from requireOrgContext)
+    // so they are handled correctly by React Router instead of being swallowed as 500s.
+    if (!(error instanceof Error)) throw error;
+
     storageLogger.error({ err: error }, "Image upload error");
 
-    // Provide more specific error message in development
-    const errorMessage = process.env.NODE_ENV === "development" && error instanceof Error
-      ? `Failed to upload image: ${error.message}`
-      : "Failed to upload image";
+    // Differentiate error types for better debugging
+    let errorMessage = "Failed to upload image";
+    if (error instanceof Error) {
+      if (error.name === "S3ServiceException" || error.message.includes("S3") || error.message.includes("bucket") || error.message.includes("AccessDenied")) {
+        errorMessage = "Storage service unavailable. Please check B2 configuration.";
+      } else if (error.message.includes("sharp") || error.message.includes("Sharp") || error.message.includes("Input buffer") || error.message.includes("unsupported image format")) {
+        errorMessage = "Image processing failed. The file may be corrupt.";
+      } else if (process.env.NODE_ENV === "development") {
+        errorMessage = `Failed to upload image: ${error.message}`;
+      }
+    }
 
     return Response.json(
       { error: errorMessage },

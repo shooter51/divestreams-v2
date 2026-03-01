@@ -13,9 +13,26 @@ vi.mock("../../../../../lib/require-feature.server", () => ({
   requireLimit: vi.fn().mockResolvedValue({ current: 0, limit: 50, remaining: 50 }),
 }));
 
-vi.mock("../../../../../lib/plan-features", () => ({
-  DEFAULT_PLAN_LIMITS: { free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 } },
-}));
+vi.mock("../../../../../lib/plan-features", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+  };
+});
+
+// Mock the db module to prevent real DB calls (user email check)
+vi.mock("../../../../../lib/db", () => {
+  const mockSelectBuilder = {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]), // No existing user found
+  };
+  return {
+    db: {
+      select: vi.fn().mockReturnValue(mockSelectBuilder),
+    },
+  };
+});
 
 describe("app/routes/tenant/customers/new.tsx", () => {
   const mockOrganizationId = "org-123";
@@ -29,7 +46,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 50 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
