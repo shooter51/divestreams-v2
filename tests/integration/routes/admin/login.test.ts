@@ -43,6 +43,13 @@ vi.mock("../../../../lib/utils/rate-limit", () => ({
   getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
 }));
 
+// Mock CSRF module
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("test-csrf-token"),
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  CSRF_FIELD_NAME: "_csrf",
+}));
+
 vi.mock("../../../../lib/db/schema/auth", () => ({
   organization: {
     id: "id",
@@ -118,7 +125,7 @@ describe("admin/login route", () => {
 
       expect(isAdminSubdomain).toHaveBeenCalledWith(request);
       expect(getPlatformContext).toHaveBeenCalledWith(request);
-      expect(response).toBeNull();
+      expect(response).toEqual({ csrfToken: "test-csrf-token" });
     });
   });
 

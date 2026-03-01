@@ -271,15 +271,15 @@ describe("Rate Limit Module", () => {
   // checkRateLimit - Redis Failure (Fail-Open)
   // ============================================================================
 
-  describe("checkRateLimit - Fail-Open on Redis Error", () => {
-    it("should allow request when Redis throws an error", async () => {
+  describe("checkRateLimit - Fail-Closed on Redis Error", () => {
+    it("should deny request when Redis throws an error", async () => {
       redisThrowOnMulti = true;
 
       const { redisLogger } = await import("../../../../lib/logger");
 
-      const result = await checkRateLimit("fail-open-test", { maxAttempts: 5, windowMs: 60000 });
-      expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(4);
+      const result = await checkRateLimit("fail-closed-test", { maxAttempts: 5, windowMs: 60000 });
+      expect(result.allowed).toBe(false);
+      expect(result.remaining).toBe(0);
       expect(redisLogger.warn).toHaveBeenCalled();
 
       // Restore
@@ -377,15 +377,30 @@ describe("Rate Limit Module", () => {
       expect(ip).toBe("192.168.1.100");
     });
 
-    it("should handle cf-connecting-ip header (Cloudflare)", () => {
+    it("should handle cf-connecting-ip header when TRUST_CLOUDFLARE=true", () => {
+      process.env.TRUST_CLOUDFLARE = "true";
       const request = new Request("https://example.com/api", {
         headers: { "cf-connecting-ip": "192.168.1.200" },
       });
       const ip = getClientIp(request);
       expect(ip).toBe("192.168.1.200");
+      delete process.env.TRUST_CLOUDFLARE;
     });
 
-    it("should prioritize cf-connecting-ip over x-real-ip and x-forwarded-for", () => {
+    it("should ignore cf-connecting-ip when TRUST_CLOUDFLARE is not set", () => {
+      delete process.env.TRUST_CLOUDFLARE;
+      const request = new Request("https://example.com/api", {
+        headers: {
+          "cf-connecting-ip": "192.168.1.200",
+          "x-real-ip": "10.0.0.1",
+        },
+      });
+      const ip = getClientIp(request);
+      expect(ip).toBe("10.0.0.1");
+    });
+
+    it("should prioritize cf-connecting-ip over x-real-ip when TRUST_CLOUDFLARE=true", () => {
+      process.env.TRUST_CLOUDFLARE = "true";
       const request = new Request("https://example.com/api", {
         headers: {
           "cf-connecting-ip": "192.168.1.3",
@@ -395,6 +410,7 @@ describe("Rate Limit Module", () => {
       });
       const ip = getClientIp(request);
       expect(ip).toBe("192.168.1.3");
+      delete process.env.TRUST_CLOUDFLARE;
     });
 
     it("should prioritize x-real-ip over x-forwarded-for", () => {

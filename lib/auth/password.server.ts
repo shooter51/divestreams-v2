@@ -27,14 +27,22 @@ export async function hashPassword(password: string): Promise<string> {
 /**
  * Generate a random alphanumeric password.
  * Excludes ambiguous characters (0, O, l, 1, I) for readability.
+ * Uses rejection sampling to avoid modulo bias.
  * @param length - Password length (default 16)
  */
 export function generateRandomPassword(length: number = 16): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  const bytes = randomBytes(length);
+  // Largest multiple of chars.length that fits in a byte (256)
+  const maxValid = 256 - (256 % chars.length);
   let password = "";
-  for (let i = 0; i < length; i++) {
-    password += chars[bytes[i] % chars.length];
+  while (password.length < length) {
+    const bytes = randomBytes(length - password.length);
+    for (let i = 0; i < bytes.length && password.length < length; i++) {
+      // Reject bytes >= maxValid to eliminate modulo bias
+      if (bytes[i] < maxValid) {
+        password += chars[bytes[i] % chars.length];
+      }
+    }
   }
   return password;
 }

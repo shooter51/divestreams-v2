@@ -1,5 +1,5 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, useSearchParams } from "react-router";
+import { redirect, useActionData, useNavigation, useSearchParams, useLoaderData } from "react-router";
 import { useState } from "react";
 import { auth } from "../../../lib/auth";
 import { getPlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
@@ -9,7 +9,8 @@ import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
-
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
 
@@ -25,7 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("/dashboard");
   }
 
-  return null;
+  return { csrfToken: generateAnonCsrfToken() };
 }
 
 // Email validation regex
@@ -36,6 +37,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email");
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
+
+  // Validate CSRF token
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid form submission. Please refresh and try again." };
+  }
 
   // Rate limit admin login attempts
   const clientIp = getClientIp(request);
@@ -139,6 +146,7 @@ type ActionData = {
 };
 
 export default function AdminLoginPage() {
+  const loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -189,6 +197,7 @@ export default function AdminLoginPage() {
         </div>
 
         <form method="post" className="space-y-6">
+          <CsrfTokenInput token={loaderData?.csrfToken} />
           <input type="hidden" name="redirectTo" value={redirectTo} />
 
           {actionData?.error && (
