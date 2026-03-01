@@ -2,7 +2,6 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
 
 import { auth } from "../../../lib/auth";
-import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // Email validation regex
