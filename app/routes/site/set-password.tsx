@@ -21,7 +21,7 @@ import {
   Form,
 } from "react-router";
 import { useState } from "react";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { customerCredentials } from "../../../lib/db/schema";
@@ -72,7 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
   }
 
-  // Validate token exists and hasn't expired
+  // Validate token exists, belongs to this org, and hasn't expired
   const [creds] = await db
     .select({
       id: customerCredentials.id,
@@ -80,7 +80,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       resetTokenExpires: customerCredentials.resetTokenExpires,
     })
     .from(customerCredentials)
-    .where(eq(customerCredentials.resetToken, token))
+    .where(
+      and(
+        eq(customerCredentials.organizationId, org.id),
+        eq(customerCredentials.resetToken, token)
+      )
+    )
     .limit(1);
 
   if (!creds || !creds.resetTokenExpires || creds.resetTokenExpires < new Date()) {
