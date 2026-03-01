@@ -414,7 +414,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting Google Calendar:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect Google Calendar" };
+      return { error: "Failed to connect Google Calendar" };
     }
   }
 
@@ -434,7 +434,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting Mailchimp:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect Mailchimp" };
+      return { error: "Failed to connect Mailchimp" };
     }
   }
 
@@ -454,7 +454,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting QuickBooks:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect QuickBooks" };
+      return { error: "Failed to connect QuickBooks" };
     }
   }
 
@@ -474,7 +474,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting Xero:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect Xero" };
+      return { error: "Failed to connect Xero" };
     }
   }
 
@@ -509,7 +509,7 @@ export async function action({ request }: ActionFunctionArgs) {
       };
     } catch (error) {
       console.error("Error during sync:", error);
-      return { error: error instanceof Error ? error.message : "Sync failed" };
+      return { error: "Sync failed" };
     }
   }
 

@@ -380,7 +380,7 @@ export async function action({ request }: ActionFunctionArgs) {
         };
       } catch (error) {
         console.error("Password reset error:", error);
-        return { error: error instanceof Error ? error.message : "Failed to reset password" };
+        return { error: "Failed to reset password" };
       }
     }
   }

@@ -287,7 +287,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Failed to create checkout session" };
     } catch (error) {
       console.error("Checkout session error:", error);
-      return { error: error instanceof Error ? error.message : "Failed to create checkout session" };
+      return { error: "Failed to create checkout session" };
     }
   }
 
@@ -300,7 +300,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Failed to cancel subscription" };
     } catch (error) {
       console.error("Cancel subscription error:", error);
-      return { error: error instanceof Error ? error.message : "Failed to cancel subscription" };
+      return { error: "Failed to cancel subscription" };
     }
   }
 
@@ -317,7 +317,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Failed to open billing portal. Please ensure you have an active subscription." };
     } catch (error) {
       console.error("Billing portal error:", error);
-      return { error: error instanceof Error ? error.message : "Failed to open billing portal" };
+      return { error: "Failed to open billing portal" };
     }
   }
 

@@ -202,7 +202,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Zapier create booking error:", error);
     return Response.json(
       {
-        error: error instanceof Error ? error.message : "Failed to create booking",
+        error: "Failed to create booking",
       },
       { status: 500 }
     );

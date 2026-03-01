@@ -53,7 +53,7 @@ export async function action({ request }: ActionFunctionArgs) {
     } catch (error) {
       return Response.json(
         {
-          error: error instanceof Error ? error.message : "Failed to subscribe",
+          error: "Failed to subscribe",
         },
         { status: 500 }
       );
@@ -83,7 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
     } catch (error) {
       return Response.json(
         {
-          error: error instanceof Error ? error.message : "Failed to unsubscribe",
+          error: "Failed to unsubscribe",
         },
         { status: 500 }
       );

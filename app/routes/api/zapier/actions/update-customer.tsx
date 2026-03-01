@@ -117,7 +117,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Zapier update customer error:", error);
     return Response.json(
       {
-        error: error instanceof Error ? error.message : "Failed to update customer",
+        error: "Failed to update customer",
       },
       { status: 500 }
     );
