@@ -367,7 +367,11 @@ export default function POSPage() {
   } | null>(null);
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * (taxRate / 100);
+  // Use per-product taxRate if available, otherwise fall back to org-level taxRate
+  const tax = cart.reduce((sum, item) => {
+    const itemTaxRate = item.type === "product" && item.taxRate != null ? item.taxRate : taxRate;
+    return sum + item.total * (itemTaxRate / 100);
+  }, 0);
   const total = subtotal + tax;
 
   // Check if cart requires customer (has rentals or bookings)
@@ -376,7 +380,7 @@ export default function POSPage() {
   const requiresCustomer = hasRentals || hasBookings;
 
   // Cart operations
-  const addProduct = useCallback((product: { id: string; name: string; price: string }) => {
+  const addProduct = useCallback((product: { id: string; name: string; price: string; taxRate?: string | null }) => {
     setCart(prev => {
       const existing = prev.findIndex(
         item => item.type === "product" && item.productId === product.id
@@ -394,6 +398,7 @@ export default function POSPage() {
         name: product.name,
         quantity: 1,
         unitPrice: Number(product.price),
+        taxRate: product.taxRate != null ? Number(product.taxRate) : undefined,
         total: Number(product.price),
       }];
     });

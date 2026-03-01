@@ -321,6 +321,14 @@ export async function action({ request }: ActionFunctionArgs) {
   return null;
 }
 
+const subscriptionStatusLabels: Record<string, string> = {
+  active: "Active",
+  trialing: "Trialing",
+  canceled: "Canceled",
+  past_due: "Past Due",
+  incomplete: "Incomplete",
+};
+
 export default function BillingPage() {
   const { billing, plans } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string; cancelled?: boolean; message?: string }>();
@@ -440,12 +448,12 @@ export default function BillingPage() {
                     : "bg-warning-muted text-warning"
                 }`}
               >
-                {billing.subscriptionStatus}
+                {subscriptionStatusLabels[billing.subscriptionStatus] || billing.subscriptionStatus}
               </span>
             </div>
             <p className="text-foreground-muted mt-1">
               ${billing.amount}/{billing.billingCycle === "monthly" ? "month" : "year"}
-              {!isTrialing && ` • Next billing: ${billing.nextBillingDate}`}
+              {!isTrialing && ` • Next billing: ${new Date(billing.nextBillingDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -541,8 +549,8 @@ export default function BillingPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Yearly
-              <span className="ml-1.5 text-xs text-success font-semibold">
+              Yearly{" "}
+              <span className="ml-1 text-xs text-success font-semibold">
                 Save {plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20}%
               </span>
             </button>

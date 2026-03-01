@@ -89,7 +89,7 @@ describe("tenant/training/enrollments/index route", () => {
           agencyName: "PADI",
           levelName: "Beginner",
         },
-        sessionDate: "2026-03-01",
+        sessionDate: "Mar 1, 2026",
         status: "enrolled",
         paymentStatus: "paid",
         amountPaid: "350.00",

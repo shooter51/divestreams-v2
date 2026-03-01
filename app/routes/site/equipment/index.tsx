@@ -104,7 +104,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Build query conditions
   const conditions = [
     eq(equipment.organizationId, org.id),
-    eq(equipment.isPublic, true),
+    eq(equipment.isRentable, true),
     eq(equipment.status, "available"),
   ];
 
@@ -176,7 +176,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .where(
       and(
         eq(equipment.organizationId, org.id),
-        eq(equipment.isPublic, true),
+        eq(equipment.isRentable, true),
         eq(equipment.status, "available")
       )
     )

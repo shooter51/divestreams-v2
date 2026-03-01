@@ -49,12 +49,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
   }).filter((t) => t.spotsAvailable === null || t.spotsAvailable > 0);
 
-  // Map equipment to expected format
-  const rentalEquipment = equipmentData.map((e) => ({
-    id: e.id,
-    name: e.name,
-    price: e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00",
-  }));
+  // Map equipment to expected format (deduplicate by id in case of data anomalies)
+  const seenEquipmentIds = new Set<string>();
+  const rentalEquipment = equipmentData
+    .filter((e) => {
+      if (seenEquipmentIds.has(e.id)) return false;
+      seenEquipmentIds.add(e.id);
+      return true;
+    })
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      price: e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00",
+    }));
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
 
@@ -154,6 +161,14 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
 }
 
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 export default function NewBookingPage() {
   const { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
@@ -228,7 +243,7 @@ export default function NewBookingPage() {
               <div>
                 <p className="font-medium">{selectedTrip.tourName}</p>
                 <p className="text-sm text-foreground-muted">
-                  {selectedTrip.date} at {selectedTrip.startTime} • ${selectedTrip.price}/person
+                  {selectedTrip.date} at {formatTime(selectedTrip.startTime)} • ${selectedTrip.price}/person
                 </p>
                 <p className="text-sm text-success">
                   {selectedTrip.spotsAvailable} spots available
@@ -257,7 +272,7 @@ export default function NewBookingPage() {
                 <option value="">Choose a trip...</option>
                 {upcomingTrips.map((trip) => (
                   <option key={trip.id} value={trip.id}>
-                    {trip.tourName} - {trip.date} at {trip.startTime} (${trip.price}, {trip.spotsAvailable} spots)
+                    {trip.tourName} - {trip.date} at {formatTime(trip.startTime)} (${trip.price}, {trip.spotsAvailable !== null ? `${trip.spotsAvailable} spots` : "unlimited spots"})
                   </option>
                 ))}
               </select>
@@ -399,7 +414,7 @@ export default function NewBookingPage() {
             <h3 className="font-semibold mb-2">Booking Summary</h3>
             <div className="text-sm space-y-1">
               <p>{selectedTrip.tourName}</p>
-              <p>{selectedTrip.date} at {selectedTrip.startTime}</p>
+              <p>{selectedTrip.date} at {formatTime(selectedTrip.startTime)}</p>
               <p className="text-lg font-bold mt-2">
                 ${parseFloat(selectedTrip.price).toFixed(2)} per person
               </p>

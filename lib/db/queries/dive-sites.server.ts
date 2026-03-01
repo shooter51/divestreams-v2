@@ -5,7 +5,7 @@
  * and tour associations.
  */
 
-import { desc, eq, and, sql, asc, inArray } from "drizzle-orm";
+import { desc, eq, and, sql, asc, lt, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { mapDiveSite } from "./mappers";
@@ -153,6 +153,8 @@ export async function getDiveSiteStats(organizationId: string, siteId: string) {
 }
 
 export async function getRecentTripsForDiveSite(organizationId: string, siteId: string, limit = 5) {
+  const today = new Date().toISOString().split("T")[0];
+
   const trips = await db
     .select({
       id: schema.trips.id,
@@ -165,7 +167,8 @@ export async function getRecentTripsForDiveSite(organizationId: string, siteId: 
     .innerJoin(schema.tourDiveSites, eq(schema.tours.id, schema.tourDiveSites.tourId))
     .where(and(
       eq(schema.tourDiveSites.diveSiteId, siteId),
-      eq(schema.trips.organizationId, organizationId)
+      eq(schema.trips.organizationId, organizationId),
+      lt(schema.trips.date, today)
     ))
     .orderBy(desc(schema.trips.date))
     .limit(limit);

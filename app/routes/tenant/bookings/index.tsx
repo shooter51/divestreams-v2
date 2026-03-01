@@ -161,6 +161,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 // Map database status to BadgeStatus type
 function mapBookingStatus(status: string): BadgeStatus {
   if (status === "canceled") return "cancelled";
@@ -336,7 +344,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <p className="font-medium">{booking.trip.tourName}</p>
                     <p className="text-sm text-foreground-muted">
-                      {booking.trip.date} at {booking.trip.startTime}
+                      {booking.trip.date} at {formatTime(booking.trip.startTime)}
                     </p>
                   </td>
                   <td className="px-6 py-4">{booking.participants}</td>

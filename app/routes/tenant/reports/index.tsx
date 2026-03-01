@@ -359,6 +359,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+// Status label mapping
+const bookingStatusLabels: Record<string, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  checked_in: "Checked In",
+  completed: "Completed",
+  canceled: "Canceled",
+  no_show: "No Show",
+};
+
+// Equipment category display map
+const equipmentCategoryLabels: Record<string, string> = {
+  bcd: "BCD",
+  regulator: "Regulator",
+  wetsuit: "Wetsuit",
+  mask: "Mask",
+  fins: "Fins",
+  tank: "Tank",
+  computer: "Dive Computer",
+  torch: "Torch",
+  other: "Other",
+};
+
 // Status color mapping
 const statusColors: Record<string, { bg: string; text: string; bar: string }> = {
   confirmed: { bg: "bg-success-muted", text: "text-success", bar: "bg-success" },
@@ -710,8 +733,8 @@ export default function ReportsPage() {
                   return (
                     <div key={status.status}>
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-sm font-medium capitalize ${colors.text}`}>
-                          {status.status.replace("_", " ")}
+                        <span className={`text-sm font-medium ${colors.text}`}>
+                          {bookingStatusLabels[status.status] || status.status.replace(/_/g, " ")}
                         </span>
                         <span className="text-sm text-foreground-muted">
                           {status.count} ({percentage}%)
@@ -843,7 +866,7 @@ export default function ReportsPage() {
 
                     return (
                       <tr key={category.category} className="border-b last:border-0">
-                        <td className="py-3 font-medium capitalize">{category.category}</td>
+                        <td className="py-3 font-medium">{equipmentCategoryLabels[category.category] || (category.category.charAt(0).toUpperCase() + category.category.slice(1))}</td>
                         <td className="py-3 text-center">{category.total}</td>
                         <td className="py-3 text-center text-success">{category.available}</td>
                         <td className="py-3 text-center text-brand">{category.rented}</td>

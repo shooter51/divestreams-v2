@@ -164,6 +164,13 @@ export async function action({ request }: ActionFunctionArgs) {
   return null;
 }
 
+const rentalStatusLabels: Record<string, string> = {
+  active: "Active",
+  overdue: "Overdue",
+  returned: "Returned",
+  cancelled: "Cancelled",
+};
+
 export default function RentalsPage() {
   useNotification();
 
@@ -346,7 +353,7 @@ export default function RentalsPage() {
                           : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
-                      {rental.status}
+                      {rentalStatusLabels[rental.status] || rental.status}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">

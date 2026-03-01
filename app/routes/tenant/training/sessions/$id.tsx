@@ -32,7 +32,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Session not found", { status: 404 });
   }
 
-  return { session, enrollments, courses, isPremium: ctx.isPremium };
+  // Compute enrolledCount from actual enrollments (the cached counter on the session can be stale)
+  const enrolledCount = enrollments.filter(e => e.status !== "withdrawn").length;
+  return { session: { ...session, enrolledCount }, enrollments, courses, isPremium: ctx.isPremium };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

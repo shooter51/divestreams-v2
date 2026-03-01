@@ -162,6 +162,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
+function formatDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
 export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
@@ -244,11 +249,11 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Dives</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">${customer.totalSpent}</p>
+              <p className="text-2xl font-bold">${Number(customer.totalSpent || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt ? String(customer.lastDiveAt) : "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDate(customer.lastDiveAt) : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
@@ -267,7 +272,7 @@ export default function CustomerDetailPage() {
               </div>
               <div>
                 <p className="text-foreground-muted">Date of Birth</p>
-                <p>{customer.dateOfBirth || "—"}</p>
+                <p>{customer.dateOfBirth ? formatDate(customer.dateOfBirth) : "—"}</p>
               </div>
               <div>
                 <p className="text-foreground-muted">Language</p>
@@ -346,7 +351,7 @@ export default function CustomerDetailPage() {
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
                   {cert.number && <p className="text-foreground-muted">#{cert.number}</p>}
-                  {cert.date && <p className="text-foreground-muted">{cert.date}</p>}
+                  {cert.date && <p className="text-foreground-muted">{formatDate(cert.date)}</p>}
                 </div>
               ))
             ) : (
@@ -426,7 +431,7 @@ export default function CustomerDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Customer since {customer.createdAt}</p>
+            <p>Customer since {formatDate(customer.createdAt)}</p>
             <p>Marketing: {customer.marketingOptIn ? "Opted in" : "Opted out"}</p>
           </div>
         </div>
