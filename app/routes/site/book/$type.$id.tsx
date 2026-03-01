@@ -42,6 +42,7 @@ import {
   trainingSessions,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { nanoid } from "nanoid";
@@ -292,7 +293,7 @@ export async function loader({
       .where(
         and(
           eq(bookings.tripId, id),
-          sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+          sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
         )
       );
 
@@ -470,7 +471,7 @@ export async function loader({
             .where(
               and(
                 eq(bookings.tripId, session.id),
-                sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+                sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
               )
             );
           bookedPart = Number(bookingCount?.total || 0);
@@ -693,7 +694,7 @@ export async function action({
         .where(
           and(
             eq(bookings.tripId, tripId),
-            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
           )
         );
 
@@ -800,28 +801,31 @@ export async function action({
     throw error;
   }
 
-  // Queue booking confirmation email (fire-and-forget, do not block redirect)
-  try {
-    const { getEmailQueue } = await import("../../../../lib/jobs");
-    const emailQueue = getEmailQueue();
-    await emailQueue.add("booking-confirmation", {
-      to: email || "",
-      customerName: `${firstName || ""} ${lastName || ""}`.trim(),
-      tripName: newBooking.tourName,
-      tripDate: newBooking.tripDate,
-      tripTime: newBooking.tripStartTime || "",
-      participants,
-      total: newBooking.total,
-      bookingNumber: newBooking.bookingNumber,
-      shopName: org.name,
-      tenantId: org.id,
-    }, {
-      attempts: 3,
-      backoff: { type: "exponential", delay: 1000 },
-    });
-  } catch (emailError) {
-    // Log but do not block the booking flow
-    console.error("Failed to queue booking confirmation email:", emailError);
+  // Queue booking confirmation email if notification settings allow it
+  const notifSettings = getNotificationSettings(org.metadata);
+  if (notifSettings.emailBookingConfirmation) {
+    try {
+      const { getEmailQueue } = await import("../../../../lib/jobs");
+      const emailQueue = getEmailQueue();
+      await emailQueue.add("booking-confirmation", {
+        to: email || "",
+        customerName: `${firstName || ""} ${lastName || ""}`.trim(),
+        tripName: newBooking.tourName,
+        tripDate: newBooking.tripDate,
+        tripTime: newBooking.tripStartTime || "",
+        participants,
+        total: newBooking.total,
+        bookingNumber: newBooking.bookingNumber,
+        shopName: org.name,
+        tenantId: org.id,
+      }, {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 1000 },
+      });
+    } catch (emailError) {
+      // Log but do not block the booking flow
+      console.error("Failed to queue booking confirmation email:", emailError);
+    }
   }
 
   // Redirect to confirmation page with booking details

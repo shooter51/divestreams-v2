@@ -54,6 +54,11 @@ vi.mock("../../../../lib/db/queries.server", () => ({
 
 vi.mock("../../../../lib/email/triggers", () => ({
   triggerBookingConfirmation: vi.fn(),
+  getNotificationSettings: vi.fn().mockReturnValue({
+    emailBookingConfirmation: true,
+    notifyNewBooking: true,
+    notifyCancellation: true,
+  }),
 }));
 
 import { loader, action } from "../../../../app/routes/tenant/bookings/new";

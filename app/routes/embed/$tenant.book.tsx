@@ -10,7 +10,7 @@ import { useLoaderData, useOutletContext, Form, useActionData, useNavigation, Li
 import { redirect } from "react-router";
 import { getOrganizationBySlug, getPublicTripById, type PublicTripDetail } from "../../../lib/db/queries.public";
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
-import { triggerBookingConfirmation } from "../../../lib/email/triggers";
+import { triggerBookingConfirmation, getNotificationSettings } from "../../../lib/email/triggers";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { useState } from "react";
 
@@ -125,23 +125,26 @@ export async function action({ params, request }: ActionFunctionArgs) {
       specialRequests: specialRequests || undefined,
     });
 
-    // Send booking confirmation email
-    try {
-      await triggerBookingConfirmation({
-        customerEmail: email,
-        customerName: `${firstName} ${lastName}`,
-        tripName: trip!.tourName,
-        tripDate: trip!.date,
-        tripTime: trip!.startTime || "TBA",
-        participants,
-        totalCents: Math.round(parseFloat(booking.total) * 100),
-        bookingNumber: booking.bookingNumber,
-        shopName: org.name,
-        tenantId: org.id,
-      });
-    } catch (emailError) {
-      // Log email error but don't fail the booking
-      console.error("Failed to send booking confirmation email:", emailError);
+    // Send booking confirmation email if notification settings allow it
+    const notifSettings = getNotificationSettings(org.metadata);
+    if (notifSettings.emailBookingConfirmation) {
+      try {
+        await triggerBookingConfirmation({
+          customerEmail: email,
+          customerName: `${firstName} ${lastName}`,
+          tripName: trip!.tourName,
+          tripDate: trip!.date,
+          tripTime: trip!.startTime || "TBA",
+          participants,
+          totalCents: Math.round(parseFloat(booking.total) * 100),
+          bookingNumber: booking.bookingNumber,
+          shopName: org.name,
+          tenantId: org.id,
+        });
+      } catch (emailError) {
+        // Log email error but don't fail the booking
+        console.error("Failed to send booking confirmation email:", emailError);
+      }
     }
 
     // For Phase 1: Redirect to confirmation page
