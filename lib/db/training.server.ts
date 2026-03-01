@@ -774,6 +774,7 @@ export async function createEnrollment(data: {
     .from(schema.trainingEnrollments)
     .where(
       and(
+        eq(schema.trainingEnrollments.organizationId, data.organizationId),
         eq(schema.trainingEnrollments.sessionId, data.sessionId),
         eq(schema.trainingEnrollments.customerId, data.customerId)
       )

@@ -530,7 +530,10 @@ export async function processPOSCheckout(
           stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
           updatedAt: new Date(),
         })
-        .where(eq(tables.products.id, product.productId));
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.id, product.productId)
+        ));
     }
 
     return txnRecord;

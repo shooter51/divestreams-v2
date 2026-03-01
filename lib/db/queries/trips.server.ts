@@ -363,6 +363,7 @@ export async function getTripRevenue(organizationId: string, tripId: string) {
     })
     .from(schema.bookings)
     .where(and(
+      eq(schema.bookings.organizationId, organizationId),
       eq(schema.bookings.tripId, tripId),
       sql`${schema.bookings.status} NOT IN ('canceled', 'refunded')`
     ));
@@ -379,6 +380,7 @@ export async function getTripBookedParticipants(organizationId: string, tripId: 
     .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
     .from(schema.bookings)
     .where(and(
+      eq(schema.bookings.organizationId, organizationId),
       eq(schema.bookings.tripId, tripId),
       sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
     ));
