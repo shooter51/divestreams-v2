@@ -15,6 +15,7 @@ import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { escapeHtml } from "../../../lib/security/sanitize";
+import { CsrfInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -1079,6 +1080,7 @@ export default function ProductsPage() {
               </h2>
 
               <fetcher.Form method="post" className="space-y-4">
+                <CsrfInput />
                 <input type="hidden" name="intent" value={editingProduct ? "update" : "create"} />
                 {editingProduct && <input type="hidden" name="id" value={editingProduct.id} />}
 
@@ -1285,6 +1287,7 @@ export default function ProductsPage() {
                 {editingProduct && (
                   <div className="pt-4 border-t">
                     <fetcher.Form method="post">
+                      <CsrfInput />
                       <input type="hidden" name="intent" value="delete" />
                       <input type="hidden" name="id" value={editingProduct.id} />
                       <button
@@ -1319,6 +1322,7 @@ export default function ProductsPage() {
               onSubmit={() => setStockAdjustment(null)}
               className="space-y-4"
             >
+              <CsrfInput />
               <input type="hidden" name="intent" value="adjust-stock" />
               <input type="hidden" name="id" value={stockAdjustment.id} />
 

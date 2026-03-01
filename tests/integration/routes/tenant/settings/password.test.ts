@@ -16,6 +16,13 @@ vi.mock("../../../../../lib/auth", () => ({
 
 vi.mock("../../../../../lib/db", () => ({
   db: {
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ forcePasswordChange: false }]),
+        }),
+      }),
+    }),
     update: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(undefined),
@@ -23,7 +30,7 @@ vi.mock("../../../../../lib/db", () => ({
 }));
 
 vi.mock("../../../../../lib/db/schema", () => ({
-  account: { userId: "userId" },
+  account: { userId: "userId", forcePasswordChange: "forcePasswordChange" },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -32,6 +39,7 @@ vi.mock("drizzle-orm", () => ({
 
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { auth } from "../../../../../lib/auth";
+import { db } from "../../../../../lib/db";
 
 const mockCtx = {
   user: { id: "user-1" },
@@ -41,6 +49,14 @@ const mockCtx = {
 describe("tenant/settings/password route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset db.select mock to default (forcePasswordChange=false)
+    (db.select as Mock).mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ forcePasswordChange: false }]),
+        }),
+      }),
+    });
   });
 
   describe("loader", () => {
@@ -66,11 +82,19 @@ describe("tenant/settings/password route", () => {
       expect(result.message).toBeNull();
     });
 
-    it("returns forced=true when param set", async () => {
+    it("returns forced=true when DB flag is set", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockCtx);
+      // Override select mock to return forcePasswordChange=true
+      (db.select as Mock).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([{ forcePasswordChange: true }]),
+          }),
+        }),
+      });
 
       const result = await loader({
-        request: new Request("https://demo.divestreams.com/tenant/settings/password?forced=true"),
+        request: new Request("https://demo.divestreams.com/tenant/settings/password"),
         params: {},
         context: {},
         unstable_pattern: "",
@@ -170,16 +194,24 @@ describe("tenant/settings/password route", () => {
       expect((response as Response).headers.get("Location")).toContain("/tenant/dashboard");
     });
 
-    it("changes password successfully (forced)", async () => {
+    it("changes password successfully (forced via DB flag)", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockCtx);
       (auth.api.changePassword as Mock).mockResolvedValue(undefined);
+      // Override select mock to return forcePasswordChange=true
+      (db.select as Mock).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([{ forcePasswordChange: true }]),
+          }),
+        }),
+      });
 
       const formData = new FormData();
       formData.append("newPassword", "newpass123");
       formData.append("confirmPassword", "newpass123");
 
       const response = await action({
-        request: new Request("https://demo.divestreams.com/tenant/settings/password?forced=true", { method: "POST", body: formData }),
+        request: new Request("https://demo.divestreams.com/tenant/settings/password", { method: "POST", body: formData }),
         params: {},
         context: {},
         unstable_pattern: "",

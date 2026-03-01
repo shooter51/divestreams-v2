@@ -4,6 +4,7 @@ import type { Mock } from "vitest";
 // Mock org-context (6 levels deep from source file: app/routes/tenant/training/import/index.tsx)
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 // Mock training DB functions

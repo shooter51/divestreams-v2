@@ -524,7 +524,7 @@ describe("admin/settings.team route", () => {
 
         const result = await action(makeActionArgs(formData));
 
-        expect(result).toMatchObject({ success: true, temporaryPassword: "temp123" });
+        expect(result).toMatchObject({ success: true, message: "Password reset successful. The temporary password has been emailed to the user." });
       });
 
       it("prevents resetting owner password", async () => {

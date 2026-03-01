@@ -596,7 +596,7 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create organization: Database error");
+        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create organization. Please try again or contact support.");
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();

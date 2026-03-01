@@ -92,13 +92,6 @@ const enrollmentStatusLabels: Record<string, string> = {
   failed: "Failed",
 };
 
-const paymentStatusLabels: Record<string, string> = {
-  pending: "Pending",
-  partial: "Partial",
-  paid: "Paid",
-  refunded: "Refunded",
-};
-
 const statusColors: Record<string, string> = {
   enrolled: "bg-brand-muted text-brand",
   in_progress: "bg-warning-muted text-warning",

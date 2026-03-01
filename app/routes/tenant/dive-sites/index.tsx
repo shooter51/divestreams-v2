@@ -95,13 +95,6 @@ const difficultyColors: Record<string, string> = {
   expert: "bg-danger-muted text-danger",
 };
 
-const difficultyLabels: Record<string, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-  expert: "Expert",
-};
-
 export default function DiveSitesPage() {
   const { diveSites, total, search, difficulty } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();

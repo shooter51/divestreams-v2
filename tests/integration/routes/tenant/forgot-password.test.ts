@@ -15,6 +15,11 @@ vi.mock("../../../../lib/auth/org-context.server", () => ({
   getSubdomainFromRequest: vi.fn(),
 }));
 
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { auth } from "../../../../lib/auth";
 
 describe("tenant/forgot-password route", () => {
@@ -88,6 +93,7 @@ describe("tenant/forgot-password route", () => {
       } as Parameters<typeof action>[0]);
 
       expect(result).toEqual({ success: true, email: "user@example.com" });
+      expect(auth.api.requestPasswordReset).toHaveBeenCalled();
     });
 
     it("returns success even when auth API throws (prevents enumeration)", async () => {
@@ -105,6 +111,7 @@ describe("tenant/forgot-password route", () => {
       } as Parameters<typeof action>[0]);
 
       expect(result).toEqual({ success: true, email: "nonexistent@example.com" });
+      expect(auth.api.requestPasswordReset).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
   });

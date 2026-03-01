@@ -5,6 +5,9 @@ import { loader } from "../../../../app/routes/api/health";
 /**
  * Integration tests for api/health route
  * Tests actual HTTP loader behavior with DB and Redis mocks
+ *
+ * Note: The health endpoint was hardened to only expose { status }
+ * without internal infrastructure details (checks, version, timestamp).
  */
 
 // Mock database
@@ -28,7 +31,7 @@ describe("api/health route", () => {
   });
 
   describe("GET /api/health", () => {
-    it("returns 200 with healthy status when all checks pass", async () => {
+    it("returns 200 with ok status when all checks pass", async () => {
       // Mock successful DB check
       (db.execute as Mock).mockResolvedValue([]);
 
@@ -43,10 +46,10 @@ describe("api/health route", () => {
 
       const data = await response.json();
       expect(data.status).toBe("ok");
-      expect(data.checks.database).toBe("ok");
-      expect(data.checks.redis).toBe("ok");
-      expect(data.version).toBe("2.0.0");
-      expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      // Hardened endpoint does not expose checks, version, or timestamp
+      expect(data.checks).toBeUndefined();
+      expect(data.version).toBeUndefined();
+      expect(data.timestamp).toBeUndefined();
     });
 
     it("returns 503 with degraded status when database fails", async () => {
@@ -64,8 +67,6 @@ describe("api/health route", () => {
 
       const data = await response.json();
       expect(data.status).toBe("degraded");
-      expect(data.checks.database).toBe("error");
-      expect(data.checks.redis).toBe("ok");
     });
 
     it("returns 503 with degraded status when Redis fails", async () => {
@@ -83,8 +84,6 @@ describe("api/health route", () => {
 
       const data = await response.json();
       expect(data.status).toBe("degraded");
-      expect(data.checks.database).toBe("ok");
-      expect(data.checks.redis).toBe("error");
     });
 
     it("returns 503 with degraded status when both services fail", async () => {
@@ -102,28 +101,9 @@ describe("api/health route", () => {
 
       const data = await response.json();
       expect(data.status).toBe("degraded");
-      expect(data.checks.database).toBe("error");
-      expect(data.checks.redis).toBe("error");
     });
 
-    it("includes ISO timestamp in response", async () => {
-      (db.execute as Mock).mockResolvedValue([]);
-      const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
-      (getRedisConnection as Mock).mockReturnValue(mockRedis);
-
-      const before = new Date();
-      const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as unknown);
-      const after = new Date();
-
-      const data = await response.json();
-      const timestamp = new Date(data.timestamp);
-
-      expect(timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
-    });
-
-    it("includes version field in response", async () => {
+    it("only exposes status field (no internal details)", async () => {
       (db.execute as Mock).mockResolvedValue([]);
       const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
@@ -132,7 +112,8 @@ describe("api/health route", () => {
       const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      expect(data.version).toMatch(/^\d+\.\d+\.\d+$/);
+      // Only "status" key should be present
+      expect(Object.keys(data)).toEqual(["status"]);
     });
 
     it("executes SELECT 1 query for database health check", async () => {

@@ -383,26 +383,36 @@ describe("tenant/login route", () => {
           session: { id: "session-1" },
         });
 
-        // Mock that user is not already a member
-        const mockMemberCheckQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
+        // Mock org lookup by slug (first select) then member check (second select)
+        const mockOrgLookupQuery = {
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([{ id: "org-1" }]),
+            }),
+          }),
         };
+
+        const mockMemberCheckQuery = {
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        };
+
+        (db.select as Mock)
+          .mockReturnValueOnce(mockOrgLookupQuery)
+          .mockReturnValueOnce(mockMemberCheckQuery);
 
         // db.insert(table).values({...}) - need to return object with values method
         const mockInsertChain = {
           values: vi.fn().mockResolvedValue([]),
         };
 
-        (db.select as Mock).mockReturnValue(mockMemberCheckQuery);
         (db.insert as Mock).mockReturnValue(mockInsertChain);
 
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("userId", "user-1");
-        formData.append("orgId", "org-1");
         formData.append("redirectTo", "/tenant");
 
         const request = new Request("https://demo.divestreams.com/login", {
