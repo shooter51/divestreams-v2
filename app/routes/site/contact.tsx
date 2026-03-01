@@ -442,7 +442,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.name
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",
@@ -481,7 +481,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.email
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",
@@ -519,7 +519,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.phone
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",
@@ -557,7 +557,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 resize-y"
                   style={{
                     borderColor: actionData?.errors?.message
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",

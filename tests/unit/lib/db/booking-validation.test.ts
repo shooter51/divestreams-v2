@@ -34,6 +34,7 @@ vi.mock("../../../../lib/db/index", () => ({
     returning: vi.fn(),
     transaction: vi.fn(),
     execute: vi.fn(),
+    for: vi.fn(),
   },
 }));
 
@@ -113,10 +114,12 @@ describe("Booking Validation and Pricing Logic", () => {
     (db.delete as any).mockReturnValue(db);
     (db.groupBy as any).mockReturnValue(db);
     (db.orderBy as any).mockReturnValue(db);
-    (db.limit as any).mockResolvedValue([]);
+    // limit returns db (chain) so .for() can be chained; .for() resolves to []
+    (db.limit as any).mockReturnValue(db);
+    (db.for as any).mockResolvedValue([]);
     (db.offset as any).mockResolvedValue([]);
     (db.returning as any).mockResolvedValue([]);
-    (db.execute as any).mockResolvedValue([]); // FOR UPDATE lock query
+    (db.execute as any).mockResolvedValue([]);
     // Setup transaction mock to execute callback with db as tx
     (db.transaction as any).mockImplementation(async (callback: any) => {
       return callback(db);
@@ -163,7 +166,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -204,7 +208,8 @@ describe("Booking Validation and Pricing Logic", () => {
 
       const existingBookings = [{ total: 9 }]; // 9 spots already booked, only 1 left
 
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
       (db.where as any)
         .mockReturnValueOnce({ limit: mockTripLimit })
@@ -238,7 +243,8 @@ describe("Booking Validation and Pricing Logic", () => {
 
       const existingBookings = [{ total: 10 }]; // Trip is full
 
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
       (db.where as any)
         .mockReturnValueOnce({ limit: mockTripLimit })
@@ -272,7 +278,8 @@ describe("Booking Validation and Pricing Logic", () => {
 
       const existingBookings = [{ total: 15 }]; // 15 spots booked, 5 remaining
 
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
       (db.where as any)
         .mockReturnValueOnce({ limit: mockTripLimit })
@@ -313,7 +320,8 @@ describe("Booking Validation and Pricing Logic", () => {
 
       const existingBookings = [{ total: 0 }];
 
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
       (db.where as any)
         .mockReturnValueOnce({ limit: mockTripLimit })
@@ -368,7 +376,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -427,7 +436,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -491,7 +501,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -549,7 +560,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -608,7 +620,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -667,7 +680,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -698,7 +712,8 @@ describe("Booking Validation and Pricing Logic", () => {
   describe("Trip Status Validation", () => {
     it("should reject booking for cancelled trip", async () => {
       // Mock trip query to return empty (trip not found)
-      const mockTripLimit = vi.fn().mockResolvedValue([]);
+      const mockTripFor = vi.fn().mockResolvedValue([]);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
       (db.where as any).mockReturnValueOnce({ limit: mockTripLimit });
 
@@ -715,7 +730,8 @@ describe("Booking Validation and Pricing Logic", () => {
 
     it("should reject booking for inactive tour", async () => {
       // Mock trip query to return empty (inactive tour filtered out)
-      const mockTripLimit = vi.fn().mockResolvedValue([]);
+      const mockTripFor = vi.fn().mockResolvedValue([]);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
 
       (db.where as any).mockReturnValueOnce({ limit: mockTripLimit });
 
@@ -765,7 +781,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -829,7 +846,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -886,7 +904,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)
@@ -944,7 +963,8 @@ describe("Booking Validation and Pricing Logic", () => {
       // Query 1: Trip query .where().limit()
       // Query 2: Booking count query .where() terminal
       // Query 3: Customer query .where().limit()
-      const mockTripLimit = vi.fn().mockResolvedValue(tripData);
+      const mockTripFor = vi.fn().mockResolvedValue(tripData);
+      const mockTripLimit = vi.fn().mockReturnValue({ for: mockTripFor });
       const mockCustomerLimit = vi.fn().mockResolvedValue(existingCustomer);
 
       (db.where as any)

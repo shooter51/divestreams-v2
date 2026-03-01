@@ -713,10 +713,7 @@ export async function createEnrollment(data: {
 }) {
   // Wrap in transaction with FOR UPDATE to prevent TOCTOU race conditions
   return await db.transaction(async (tx) => {
-    // Lock the session row to serialize concurrent enrollments
-    await tx.execute(sql`SELECT id FROM training_sessions WHERE id = ${data.sessionId} FOR UPDATE`);
-
-    // Validate session exists and get details including pricing (inside transaction, after lock)
+    // Get session details with FOR UPDATE lock to serialize concurrent enrollments
     const [session] = await tx
       .select({
         id: schema.trainingSessions.id,
@@ -736,7 +733,8 @@ export async function createEnrollment(data: {
           eq(schema.trainingSessions.organizationId, data.organizationId),
           eq(schema.trainingSessions.id, data.sessionId)
         )
-      );
+      )
+      .for("update");
 
     if (!session) {
       throw new Error("Session not found");

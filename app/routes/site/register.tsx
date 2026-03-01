@@ -458,7 +458,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.firstName
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",
@@ -497,7 +497,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.lastName
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",
@@ -537,7 +537,7 @@ export default function SiteRegisterPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.email
-                    ? "#ef4444"
+                    ? "var(--danger)"
                     : "var(--accent-color)",
                   // @ts-ignore
                   "--tw-ring-color": "var(--primary-color)",
@@ -575,7 +575,7 @@ export default function SiteRegisterPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.phone
-                    ? "#ef4444"
+                    ? "var(--danger)"
                     : "var(--accent-color)",
                   // @ts-ignore
                   "--tw-ring-color": "var(--primary-color)",
@@ -617,7 +617,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.password
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",
@@ -668,7 +668,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.confirmPassword
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",

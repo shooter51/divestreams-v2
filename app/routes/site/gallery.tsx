@@ -214,7 +214,7 @@ export default function GalleryPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end">
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="text-lg font-semibold mb-1">{album.name}</h3>
-                      <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.8)" }}>
+                      <p className="text-sm text-white/80">
                         {album.imageCount} {album.imageCount === 1 ? "photo" : "photos"}
                       </p>
                     </div>
@@ -324,7 +324,7 @@ export default function GalleryPage() {
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="font-semibold text-sm mb-1 line-clamp-1">{image.title}</h3>
                       {image.location && (
-                        <p className="text-xs line-clamp-1" style={{ color: "rgba(255, 255, 255, 0.8)" }}>
+                        <p className="text-xs line-clamp-1 text-white/80">
                           <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                           </svg>
@@ -428,24 +428,24 @@ export default function GalleryPage() {
             <div className="bg-white/10 backdrop-blur-sm text-white p-6 rounded-lg mt-4 max-w-2xl">
               <h3 className="text-xl font-bold mb-2">{selectedImage.title}</h3>
               {selectedImage.description && (
-                <p className="mb-4" style={{ color: "rgba(255, 255, 255, 0.9)" }}>{selectedImage.description}</p>
+                <p className="mb-4 text-white/90">{selectedImage.description}</p>
               )}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {selectedImage.location && (
                   <div>
-                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Location:</span>
+                    <span className="text-white/60">Location:</span>
                     <span className="ml-2">{selectedImage.location}</span>
                   </div>
                 )}
                 {selectedImage.photographer && (
                   <div>
-                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Photographer:</span>
+                    <span className="text-white/60">Photographer:</span>
                     <span className="ml-2">{selectedImage.photographer}</span>
                   </div>
                 )}
                 {selectedImage.dateTaken && (
                   <div>
-                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Date:</span>
+                    <span className="text-white/60">Date:</span>
                     <span className="ml-2">
                       {new Date(selectedImage.dateTaken).toLocaleDateString()}
                     </span>
@@ -453,7 +453,7 @@ export default function GalleryPage() {
                 )}
                 {selectedImage.album && (
                   <div>
-                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Album:</span>
+                    <span className="text-white/60">Album:</span>
                     <span className="ml-2">{selectedImage.album.name}</span>
                   </div>
                 )}

@@ -1279,7 +1279,7 @@ export default function BookingPage() {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                         style={{
                           borderColor: actionData?.errors?.firstName
-                            ? "#ef4444"
+                            ? "var(--danger)"
                             : "var(--accent-color)",
                         }}
                         required
@@ -1305,7 +1305,7 @@ export default function BookingPage() {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                         style={{
                           borderColor: actionData?.errors?.lastName
-                            ? "#ef4444"
+                            ? "var(--danger)"
                             : "var(--accent-color)",
                         }}
                         required
@@ -1333,7 +1333,7 @@ export default function BookingPage() {
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                       style={{
                         borderColor: actionData?.errors?.email
-                          ? "#ef4444"
+                          ? "var(--danger)"
                           : "var(--accent-color)",
                       }}
                       required

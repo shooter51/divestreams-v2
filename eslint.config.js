@@ -130,6 +130,11 @@ export default tseslint.config(
       "app/routes/**/print-*.tsx",                     // Print templates
       "app/routes/tenant/bookings/$id.tsx",           // HTML email templates
       "app/routes/tenant/dive-sites/$id.tsx",         // HTML embed templates
+      "tests/**",                                      // Test assertions may reference colors for validation
+      "docs/**",                                       // Documentation files
+      "zapier-app/**",                                 // Zapier app JS files
+      "lib/themes/**",                                 // Theme definitions need actual color values
+      "lib/db/seed-demo-data.server.ts",               // Seed data generation
     ],
     rules: {
       "no-restricted-syntax": "off",  // Allow hardcoded colors in these specific files

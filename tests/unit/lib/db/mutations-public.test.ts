@@ -42,6 +42,7 @@ const createThenable = (resolveValue: unknown[] = []) => {
   thenable.offset = vi.fn(() => createThenable(resolveValue));
   thenable.orderBy = vi.fn(() => createThenable(resolveValue));
   thenable.returning = vi.fn(() => createThenable(resolveValue));
+  thenable.for = vi.fn(() => createThenable(resolveValue));
 
   return thenable;
 };

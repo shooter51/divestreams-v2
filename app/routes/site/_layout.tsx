@@ -465,9 +465,9 @@ export function ErrorBoundary() {
   const isRouteError = isRouteErrorResponse(error);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "#f8fafc", color: "#1e293b" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "var(--surface-inset)", color: "var(--foreground)" }}>
       <div className="max-w-md w-full text-center">
-        <h1 className="text-6xl font-bold mb-4" style={{ color: "#0369a1" }}>
+        <h1 className="text-6xl font-bold mb-4" style={{ color: "var(--info)" }}>
           {isRouteError ? error.status : "Oops"}
         </h1>
         <h2 className="text-2xl font-semibold mb-2">
@@ -488,7 +488,7 @@ export function ErrorBoundary() {
           <Link
             to="/site"
             className="px-6 py-3 text-white rounded-lg font-medium transition-colors"
-            style={{ backgroundColor: "#0369a1" }}
+            style={{ backgroundColor: "var(--info)" }}
           >
             Back to Home
           </Link>

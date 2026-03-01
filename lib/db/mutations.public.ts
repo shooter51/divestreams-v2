@@ -45,10 +45,7 @@ export async function createWidgetBooking(
 ): Promise<WidgetBookingResult> {
   // Wrap entire availability check + booking in a transaction to prevent TOCTOU race conditions
   return await db.transaction(async (tx) => {
-    // Lock the trip row to serialize concurrent bookings
-    await tx.execute(sql`SELECT id FROM trips WHERE id = ${input.tripId} FOR UPDATE`);
-
-    // Get trip details and verify availability (inside transaction, after lock)
+    // Get trip details with FOR UPDATE lock to serialize concurrent bookings
     const tripData = await tx
       .select({
         id: schema.trips.id,
@@ -71,7 +68,8 @@ export async function createWidgetBooking(
           eq(schema.tours.isActive, true)
         )
       )
-      .limit(1);
+      .limit(1)
+      .for("update");
 
     if (tripData.length === 0) {
       throw new Error("Trip not found or not available");
@@ -343,10 +341,7 @@ export async function createWidgetEnrollment(
 ) {
   // Wrap entire capacity check + enrollment in a transaction to prevent TOCTOU race conditions
   return await db.transaction(async (tx) => {
-    // Lock the session row to serialize concurrent enrollments
-    await tx.execute(sql`SELECT id FROM training_sessions WHERE id = ${input.sessionId} FOR UPDATE`);
-
-    // Verify session exists and is available (inside transaction, after lock)
+    // Get session details with FOR UPDATE lock to serialize concurrent enrollments
     const sessions = await tx
       .select({
         id: schema.trainingSessions.id,
@@ -363,7 +358,8 @@ export async function createWidgetEnrollment(
           eq(schema.trainingSessions.status, "scheduled")
         )
       )
-      .limit(1);
+      .limit(1)
+      .for("update");
 
     if (sessions.length === 0) {
       throw new Error("Training session not found or not available");
