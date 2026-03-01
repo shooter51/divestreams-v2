@@ -249,7 +249,7 @@ export default function NewDiveSitePage() {
                 name="maxDepth"
                 required
                 min="1"
-                max="100"
+                max="1000"
                 defaultValue={actionData?.values?.maxDepth}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />

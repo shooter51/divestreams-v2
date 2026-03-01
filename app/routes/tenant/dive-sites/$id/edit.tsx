@@ -199,7 +199,7 @@ export default function EditDiveSitePage() {
                 name="maxDepth"
                 required
                 min="1"
-                max="100"
+                max="1000"
                 defaultValue={actionData?.values?.maxDepth || site.maxDepth}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
