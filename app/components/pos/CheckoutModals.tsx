@@ -852,8 +852,8 @@ export function SplitModal({
               {/* Amount input */}
               <div className="flex gap-2">
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={currentAmount}
                   onChange={(e) => setCurrentAmount(e.target.value)}
                   placeholder="Amount"

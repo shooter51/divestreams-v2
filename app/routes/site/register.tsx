@@ -526,7 +526,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Email <span className="text-danger">*</span>
+                Email Address <span className="text-danger">*</span>
               </label>
               <input
                 type="email"
