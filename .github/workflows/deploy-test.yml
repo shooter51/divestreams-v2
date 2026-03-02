@@ -143,6 +143,19 @@ jobs:
               docker exec "$PG_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -c "
                 UPDATE products SET stock_quantity = 50 WHERE stock_quantity = 0;
               " 2>/dev/null && echo "Product stock reset" || echo "Stock reset failed (non-fatal)"
+              # Ensure e2etest and demo orgs have active PRO subscriptions (fixes KAN-155 plan gate)
+              docker exec "$PG_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -c "
+                INSERT INTO subscription (organization_id, plan, plan_id, status, created_at, updated_at)
+                SELECT o.id, '"'"'pro'"'"', sp.id, '"'"'active'"'"', NOW(), NOW()
+                FROM organization o
+                CROSS JOIN subscription_plans sp
+                WHERE o.slug IN ('"'"'e2etest'"'"', '"'"'demo'"'"') AND LOWER(sp.name) = '"'"'pro'"'"'
+                AND NOT EXISTS (SELECT 1 FROM subscription s WHERE s.organization_id = o.id)
+                ON CONFLICT DO NOTHING;
+                UPDATE subscription SET plan = '"'"'pro'"'"', plan_id = sp.id, status = '"'"'active'"'"', updated_at = NOW()
+                FROM subscription_plans sp, organization o
+                WHERE subscription.organization_id = o.id AND o.slug IN ('"'"'e2etest'"'"', '"'"'demo'"'"') AND LOWER(sp.name) = '"'"'pro'"'"';
+              " 2>/dev/null && echo "E2E org subscriptions ensured PRO" || echo "Subscription fix failed (non-fatal)"
             else
               echo "Postgres container not found - skipping DB fixes"
             fi
