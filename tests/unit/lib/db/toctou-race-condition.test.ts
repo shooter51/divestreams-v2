@@ -349,8 +349,10 @@ describe("DS-u39: createWidgetBooking() TOCTOU protection", () => {
       callCount++;
       if (callCount === 1) return { limit: limitMock }; // trip with FOR UPDATE
       if (callCount === 2) return Promise.resolve([{ total: 5 }]);  // booking count
-      // customer lookup — .where().limit() must resolve to array
-      return { limit: vi.fn().mockResolvedValue([]) };
+      // customer lookup (.where().limit()) and booking number (.where().orderBy().limit())
+      const limitFn = vi.fn().mockResolvedValue([]);
+      const orderByFn = vi.fn().mockReturnValue({ limit: limitFn });
+      return { limit: limitFn, orderBy: orderByFn };
     });
 
     (db.returning as Mock)
