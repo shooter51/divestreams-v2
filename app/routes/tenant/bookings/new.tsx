@@ -166,6 +166,15 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
 }
 
+function formatDisplayDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function formatTime(t: string | null | undefined): string {
   if (!t) return "";
   const [h, m] = t.split(":").map(Number);
@@ -248,7 +257,7 @@ export default function NewBookingPage() {
               <div>
                 <p className="font-medium">{selectedTrip.tourName}</p>
                 <p className="text-sm text-foreground-muted">
-                  {selectedTrip.date} at {formatTime(selectedTrip.startTime)} • ${selectedTrip.price}/person
+                  {formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)} • ${selectedTrip.price}/person
                 </p>
                 <p className="text-sm text-success">
                   {selectedTrip.spotsAvailable} spots available
@@ -277,7 +286,7 @@ export default function NewBookingPage() {
                 <option value="">Choose a trip...</option>
                 {upcomingTrips.map((trip) => (
                   <option key={trip.id} value={trip.id}>
-                    {trip.tourName} - {trip.date} at {formatTime(trip.startTime)} (${trip.price}, {trip.spotsAvailable !== null ? `${trip.spotsAvailable} spots` : "unlimited spots"})
+                    {trip.tourName} - {formatDisplayDate(trip.date)} at {formatTime(trip.startTime)} (${trip.price}, {trip.spotsAvailable !== null ? `${trip.spotsAvailable} spots` : "unlimited spots"})
                   </option>
                 ))}
               </select>
@@ -422,7 +431,7 @@ export default function NewBookingPage() {
             <h3 className="font-semibold mb-2">Booking Summary</h3>
             <div className="text-sm space-y-1">
               <p>{selectedTrip.tourName}</p>
-              <p>{selectedTrip.date} at {formatTime(selectedTrip.startTime)}</p>
+              <p>{formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)}</p>
               <p className="text-lg font-bold mt-2">
                 ${parseFloat(selectedTrip.price).toFixed(2)} per person
               </p>

@@ -3,6 +3,19 @@
  */
 
 /**
+ * Format an ISO date string (YYYY-MM-DD) to a human-readable date (e.g. "Mar 4, 2026").
+ * Appends T00:00:00 to avoid timezone shifts when parsing date-only strings.
+ */
+export function formatDisplayDate(date: string | null | undefined): string {
+  if (!date) return "";
+  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/**
  * Format a time string from HH:MM:SS or HH:MM to 12-hour format (e.g. "8:00 AM").
  */
 export function formatTime(time: string | null | undefined): string {

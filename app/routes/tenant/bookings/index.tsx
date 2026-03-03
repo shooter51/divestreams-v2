@@ -7,7 +7,7 @@ import { eq, sql, count, and, gte, ne, lt } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
-import { formatTime } from "../../../lib/format";
+import { formatTime, formatDisplayDate } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -340,7 +340,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <p className="font-medium">{booking.trip.tourName}</p>
                     <p className="text-sm text-foreground-muted">
-                      {booking.trip.date} at {formatTime(booking.trip.startTime)}
+                      {formatDisplayDate(booking.trip.date)} at {formatTime(booking.trip.startTime)}
                     </p>
                   </td>
                   <td className="px-6 py-4">{booking.participants}</td>

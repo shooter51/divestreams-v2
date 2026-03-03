@@ -8,7 +8,7 @@ import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
 import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 import { StatusBadge, type BadgeStatus } from "../../components/ui";
-import { formatTime, formatCurrency, formatCapacity, formatLabel } from "../../lib/format";
+import { formatTime, formatCurrency, formatCapacity, formatLabel, formatDisplayDate } from "../../lib/format";
 
 
 export const meta: MetaFunction = () => {
@@ -287,7 +287,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="font-medium">{trip.name}</p>
                   <p className="text-sm text-foreground-muted">
-                    {trip.date} at {formatTime(trip.time)}
+                    {formatDisplayDate(trip.date)} at {formatTime(trip.time)}
                   </p>
                 </div>
                 <div className="text-right">
