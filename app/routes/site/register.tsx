@@ -603,7 +603,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Password <span className="text-danger">*</span>
+                Password <span className="text-danger" aria-hidden="true">*</span>
               </label>
               <div className="relative">
                 <input
