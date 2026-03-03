@@ -6,7 +6,7 @@
  */
 
 import { desc, eq, gte, and, sql } from "drizzle-orm";
-import { db } from "../index";
+import { db, type DbTransaction } from "../index";
 import * as schema from "../schema";
 import { dbLogger } from "../../logger";
 import { mapBooking } from "./mappers";
@@ -14,6 +14,44 @@ import { formatRelativeTime } from "./formatters";
 import { getOrganizationById } from "./reports.server";
 import { getCustomerById } from "./customers.server";
 import { getTripById } from "./trips.server";
+
+// ============================================================================
+// Booking Number Generation
+// ============================================================================
+
+/**
+ * Generate the next sequential booking number for an organization.
+ * Format: BK-NNNN (e.g. BK-1000, BK-1001, ...)
+ * Starts at BK-1000 if no prior bookings exist.
+ * Accepts an optional transaction (tx) so it can be called inside transactions.
+ */
+export async function getNextBookingNumber(
+  organizationId: string,
+  dbInstance: typeof db | DbTransaction = db
+): Promise<string> {
+  const result = await (dbInstance as typeof db)
+    .select({ bookingNumber: schema.bookings.bookingNumber })
+    .from(schema.bookings)
+    .where(
+      and(
+        eq(schema.bookings.organizationId, organizationId),
+        sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+$'`
+      )
+    )
+    .orderBy(sql`CAST(SUBSTRING(${schema.bookings.bookingNumber} FROM 4) AS INTEGER) DESC`)
+    .limit(1);
+
+  if (!Array.isArray(result) || result.length === 0) {
+    return "BK-1000";
+  }
+
+  const match = result[0].bookingNumber?.match(/^BK-(\d+)$/);
+  if (!match) {
+    return "BK-1000";
+  }
+
+  return `BK-${parseInt(match[1], 10) + 1}`;
+}
 
 // ============================================================================
 // Dashboard Booking Queries
@@ -151,7 +189,7 @@ export async function createBooking(organizationId: string, data: {
   specialRequests?: string;
   source?: string;
 }) {
-  const bookingNumber = `BK${Date.now().toString(36).toUpperCase()}`;
+  const bookingNumber = await getNextBookingNumber(organizationId);
 
   const [booking] = await db
     .insert(schema.bookings)
