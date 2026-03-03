@@ -8,6 +8,7 @@ export default [
   route("signup", "routes/marketing/signup.tsx"),
   route("terms", "routes/marketing/terms.tsx"),
   route("privacy", "routes/marketing/privacy.tsx"),
+  route("tenant-setup", "routes/marketing/tenant-setup.tsx"),
 
   // Stripe webhook
   route("api/stripe-webhook", "routes/api/stripe-webhook.tsx"),
