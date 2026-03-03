@@ -607,6 +607,7 @@ export default function SiteRegisterPage() {
               </label>
               <div className="relative">
                 <input
+                  aria-label="Password"
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
