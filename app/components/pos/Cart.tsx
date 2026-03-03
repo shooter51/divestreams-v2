@@ -134,10 +134,12 @@ export function Cart({
           <span>Subtotal</span>
           <span>${subtotal.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span>Tax ({effectiveTaxRate}%)</span>
-          <span>${tax.toFixed(2)}</span>
-        </div>
+        {items.length > 0 && (
+          <div className="flex justify-between text-sm">
+            <span>Tax ({effectiveTaxRate}%)</span>
+            <span>${tax.toFixed(2)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-lg font-bold">
           <span>Total</span>
           <span>${total.toFixed(2)}</span>

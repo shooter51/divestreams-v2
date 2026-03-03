@@ -478,7 +478,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
         }],
         // 4. Booking count
         [{ total: 4 }],
-        // 5. Insert booking returning
+        // 5. getNextBookingNumber: no prior sequential bookings → returns "BK-1000"
+        [],
+        // 6. Insert booking returning
         [{
           id: "booking-1",
           bookingNumber: "BK-TEST-ABCD",
@@ -581,7 +583,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
         }],
         // 5. Booking count
         [{ total: 2 }],
-        // 6. Insert booking
+        // 6. getNextBookingNumber: no prior sequential bookings → returns "BK-1000"
+        [],
+        // 7. Insert booking
         [{
           id: "booking-2",
           bookingNumber: "BK-COURSE-ABCD",

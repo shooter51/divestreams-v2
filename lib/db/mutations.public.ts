@@ -8,14 +8,7 @@
 import { db } from "./index";
 import { eq, and, sql } from "drizzle-orm";
 import * as schema from "./schema";
-import { nanoid } from "nanoid";
-
-// Generate a unique booking number
-function generateBookingNumber(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = nanoid(4).toUpperCase();
-  return `BK-${timestamp}-${random}`;
-}
+import { getNextBookingNumber } from "./queries/bookings.server";
 
 export interface CreateWidgetBookingInput {
   tripId: string;
@@ -146,7 +139,7 @@ export async function createWidgetBooking(
     const total = subtotal + tax;
 
     // Generate booking number
-    const bookingNumber = generateBookingNumber();
+    const bookingNumber = await getNextBookingNumber(organizationId, tx);
 
     // Create booking
     const newBooking = await tx

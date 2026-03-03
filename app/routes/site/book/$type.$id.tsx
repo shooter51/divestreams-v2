@@ -45,7 +45,7 @@ import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server"
 import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
-import { nanoid } from "nanoid";
+import { getNextBookingNumber } from "../../../../lib/db/queries/bookings.server";
 
 // ============================================================================
 // TYPES
@@ -143,11 +143,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // HELPER FUNCTIONS
 // ============================================================================
 
-function generateBookingNumber(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = nanoid(4).toUpperCase();
-  return `BK-${timestamp}-${random}`;
-}
 
 // ============================================================================
 // LOADER
@@ -753,7 +748,7 @@ export async function action({
         .where(and(eq(trainingSessions.id, sessionId), eq(trainingSessions.organizationId, org.id)));
 
       // Generate a booking reference for the confirmation page
-      const bookingRef = generateBookingNumber();
+      const bookingRef = await getNextBookingNumber(org.id);
 
       // Queue confirmation email (fire-and-forget)
       try {
@@ -951,7 +946,7 @@ export async function action({
       const total = subtotal + tax;
 
       // Generate booking number
-      const bookingNumber = generateBookingNumber();
+      const bookingNumber = await getNextBookingNumber(org.id, tx);
 
       // Insert booking within the same transaction
       const [booking] = await tx

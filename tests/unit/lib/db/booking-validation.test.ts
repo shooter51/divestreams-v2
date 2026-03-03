@@ -9,6 +9,11 @@ import { db } from "../../../../lib/db/index";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Mock getNextBookingNumber to avoid DB query in unit tests
+vi.mock("../../../../lib/db/queries/bookings.server", () => ({
+  getNextBookingNumber: vi.fn().mockResolvedValue("BK-1000"),
+}));
+
 // Mock nanoid
 vi.mock("nanoid", () => ({
   nanoid: vi.fn(() => "TEST1234"),

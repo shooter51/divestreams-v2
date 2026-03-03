@@ -178,10 +178,36 @@ describe("tenant/bookings/new route", () => {
 
       expect(result.rentalEquipment).toHaveLength(2);
       expect(result.rentalEquipment[0]).toMatchObject({
-        id: "eq-1",
         name: "BCD",
         price: "25.00",
+        count: 1,
       });
+    });
+
+    it("DS-u5vn: groups duplicate equipment items by name showing available count", async () => {
+      const duplicateEquipment = [
+        { id: "eq-1", name: "Aqua Lung Pro HD", rentalPrice: 15.0 },
+        { id: "eq-2", name: "Aqua Lung Pro HD", rentalPrice: 15.0 },
+        { id: "eq-3", name: "Aqua Lung Pro HD", rentalPrice: 15.0 },
+        { id: "eq-4", name: "Mares Avanti", rentalPrice: 8.0 },
+        { id: "eq-5", name: "Mares Avanti", rentalPrice: 8.0 },
+      ];
+      (getEquipment as Mock).mockResolvedValue(duplicateEquipment);
+
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
+
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+
+      // Should have only 2 entries, not 5
+      expect(result.rentalEquipment).toHaveLength(2);
+
+      // First entry should show count of 3
+      const aqualung = result.rentalEquipment.find((e: { name: string }) => e.name === "Aqua Lung Pro HD");
+      expect(aqualung).toMatchObject({ name: "Aqua Lung Pro HD", price: "15.00", count: 3 });
+
+      // Second entry should show count of 2
+      const mares = result.rentalEquipment.find((e: { name: string }) => e.name === "Mares Avanti");
+      expect(mares).toMatchObject({ name: "Mares Avanti", price: "8.00", count: 2 });
     });
 
     it("pre-selects customer when customerId in URL", async () => {

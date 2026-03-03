@@ -34,6 +34,11 @@ vi.mock("../../../../../../lib/utils/rate-limit", () => ({
   checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 }),
 }));
 
+// Mock getNextBookingNumber to return a sequential number without hitting DB
+vi.mock("../../../../../../lib/db/queries/bookings.server", () => ({
+  getNextBookingNumber: vi.fn().mockResolvedValue("BK-1000"),
+}));
+
 import { validateZapierApiKey } from "../../../../../../lib/integrations/zapier-enhanced.server";
 import { db } from "../../../../../../lib/db";
 
@@ -276,6 +281,7 @@ describe("api/zapier/actions/create-booking route", () => {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: "booking-abc123",
+          bookingNumber: "BK-1000",
           tripId: "trip-1",
           customerId: "cust-1",
           participants: 2,
@@ -359,6 +365,7 @@ describe("api/zapier/actions/create-booking route", () => {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: "booking-xyz789",
+          bookingNumber: "BK-1000",
           tripId: "trip-1",
           customerId: "new-cust-1",
           participants: 3,
@@ -480,6 +487,7 @@ describe("api/zapier/actions/create-booking route", () => {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: "booking-abcd1234efgh5678",
+          bookingNumber: "BK-1000",
           tripId: "trip-1",
           customerId: "cust-1",
           participants: 1,
@@ -508,7 +516,7 @@ describe("api/zapier/actions/create-booking route", () => {
       const response = await action({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      expect(data.booking_number).toBe("BK-booking-");
+      expect(data.booking_number).toMatch(/^BK-\d+$/);
       expect(data.created_at).toBeDefined();
     });
   });
