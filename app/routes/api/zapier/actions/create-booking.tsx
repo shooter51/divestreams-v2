@@ -10,8 +10,8 @@ import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
 import { db } from "../../../../../lib/db/index.js";
 import { bookings, customers, trips } from "../../../../../lib/db/schema.js";
-import { nanoid } from "nanoid";
 import { eq, and, count, gte } from "drizzle-orm";
+import { getNextBookingNumber } from "../../../../../lib/db/queries/bookings.server.js";
 import { checkRateLimit } from "../../../../../lib/utils/rate-limit";
 
 interface CreateBookingInput {
@@ -174,6 +174,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Create booking
+    const bookingNumber = await getNextBookingNumber(orgId);
     const [booking] = await db
       .insert(bookings)
       .values({
@@ -182,7 +183,7 @@ export async function action({ request }: ActionFunctionArgs) {
         customerId: customer.id,
         participants: body.participants,
         status: "pending",
-        bookingNumber: `BK-${Date.now().toString(36).toUpperCase()}-${nanoid(4).toUpperCase()}`,
+        bookingNumber,
         subtotal: "0",
         total: "0",
         internalNotes: body.notes || null,
@@ -191,7 +192,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return Response.json({
       id: booking.id,
-      booking_number: `BK-${booking.id.substring(0, 8)}`,
+      booking_number: booking.bookingNumber,
       trip_id: booking.tripId,
       customer_id: booking.customerId,
       status: booking.status,
