@@ -5,6 +5,7 @@
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
+import { getNextBookingNumber } from "./queries/bookings.server";
 import type { CartItem, Payment } from "../validation/pos";
 import { dbLogger } from "../logger";
 
@@ -467,7 +468,7 @@ export async function processPOSCheckout(
       if (!data.customerId) continue;
 
       // Generate booking number
-      const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
+      const bookingNumber = await getNextBookingNumber(organizationId, tx);
 
       await tx.insert(tables.bookings).values({
         organizationId,

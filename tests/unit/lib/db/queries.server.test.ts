@@ -596,6 +596,8 @@ describe("queries.server database functions", () => {
 
   describe("createBooking", () => {
     it("should create new booking", async () => {
+      // Reset db.where to return the chain (previous tests may have overridden it)
+      (dbMock.where as unknown as Mock).mockReturnValue(dbMock);
       mockReturning.mockResolvedValueOnce([{ id: "book-1" }]);
 
       const { createBooking } = await import("../../../../lib/db/queries.server");

@@ -50,19 +50,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
   }).filter((t) => t.spotsAvailable === null || t.spotsAvailable > 0);
 
-  // Map equipment to expected format (deduplicate by id in case of data anomalies)
-  const seenEquipmentIds = new Set<string>();
-  const rentalEquipment = equipmentData
-    .filter((e) => {
-      if (seenEquipmentIds.has(e.id)) return false;
-      seenEquipmentIds.add(e.id);
-      return true;
-    })
-    .map((e) => ({
-      id: e.id,
-      name: e.name,
-      price: e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00",
-    }));
+  // Group equipment by name+price so multiple physical units appear as one entry
+  const equipmentGroups = new Map<string, { name: string; price: string; count: number; ids: string[] }>();
+  for (const e of equipmentData) {
+    const price = e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00";
+    const key = `${e.name}|${price}`;
+    if (!equipmentGroups.has(key)) {
+      equipmentGroups.set(key, { name: e.name, price, count: 0, ids: [] });
+    }
+    const entry = equipmentGroups.get(key)!;
+    entry.count++;
+    entry.ids.push(e.id);
+  }
+  const rentalEquipment = Array.from(equipmentGroups.values());
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
 
@@ -188,7 +188,7 @@ export default function NewBookingPage() {
         <h1 className="text-2xl font-bold mt-2">New Booking</h1>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" noValidate className="space-y-6">
         <CsrfInput />
         {/* Customer Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
@@ -339,17 +339,20 @@ export default function NewBookingPage() {
           <div className="grid grid-cols-2 gap-3">
             {rentalEquipment.map((item) => (
               <label
-                key={item.id}
+                key={item.name}
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     name="equipment"
-                    value={item.id}
+                    value={item.ids[0]}
                     className="w-4 h-4 text-brand rounded focus:ring-brand"
                   />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-sm font-medium">
+                    {item.name}
+                    <span className="text-foreground-muted font-normal"> ({item.count} available)</span>
+                  </span>
                 </div>
                 <span className="text-sm text-foreground-muted">${item.price}</span>
               </label>
