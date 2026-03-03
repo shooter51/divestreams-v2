@@ -2,7 +2,7 @@
  * POS Checkout Modals
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useFetcher } from "react-router";
 
 interface CheckoutModalProps {
@@ -573,6 +573,7 @@ export function SplitModal({
   customerId
 }: SplitModalProps) {
   const fetcher = useFetcher();
+  const amountInputRef = useRef<HTMLInputElement>(null);
   const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string }>>([]);
   const [currentAmount, setCurrentAmount] = useState("");
   const [currentMethod, setCurrentMethod] = useState<"cash" | "card">("cash");
@@ -719,12 +720,16 @@ export function SplitModal({
   };
 
   const addCashPayment = () => {
-    const amount = parseFloat(currentAmount);
+    // Read from DOM ref first - more reliable than React state when Playwright's
+    // fill() triggers onChange but the state update hasn't committed before click.
+    const inputValue = amountInputRef.current?.value ?? currentAmount;
+    const amount = parseFloat(inputValue);
     if (!isNaN(amount) && amount > 0 && amount <= remaining + 0.005) {
-      // Cap to remaining to avoid overpayment from floating-point rounding
-      const adjustedAmount = Math.min(amount, remaining);
+      // If within 0.5 cents of remaining, treat as full payment (handles floating-point display rounding)
+      const adjustedAmount = amount >= remaining - 0.005 ? remaining : Math.min(amount, remaining);
       setPayments([...payments, { method: "cash", amount: adjustedAmount }]);
       setCurrentAmount("");
+      if (amountInputRef.current) amountInputRef.current.value = "";
       setError(null);
     }
   };
@@ -852,6 +857,7 @@ export function SplitModal({
               {/* Amount input */}
               <div className="flex gap-2">
                 <input
+                  ref={amountInputRef}
                   type="text"
                   inputMode="decimal"
                   value={currentAmount}
@@ -888,9 +894,6 @@ export function SplitModal({
               <button
                 onClick={currentMethod === "cash" ? addCashPayment : addCardPayment}
                 disabled={
-                  !currentAmount ||
-                  parseFloat(currentAmount) <= 0 ||
-                  parseFloat(currentAmount) > remaining + 0.005 ||
                   processingCard ||
                   (currentMethod === "card" && !cardComplete)
                 }

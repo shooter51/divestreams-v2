@@ -371,6 +371,28 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
       } else {
         console.log(`${testData.user.email} is already owner or not found — no role change needed`);
       }
+
+      // Upgrade subscription to PRO so feature-gated pages (POS, discounts, etc.) are accessible.
+      // global-setup.ts does this via direct DB access, but in CI it's skipped (isRemoteTest=true).
+      const proPlanId = await page.evaluate(() => {
+        const select = document.querySelector('select[name="planId"]') as HTMLSelectElement | null;
+        if (!select) return null;
+        const options = Array.from(select.querySelectorAll("option")) as HTMLOptionElement[];
+        const proOption = options.find(
+          (opt) =>
+            opt.textContent?.toLowerCase().includes("pro") &&
+            !opt.textContent?.toLowerCase().includes("enterprise")
+        );
+        return proOption?.value || null;
+      });
+      if (proPlanId) {
+        await page.request.post(getAdminUrl(`/tenants/${testData.tenant.subdomain}`), {
+          form: { intent: "updateSubscription", planId: proPlanId, status: "active" },
+        });
+        console.log(`Upgraded ${testData.tenant.subdomain} subscription to PRO plan`);
+      } else {
+        console.log("Warning: Could not find PRO plan — subscription not upgraded");
+      }
     } else {
       console.log("Warning: Admin login failed — could not promote test user to admin");
     }
