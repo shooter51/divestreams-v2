@@ -393,6 +393,7 @@ export async function recordPayment(organizationId: string, data: {
       .select({
         total: schema.bookings.total,
         paidAmount: schema.bookings.paidAmount,
+        status: schema.bookings.status,
       })
       .from(schema.bookings)
       .where(
@@ -436,11 +437,17 @@ export async function recordPayment(organizationId: string, data: {
     const newPaidAmount = alreadyPaid + amount;
     const newPaymentStatus = newPaidAmount >= totalDue - 0.01 ? "paid" : "partial";
 
+    // Auto-confirm pending bookings when fully paid
+    const autoConfirmStatus = newPaymentStatus === "paid" && booking.status === "pending"
+      ? "confirmed"
+      : undefined;
+
     await tx
       .update(schema.bookings)
       .set({
         paidAmount: String(newPaidAmount),
         paymentStatus: newPaymentStatus,
+        ...(autoConfirmStatus !== undefined && { status: autoConfirmStatus }),
         updatedAt: new Date(),
       })
       .where(and(
