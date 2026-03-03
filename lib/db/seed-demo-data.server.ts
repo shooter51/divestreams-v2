@@ -15,7 +15,7 @@ const DEMO_IMAGES = {
       "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=1200", // Fish on reef
     ],
     theWall: [
-      "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1200", // Deep blue wall
+      "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=1200", // Underwater reef wall
       "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200", // Diver on wall
     ],
     shipwreck: [

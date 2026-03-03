@@ -1,5 +1,13 @@
 import type { MetaFunction } from "react-router";
 
+const FEATURE_IMAGES: Record<string, string> = {
+  "Booking Management": "https://placehold.co/800x500/1e3a5f/white?text=Booking+Management",
+  "Customer Management": "https://placehold.co/800x500/1e3a5f/white?text=Customer+Management",
+  "Tour & Trip Planning": "https://placehold.co/800x500/1e3a5f/white?text=Tour+%26+Trip+Planning",
+  "Equipment Tracking": "https://placehold.co/800x500/1e3a5f/white?text=Equipment+Tracking",
+  "Reports & Analytics": "https://placehold.co/800x500/1e3a5f/white?text=Reports+%26+Analytics",
+};
+
 export const meta: MetaFunction = () => {
   return [
     { title: "Features - DiveStreams" },
@@ -156,8 +164,12 @@ function FeatureSection({
           ))}
         </ul>
       </div>
-      <div className="flex-1 bg-surface-inset rounded-xl h-64 flex items-center justify-center text-foreground-subtle">
-        Feature Screenshot
+      <div className="flex-1 rounded-xl overflow-hidden shadow-md">
+        <img
+          src={FEATURE_IMAGES[title]}
+          alt={`${title} feature screenshot`}
+          className="w-full h-64 object-cover"
+        />
       </div>
     </div>
   );
