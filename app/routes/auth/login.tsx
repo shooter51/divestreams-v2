@@ -236,7 +236,7 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-brand">DiveStreams</h1>
             <p className="text-foreground-muted mt-2">Enter your email to find your account</p>
           </div>
-          <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+          <form method="post" noValidate className="bg-surface-raised rounded-xl p-8 shadow-sm border">
             <CsrfTokenInput token={csrfToken} />
             <div className="space-y-4">
               <div>
@@ -301,7 +301,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+        <form method="post" noValidate className="bg-surface-raised rounded-xl p-8 shadow-sm border">
           <CsrfTokenInput token={csrfToken} />
           {actionData?.errors?.form && (
             <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-4">

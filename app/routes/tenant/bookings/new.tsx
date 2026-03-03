@@ -188,7 +188,7 @@ export default function NewBookingPage() {
         <h1 className="text-2xl font-bold mt-2">New Booking</h1>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" noValidate className="space-y-6">
         <CsrfInput />
         {/* Customer Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
