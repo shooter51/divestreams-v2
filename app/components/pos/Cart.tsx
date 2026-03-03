@@ -35,6 +35,9 @@ export function Cart({
     return sum + item.total * (itemTaxRate / 100);
   }, 0);
   const total = subtotal + tax;
+  // Compute the effective tax rate to display — when products have per-item taxRates
+  // the org-level taxRate of 0% would be misleading. Show the actual effective rate.
+  const effectiveTaxRate = subtotal > 0 ? Math.round((tax / subtotal) * 10000) / 100 : taxRate;
 
   const canCheckout = items.length > 0 && (!requiresCustomer || customer);
 
@@ -53,7 +56,7 @@ export function Cart({
           items.map((item, index) => (
             <div key={index} className="flex items-start gap-3 p-3 bg-surface-inset rounded-lg">
               <div className="flex-1">
-                <p className="font-medium">
+                <p className="font-medium" title={item.type === "booking" ? item.tourName : item.name}>
                   {item.type === "booking" ? item.tourName : item.name}
                 </p>
                 <p className="text-sm text-foreground-muted">
@@ -132,7 +135,7 @@ export function Cart({
           <span>${subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>Tax ({taxRate}%)</span>
+          <span>Tax ({effectiveTaxRate}%)</span>
           <span>${tax.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-lg font-bold">

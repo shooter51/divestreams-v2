@@ -407,6 +407,7 @@ export const bookings = pgTable("bookings", {
   equipmentRental: jsonb("equipment_rental").$type<{
     item: string;
     size?: string;
+    quantity?: number;
     price: number;
   }[]>(),
 

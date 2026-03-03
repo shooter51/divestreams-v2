@@ -83,8 +83,13 @@ export async function action({ request }: ActionFunctionArgs) {
     const currency = formData.get("currency") as string;
     const depthUnit = (formData.get("depthUnit") as string) === "feet" ? "feet" : "meters";
 
+    // Validate email is required
+    if (!email) {
+      return { error: "Email is required" };
+    }
+
     // Validate email format
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return { error: "Please enter a valid email address" };
     }
 

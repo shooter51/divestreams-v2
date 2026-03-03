@@ -287,10 +287,11 @@ export async function getOrgContext(
 
   // Determine if premium based on plan details (not legacy string field)
   // Use planDetails.monthlyPrice to ensure we check the authoritative FK relationship
+  // Include "trialing" status: organizations on a paid trial have access to all premium features
   const isPremium =
     planDetails &&
     planDetails.monthlyPrice > 0 &&
-    sub?.status === "active";
+    (sub?.status === "active" || sub?.status === "trialing");
 
   // Build TierLimits from the DB plan data (single source of truth).
   // Falls back to FREE_TIER_LIMITS when no plan is found.

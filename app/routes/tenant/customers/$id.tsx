@@ -4,8 +4,8 @@ import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
-import { customerCommunications } from "../../../../lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { customerCommunications, transactions } from "../../../../lib/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
@@ -22,7 +22,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Customer ID required", { status: 400 });
   }
 
-  const [customer, bookings, communications] = await Promise.all([
+  const [customer, bookings, communications, totalSpentResult] = await Promise.all([
     getCustomerById(organizationId, customerId),
     getCustomerBookings(organizationId, customerId),
     db
@@ -37,6 +37,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .orderBy(desc(customerCommunications.createdAt))
       .limit(20)
       .catch(() => []), // Table might not exist yet
+    db
+      .select({ total: sql<string>`COALESCE(SUM(${transactions.amount}), '0')` })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.organizationId, organizationId),
+          eq(transactions.customerId, customerId),
+          eq(transactions.type, "payment")
+        )
+      ),
   ]);
 
   if (!customer) {
@@ -58,9 +68,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     date: formatDate(cert.date),
   }));
 
+  // Compute actual totalSpent from payment transactions
+  const actualTotalSpent = Number(totalSpentResult[0]?.total ?? 0);
+
   // Format customer with dates as strings
   const formattedCustomer = {
     ...customer,
+    totalSpent: actualTotalSpent,
     dateOfBirth: formatDate(customer.dateOfBirth),
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),

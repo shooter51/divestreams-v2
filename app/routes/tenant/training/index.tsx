@@ -132,7 +132,13 @@ export default function TrainingDashboardPage() {
                   <div>
                     <p className="font-medium">{session.courseName}</p>
                     <p className="text-sm text-foreground-muted">
-                      {session.startDate}
+                      {session.startDate
+                        ? new Date(session.startDate + "T00:00:00").toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : ""}
                       {session.startTime ? ` at ${session.startTime}` : ""}
                     </p>
                     {session.location && (

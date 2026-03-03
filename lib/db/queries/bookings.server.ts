@@ -251,8 +251,30 @@ export async function getBookingWithFullDetails(organizationId: string, id: stri
   const booking = await getBookingById(organizationId, id);
   if (!booking) return null;
 
-  const customer = await getCustomerById(organizationId, booking.customerId);
-  const trip = await getTripById(organizationId, booking.tripId);
+  // Fetch raw JSONB fields that mapBooking doesn't include
+  const [rawBooking, customer, trip] = await Promise.all([
+    db
+      .select({
+        participantDetails: schema.bookings.participantDetails,
+        equipmentRental: schema.bookings.equipmentRental,
+      })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.organizationId, organizationId),
+        eq(schema.bookings.id, id)
+      ))
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    getCustomerById(organizationId, booking.customerId),
+    getTripById(organizationId, booking.tripId),
+  ]);
+
+  const participantDetails = rawBooking?.participantDetails || [];
+  const equipmentRental = rawBooking?.equipmentRental || [];
+  const equipmentTotal = equipmentRental.reduce(
+    (sum: number, item: { price: number }) => sum + (Number(item.price) || 0),
+    0
+  );
 
   // Calculate pricing structure expected by UI
   const basePrice = trip?.price || booking.total / (booking.participants || 1);
@@ -280,14 +302,14 @@ export async function getBookingWithFullDetails(organizationId: string, id: stri
       basePrice: basePrice.toFixed(2),
       participants: booking.participants,
       subtotal: booking.subtotal.toFixed(2),
-      equipmentTotal: "0.00",
+      equipmentTotal: equipmentTotal.toFixed(2),
       discount: booking.discount.toFixed(2),
       total: booking.total.toFixed(2),
     },
     paidAmount: booking.paidAmount.toFixed(2),
     balanceDue,
-    participantDetails: [],
-    equipmentRental: [],
+    participantDetails,
+    equipmentRental,
     internalNotes: null,
   };
 }
