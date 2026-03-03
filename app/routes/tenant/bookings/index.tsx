@@ -20,17 +20,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  // Build query with organization filter
-  const baseCondition = eq(bookings.organizationId, ctx.org.id);
-
-  // Add status filter if provided
-  const statusCondition = status ? eq(bookings.status, status) : undefined;
-
-  // Combine conditions
-  let whereCondition = baseCondition;
-  if (statusCondition) {
-    whereCondition = sql`${baseCondition} AND ${statusCondition}`;
+  // Build query conditions
+  const whereConditions = [eq(bookings.organizationId, ctx.org.id)];
+  if (status) whereConditions.push(eq(bookings.status, status));
+  if (search) {
+    whereConditions.push(sql`(
+      ${bookings.bookingNumber} ILIKE ${'%' + search + '%'} OR
+      ${customers.firstName} ILIKE ${'%' + search + '%'} OR
+      ${customers.lastName} ILIKE ${'%' + search + '%'} OR
+      ${customers.email} ILIKE ${'%' + search + '%'}
+    )`);
   }
+  const whereCondition = and(...whereConditions);
 
   // Get bookings with customer and trip info
   const bookingList = await db
@@ -60,11 +61,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(limit)
     .offset(offset);
 
-  // Get total count for pagination
-  const [{ value: total }] = await db
+  // Get total count for pagination (join customers when search is active)
+  const countQuery = db
     .select({ value: count() })
     .from(bookings)
+    .leftJoin(customers, eq(bookings.customerId, customers.id))
     .where(whereCondition);
+  const [{ value: total }] = await countQuery;
 
   // Transform to UI format
   const bookingData = bookingList.map((b) => ({
