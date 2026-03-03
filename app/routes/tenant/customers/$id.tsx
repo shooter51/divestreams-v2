@@ -341,7 +341,7 @@ export default function CustomerDetailPage() {
                       {booking.tripName}
                     </Link>
                     <p className="text-sm text-foreground-muted">
-                      {booking.bookingNumber} • {booking.date}
+                      {booking.bookingNumber} • {formatDate(booking.date)}
                     </p>
                   </div>
                   <div className="text-right">

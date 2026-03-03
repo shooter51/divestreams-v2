@@ -468,7 +468,7 @@ export default function BookingDetailPage() {
                     <div>
                       <p className="font-medium">{formatCurrency(payment.amount)}</p>
                       <p className="text-sm text-foreground-muted">
-                        {payment.method} • {payment.date}
+                        {payment.method} • {formatDate(payment.date)}
                       </p>
                       {payment.note && (
                         <p className="text-xs text-foreground-subtle">{payment.note}</p>

@@ -3,7 +3,7 @@ import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
-import { formatLabel } from "../../../lib/format";
+import { formatLabel, formatTime, formatDisplayDate } from "../../../lib/format";
 import {
   getTrainingDashboardStats,
   getUpcomingTrainingSessions,
@@ -139,7 +139,7 @@ export default function TrainingDashboardPage() {
                             year: "numeric",
                           })
                         : ""}
-                      {session.startTime ? ` at ${session.startTime}` : ""}
+                      {session.startTime ? ` at ${formatTime(session.startTime)}` : ""}
                     </p>
                     {session.location && (
                       <p className="text-xs text-foreground-subtle">{session.location}</p>
@@ -199,7 +199,7 @@ export default function TrainingDashboardPage() {
                     </span>
                     {enrollment.enrolledAt && (
                       <p className="text-xs text-foreground-subtle mt-1">
-                        {enrollment.enrolledAt}
+                        {formatDisplayDate(enrollment.enrolledAt)}
                       </p>
                     )}
                   </div>
