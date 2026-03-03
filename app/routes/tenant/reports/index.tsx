@@ -702,7 +702,7 @@ export default function ReportsPage() {
                       <div className="absolute bottom-full mb-2 hidden group-hover:block bg-surface text-foreground border border-border text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
                         <div>{data.period}</div>
                         <div>{formatCurrency(data.revenue)}</div>
-                        <div>{data.bookings} bookings</div>
+                        <div>{data.bookings} {data.bookings === 1 ? "booking" : "bookings"}</div>
                       </div>
                     </div>
                   ))}
@@ -787,7 +787,7 @@ export default function ReportsPage() {
                       </span>
                       <div>
                         <p className="font-medium">{tour.name}</p>
-                        <p className="text-sm text-foreground-muted">{tour.bookings} bookings</p>
+                        <p className="text-sm text-foreground-muted">{tour.bookings} {tour.bookings === 1 ? "booking" : "bookings"}</p>
                       </div>
                     </div>
                     <p className="font-semibold text-success">{formatCurrency(tour.revenue)}</p>

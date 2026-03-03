@@ -92,8 +92,11 @@ describe("AdminOrganizationsPage - Semantic Token Migration (KAN-670)", () => {
   describe("table body uses semantic tokens", () => {
     it("uses text-foreground for org name cells", () => {
       render(<AdminOrganizationsPage />);
-      // Find org name cells - they contain the org name text
-      const nameCell = screen.getByText("Ocean Blue Diving").closest("td");
+      // Find the org name display cell (second column) - org name now also appears in the link
+      // so we need to find the td with text-foreground class
+      const nameCells = screen.getAllByText("Ocean Blue Diving");
+      const nameCell = nameCells.map((el) => el.closest("td")).find((td) => td?.classList.contains("text-foreground"));
+      expect(nameCell).toBeDefined();
       expect(nameCell).toHaveClass("text-foreground");
     });
 
@@ -174,15 +177,18 @@ describe("AdminOrganizationsPage - Semantic Token Migration (KAN-670)", () => {
   describe("organizations render correctly", () => {
     it("renders all organization names", () => {
       render(<AdminOrganizationsPage />);
-      expect(screen.getByText("Ocean Blue Diving")).toBeInTheDocument();
-      expect(screen.getByText("Deep Dive Center")).toBeInTheDocument();
+      // Org names now appear multiple times (link + display cell)
+      expect(screen.getAllByText("Ocean Blue Diving").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Deep Dive Center").length).toBeGreaterThanOrEqual(1);
     });
 
-    it("renders organization slugs as links", () => {
+    it("renders organization names as links (not slugs)", () => {
       render(<AdminOrganizationsPage />);
-      const oceanblueLink = screen.getByText("oceanblue");
-      expect(oceanblueLink.tagName).toBe("A");
-      expect(oceanblueLink).toHaveClass("text-brand");
+      // The tenant link now shows the org name, not the slug
+      const nameLinks = screen.getAllByText("Ocean Blue Diving");
+      const linkElement = nameLinks.find((el) => el.tagName === "A");
+      expect(linkElement).toBeDefined();
+      expect(linkElement).toHaveClass("text-brand");
     });
 
     it("renders org count with semantic token", () => {

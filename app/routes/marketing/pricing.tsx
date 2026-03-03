@@ -98,7 +98,15 @@ export async function loader() {
       return { plans: DEFAULT_PLANS };
     }
 
-    return { plans };
+    // Merge DEFAULT_PLANS features when DB plan has empty features
+    const enrichedPlans = plans.map((plan) => {
+      const hasFeatures = Array.isArray(plan.features) && plan.features.length > 0;
+      if (hasFeatures) return plan;
+      const defaultPlan = DEFAULT_PLANS.find((d) => d.name === plan.name);
+      return { ...plan, features: defaultPlan?.features ?? [] };
+    });
+
+    return { plans: enrichedPlans };
   } catch (error) {
     // If database query fails, return default plans so page still renders
     console.error("Failed to fetch subscription plans from database:", error);

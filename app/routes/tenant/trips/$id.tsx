@@ -19,7 +19,7 @@ import {
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
-import { formatRecurrencePattern, formatCapacity } from "../../../lib/format";
+import { formatRecurrencePattern, formatCapacity, formatTime } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
@@ -97,10 +97,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return String(date);
   };
 
+  // Compute effective status consistent with the trips list view
+  // The list view shows "full" when booked >= max capacity; detail should match
+  const effectiveStatus =
+    (trip.maxParticipants ?? 0) > 0 && bookedParticipants >= (trip.maxParticipants ?? 0)
+      ? "full"
+      : trip.status;
+
   // Add bookedParticipants to trip object and format dates
   const tripWithBookedCount = {
     ...trip,
     bookedParticipants,
+    status: effectiveStatus,
     createdAt: formatDate(trip.createdAt),
   };
 
@@ -435,7 +443,7 @@ export default function TripDetailPage() {
               month: "long",
               day: "numeric",
             })}{" "}
-            at {trip.startTime}
+            at {formatTime(trip.startTime)}
           </p>
         </div>
         <div className="flex gap-2">
@@ -540,14 +548,20 @@ export default function TripDetailPage() {
               <div>
                 <p className="text-foreground-muted">Time</p>
                 <p>
-                  {trip.startTime} - {trip.endTime}
+                  {formatTime(trip.startTime)} - {formatTime(trip.endTime)}
                 </p>
               </div>
               <div>
                 <p className="text-foreground-muted">Boat</p>
-                <Link to={`/tenant/boats/${trip.boat.id}`} className="text-brand hover:underline">
-                  {trip.boat.name}
-                </Link>
+                {trip.boat.id ? (
+                  <Link to={`/tenant/boats/${trip.boat.id}`} className="text-brand hover:underline">
+                    {trip.boat.name}
+                  </Link>
+                ) : (
+                  <Link to={`/tenant/trips/${trip.id}/edit`} className="text-foreground-muted hover:text-brand">
+                    No boat assigned
+                  </Link>
+                )}
               </div>
               <div>
                 <p className="text-foreground-muted">Price</p>
