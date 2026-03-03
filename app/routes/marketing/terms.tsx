@@ -42,7 +42,7 @@ export default function TermsPage() {
     <div className="min-h-screen bg-surface">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <Link to="/site" className="text-brand hover:underline">
+          <Link to="/" className="text-brand hover:underline">
             ← Back to Home
           </Link>
         </div>

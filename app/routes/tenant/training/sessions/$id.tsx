@@ -394,7 +394,7 @@ export default function SessionDetailPage() {
                 </div>
                 <div>
                   <p className="text-foreground-muted">Time</p>
-                  <p>{session.startTime || "Not set"}</p>
+                  <p>{session.startTime ? (() => { const [h, m] = session.startTime!.split(":"); const hr = parseInt(h, 10); return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${String(parseInt(m, 10)).padStart(2, "0")} ${hr >= 12 ? "PM" : "AM"}`; })() : "Not set"}</p>
                 </div>
                 <div>
                   <p className="text-foreground-muted">Course</p>
