@@ -208,7 +208,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
       );
 
     bookingsInPeriod = bookingCountResult?.count || 0;
-    avgBookingValue = bookingsInPeriod > 0 ? Math.round(currentPeriodRevenue / bookingsInPeriod) : 0;
+
+    if (bookingsInPeriod > 0) {
+      avgBookingValue = Math.round(currentPeriodRevenue / bookingsInPeriod);
+    } else {
+      // No bookings in selected period — fall back to all-time average
+      const [allTimeResult] = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(${bookings.total}), 0)`,
+          count: count(),
+        })
+        .from(bookings)
+        .where(eq(bookings.organizationId, ctx.org.id));
+      const allTimeRevenue = Number(allTimeResult?.total || 0);
+      const allTimeCount = allTimeResult?.count || 0;
+      avgBookingValue = allTimeCount > 0 ? Math.round(allTimeRevenue / allTimeCount) : 0;
+    }
 
     // Get total customer count (not filtered by date range)
     const [customerCountResult] = await db
