@@ -319,6 +319,45 @@ describe("tenant/settings/profile route", () => {
       expect(result?.success).toBe(true);
     });
 
+    // DS-4r2m: Server-side email validation
+    it("rejects empty email with error", async () => {
+      const formData = new FormData();
+      formData.append("intent", "update-profile");
+      formData.append("name", "Demo Dive Shop");
+      formData.append("email", "");
+      formData.append("timezone", "America/New_York");
+      formData.append("currency", "USD");
+
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+      expect(result?.error).toBe("Email is required");
+      expect(db.update).not.toHaveBeenCalled();
+    });
+
+    it("rejects invalid email format with error", async () => {
+      const formData = new FormData();
+      formData.append("intent", "update-profile");
+      formData.append("name", "Demo Dive Shop");
+      formData.append("email", "not-an-email");
+      formData.append("timezone", "America/New_York");
+      formData.append("currency", "USD");
+
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+      expect(result?.error).toBe("Please enter a valid email address");
+      expect(db.update).not.toHaveBeenCalled();
+    });
+
     it("preserves existing metadata when updating booking settings", async () => {
       (requireOrgContext as Mock).mockResolvedValue({
         ...mockOrgContext,

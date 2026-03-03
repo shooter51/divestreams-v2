@@ -634,4 +634,49 @@ describe("POS Validation Schemas", () => {
       expect(result.success).toBe(false);
     });
   });
+
+  // ============================================================================
+  // DS-u14: checkoutSchema discountCode field
+  // ============================================================================
+  describe("checkoutSchema discountCode", () => {
+    const baseCheckout = {
+      items: [
+        {
+          type: "product",
+          productId: "550e8400-e29b-41d4-a716-446655440000",
+          name: "Dive Mask",
+          quantity: 1,
+          unitPrice: 50,
+          total: 50,
+        },
+      ],
+      payments: [{ method: "cash", amount: 50, tendered: 50, change: 0 }],
+      subtotal: 50,
+      tax: 0,
+      total: 50,
+    };
+
+    it("accepts checkout without discountCode", () => {
+      const result = checkoutSchema.safeParse(baseCheckout);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.discountCode).toBeUndefined();
+      }
+    });
+
+    it("accepts checkout with optional discountCode", () => {
+      const data = { ...baseCheckout, discountCode: "SAVE10" };
+      const result = checkoutSchema.safeParse(data);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.discountCode).toBe("SAVE10");
+      }
+    });
+
+    it("accepts empty string discountCode (treated as no code)", () => {
+      const data = { ...baseCheckout, discountCode: "" };
+      const result = checkoutSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+  });
 });

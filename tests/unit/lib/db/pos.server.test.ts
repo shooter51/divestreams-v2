@@ -140,6 +140,16 @@ vi.mock("../../../../lib/db/schema", () => ({
     organizationId: "organizationId",
     createdAt: "createdAt",
   },
+  discountCodes: {
+    id: "id",
+    organizationId: "organizationId",
+    code: "code",
+    isActive: "isActive",
+    maxUses: "maxUses",
+    usedCount: "usedCount",
+    validFrom: "validFrom",
+    validTo: "validTo",
+  },
 }));
 
 // Mock drizzle-orm functions
@@ -640,6 +650,143 @@ describe("pos.server database functions", () => {
       const tables = await import("../../../../lib/db/schema");
 
       await expect(getEquipmentByBarcode(tables, "org-1", "987654321")).resolves.not.toThrow();
+    });
+  });
+
+  // ============================================================================
+  // DS-u14: validateDiscountCode Tests
+  // ============================================================================
+  describe("validateDiscountCode", () => {
+    it("throws when discount code not found", async () => {
+      mockLimit.mockResolvedValueOnce([]); // No discount found
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      await expect(
+        validateDiscountCode(tables, "org-1", "BADCODE")
+      ).rejects.toThrow('Discount code "BADCODE" not found or inactive');
+    });
+
+    it("throws when maxUses reached", async () => {
+      const maxedDiscount = {
+        id: "disc-1",
+        code: "FULL10",
+        isActive: true,
+        maxUses: 5,
+        usedCount: 5,
+        validFrom: null,
+        validTo: null,
+      };
+      // mockLimit is called twice: once internally by chain.limit(1) and once by .then()
+      // The second call is the one that resolves the query result
+      mockLimit.mockResolvedValueOnce([maxedDiscount]); // consumed by chain.limit(1) internal call
+      mockLimit.mockResolvedValueOnce([maxedDiscount]); // used by .then()
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      await expect(
+        validateDiscountCode(tables, "org-1", "FULL10")
+      ).rejects.toThrow('Discount code "FULL10" has reached its maximum usage limit');
+    });
+
+    it("throws when usedCount exceeds maxUses", async () => {
+      const discount = {
+        id: "disc-2",
+        code: "OVER",
+        isActive: true,
+        maxUses: 3,
+        usedCount: 10,
+        validFrom: null,
+        validTo: null,
+      };
+      mockLimit.mockResolvedValueOnce([discount]);
+      mockLimit.mockResolvedValueOnce([discount]);
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      await expect(
+        validateDiscountCode(tables, "org-1", "OVER")
+      ).rejects.toThrow("maximum usage limit");
+    });
+
+    it("returns discount when valid and under maxUses", async () => {
+      const discount = {
+        id: "disc-3",
+        code: "SAVE10",
+        isActive: true,
+        maxUses: 100,
+        usedCount: 10,
+        validFrom: null,
+        validTo: null,
+      };
+      mockLimit.mockResolvedValueOnce([discount]);
+      mockLimit.mockResolvedValueOnce([discount]);
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      const result = await validateDiscountCode(tables, "org-1", "SAVE10");
+      expect(result).toEqual(discount);
+    });
+
+    it("returns discount when maxUses is null (unlimited)", async () => {
+      const discount = {
+        id: "disc-4",
+        code: "UNLIMITED",
+        isActive: true,
+        maxUses: null,
+        usedCount: 9999,
+        validFrom: null,
+        validTo: null,
+      };
+      mockLimit.mockResolvedValueOnce([discount]);
+      mockLimit.mockResolvedValueOnce([discount]);
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      const result = await validateDiscountCode(tables, "org-1", "UNLIMITED");
+      expect(result).toEqual(discount);
+    });
+
+    it("throws when discount code is not yet valid", async () => {
+      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // tomorrow
+      const discount = {
+        id: "disc-5",
+        code: "FUTURE",
+        isActive: true,
+        maxUses: null,
+        usedCount: 0,
+        validFrom: futureDate,
+        validTo: null,
+      };
+      mockLimit.mockResolvedValueOnce([discount]);
+      mockLimit.mockResolvedValueOnce([discount]);
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      await expect(
+        validateDiscountCode(tables, "org-1", "FUTURE")
+      ).rejects.toThrow('not yet valid');
+    });
+
+    it("throws when discount code has expired", async () => {
+      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // yesterday
+      const discount = {
+        id: "disc-6",
+        code: "EXPIRED",
+        isActive: true,
+        maxUses: null,
+        usedCount: 0,
+        validFrom: null,
+        validTo: pastDate,
+      };
+      mockLimit.mockResolvedValueOnce([discount]);
+      mockLimit.mockResolvedValueOnce([discount]);
+      const { validateDiscountCode } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      await expect(
+        validateDiscountCode(tables, "org-1", "EXPIRED")
+      ).rejects.toThrow('has expired');
     });
   });
 });

@@ -207,6 +207,46 @@ describe("app/routes/tenant/reports/index.tsx", () => {
       expect(result.customerStats.avgBookingsPerCustomer).toBe(0);
     });
 
+    // DS-hn1a: When current period has no bookings, fall back to all-time avg
+    it("should fall back to all-time avg booking value when period has no bookings", async () => {
+      // Query order when bookingsInPeriod==0:
+      // 1. current period revenue, 2. previous period, 3. YTD, 4. booking count (→ 0)
+      // 5. all-time fallback (fires because count==0)
+      // 6. total customers, 7. new customers
+      vi.mocked(db.select).mockReturnValue(createMockBuilder([
+        [{ total: 0 }],              // query 1: current period revenue
+        [{ total: 0 }],              // query 2: previous period revenue
+        [{ total: 5000 }],           // query 3: YTD revenue
+        [{ count: 0 }],              // query 4: booking count → triggers fallback
+        [{ total: 1500, count: 5 }], // query 5: all-time fallback ($1500/5 = $300)
+        [{ count: 10 }],             // query 6: total customers
+        [{ count: 0 }],              // query 7: new customers
+      ]) as unknown);
+
+      const request = new Request("http://test.com/tenant/reports");
+      const result = await loader({ request, params: {}, context: {} });
+
+      // Should return all-time avg: Math.round(1500 / 5) = 300
+      expect(result.revenueOverview.avgBookingValue).toBe(300);
+    });
+
+    it("should return 0 avg booking value when no bookings exist at all", async () => {
+      vi.mocked(db.select).mockReturnValue(createMockBuilder([
+        [{ total: 0 }],
+        [{ total: 0 }],
+        [{ total: 0 }],
+        [{ count: 0 }],             // booking count → triggers fallback
+        [{ total: 0, count: 0 }],   // all-time fallback: also 0
+        [{ count: 0 }],             // total customers
+        [{ count: 0 }],             // new customers
+      ]) as unknown);
+
+      const request = new Request("http://test.com/tenant/reports");
+      const result = await loader({ request, params: {}, context: {} });
+
+      expect(result.revenueOverview.avgBookingValue).toBe(0);
+    });
+
     it("should handle database errors gracefully", async () => {
       const mockBuilder = {
         from: vi.fn().mockReturnThis(),
