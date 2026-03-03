@@ -23,7 +23,7 @@ class BookingsPage extends TenantBasePage {
   async gotoFirstBooking() {
     await this.gotoApp("/bookings");
     await this.page.waitForLoadState("load");
-    const firstLink = this.page.locator('a[href*="/tenant/bookings/"]').first();
+    const firstLink = this.page.locator('a[href*="/tenant/bookings/"]:not([href*="/new"])').first();
     await expect(firstLink).toBeVisible({ timeout: 10000 });
     await firstLink.click();
     await this.page.waitForLoadState("load");
