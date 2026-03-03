@@ -28,7 +28,12 @@ export function Cart({
   requiresCustomer,
 }: CartProps) {
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * (taxRate / 100);
+  // Use per-product taxRate when available (same logic as pos.tsx) so displayed
+  // total matches the value passed to checkout modals.
+  const tax = items.reduce((sum, item) => {
+    const itemTaxRate = item.type === "product" && item.taxRate != null ? item.taxRate : taxRate;
+    return sum + item.total * (itemTaxRate / 100);
+  }, 0);
   const total = subtotal + tax;
 
   const canCheckout = items.length > 0 && (!requiresCustomer || customer);
