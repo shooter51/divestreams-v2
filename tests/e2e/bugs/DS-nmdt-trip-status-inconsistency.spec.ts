@@ -32,7 +32,7 @@ test.describe("DS-nmdt: Trip status consistency between list and detail", () => 
     await page.waitForLoadState("load");
 
     // Find trip rows in the list
-    const tripRows = page.locator("a[href*='/tenant/trips/']").filter({ hasText: /\w+/ });
+    const tripRows = page.locator("a[href*='/tenant/trips/']:not([href*='/new'])").filter({ hasText: /\w+/ });
     const count = await tripRows.count();
 
     if (count === 0) {
@@ -67,6 +67,6 @@ test.describe("DS-nmdt: Trip status consistency between list and detail", () => 
     }
 
     // At minimum, verify the detail page loaded successfully
-    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator("h1").first()).toBeVisible();
   });
 });

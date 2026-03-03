@@ -24,7 +24,7 @@ class CustomersPage extends TenantBasePage {
   async gotoFirstCustomer() {
     await this.gotoApp("/customers");
     await this.page.waitForLoadState("load");
-    const firstLink = this.page.locator('a[href*="/tenant/customers/"]').first();
+    const firstLink = this.page.locator('a[href*="/tenant/customers/"]:not([href*="/new"])').first();
     await expect(firstLink).toBeVisible({ timeout: 10000 });
     await firstLink.click();
     await this.page.waitForLoadState("load");
@@ -69,7 +69,7 @@ test.describe("DS-p65h: Customer total spent reflects actual payments", () => {
     await expect(page.locator("body")).not.toContainText("Error");
 
     // Customer name heading should be visible
-    await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("h1").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("total spent is computed from transactions not denormalized column", async ({ page }) => {

@@ -46,11 +46,11 @@ test.describe("DS-ehxc: POS no receipt/confirmation after sale @pos", () => {
       .or(page.locator('input[type="number"]').first())
       .or(page.getByPlaceholder(/0\.00|amount/i).first());
 
-    // Try to fill any numeric input in the modal
-    const inputs = modal.first().locator("input");
-    const inputCount = await inputs.count();
-    if (inputCount > 0) {
-      await inputs.first().fill("100");
+    // Click the exact-total quick amount button (last of 4 presets = Math.ceil(total))
+    const quickAmountBtns = modal.first().locator(".grid.grid-cols-4 button");
+    const btnCount = await quickAmountBtns.count();
+    if (btnCount > 0) {
+      await quickAmountBtns.last().click();
     }
 
     // Click complete/confirm button
@@ -99,11 +99,11 @@ test.describe("DS-ehxc: POS no receipt/confirmation after sale @pos", () => {
       .or(page.locator('[role="dialog"]')).first();
     await expect(modal).toBeVisible({ timeout: 5000 });
 
-    // Fill in cash amount
-    const numericInputs = modal.locator('input[type="number"], input[inputmode="numeric"]');
-    const inputCount = await numericInputs.count();
-    if (inputCount > 0) {
-      await numericInputs.first().fill("100");
+    // Click the exact-total quick amount button (last of 4 presets = Math.ceil(total))
+    const quickAmountBtns2 = modal.locator(".grid.grid-cols-4 button");
+    const btnCount2 = await quickAmountBtns2.count();
+    if (btnCount2 > 0) {
+      await quickAmountBtns2.last().click();
     }
 
     // Submit
