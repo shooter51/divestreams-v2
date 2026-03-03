@@ -125,7 +125,7 @@ describe("CashModal", () => {
     renderCash(true, 55.0);
     fireEvent.click(screen.getByText("$100"));
     fireEvent.click(screen.getByText("Complete Sale"));
-    expect(onComplete).toHaveBeenCalledWith([{ method: "cash", amount: 55.0 }]);
+    expect(onComplete).toHaveBeenCalledWith([{ method: "cash", amount: 55.0, tendered: 100, change: 45 }]);
   });
 
   it("shows 'Change Due' section when tendered amount exceeds total", () => {
