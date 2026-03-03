@@ -209,11 +209,12 @@ export async function action({ request }: ActionFunctionArgs) {
       console.error("Failed to queue welcome email:", emailError);
     }
 
-    // Redirect to the new tenant's login page so user can sign in
-    // Include signup=success param so login page can show a welcome message
+    // Redirect via intermediate setup page to give on-demand TLS time to provision
+    // the new subdomain's SSL certificate before the user arrives.
     const loginUrl = getTenantUrl(tenant.subdomain, "/auth/login");
     const separator = loginUrl.includes("?") ? "&" : "?";
-    return redirect(`${loginUrl}${separator}signup=success${emailQueued ? "" : "&emailSkipped=true"}`);
+    const tenantLoginUrl = `${loginUrl}${separator}signup=success${emailQueued ? "" : "&emailSkipped=true"}`;
+    return redirect(`/tenant-setup?url=${encodeURIComponent(tenantLoginUrl)}`);
   } catch (error) {
     console.error("Failed to create account:", error);
     return {
