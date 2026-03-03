@@ -297,6 +297,7 @@ export async function action({ request }: ActionFunctionArgs) {
         tax: data.tax,
         total: data.total,
         notes: data.notes,
+        discountCode: data.discountCode,
       });
 
       return { success: true, receiptNumber: result.receiptNumber };

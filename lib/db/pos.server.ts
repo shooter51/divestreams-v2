@@ -239,6 +239,7 @@ export async function processPOSCheckout(
     tax: number;
     total: number;
     notes?: string;
+    discountCode?: string;
   }
 ) {
   // SECURITY: Look up actual prices from the database instead of trusting
@@ -539,6 +540,38 @@ export async function processPOSCheckout(
           eq(tables.products.organizationId, organizationId),
           eq(tables.products.id, product.productId)
         ));
+    }
+
+    // Atomically enforce maxUses and increment usedCount for discount code
+    if (data.discountCode) {
+      const [discount] = await tx
+        .select()
+        .from(tables.discountCodes)
+        .where(
+          and(
+            eq(tables.discountCodes.organizationId, organizationId),
+            eq(tables.discountCodes.code, data.discountCode),
+            eq(tables.discountCodes.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (!discount) {
+        throw new Error(`Discount code "${data.discountCode}" not found or inactive`);
+      }
+      if (discount.maxUses !== null && discount.usedCount >= discount.maxUses) {
+        throw new Error(`Discount code "${data.discountCode}" has reached its maximum usage limit`);
+      }
+
+      await tx
+        .update(tables.discountCodes)
+        .set({ usedCount: sql`${tables.discountCodes.usedCount} + 1` })
+        .where(
+          and(
+            eq(tables.discountCodes.organizationId, organizationId),
+            eq(tables.discountCodes.code, data.discountCode)
+          )
+        );
     }
 
     return txnRecord;
