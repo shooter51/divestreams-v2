@@ -20,7 +20,7 @@ test.describe("DS-ezbr: Login email retained after failed attempt @bug", () => {
 
     // Fill in email and password with incorrect credentials
     await page.getByLabel(/email/i).fill(testEmail);
-    await page.getByLabel(/password/i).fill(wrongPassword);
+    await page.locator('input[type="password"]').first().fill(wrongPassword);
 
     // Submit the form
     await page.getByRole("button", { name: /sign in/i }).click();
