@@ -574,7 +574,7 @@ export function SplitModal({
 }: SplitModalProps) {
   const fetcher = useFetcher();
   const amountInputRef = useRef<HTMLInputElement>(null);
-  const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string }>>([]);
+  const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>>([]);
   const [currentAmount, setCurrentAmount] = useState("");
   const [currentMethod, setCurrentMethod] = useState<"cash" | "card">("cash");
   const [processingCard, setProcessingCard] = useState(false);
@@ -727,7 +727,7 @@ export function SplitModal({
     if (!isNaN(amount) && amount > 0 && amount <= remaining + 0.005) {
       // If within 0.5 cents of remaining, treat as full payment (handles floating-point display rounding)
       const adjustedAmount = amount >= remaining - 0.005 ? remaining : Math.min(amount, remaining);
-      setPayments([...payments, { method: "cash", amount: adjustedAmount }]);
+      setPayments([...payments, { method: "cash", amount: adjustedAmount, tendered: adjustedAmount, change: 0 }]);
       setCurrentAmount("");
       if (amountInputRef.current) amountInputRef.current.value = "";
       setError(null);
