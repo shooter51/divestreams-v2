@@ -78,7 +78,7 @@ test.describe("DS-p65h: Customer total spent reflects actual payments", () => {
     await page.waitForLoadState("load");
 
     // Find a customer with bookings if possible
-    const customerLinks = page.locator('a[href*="/tenant/customers/"]');
+    const customerLinks = page.locator('a[href*="/tenant/customers/"]:not([href*="/new"])');
     const count = await customerLinks.count();
 
     if (count === 0) {
@@ -91,7 +91,7 @@ test.describe("DS-p65h: Customer total spent reflects actual payments", () => {
     await page.waitForLoadState("load");
 
     // Verify Total Spent is present and well-formatted
-    const totalSpentLabel = page.locator("p.text-foreground-muted:has-text('Total Spent')");
+    const totalSpentLabel = page.locator("p:has-text('Total Spent')");
     await expect(totalSpentLabel).toBeVisible({ timeout: 10000 });
 
     const totalSpentAmount = totalSpentLabel.locator("..").locator("p").first();

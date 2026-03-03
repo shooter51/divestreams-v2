@@ -224,6 +224,12 @@ export default function ProfileSettingsPage() {
         </div>
       )}
 
+      {actionData?.error && (
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
+          {actionData.error}
+        </div>
+      )}
+
       {/* Basic Info */}
       <form method="post" className="space-y-6">
         <CsrfInput />
