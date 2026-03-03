@@ -483,7 +483,7 @@ export default function POSPage() {
     }
   }, [pendingCheckout]);
 
-  const completeCheckout = useCallback(async (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string }>) => {
+  const completeCheckout = useCallback(async (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>) => {
     const formData = new FormData();
     formData.append("intent", "checkout");
     formData.append("data", JSON.stringify({
