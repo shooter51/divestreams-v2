@@ -9,7 +9,7 @@ interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   total: number;
-  onComplete: (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string }>) => void;
+  onComplete: (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>) => void;
 }
 
 interface CardModalProps extends CheckoutModalProps {
@@ -544,7 +544,7 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
             Cancel
           </button>
           <button
-            onClick={() => onComplete([{ method: "cash", amount: total }])}
+            onClick={() => onComplete([{ method: "cash", amount: total, tendered: tenderedAmount, change: Math.max(0, change) }])}
             disabled={tenderedAmount < total}
             className="flex-1 py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >

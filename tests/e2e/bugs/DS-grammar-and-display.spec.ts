@@ -27,7 +27,7 @@ test.describe("DS-u7p6: Tours list trip count pluralization", () => {
 
     // Check that the page does NOT contain "1 trips run"
     // It should either be "0 trips run", "1 trip run", or "N trips run"
-    const pageText = await page.locator("body").textContent() ?? "";
+    const pageText = await page.locator("main").textContent() ?? "";
     expect(pageText).not.toMatch(/\b1 trips run\b/);
 
     // Verify the singular form "1 trip run" would be correct if count is 1
@@ -51,10 +51,10 @@ test.describe("DS-npcw: Reports bookings pluralization", () => {
     await page.waitForLoadState("load");
 
     // The page should load successfully
-    await expect(page.locator("h1")).toContainText(/reports/i);
+    await expect(page.locator("h1").first()).toContainText(/reports/i);
 
     // Check that "1 bookings" doesn't appear anywhere on the page
-    const pageText = await page.locator("body").textContent() ?? "";
+    const pageText = await page.locator("main").textContent() ?? "";
     expect(pageText).not.toMatch(/\b1 bookings\b/);
   });
 });

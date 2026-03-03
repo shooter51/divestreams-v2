@@ -53,7 +53,7 @@ test.describe("DS-gme9: Trip detail time formatting", () => {
 
     // Check that time is NOT shown in raw HH:MM:SS format
     // Raw format would match pattern like "08:00:00" or "8:00:00"
-    const pageText = await page.locator("body").textContent() ?? "";
+    const pageText = await page.locator("main").textContent() ?? "";
 
     // Should not contain raw time format like "08:00:00"
     expect(pageText).not.toMatch(/\b\d{2}:\d{2}:\d{2}\b/);

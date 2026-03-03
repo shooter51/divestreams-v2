@@ -53,7 +53,7 @@ test.describe("DS-hyp5: POS tax rate shows 0% or is hidden @pos", () => {
 
     // Tax amount should be > $0.00
     // Find the tax row and check the dollar amount
-    const cartTotals = page.locator(".border-t.space-y-2");
+    const cartTotals = page.locator(".border-t.space-y-2").first();
     await expect(cartTotals).toBeVisible();
 
     // Total should be greater than subtotal (tax is added)
