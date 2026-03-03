@@ -35,7 +35,7 @@ test.describe("DS-4r2m: Shop profile email required validation", () => {
     await page.waitForLoadState("load");
 
     // Verify page loaded
-    await expect(page.locator("h1").first()).toContainText(/shop profile/i);
+    await expect(page.locator("main h1").first()).toContainText(/shop profile/i);
 
     // Find and clear the email field
     const emailInput = page.locator('input[name="email"]');
