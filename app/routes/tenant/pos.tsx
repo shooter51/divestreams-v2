@@ -325,6 +325,12 @@ export default function POSPage() {
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
 
+  // Date state — initialized to empty string to avoid SSR/client hydration mismatch (#418)
+  const [currentDate, setCurrentDate] = useState("");
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString());
+  }, []);
+
   // State
   const [tab, setTab] = useState<"retail" | "rentals" | "trips">("retail");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -491,11 +497,10 @@ export default function POSPage() {
     if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
-
-    // Clear on success
-    clearCart();
+    // Close the checkout modal immediately — the cart will be cleared by useEffect
+    // once the server confirms the sale (success response with receiptNumber).
     setCheckoutMethod(null);
-  }, [cart, customer, subtotal, tax, total, fetcher, clearCart, csrfToken]);
+  }, [cart, customer, subtotal, tax, total, fetcher, csrfToken]);
 
   // Customer search
   const handleCustomerSearch = useCallback((query: string) => {
@@ -570,8 +575,9 @@ export default function POSPage() {
       setTimeout(() => setBarcodeError(null), 3000);
     }
 
-    // Handle sale success
+    // Handle sale success — clear cart AFTER server confirms the sale
     if (fetcherData?.success && fetcherData?.receiptNumber && !fetcherData?.refundId) {
+      clearCart();
       showToast(`Sale complete! Receipt #${fetcherData.receiptNumber}`, "success");
     }
 
@@ -581,7 +587,7 @@ export default function POSPage() {
       setShowRefundConfirmation(false);
       setSelectedTransaction(null);
     }
-  }, [fetcher.data, addProduct, showToast]);
+  }, [fetcher.data, addProduct, showToast, clearCart]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -626,7 +632,7 @@ export default function POSPage() {
           </Link>
         </div>
         <div className="text-sm text-foreground-muted">
-          {tenant.name} - {new Date().toLocaleDateString()}
+          {tenant.name}{currentDate ? ` - ${currentDate}` : ""}
         </div>
       </div>
 

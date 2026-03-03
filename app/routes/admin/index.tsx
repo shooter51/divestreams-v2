@@ -232,7 +232,7 @@ export default function AdminOrganizationsPage() {
                       rel="noopener noreferrer"
                       className="text-brand hover:underline font-medium"
                     >
-                      {org.slug}
+                      {org.name || org.slug}
                     </a>
                   </td>
                   <td className="px-4 py-3 text-foreground">

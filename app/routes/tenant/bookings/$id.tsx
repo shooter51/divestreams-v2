@@ -427,10 +427,10 @@ export default function BookingDetailPage() {
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Equipment Rental</h2>
               <div className="space-y-2">
-                {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; quantity: number; price: number }, i: number) => (
+                {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; size?: string; quantity?: number; price: number }, i: number) => (
                   <div key={i} className="flex justify-between text-sm">
                     <span>
-                      {item.item} x{item.quantity}
+                      {item.item}{item.quantity ? ` x${item.quantity}` : ""}
                     </span>
                     <span>{formatCurrency(item.price)}</span>
                   </div>
@@ -629,6 +629,7 @@ export default function BookingDetailPage() {
             </div>
 
             <form onSubmit={handleRecordPayment} className="space-y-4">
+              <CsrfInput />
               <div>
                 <label className="block text-sm font-medium mb-1">Amount *</label>
                 <div className="relative">

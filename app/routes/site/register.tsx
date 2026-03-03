@@ -5,7 +5,7 @@
  * Includes password validation, terms acceptance, and auto-login on success.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Link, useActionData, useNavigation, useRouteLoaderData, redirect } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
 import { registerCustomer, loginCustomer } from "../../../lib/auth/customer-auth.server";
@@ -401,10 +401,17 @@ export default function SiteRegisterPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  // Track password for real-time validation display
+  // Track password fields for real-time validation display and error clearing
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // Track which fields user has typed in since last server error (to clear stale errors)
+  const [clearedErrors, setClearedErrors] = useState<Set<string>>(new Set());
+  // Reset cleared errors when new actionData arrives (new submission cycle)
+  useEffect(() => {
+    setClearedErrors(new Set());
+  }, [actionData]);
 
   // Loading state
   if (!loaderData) {
@@ -614,7 +621,10 @@ export default function SiteRegisterPage() {
                   required
                   autoComplete="new-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setClearedErrors((prev) => new Set(prev).add("password"));
+                  }}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.password
@@ -639,7 +649,7 @@ export default function SiteRegisterPage() {
                   )}
                 </button>
               </div>
-              {actionData?.errors?.password && (
+              {actionData?.errors?.password && !clearedErrors.has("password") && (
                 <p className="mt-1 text-sm text-danger flex items-center gap-1">
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.password}
@@ -666,17 +676,22 @@ export default function SiteRegisterPage() {
                   name="confirmPassword"
                   required
                   autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setClearedErrors((prev) => new Set(prev).add("confirmPassword"));
+                  }}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
-                    borderColor: actionData?.errors?.confirmPassword
+                    borderColor: actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword")
                       ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
-                  aria-invalid={actionData?.errors?.confirmPassword ? "true" : undefined}
+                  aria-invalid={actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") ? "true" : undefined}
                   aria-describedby={
-                    actionData?.errors?.confirmPassword ? "confirmPassword-error" : undefined
+                    actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") ? "confirmPassword-error" : undefined
                   }
                 />
                 <button
@@ -692,7 +707,7 @@ export default function SiteRegisterPage() {
                   )}
                 </button>
               </div>
-              {actionData?.errors?.confirmPassword && (
+              {actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") && (
                 <p
                   id="confirmPassword-error"
                   className="mt-1 text-sm text-danger flex items-center gap-1"
