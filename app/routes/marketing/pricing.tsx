@@ -177,7 +177,11 @@ export default function PricingPage() {
             const popular = isPlanPopular(plan.name);
             const description = getPlanDescription(plan.name);
             const cta = getPlanCta(plan.name);
-            const features: string[] = Array.isArray(plan.features) ? plan.features : [];
+            const features: string[] = Array.isArray(plan.features)
+              ? plan.features
+              : (plan.features && typeof plan.features === "object" && "descriptions" in plan.features && Array.isArray((plan.features as { descriptions?: string[] }).descriptions))
+                ? (plan.features as { descriptions: string[] }).descriptions
+                : [];
 
             const price = billingInterval === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
             const displayPrice = billingInterval === 'monthly'

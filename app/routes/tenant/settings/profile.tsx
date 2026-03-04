@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { organization } from "../../../../lib/db/schema";
+import { organization, organizationSettings } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -63,7 +63,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
   };
 
-  return { profile: { ...profile, depthUnit: profile.depthUnit as "meters" | "feet" }, orgId: ctx.org.id, isPremium: ctx.isPremium };
+  // Load org-level tax settings
+  const [settings] = await db
+    .select()
+    .from(organizationSettings)
+    .where(eq(organizationSettings.organizationId, ctx.org.id))
+    .limit(1);
+
+  const taxSettings = {
+    taxRate: settings?.taxRate ? parseFloat(settings.taxRate) : 0,
+    taxName: settings?.taxName || "Tax",
+    taxIncludedInPrice: settings?.taxIncludedInPrice ?? false,
+  };
+
+  return { profile: { ...profile, depthUnit: profile.depthUnit as "meters" | "feet" }, orgId: ctx.org.id, isPremium: ctx.isPremium, taxSettings };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -173,6 +186,47 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true, message: "Booking settings updated" };
   }
 
+  if (intent === "update-tax-settings") {
+    const taxRateStr = formData.get("taxRate") as string;
+    const taxRate = parseFloat(taxRateStr);
+    const taxName = (formData.get("taxName") as string) || "Tax";
+    const taxIncludedInPrice = formData.get("taxIncludedInPrice") === "true";
+
+    if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+      return { error: "Tax rate must be between 0 and 100" };
+    }
+
+    // Upsert organization settings
+    const [existing] = await db
+      .select()
+      .from(organizationSettings)
+      .where(eq(organizationSettings.organizationId, ctx.org.id))
+      .limit(1);
+
+    if (existing) {
+      await db
+        .update(organizationSettings)
+        .set({
+          taxRate: taxRate.toFixed(2),
+          taxName,
+          taxIncludedInPrice,
+          updatedAt: new Date(),
+        })
+        .where(eq(organizationSettings.organizationId, ctx.org.id));
+    } else {
+      await db
+        .insert(organizationSettings)
+        .values({
+          organizationId: ctx.org.id,
+          taxRate: taxRate.toFixed(2),
+          taxName,
+          taxIncludedInPrice,
+        });
+    }
+
+    return { success: true, message: "Tax settings updated" };
+  }
+
   return null;
 }
 
@@ -203,7 +257,7 @@ const currencies = [
 ];
 
 export default function ProfileSettingsPage() {
-  const { profile } = useLoaderData<typeof loader>();
+  const { profile, taxSettings } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -556,6 +610,86 @@ export default function ProfileSettingsPage() {
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
             >
               {isSubmitting ? "Saving..." : "Save Booking Settings"}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {/* Tax Settings */}
+      <form method="post" className="mt-8">
+        <CsrfInput />
+        <input type="hidden" name="intent" value="update-tax-settings" />
+
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Tax Settings</h2>
+          <p className="text-sm text-foreground-muted mb-4">
+            Configure the default tax rate applied to POS transactions. Individual products can override this rate.
+          </p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="taxRate" className="block text-sm font-medium mb-1">
+                  Tax Rate (%)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="taxRate"
+                    name="taxRate"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    defaultValue={taxSettings.taxRate}
+                    className="w-32 px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+                  />
+                  <span className="text-foreground-muted">%</span>
+                </div>
+                <p className="text-xs text-foreground-muted mt-1">
+                  e.g., 8.25 for 8.25% sales tax
+                </p>
+              </div>
+              <div>
+                <label htmlFor="taxName" className="block text-sm font-medium mb-1">
+                  Tax Label
+                </label>
+                <input
+                  type="text"
+                  id="taxName"
+                  name="taxName"
+                  defaultValue={taxSettings.taxName}
+                  placeholder="Tax"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+                />
+                <p className="text-xs text-foreground-muted mt-1">
+                  e.g., Sales Tax, VAT, GST
+                </p>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                name="taxIncludedInPrice"
+                value="true"
+                defaultChecked={taxSettings.taxIncludedInPrice}
+                className="rounded"
+              />
+              <div>
+                <span className="font-medium">Tax included in price</span>
+                <p className="text-sm text-foreground-muted">
+                  Prices already include tax (common outside the US)
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
+            >
+              {isSubmitting ? "Saving..." : "Save Tax Settings"}
             </button>
           </div>
         </div>
