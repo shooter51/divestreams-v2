@@ -690,8 +690,8 @@ export default function ReportsPage() {
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.yearToDate)}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <p className="text-foreground-muted text-sm mb-1">Avg Booking Value</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.avgBookingValue)}</p>
+          <p className="text-foreground-muted text-sm mb-1">Avg Booking Value</p>
         </div>
       </div>
 
