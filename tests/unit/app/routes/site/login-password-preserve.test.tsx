@@ -13,8 +13,11 @@ const mockRouteLoaderData = vi.fn();
 const mockNavigation = vi.fn();
 const mockSearchParams = vi.fn();
 
+const mockLoaderData = vi.fn();
+
 vi.mock("react-router", () => ({
   useActionData: () => mockActionData(),
+  useLoaderData: () => mockLoaderData(),
   useRouteLoaderData: () => mockRouteLoaderData(),
   useNavigation: () => mockNavigation(),
   useSearchParams: () => [mockSearchParams()],
@@ -34,6 +37,7 @@ describe("DS-ezbr: Site login page password preservation", () => {
     vi.clearAllMocks();
     mockNavigation.mockReturnValue({ state: "idle" });
     mockSearchParams.mockReturnValue(new URLSearchParams());
+    mockLoaderData.mockReturnValue({ organizationId: "org-1", csrfToken: "mock-csrf-token" });
     mockRouteLoaderData.mockReturnValue({
       organization: { id: "org1", name: "Test Dive Shop", slug: "test", logo: null },
       settings: {},

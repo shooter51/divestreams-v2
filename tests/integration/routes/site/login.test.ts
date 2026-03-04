@@ -37,10 +37,17 @@ vi.mock("../../../../lib/utils/rate-limit", () => ({
   getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
 }));
 
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  generateAnonCsrfToken: vi.fn().mockReturnValue("mock-csrf-token"),
+  CSRF_FIELD_NAME: "_csrf",
+}));
+
 import { db } from "../../../../lib/db";
 import { loginCustomer, getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit } from "../../../../lib/utils/rate-limit";
+import { validateAnonCsrfToken } from "../../../../lib/security/csrf.server";
 import { loader, action } from "../../../../app/routes/site/login";
 
 describe("site/login route", () => {
@@ -50,6 +57,7 @@ describe("site/login route", () => {
     vi.clearAllMocks();
     (getSubdomainFromHost as Mock).mockReturnValue("demo");
     (checkRateLimit as Mock).mockResolvedValue({ allowed: true });
+    (validateAnonCsrfToken as Mock).mockReturnValue(true);
   });
 
   // Helper to set up db mock to return an org
@@ -74,7 +82,7 @@ describe("site/login route", () => {
       } as Parameters<typeof loader>[0]);
 
       expect(getSubdomainFromHost).toHaveBeenCalled();
-      expect(result).toEqual({ organizationId: "org-1" });
+      expect(result).toMatchObject({ organizationId: "org-1" });
     });
 
     it("throws 404 when organization is not found", async () => {
@@ -181,7 +189,7 @@ describe("site/login route", () => {
         context: {},
       } as Parameters<typeof loader>[0]);
 
-      expect(result).toEqual({ organizationId: "org-1" });
+      expect(result).toMatchObject({ organizationId: "org-1" });
     });
   });
 
@@ -385,6 +393,28 @@ describe("site/login route", () => {
         expect(error).toBeInstanceOf(Response);
         expect((error as Response).status).toBe(404);
       }
+    });
+
+    it("DS-30f: rejects action when CSRF token is invalid", async () => {
+      mockDbReturnsOrg();
+      (validateAnonCsrfToken as Mock).mockReturnValue(false);
+
+      const formData = new FormData();
+      formData.set("email", "test@example.com");
+      formData.set("password", "password123");
+
+      const request = new Request("https://demo.divestreams.com/site/login", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({
+        request,
+        params: {},
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      expect((result as unknown).errors.form).toContain("CSRF");
     });
   });
 });
