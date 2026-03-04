@@ -52,6 +52,7 @@ import {
 } from "../../components/pos/RefundModals";
 import type { CartItem } from "../../../lib/validation/pos";
 import { useToast } from "../../../lib/toast-context";
+import { formatLabel } from "../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
@@ -651,13 +652,13 @@ export default function POSPage() {
                   setSelectedCategory(null);
                   setSearchQuery("");
                 }}
-                className={`px-6 py-2 rounded-t-lg font-medium capitalize ${
+                className={`px-6 py-2 rounded-t-lg font-medium ${
                   tab === t
                     ? "bg-surface-raised text-brand border-t border-x"
                     : "bg-surface-overlay text-foreground-muted hover:bg-border"
                 }`}
               >
-                {t}
+                {formatLabel(t)}
               </button>
             ))}
           </div>

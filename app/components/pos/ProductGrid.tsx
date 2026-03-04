@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { formatLabel, formatCurrency } from "../../lib/format";
 
 interface Product {
   id: string;
@@ -146,13 +147,13 @@ export function ProductGrid({
             <button
               key={cat}
               onClick={() => onSelectCategory(cat)}
-              className={`px-3 py-1 rounded-full text-sm capitalize ${
+              className={`px-3 py-1 rounded-full text-sm ${
                 selectedCategory === cat
                   ? "bg-brand text-white"
                   : "bg-surface-inset text-foreground hover:bg-surface-overlay"
               }`}
             >
-              {cat}
+              {formatLabel(cat)}
             </button>
           ))}
         </div>
@@ -183,17 +184,34 @@ export function ProductGrid({
                   src={product.imageUrl}
                   alt={product.name}
                   className="w-full h-24 object-cover rounded-md mb-2"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.style.display = "none";
+                    const placeholder = img.nextElementSibling;
+                    if (placeholder && placeholder.classList.contains("product-img-fallback")) {
+                      (placeholder as HTMLElement).style.display = "flex";
+                    }
+                  }}
                 />
+              )}
+              {product.imageUrl && (
+                <div
+                  className="product-img-fallback w-full h-24 rounded-md mb-2 bg-surface-inset items-center justify-center text-foreground-subtle"
+                  style={{ display: "none" }}
+                >
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
               )}
               <p className="font-medium line-clamp-2" title={product.name}>{product.name}</p>
               {onSale ? (
                 <div>
-                  <span className="text-lg font-bold text-danger">${effectivePrice.toFixed(2)}</span>
-                  <span className="text-sm text-foreground-subtle line-through ml-2">${Number(product.price).toFixed(2)}</span>
+                  <span className="text-lg font-bold text-danger">{formatCurrency(effectivePrice)}</span>
+                  <span className="text-sm text-foreground-subtle line-through ml-2">{formatCurrency(product.price)}</span>
                 </div>
               ) : (
-                <p className="text-lg font-bold text-brand">${Number(product.price).toFixed(2)}</p>
+                <p className="text-lg font-bold text-brand">{formatCurrency(product.price)}</p>
               )}
               <p className="text-xs text-foreground-muted">{product.stockQuantity} in stock</p>
             </button>
@@ -251,7 +269,7 @@ function RentalCard({
     <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">
       <p className="font-medium truncate">{equipment.name}</p>
       {equipment.size && <p className="text-sm text-foreground-muted">Size: {equipment.size}</p>}
-      <p className="text-lg font-bold text-success">${Number(equipment.rentalPrice).toFixed(2)}/day</p>
+      <p className="text-lg font-bold text-success">{formatCurrency(equipment.rentalPrice)}/day</p>
 
       {!showDays ? (
         <button
@@ -285,7 +303,7 @@ function RentalCard({
             }}
             className="w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
           >
-            Add ${(Number(equipment.rentalPrice) * days).toFixed(2)}
+            Add {formatCurrency(Number(equipment.rentalPrice) * days)}
           </button>
         </div>
       )}
@@ -308,7 +326,7 @@ function TripCard({
     <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">
       <p className="font-medium">{trip.tour.name}</p>
       <p className="text-sm text-foreground-muted">{trip.startTime}</p>
-      <p className="text-lg font-bold text-info">${Number(trip.tour.price).toFixed(2)}</p>
+      <p className="text-lg font-bold text-info">{formatCurrency(trip.tour.price)}</p>
       <p className="text-xs text-foreground-muted">{trip.available} spots left</p>
 
       {trip.available <= 0 ? (
@@ -345,7 +363,7 @@ function TripCard({
             }}
             className="w-full py-2 bg-info text-white rounded-lg hover:bg-info-hover text-sm"
           >
-            Add ${(Number(trip.tour.price) * participants).toFixed(2)}
+            Add {formatCurrency(Number(trip.tour.price) * participants)}
           </button>
         </div>
       )}
