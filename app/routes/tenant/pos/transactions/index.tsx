@@ -15,6 +15,7 @@ import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { sendEmail } from "../../../../../lib/email/email.server";
 import { getPOSReceiptEmail } from "../../../../../lib/email/templates";
 import { TransactionActions } from "../../../../../app/components/pos/TransactionActions";
+import { formatLabel } from "../../../../lib/format";
 import {
   ReceiptModal,
   TransactionDetailsModal,
@@ -474,7 +475,7 @@ export default function TransactionsPage() {
                           typeColors[tx.type] || "bg-surface-inset text-foreground"
                         }`}
                       >
-                        {transactionTypeLabels[tx.type] || tx.type}
+                        {transactionTypeLabels[tx.type] || formatLabel(tx.type)}
                       </span>
                       {tx.refundedTransactionId && (
                         <span className="text-xs px-2 py-1 rounded bg-warning-muted text-warning">
@@ -503,7 +504,7 @@ export default function TransactionsPage() {
                     {tx.customerName || <span className="text-foreground-subtle">Walk-in</span>}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm">{paymentMethodLabels[tx.paymentMethod || ""] || tx.paymentMethod || "N/A"}</span>
+                    <span className="text-sm">{paymentMethodLabels[tx.paymentMethod || ""] || formatLabel(tx.paymentMethod) || "N/A"}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span

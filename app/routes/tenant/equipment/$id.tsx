@@ -15,6 +15,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
@@ -253,12 +254,12 @@ export default function EquipmentDetailPage() {
             <span
               className={`text-sm px-3 py-1 rounded-full ${statusColors[equipment.status]}`}
             >
-              {statusLabels[equipment.status] || equipment.status}
+              {statusLabels[equipment.status] || formatLabel(equipment.status)}
             </span>
             <span
               className={`text-sm px-3 py-1 rounded-full ${conditionColors[equipment.condition ?? "good"]}`}
             >
-              {conditionLabels[equipment.condition ?? "good"] || equipment.condition}
+              {conditionLabels[equipment.condition ?? "good"] || formatLabel(equipment.condition)}
             </span>
           </div>
           <p className="text-foreground-muted">
@@ -368,7 +369,7 @@ export default function EquipmentDetailPage() {
                     <div>
                       <p className="font-medium">{rental.customerName}</p>
                       <p className="text-sm text-foreground-muted">
-                        {rental.bookingNumber} • {rental.date}
+                        {rental.bookingNumber} • {formatDate(rental.date)}
                       </p>
                     </div>
                     <span
@@ -396,7 +397,7 @@ export default function EquipmentDetailPage() {
                     <div className="flex justify-between items-start">
                       <span className="font-medium capitalize">{service.type}</span>
                       <span className="text-foreground-muted text-xs">
-                        {service.date}
+                        {formatDate(service.date)}
                       </span>
                     </div>
                     <p className="text-foreground-muted text-xs mt-1">{service.description}</p>
@@ -518,12 +519,10 @@ export default function EquipmentDetailPage() {
                 <span className="text-foreground-muted">Brand</span>
                 <span>{equipment.brand}</span>
               </div>
-              {equipment.model && (
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Model</span>
-                <span>{equipment.model}</span>
+                <span>{equipment.model || "—"}</span>
               </div>
-              )}
               {equipment.serialNumber && (
                 <div className="flex justify-between">
                   <span className="text-foreground-muted">Serial #</span>
