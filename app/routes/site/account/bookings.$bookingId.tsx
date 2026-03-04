@@ -242,7 +242,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       );
     }
 
-    // Update booking status
+    // Update booking status — include ownership filters for defense-in-depth
     await db
       .update(bookings)
       .set({
@@ -251,7 +251,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
         cancellationReason: reason,
         updatedAt: new Date(),
       })
-      .where(eq(bookings.id, bookingId));
+      .where(
+        and(
+          eq(bookings.id, bookingId),
+          eq(bookings.customerId, customer.id),
+          eq(bookings.organizationId, customer.organizationId)
+        )
+      );
 
     // Sync cancellation to Google Calendar (remove customer from attendees)
     try {

@@ -206,6 +206,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 // Map trip status strings to BadgeStatus types
 function mapTripStatusToBadgeStatus(status: string): BadgeStatus {
   const statusMap: Record<string, BadgeStatus> = {
+    scheduled: "scheduled",
     open: "pending",
     confirmed: "confirmed",
     full: "confirmed",
