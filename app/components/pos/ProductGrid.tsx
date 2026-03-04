@@ -186,7 +186,7 @@ export function ProductGrid({
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
               )}
-              <p className="font-medium truncate">{product.name}</p>
+              <p className="font-medium line-clamp-2" title={product.name}>{product.name}</p>
               {onSale ? (
                 <div>
                   <span className="text-lg font-bold text-danger">${effectivePrice.toFixed(2)}</span>
