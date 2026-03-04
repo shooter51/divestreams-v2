@@ -132,6 +132,9 @@ export default function PricingPage() {
           <a href="/pricing" className="text-brand font-medium">
             Pricing
           </a>
+          <a href="/auth/login" className="text-foreground-muted hover:text-brand">
+            Log In
+          </a>
           <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
           </a>

@@ -84,6 +84,7 @@ vi.mock("../../../../lib/db/schema", () => ({
     name: "name",
     category: "category",
     price: "price",
+    taxRate: "taxRate",
     salePrice: "salePrice",
     saleStartDate: "saleStartDate",
     saleEndDate: "saleEndDate",
@@ -139,6 +140,17 @@ vi.mock("../../../../lib/db/schema", () => ({
   rentals: {
     organizationId: "organizationId",
     createdAt: "createdAt",
+  },
+  organizationSettings: {
+    organizationId: "organizationId",
+    taxRate: "taxRate",
+  },
+  discountCodes: {
+    id: "id",
+    organizationId: "organizationId",
+    code: "code",
+    maxUses: "maxUses",
+    usedCount: "usedCount",
   },
 }));
 
@@ -406,14 +418,19 @@ describe("pos.server database functions", () => {
   // ============================================================================
   describe("processPOSCheckout", () => {
     it("should create transaction for product sale", async () => {
-      // Product price lookup query (new server-side validation)
-      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "50.00", salePrice: null, saleStartDate: null, saleEndDate: null }]);
-      // Query with .limit() - wrapper + thenable consumption
-      mockLimit.mockResolvedValueOnce([]); // Consumed by wrapper (ignored)
-      mockLimit.mockResolvedValueOnce([{ count: 0 }]); // Consumed by thenable (used)
-      // .returning() - wrapper + thenable consumption
-      mockReturning.mockResolvedValueOnce([]); // Consumed by wrapper (ignored)
-      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]); // Consumed by thenable (used)
+      // 1. Product price lookup (no .limit(), thenable -> mockLimit)
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "50.00", taxRate: null, salePrice: null, saleStartDate: null, saleEndDate: null }]);
+      // 2. Org settings .limit(1) -> wrapper consumes mockLimit, thenable consumes mockLimit
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ taxRate: "0" }]); // thenable (org tax rate 0%)
+      // 3. Receipt number count (no .limit(), thenable -> mockLimit)
+      mockLimit.mockResolvedValueOnce([{ count: 0 }]);
+      // 4. Transaction insert .returning()
+      mockReturning.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]); // thenable (used)
+      // 5. Stock pre-validation (no .limit(), thenable -> mockLimit)
+      mockLimit.mockResolvedValueOnce([]);
+      // 6. Stock update (thenable -> mockLimit, default empty)
 
       const { processPOSCheckout } = await import("../../../../lib/db/pos.server");
       const tables = await import("../../../../lib/db/schema");
@@ -431,10 +448,10 @@ describe("pos.server database functions", () => {
         ],
         customerId: "cust-1",
         userId: "user-1",
-        payments: [{ method: "cash" as const, amount: 110 }], // Must match total including tax
+        payments: [{ method: "cash" as const, amount: 100 }], // tax=0, total=100
         subtotal: 100,
-        tax: 10,
-        total: 110,
+        tax: 999, // client value ignored — server recalculates to 0
+        total: 999, // client value ignored — server recalculates to 100
       };
 
       const result = await processPOSCheckout(tables, "org-1", checkoutData);
@@ -447,11 +464,21 @@ describe("pos.server database functions", () => {
     });
 
     it("should process booking items", async () => {
-      // Trip price lookup query (new server-side validation)
-      mockLimit.mockResolvedValueOnce([{ tripPrice: "100.00", tourPrice: "100.00" }]);
+      // 1. Trip price lookup .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ tripPrice: "100.00", tourPrice: "100.00" }]); // thenable
+      // 2. Org settings .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ taxRate: "0" }]); // thenable (0% tax)
+      // 3. Receipt number (no .limit(), thenable -> mockLimit)
       mockLimit.mockResolvedValueOnce([{ count: 0 }]);
-      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]);
-      mockReturning.mockResolvedValueOnce([]);
+      // 4. Transaction insert .returning()
+      mockReturning.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]); // thenable
+      // 5. getNextBookingNumber .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([]); // thenable (no existing bookings)
+      // 6. Booking insert (thenable -> mockLimit, default [])
 
       const { processPOSCheckout } = await import("../../../../lib/db/pos.server");
       const tables = await import("../../../../lib/db/schema");
@@ -468,10 +495,10 @@ describe("pos.server database functions", () => {
           },
         ],
         customerId: "cust-1",
-        payments: [{ method: "card" as const, amount: 330, stripePaymentIntentId: "pi_123" }], // Must match total including tax
+        payments: [{ method: "card" as const, amount: 300, stripePaymentIntentId: "pi_123" }], // tax=0
         subtotal: 300,
-        tax: 30,
-        total: 330,
+        tax: 0,
+        total: 300,
       };
 
       await processPOSCheckout(tables, "org-1", checkoutData);
@@ -480,21 +507,22 @@ describe("pos.server database functions", () => {
     });
 
     it("should process rental items", async () => {
-      // Equipment price lookup query (new server-side validation) - uses .limit(1) so needs wrapper + thenable
-      mockLimit.mockResolvedValueOnce([]); // Consumed by limit() wrapper call
-      mockLimit.mockResolvedValueOnce([{ rentalPrice: "20.00" }]); // Consumed by thenable
-      // Two queries with .limit() - wrapper calls consume first values, thenable uses second
-      mockLimit
-        .mockResolvedValueOnce([]) // Consumed by 1st wrapper (ignored)
-        .mockResolvedValueOnce([{ count: 0 }]) // Consumed by 1st thenable (used)
-        .mockResolvedValueOnce([]) // Consumed by 2nd wrapper (ignored)
-        .mockResolvedValueOnce([{ count: 0 }]); // Consumed by 2nd thenable (used)
-      // Two .returning() calls - wrapper calls consume first values, thenable uses second
-      mockReturning
-        .mockResolvedValueOnce([]) // Consumed by 1st wrapper (ignored)
-        .mockResolvedValueOnce([{ id: "trans-1" }]) // Consumed by 1st thenable (used)
-        .mockResolvedValueOnce([]) // Consumed by 2nd wrapper (ignored)
-        .mockResolvedValueOnce([]); // Consumed by 2nd thenable (used)
+      // 1. Equipment price lookup .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ rentalPrice: "20.00" }]); // thenable
+      // 2. Org settings .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ taxRate: "0" }]); // thenable (0% tax)
+      // 3. Receipt number (no .limit(), thenable -> mockLimit)
+      mockLimit.mockResolvedValueOnce([{ count: 0 }]);
+      // 4. Transaction insert .returning()
+      mockReturning.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]); // thenable
+      // 5. Agreement number .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ count: 0 }]); // thenable
+      // 6. Rental insert (thenable -> mockLimit, default [])
+      // 7. Equipment status update (thenable -> mockLimit, default [])
 
       const { processPOSCheckout } = await import("../../../../lib/db/pos.server");
       const tables = await import("../../../../lib/db/schema");
@@ -511,10 +539,10 @@ describe("pos.server database functions", () => {
           },
         ],
         customerId: "cust-1",
-        payments: [{ method: "cash" as const, amount: 66 }], // Must match total including tax
+        payments: [{ method: "cash" as const, amount: 60 }], // tax=0
         subtotal: 60,
-        tax: 6,
-        total: 66,
+        tax: 0,
+        total: 60,
       };
 
       await processPOSCheckout(tables, "org-1", checkoutData);
@@ -524,10 +552,18 @@ describe("pos.server database functions", () => {
     });
 
     it("should handle split payment", async () => {
-      // Product price lookup query (new server-side validation)
-      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "100.00", salePrice: null, saleStartDate: null, saleEndDate: null }]);
+      // 1. Product price lookup (no .limit(), thenable -> mockLimit)
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "100.00", taxRate: null, salePrice: null, saleStartDate: null, saleEndDate: null }]);
+      // 2. Org settings .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ taxRate: "0" }]); // thenable (0% tax)
+      // 3. Receipt number (thenable -> mockLimit)
       mockLimit.mockResolvedValueOnce([{ count: 0 }]);
-      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]);
+      // 4. Transaction insert .returning()
+      mockReturning.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]); // thenable
+      // 5. Stock pre-validation (thenable -> mockLimit)
+      mockLimit.mockResolvedValueOnce([]);
 
       const { processPOSCheckout } = await import("../../../../lib/db/pos.server");
       const tables = await import("../../../../lib/db/schema");
@@ -544,17 +580,58 @@ describe("pos.server database functions", () => {
           },
         ],
         payments: [
-          { method: "cash" as const, amount: 55 }, // Split payment must total 110 with tax
-          { method: "card" as const, amount: 55, stripePaymentIntentId: "pi_123" },
+          { method: "cash" as const, amount: 50 }, // Split: 50 + 50 = 100
+          { method: "card" as const, amount: 50, stripePaymentIntentId: "pi_123" },
         ],
         subtotal: 100,
-        tax: 10,
-        total: 110,
+        tax: 0,
+        total: 100,
       };
 
       await processPOSCheckout(tables, "org-1", checkoutData);
 
       expect(dbMock.insert).toHaveBeenCalled();
+    });
+
+    it("should recalculate tax server-side ignoring client value (DS-6h11)", async () => {
+      // 1. Product price lookup
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "50.00", taxRate: "10", salePrice: null, saleStartDate: null, saleEndDate: null }]);
+      // 2. Org settings .limit(1) -> wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockLimit.mockResolvedValueOnce([{ taxRate: "8" }]); // thenable (8% org rate, but product has 10%)
+      // 3. Receipt number
+      mockLimit.mockResolvedValueOnce([{ count: 0 }]);
+      // 4. Transaction insert .returning()
+      mockReturning.mockResolvedValueOnce([]); // wrapper (ignored)
+      mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]); // thenable
+      // 5. Stock pre-validation
+      mockLimit.mockResolvedValueOnce([]);
+
+      const { processPOSCheckout } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      const checkoutData = {
+        items: [
+          {
+            type: "product" as const,
+            productId: "prod-1",
+            name: "Product 1",
+            quantity: 1,
+            unitPrice: 50,
+            total: 50,
+          },
+        ],
+        customerId: "cust-1",
+        payments: [{ method: "cash" as const, amount: 55 }], // 50 + 10% tax = 55
+        subtotal: 50,
+        tax: 0, // Client sends 0, but server should calculate 5 (10% of 50)
+        total: 50, // Client sends 50, but server should calculate 55
+      };
+
+      const result = await processPOSCheckout(tables, "org-1", checkoutData);
+
+      // Verify server overrode client tax with calculated value
+      expect(result.transaction.id).toBe("trans-1");
     });
   });
 

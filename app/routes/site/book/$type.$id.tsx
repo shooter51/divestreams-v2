@@ -556,6 +556,22 @@ export async function action({
     return { errors: { _form: "Organization not found" } };
   }
 
+  // Resolve logged-in customer session
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const actionCookies = Object.fromEntries(
+    cookieHeader
+      .split("; ")
+      .filter(Boolean)
+      .map((c) => {
+        const [key, ...rest] = c.split("=");
+        return [key, rest.join("=")];
+      })
+  );
+  const actionSessionToken = actionCookies["customer_session"];
+  const sessionCustomer = actionSessionToken
+    ? await getCustomerBySession(actionSessionToken)
+    : null;
+
   // Extract form data
   const sessionId = formData.get("sessionId") as string;
   const participants = parseInt(formData.get("participants") as string) || 1;
@@ -564,8 +580,22 @@ export async function action({
   const email = (formData.get("email") as string)?.toLowerCase().trim();
   const phone = (formData.get("phone") as string)?.trim() || null;
   const specialRequests = (formData.get("specialRequests") as string)?.trim();
-  const customerId = formData.get("customerId") as string;
+  const rawCustomerId = formData.get("customerId") as string;
   const selectedEquipment = formData.getAll("equipment") as string[];
+
+  // Verify customerId ownership: if a session exists, customerId must match the
+  // session's customer; if no session, reject any supplied customerId (guest
+  // checkout must provide name/email instead).
+  let customerId: string | null = null;
+  if (rawCustomerId) {
+    if (!sessionCustomer) {
+      return { errors: { _form: "You must be logged in to use a saved profile" } };
+    }
+    if (rawCustomerId !== sessionCustomer.id) {
+      return { errors: { _form: "Invalid customer" } };
+    }
+    customerId = rawCustomerId;
+  }
 
   // Validation
   const errors: Record<string, string> = {};

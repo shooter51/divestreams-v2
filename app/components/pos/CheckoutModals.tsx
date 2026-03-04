@@ -918,7 +918,7 @@ export function SplitModal({
           </button>
           <button
             onClick={() => onComplete(payments)}
-            disabled={Math.round(remaining * 100) > 0 || processingCard}
+            disabled={remaining > 0.005 || processingCard}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale

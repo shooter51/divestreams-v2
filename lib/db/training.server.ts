@@ -812,7 +812,12 @@ export async function createEnrollment(data: {
         enrolledCount: sql`${schema.trainingSessions.enrolledCount} + 1`,
         updatedAt: new Date(),
       })
-      .where(eq(schema.trainingSessions.id, data.sessionId));
+      .where(
+        and(
+          eq(schema.trainingSessions.id, data.sessionId),
+          eq(schema.trainingSessions.organizationId, data.organizationId)
+        )
+      );
 
     return enrollment;
   });
@@ -885,7 +890,12 @@ export async function deleteEnrollment(organizationId: string, enrollmentId: str
         enrolledCount: sql`GREATEST(${schema.trainingSessions.enrolledCount} - 1, 0)`,
         updatedAt: new Date(),
       })
-      .where(eq(schema.trainingSessions.id, enrollment.sessionId));
+      .where(
+        and(
+          eq(schema.trainingSessions.id, enrollment.sessionId),
+          eq(schema.trainingSessions.organizationId, organizationId)
+        )
+      );
   }
 }
 

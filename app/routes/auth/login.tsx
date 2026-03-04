@@ -223,6 +223,7 @@ export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
   const isSubmitting = navigation.state === "submitting";
 
   // Discovery mode: root domain with no tenant subdomain
@@ -338,6 +339,8 @@ export default function LoginPage() {
                   id="password"
                   name="password"
                   autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />

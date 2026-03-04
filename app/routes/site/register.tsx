@@ -623,7 +623,12 @@ export default function SiteRegisterPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    setClearedErrors((prev) => new Set(prev).add("password"));
+                    setClearedErrors((prev) => {
+                      const next = new Set(prev);
+                      next.add("password");
+                      next.add("confirmPassword");
+                      return next;
+                    });
                   }}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{

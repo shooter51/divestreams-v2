@@ -261,6 +261,7 @@ export default function SiteLoginPage() {
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
 
   const isSubmitting = navigation.state === "submitting";
   const organization = layoutData?.organization;
@@ -399,6 +400,8 @@ export default function SiteLoginPage() {
                   id="password"
                   name="password"
                   autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.password
