@@ -213,13 +213,15 @@ test.describe.serial("Block A: Navigation & List View", () => {
     await page.goto(getTenantUrl("/tenant"));
     await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
-    const toursLink = page.getByRole("link", { name: /tour/i }).first();
+    // Scope to sidebar nav to avoid matching trip/tour name links on the dashboard
+    const toursLink = page.locator('nav[aria-label="Main navigation"]').getByRole("link", { name: /tours/i }).first();
     if (await toursLink.isVisible().catch(() => false)) {
       await toursLink.click();
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForURL(/\/tours/, { timeout: 10000 }).catch(() => {});
       expect(page.url()).toContain("/tours");
     } else {
       await page.goto(getTenantUrl("/tenant/tours"));
+      await page.waitForLoadState("domcontentloaded");
       expect(page.url()).toContain("/tours");
     }
   });
