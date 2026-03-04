@@ -445,7 +445,8 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       expect(page.url()).toContain("/login");
       return;
     }
-    const hasForm = await page.locator("form").isVisible().catch(() => false);
+    // Use waitFor to handle SSR hydration delays; isVisible() is a one-shot check with no retry
+    const hasForm = await page.locator("form").waitFor({ state: "visible", timeout: 10000 }).then(() => true).catch(() => false);
     expect(hasForm).toBeTruthy();
   });
 
