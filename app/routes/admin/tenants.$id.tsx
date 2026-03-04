@@ -260,6 +260,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "removeMember") {
     const memberId = formData.get("memberId") as string;
     if (memberId) {
+      const [targetMember] = await db
+        .select({ role: member.role })
+        .from(member)
+        .where(and(eq(member.id, memberId), eq(member.organizationId, org.id)))
+        .limit(1);
+
+      if (!targetMember) {
+        return { error: "Member not found in this organization" };
+      }
+      if (targetMember.role === "owner") {
+        return { error: "Cannot remove the owner from the organization" };
+      }
+
       await db.delete(member).where(and(eq(member.id, memberId), eq(member.organizationId, org.id)));
       return { success: true };
     }
@@ -269,6 +282,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const memberId = formData.get("memberId") as string;
     const role = formData.get("role") as string;
     if (memberId && role) {
+      const [targetMember] = await db
+        .select({ role: member.role })
+        .from(member)
+        .where(and(eq(member.id, memberId), eq(member.organizationId, org.id)))
+        .limit(1);
+
+      if (!targetMember) {
+        return { error: "Member not found in this organization" };
+      }
+      if (targetMember.role === "owner") {
+        return { error: "Cannot change the role of an organization owner" };
+      }
+
       await db
         .update(member)
         .set({ role, updatedAt: new Date() })
