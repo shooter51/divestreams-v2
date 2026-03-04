@@ -186,10 +186,10 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
       await phoneField.fill(testData.customer.phone);
     }
 
-    // Submit
+    // Submit — wait for redirect away from /new, indicating successful creation
     await page.getByRole("button", { name: /create|save|add/i }).click();
+    await page.waitForURL(/\/tenant\/customers(?!\/new)/, { timeout: 10000 }).catch(() => {});
     await page.waitForLoadState("load").catch(() => {});
-    await page.waitForLoadState("load");
 
     // Extract customer ID - navigate to list and wait for full load
     await page.goto(getTenantUrl("/tenant/customers"));

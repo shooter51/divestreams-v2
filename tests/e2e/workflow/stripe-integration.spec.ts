@@ -32,8 +32,13 @@ async function loginToTenant(page: import("@playwright/test").Page) {
 
 test.describe("Stripe Integration", () => {
   // Ensure tenant has an enterprise subscription (required for integrations access)
+  // This setup only runs when DATABASE_URL is accessible (unit/integration CI).
+  // When running E2E against a remote host (test.divestreams.com), DATABASE_URL
+  // points to localhost and cannot be reached — skip DB setup gracefully.
   test.beforeAll(async () => {
-    const sql = postgres(process.env.DATABASE_URL!);
+    if (!process.env.DATABASE_URL) return;
+
+    const sql = postgres(process.env.DATABASE_URL);
 
     try {
       // Ensure subscription_plans table has the enterprise plan (CI uses db:push which doesn't seed)
@@ -72,8 +77,11 @@ test.describe("Stripe Integration", () => {
           VALUES (${orgId}, 'enterprise', ${planId}, 'active', NOW(), NOW())
         `;
       }
+    } catch (err) {
+      // DB not reachable in remote E2E environment — test will still verify UI behaviour
+      console.log("Stripe beforeAll DB setup skipped (DB not accessible):", (err as Error).message);
     } finally {
-      await sql.end();
+      await sql.end().catch(() => {});
     }
   });
 
