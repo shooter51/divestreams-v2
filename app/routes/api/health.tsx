@@ -1,4 +1,18 @@
-export async function loader() {
+import type { LoaderFunctionArgs } from "react-router";
+import { timingSafeEqual } from "crypto";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // If HEALTH_CHECK_KEY is set, require authentication
+  const healthCheckKey = process.env.HEALTH_CHECK_KEY;
+  if (healthCheckKey) {
+    const providedKey = request.headers.get("X-Health-Key") || "";
+    const expected = Buffer.from(healthCheckKey);
+    const provided = Buffer.from(providedKey);
+    if (expected.length !== provided.length || !timingSafeEqual(expected, provided)) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   let healthy = true;
 
   // Check database
