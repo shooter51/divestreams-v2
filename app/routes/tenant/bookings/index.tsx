@@ -7,7 +7,7 @@ import { eq, sql, count, and, gte, ne, lt } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
-import { formatTime, formatDisplayDate } from "../../../lib/format";
+import { formatTime, formatDisplayDate, formatCurrency } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -82,13 +82,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     trip: {
       id: b.tripId,
       tourName: b.tourName || "Unknown Tour",
-      date: b.tripDate ? (typeof b.tripDate === 'object' && 'toLocaleDateString' in b.tripDate ? (b.tripDate as Date).toLocaleDateString() : String(b.tripDate)) : "",
+      date: b.tripDate ? (typeof b.tripDate === 'object' && b.tripDate !== null && 'toISOString' in b.tripDate ? (b.tripDate as Date).toISOString().split("T")[0] : String(b.tripDate)) : "",
       startTime: b.tripTime || "",
     },
     participants: b.participants,
-    total: Number(b.total || 0).toFixed(2),
+    total: Number(b.total || 0),
     status: b.status,
-    paidAmount: Number(b.paidAmount || 0).toFixed(2),
+    paidAmount: Number(b.paidAmount || 0),
     createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "",
   }));
 
@@ -345,10 +345,10 @@ export default function BookingsPage() {
                   </td>
                   <td className="px-6 py-4">{booking.participants}</td>
                   <td className="px-6 py-4">
-                    <p className="font-medium">${booking.total}</p>
-                    {parseFloat(booking.paidAmount) < parseFloat(booking.total) && (
+                    <p className="font-medium">{formatCurrency(booking.total)}</p>
+                    {booking.paidAmount < booking.total && (
                       <p className="text-xs text-warning">
-                        ${booking.paidAmount} paid
+                        {formatCurrency(booking.paidAmount)} paid
                       </p>
                     )}
                   </td>

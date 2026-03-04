@@ -200,9 +200,9 @@ describe("tenant/bookings route", () => {
         customer: { id: "customer-1", firstName: "John", lastName: "Smith", email: "john@example.com" },
         trip: { id: "trip-1", tourName: "Morning Dive", startTime: "08:00" },
         participants: 2,
-        total: "150.00",
+        total: 150,
         status: "confirmed",
-        paidAmount: "150.00",
+        paidAmount: 150,
       });
     });
 

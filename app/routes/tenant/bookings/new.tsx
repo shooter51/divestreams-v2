@@ -6,6 +6,7 @@ import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, g
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { formatDisplayDate as sharedFormatDisplayDate, formatTime as sharedFormatTime } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
@@ -167,20 +168,11 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 function formatDisplayDate(d: string | null | undefined): string {
-  if (!d) return "";
-  return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return sharedFormatDisplayDate(d);
 }
 
 function formatTime(t: string | null | undefined): string {
-  if (!t) return "";
-  const [h, m] = t.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+  return sharedFormatTime(t);
 }
 
 export default function NewBookingPage() {
@@ -260,7 +252,7 @@ export default function NewBookingPage() {
                   {formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)} • ${selectedTrip.price}/person
                 </p>
                 <p className="text-sm text-success">
-                  {selectedTrip.spotsAvailable} spots available
+                  {selectedTrip.spotsAvailable !== null ? `${selectedTrip.spotsAvailable} spots available` : "Unlimited spots"}
                 </p>
               </div>
               <Link

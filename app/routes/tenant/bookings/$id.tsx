@@ -6,7 +6,7 @@ import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus,
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
-import { formatCurrency } from "../../../lib/format";
+import { formatCurrency, formatTime as sharedFormatTime, formatDisplayDate, formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 // Valid booking status transitions
@@ -163,15 +163,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 function formatTime(t: string | null | undefined): string {
   if (!t) return "TBD";
-  const [h, m] = t.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+  return sharedFormatTime(t) || "TBD";
 }
 
 function formatDate(d: string | null | undefined): string {
-  if (!d) return "";
-  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  return formatDisplayDate(d);
 }
 
 const sourceLabels: Record<string, string> = {
@@ -618,7 +614,7 @@ export default function BookingDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Source: {booking.source ? (sourceLabels[booking.source] || booking.source) : ""}</p>
+            <p>Source: {booking.source ? (sourceLabels[booking.source] || formatLabel(booking.source)) : ""}</p>
             <p>Updated: {formatDate(booking.updatedAt)}</p>
             <p>ID: {booking.id}</p>
           </div>
