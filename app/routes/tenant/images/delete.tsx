@@ -28,12 +28,18 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const { db, schema } = getTenantDb(ctx.org.slug);
+    const organizationId = ctx.org.id;
 
-    // Find the image
+    // Find the image (scoped to organization)
     const [image] = await db
       .select()
       .from(schema.images)
-      .where(eq(schema.images.id, imageId));
+      .where(
+        and(
+          eq(schema.images.organizationId, organizationId),
+          eq(schema.images.id, imageId)
+        )
+      );
 
     if (!image) {
       return Response.json({ error: "Image not found" }, { status: 404 });
@@ -68,8 +74,13 @@ export async function action({ request }: ActionFunctionArgs) {
       await deleteFromS3(thumbnailKey);
     }
 
-    // Delete from database
-    await db.delete(schema.images).where(eq(schema.images.id, imageId));
+    // Delete from database (scoped to organization)
+    await db.delete(schema.images).where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.id, imageId)
+      )
+    );
 
     // If this was the primary image, set a new primary
     if (image.isPrimary) {
@@ -78,6 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
         .from(schema.images)
         .where(
           and(
+            eq(schema.images.organizationId, organizationId),
             eq(schema.images.entityType, image.entityType),
             eq(schema.images.entityId, image.entityId)
           )
@@ -89,7 +101,12 @@ export async function action({ request }: ActionFunctionArgs) {
         await db
           .update(schema.images)
           .set({ isPrimary: true })
-          .where(eq(schema.images.id, nextImage.id));
+          .where(
+            and(
+              eq(schema.images.organizationId, organizationId),
+              eq(schema.images.id, nextImage.id)
+            )
+          );
       }
     }
 

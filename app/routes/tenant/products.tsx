@@ -666,14 +666,20 @@ export default function ProductsPage() {
     }
   }, [fetcherData]);
 
+  // Track last processed fetcher data to avoid re-processing stale responses
+  const lastProcessedData = useRef<typeof fetcherData>(undefined);
+
   // Close modal and show toast on successful create/update/delete
   useEffect(() => {
-    if (fetcherData?.success && fetcherData?.message) {
-      setShowForm(false);
-      setEditingProduct(null);
-      showToast(fetcherData.message, "success");
-    } else if (fetcherData?.error) {
-      showToast(fetcherData.error, "error");
+    if (fetcherData && fetcherData !== lastProcessedData.current) {
+      lastProcessedData.current = fetcherData;
+      if (fetcherData.success && fetcherData.message) {
+        setShowForm(false);
+        setEditingProduct(null);
+        showToast(fetcherData.message, "success");
+      } else if (fetcherData.error) {
+        showToast(fetcherData.error, "error");
+      }
     }
   }, [fetcherData, showToast]);
 

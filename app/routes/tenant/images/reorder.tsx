@@ -40,14 +40,16 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const { db, schema } = getTenantDb(ctx.org.slug);
+    const organizationId = ctx.org.id;
 
-    // Verify all images belong to this entity
+    // Verify all images belong to this entity and organization
     const imageIds = images.map((img) => img.id);
     const existingImages = await db
       .select({ id: schema.images.id })
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, entityType),
           eq(schema.images.entityId, entityId),
           inArray(schema.images.id, imageIds)
@@ -67,6 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .set({ isPrimary: false })
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, entityType),
           eq(schema.images.entityId, entityId)
         )
@@ -80,7 +83,12 @@ export async function action({ request }: ActionFunctionArgs) {
           sortOrder: img.sortOrder,
           isPrimary: img.isPrimary || false,
         })
-        .where(eq(schema.images.id, img.id));
+        .where(
+          and(
+            eq(schema.images.organizationId, organizationId),
+            eq(schema.images.id, img.id)
+          )
+        );
     }
 
     // Sync products.imageUrl when the primary image changes for a product
@@ -99,7 +107,7 @@ export async function action({ request }: ActionFunctionArgs) {
             .where(
               and(
                 eq(schema.products.id, entityId),
-                eq(schema.products.organizationId, ctx.org.id)
+                eq(schema.products.organizationId, organizationId)
               )
             );
         }

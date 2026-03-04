@@ -4,7 +4,7 @@
  * Create and manage discount codes that can be applied to bookings.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, redirect } from "react-router";
 import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
@@ -292,14 +292,20 @@ export default function DiscountsPage() {
     setDiscountStatuses(statusMap);
   }, [discountCodes]);
 
+  // Track last processed fetcher data to avoid re-processing stale responses
+  const lastProcessedData = useRef<typeof fetcherData>(undefined);
+
   // Close modal and show toast on successful create/update/delete
   useEffect(() => {
-    if (fetcherData?.success && fetcherData?.message) {
-      setShowForm(false);
-      setEditingDiscount(null);
-      showToast(fetcherData.message, "success");
-    } else if (fetcherData?.error) {
-      showToast(fetcherData.error, "error");
+    if (fetcherData && fetcherData !== lastProcessedData.current) {
+      lastProcessedData.current = fetcherData;
+      if (fetcherData.success && fetcherData.message) {
+        setShowForm(false);
+        setEditingDiscount(null);
+        showToast(fetcherData.message, "success");
+      } else if (fetcherData.error) {
+        showToast(fetcherData.error, "error");
+      }
     }
   }, [fetcherData, showToast]);
 

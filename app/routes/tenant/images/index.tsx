@@ -41,6 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .from(schema.images)
     .where(
       and(
+        eq(schema.images.organizationId, ctx.org.id),
         eq(schema.images.entityType, entityType),
         eq(schema.images.entityId, entityId)
       )
