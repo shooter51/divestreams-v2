@@ -452,12 +452,14 @@ export default function TourDetailPage() {
                   {tour.isActive ? "Deactivate Tour" : "Activate Tour"}
                 </button>
               </fetcher.Form>
-              <Link
-                to={`/tenant/tours/${tour.id}/duplicate`}
-                className="block w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
-              >
-                Duplicate Tour
-              </Link>
+              <fetcher.Form method="post" action={`/tenant/tours/${tour.id}/duplicate`}>
+                <button
+                  type="submit"
+                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
+                >
+                  Duplicate Tour
+                </button>
+              </fetcher.Form>
             </div>
           </div>
 
