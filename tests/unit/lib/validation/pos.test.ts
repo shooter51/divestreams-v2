@@ -540,6 +540,18 @@ describe("POS Validation Schemas", () => {
       const result = checkoutSchema.safeParse(data);
       expect(result.success).toBe(true);
     });
+
+    it("rejects negative tax (DS-ik26)", () => {
+      const data = {
+        items: [validProduct],
+        payments: [validCashPayment],
+        subtotal: 49.99,
+        tax: -5.00,
+        total: 44.99,
+      };
+      const result = checkoutSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
   });
 
   // ============================================================================
