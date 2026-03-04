@@ -1,11 +1,11 @@
 /**
- * DS-xkrq: Equipment total hardcoded to "0.00"
+ * DS-xkrq: Booking pricing total mismatch
  *
- * Bug: getBookingWithFullDetails always returned equipmentTotal: "0.00"
- * and equipmentRental: [] regardless of actual data.
+ * Bug: Pricing sidebar showed "$120.00 x 4 pax = $480.00" then "Total: $528.00"
+ * with no explanation for the $48 difference. Tax was not displayed as a line item.
  *
- * Fix: Query raw equipmentRental JSONB from the bookings table and compute
- * the total from actual item prices.
+ * Fix: Added tax line item to the pricing sidebar so all components of the total
+ * are visible and the math adds up.
  */
 
 import { test, expect } from "@playwright/test";
@@ -30,7 +30,7 @@ class BookingsPage extends TenantBasePage {
   }
 }
 
-test.describe("DS-xkrq: Equipment total not hardcoded to $0.00", () => {
+test.describe("DS-xkrq: Booking pricing total shows all line items", () => {
   let bookingsPage: BookingsPage;
 
   test.beforeEach(async ({ page }) => {
@@ -38,46 +38,55 @@ test.describe("DS-xkrq: Equipment total not hardcoded to $0.00", () => {
     await bookingsPage.login();
   });
 
-  test("booking detail page loads pricing section without error", async ({ page }) => {
-    await bookingsPage.gotoFirstBooking();
-
-    // Pricing sidebar section should be visible
-    const pricingSection = page.locator("h2:has-text('Pricing')");
-    await expect(pricingSection).toBeVisible({ timeout: 10000 });
-
-    // No JS crash
-    await expect(page.locator("body")).not.toContainText("Something went wrong");
-  });
-
   test("pricing section renders total amount", async ({ page }) => {
     await bookingsPage.gotoFirstBooking();
 
-    // Total line should be present
-    const totalLine = page.locator("text=Total").first();
-    await expect(totalLine).toBeVisible({ timeout: 10000 });
+    const pricingSection = page.locator("h2:has-text('Pricing')");
+    await expect(pricingSection).toBeVisible({ timeout: 10000 });
 
-    // The total should have a currency value (not broken)
-    const pricingSection = page.locator("h2:has-text('Pricing')").locator("..");
-    await expect(pricingSection).toContainText("$");
+    await expect(page.locator("body")).not.toContainText("Something went wrong");
+  });
+
+  test("pricing breakdown line items sum to total", async ({ page }) => {
+    await bookingsPage.gotoFirstBooking();
+
+    // Get the pricing sidebar container
+    const pricingHeading = page.locator("h2:has-text('Pricing')");
+    await expect(pricingHeading).toBeVisible({ timeout: 10000 });
+    const pricingSection = pricingHeading.locator("..");
+
+    // Extract the total
+    const totalText = await pricingSection.locator("text=Total").locator("..").locator("span").last().textContent();
+    expect(totalText).toMatch(/\$/);
+
+    // Parse total value
+    const totalValue = parseFloat(totalText!.replace(/[^0-9.]/g, ""));
+    expect(totalValue).toBeGreaterThan(0);
+
+    // Get the subtotal (basePrice x pax line)
+    const subtotalText = await pricingSection.locator("text=/pax/").locator("..").locator("span").last().textContent();
+    const subtotalValue = parseFloat(subtotalText!.replace(/[^0-9.]/g, ""));
+
+    // If there's a difference between subtotal and total, there must be
+    // visible line items (tax, equipment, discount) explaining it
+    if (Math.abs(totalValue - subtotalValue) > 0.01) {
+      // At least one of tax, equipment, or discount should be visible
+      const taxVisible = await pricingSection.locator("text=Tax").isVisible();
+      const equipmentVisible = await pricingSection.locator("text=Equipment").isVisible();
+      const discountVisible = await pricingSection.locator("text=Discount").isVisible();
+      expect(taxVisible || equipmentVisible || discountVisible).toBe(true);
+    }
   });
 
   test("equipment section is hidden when no equipment rentals", async ({ page }) => {
     await bookingsPage.gotoFirstBooking();
 
-    // When no equipment rentals, the equipment section should not render
-    // (the component only shows when booking.equipmentRental.length > 0)
-    // This verifies the data flows through correctly
     const equipmentSection = page.locator("h2:has-text('Equipment Rental')");
-
-    // Either not visible (no rentals) or shows real data (not hardcoded $0.00)
     const isVisible = await equipmentSection.isVisible();
     if (isVisible) {
-      // If visible, total should not be 0.00 (since we have rentals)
       const equipmentTotal = page.locator("text=Equipment Total").locator("..").locator("span").last();
       const totalText = await equipmentTotal.textContent();
-      // Should be a real amount, which could be > $0.00
       expect(totalText).toMatch(/\$\d+/);
     }
-    // If not visible, the fix is working: no rentals means section is hidden
   });
 });

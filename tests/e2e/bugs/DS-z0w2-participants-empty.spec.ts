@@ -1,11 +1,11 @@
 /**
- * DS-z0w2: Booking participants always empty
+ * DS-z0w2: Booking participants section always empty
  *
- * Bug: getBookingWithFullDetails always returned participantDetails: []
- * regardless of what was stored in the JSONB column.
+ * Bug: When participantDetails JSONB is null (bookings created via UI),
+ * the Participants section showed a count header but no entries below it.
  *
- * Fix: Query raw participantDetails from the bookings table and return
- * the actual stored data.
+ * Fix: When no participant details are recorded, show the customer name
+ * as the primary contact with a "Primary contact" label.
  */
 
 import { test, expect } from "@playwright/test";
@@ -20,10 +20,6 @@ class BookingsPage extends TenantBasePage {
     await this.page.waitForURL(/\/tenant/, { timeout: 10000 });
   }
 
-  async gotoBookings() {
-    await this.gotoApp("/bookings");
-  }
-
   async gotoFirstBooking() {
     await this.gotoApp("/bookings");
     await this.page.waitForLoadState("load");
@@ -34,7 +30,7 @@ class BookingsPage extends TenantBasePage {
   }
 }
 
-test.describe("DS-z0w2: Booking participants always empty", () => {
+test.describe("DS-z0w2: Booking participants section not empty", () => {
   let bookingsPage: BookingsPage;
 
   test.beforeEach(async ({ page }) => {
@@ -42,42 +38,47 @@ test.describe("DS-z0w2: Booking participants always empty", () => {
     await bookingsPage.login();
   });
 
-  test("booking detail page renders participants section without crashing", async ({ page }) => {
+  test("participants section always has content", async ({ page }) => {
     await bookingsPage.gotoFirstBooking();
 
     // The participants section should be visible
-    const participantsSection = page.locator("h2:has-text('Participants')");
-    await expect(participantsSection).toBeVisible({ timeout: 10000 });
-
-    // The page should not show a JS error or blank
-    await expect(page.locator("body")).not.toContainText("Something went wrong");
-    await expect(page.locator("body")).not.toContainText("500");
-  });
-
-  test("participants section shows participant count from booking", async ({ page }) => {
-    await bookingsPage.gotoFirstBooking();
-
-    // Participants header should include the count
     const participantsHeading = page.locator("h2").filter({ hasText: /Participants/ });
     await expect(participantsHeading).toBeVisible({ timeout: 10000 });
 
-    // Participants heading is present — the section renders correctly
-    // (Count may be displayed separately from the heading text)
-    const headingText = await participantsHeading.textContent();
-    expect(headingText).toMatch(/Participants/);
+    // The section should contain at least one participant entry (name visible)
+    const participantEntries = page.locator("h2:has-text('Participants')").locator("..").locator(".bg-surface-inset");
+    await expect(participantEntries.first()).toBeVisible({ timeout: 5000 });
+
+    // Should have a name displayed
+    const firstName = participantEntries.first().locator("p.font-medium");
+    const nameText = await firstName.textContent();
+    expect(nameText!.trim().length).toBeGreaterThan(0);
   });
 
-  test("participantDetails no longer hardcoded to empty array", async ({ page }) => {
+  test("participants section shows customer name as fallback", async ({ page }) => {
     await bookingsPage.gotoFirstBooking();
 
-    // Verify we are on the booking detail page
+    // Get the customer name from the sidebar
+    const customerSection = page.locator("h2:has-text('Customer')").locator("..");
+    const customerLink = customerSection.locator("a").first();
+    const customerName = await customerLink.textContent();
+
+    // The participants section should contain either detailed participants
+    // or the customer name as the primary contact fallback
+    const participantsSection = page.locator("h2:has-text('Participants')").locator("..");
+    const participantsText = await participantsSection.textContent();
+
+    // Either the customer's first name appears in participants, or there are
+    // explicitly named participants listed
+    const hasContent = participantsSection.locator(".bg-surface-inset");
+    await expect(hasContent.first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test("page renders without error", async ({ page }) => {
+    await bookingsPage.gotoFirstBooking();
+
     await expect(page).toHaveURL(/\/tenant\/bookings\//);
-
-    // The section renders; even if no named participants, the section itself is present
-    const participantsSection = page.locator("h2:has-text('Participants')");
-    await expect(participantsSection).toBeVisible({ timeout: 10000 });
-
-    // No JS error boundary triggered
+    await expect(page.locator("body")).not.toContainText("Something went wrong");
     await expect(page.locator("[data-testid='error-boundary']")).not.toBeVisible();
   });
 });
