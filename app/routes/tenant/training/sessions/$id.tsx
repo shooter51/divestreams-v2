@@ -115,6 +115,7 @@ const enrollmentStatusLabels: Record<string, string> = {
   in_progress: "In Progress",
   completed: "Completed",
   withdrawn: "Withdrawn",
+  dropped: "Dropped",
   failed: "Failed",
 };
 
@@ -404,7 +405,7 @@ export default function SessionDetailPage() {
                 </div>
                 <div>
                   <p className="text-foreground-muted">Duration</p>
-                  <p>{session.courseDurationDays ? `${session.courseDurationDays} days` : "Not specified"}</p>
+                  <p>{session.courseDurationDays ? `${session.courseDurationDays} ${session.courseDurationDays === 1 ? "day" : "days"}` : "Not specified"}</p>
                 </div>
                 <div>
                   <p className="text-foreground-muted">Instructor</p>
