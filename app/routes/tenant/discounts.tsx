@@ -402,12 +402,17 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3 text-center">
                         {discount.maxUses
                           ? `${discount.usedCount} / ${discount.maxUses}`
-                          : `${discount.usedCount} / \u221e`}
+                          : `${discount.usedCount} uses`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
                           {status.label}
                         </span>
+                        {status.label === "Not Yet Active" && discount.validFrom && (
+                          <p className="text-xs text-warning mt-1">
+                            Active from {new Date(discount.validFrom).toLocaleDateString()}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -494,7 +499,7 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3 text-center">
                         {discount.maxUses
                           ? `${discount.usedCount} / ${discount.maxUses}`
-                          : `${discount.usedCount} / \u221e`}
+                          : `${discount.usedCount} uses`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>

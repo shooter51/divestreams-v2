@@ -413,7 +413,7 @@ export default function SiteContactPage() {
           ) : (
             <Form method="post" className="space-y-6">
               {/* Honeypot field - hidden from users, bots will fill it */}
-              <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
+              <div style={{ position: "absolute", left: "-9999px", height: "0", overflow: "hidden" }} aria-hidden="true">
                 <label htmlFor="website" aria-hidden="true">Website</label>
                 <input
                   type="text"
@@ -717,7 +717,7 @@ export default function SiteContactPage() {
                 !contactInfo?.email &&
                 !contactInfo?.hours && (
                   <p className="opacity-75">
-                    Contact us using the form below.
+                    Send us a message using the contact form and we'll get back to you.
                   </p>
                 )}
             </div>
