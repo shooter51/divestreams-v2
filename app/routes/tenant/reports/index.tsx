@@ -698,14 +698,14 @@ export default function ReportsPage() {
         {/* Revenue Chart - Premium Feature */}
         <PremiumGate feature="Advanced Revenue Charts" isPremium={isPremium}>
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Revenue Trend (Last 30 Days)</h2>
+            <h2 className="font-semibold mb-4">Revenue Trend ({periodLabel})</h2>
             {revenueData.length > 0 ? (
               <div className="h-48">
-                <div className="flex items-end justify-between h-full gap-1">
+                <div className="flex justify-between h-full gap-1">
                   {revenueData.map((data) => (
                     <div
                       key={data.period}
-                      className="flex-1 flex flex-col items-center group relative"
+                      className="flex-1 flex flex-col justify-end h-full group relative"
                     >
                       <div
                         className="w-full bg-brand rounded-t transition-all hover:bg-brand"
