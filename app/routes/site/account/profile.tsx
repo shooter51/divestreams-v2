@@ -15,6 +15,7 @@ import { customers, customerCredentials } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { getCustomerBySession, logoutCustomer } from "../../../../lib/auth/customer-auth.server";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../../lib/security/csrf.server";
 import { redirect } from "react-router";
 
 // ============================================================================
@@ -29,6 +30,7 @@ interface ProfileLoaderData {
     email: string;
     phone: string | null;
   };
+  csrfToken: string;
 }
 
 interface ActionData {
@@ -71,6 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<ProfileLo
       email: customer.email,
       phone: customer.phone,
     },
+    csrfToken: generateAnonCsrfToken(),
   };
 }
 
@@ -101,6 +104,12 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   const formData = await request.formData();
   const intent = formData.get("intent");
+
+  // CSRF validation (DS-30f)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (!validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid CSRF token. Please refresh the page and try again.", type: "profile" as const };
+  }
 
   // Handle logout
   if (intent === "logout") {
@@ -207,7 +216,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 // ============================================================================
 
 export default function AccountProfile() {
-  const { customer } = useLoaderData<typeof loader>();
+  const { customer, csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
 
@@ -248,6 +257,7 @@ export default function AccountProfile() {
 
         <Form method="post" className="space-y-5">
           <input type="hidden" name="intent" value="update-profile" />
+          <input type="hidden" name="_csrf" value={csrfToken || ""} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -382,6 +392,7 @@ export default function AccountProfile() {
 
         <Form method="post" className="space-y-5">
           <input type="hidden" name="intent" value="change-password" />
+          <input type="hidden" name="_csrf" value={csrfToken || ""} />
 
           <div>
             <label
@@ -430,7 +441,7 @@ export default function AccountProfile() {
               <p className="mt-1 text-sm text-danger">{actionData.error}</p>
             )}
             <p className="mt-1.5 text-xs opacity-60">
-              Must be at least 8 characters
+              Must be at least 8 characters with uppercase, lowercase, and a number
             </p>
           </div>
 
@@ -486,6 +497,7 @@ export default function AccountProfile() {
         </p>
         <Form method="post">
           <input type="hidden" name="intent" value="logout" />
+          <input type="hidden" name="_csrf" value={csrfToken || ""} />
           <button
             type="submit"
             disabled={isSubmitting}

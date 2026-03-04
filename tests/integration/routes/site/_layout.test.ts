@@ -40,6 +40,10 @@ vi.mock("../../../../lib/auth/customer-auth.server", () => ({
   getCustomerBySession: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("mock-csrf-token"),
+}));
+
 import { db } from "../../../../lib/db";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";

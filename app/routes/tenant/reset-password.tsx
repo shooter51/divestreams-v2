@@ -2,9 +2,6 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react
 import { Form, Link, useActionData, useNavigation, useSearchParams, useLoaderData, redirect } from "react-router";
 import { useState } from "react";
 import { auth } from "../../../lib/auth";
-import { db } from "../../../lib/db";
-import { verification } from "../../../lib/db/schema/auth";
-import { eq } from "drizzle-orm";
 
 // Email validation regex
 
@@ -34,24 +31,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect("/tenant");
   }
 
-  // Try to get the email from verification table using the token
-  // Better Auth stores the email in the identifier field
-  let email = "";
-  try {
-    const [verificationRecord] = await db
-      .select({ identifier: verification.identifier })
-      .from(verification)
-      .where(eq(verification.value, token))
-      .limit(1);
-
-    if (verificationRecord) {
-      email = verificationRecord.identifier;
-    }
-  } catch (error) {
-    console.error("Error looking up verification token:", error);
-  }
-
-  return { hasToken: true, email };
+  // DS-ch0: Do NOT expose email in loader to prevent cross-tenant email disclosure
+  return { hasToken: true };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -153,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ResetPasswordPage() {
-  const { email: loaderEmail } = useLoaderData<typeof loader>();
+  const _loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -163,7 +144,6 @@ export default function ResetPasswordPage() {
 
   const isSubmitting = navigation.state === "submitting";
   const token = searchParams.get("token") || "";
-  const email = loaderEmail || "";
   const errors = actionData?.errors ?? {};
 
   // Password strength indicators
@@ -241,8 +221,6 @@ export default function ResetPasswordPage() {
 
           <Form method="post" className="space-y-6">
             <input type="hidden" name="token" value={token} />
-            <input type="hidden" name="email" value={email} />
-
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground">

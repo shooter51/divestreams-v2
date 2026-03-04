@@ -6,6 +6,7 @@
  */
 
 import { desc, eq, gte, and, sql } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 import { db, type DbTransaction } from "../index";
 import * as schema from "../schema";
 import { dbLogger } from "../../logger";
@@ -20,9 +21,22 @@ import { getTripById } from "./trips.server";
 // ============================================================================
 
 /**
+ * Generate a random 4-character alphanumeric suffix for booking numbers.
+ * Uses characters that avoid ambiguity (no O/0, I/1, L).
+ */
+function generateBookingSuffix(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(4);
+  return Array.from(bytes)
+    .map((b) => chars[b % chars.length])
+    .join("");
+}
+
+/**
  * Generate the next sequential booking number for an organization.
- * Format: BK-NNNN (e.g. BK-1000, BK-1001, ...)
+ * Format: BK-NNNN-XXXX (e.g. BK-1000-A3KP, BK-1001-R7TZ)
  * Starts at BK-1000 if no prior bookings exist.
+ * DS-45x1: Random suffix prevents prediction/enumeration.
  * Accepts an optional transaction (tx) so it can be called inside transactions.
  */
 export async function getNextBookingNumber(
@@ -35,22 +49,23 @@ export async function getNextBookingNumber(
     .where(
       and(
         eq(schema.bookings.organizationId, organizationId),
-        sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+$'`
+        sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+'`
       )
     )
-    .orderBy(sql`CAST(SUBSTRING(${schema.bookings.bookingNumber} FROM 4) AS INTEGER) DESC`)
+    .orderBy(sql`CAST(SUBSTRING(${schema.bookings.bookingNumber} FROM 4 FOR (POSITION('-' IN SUBSTRING(${schema.bookings.bookingNumber} FROM 4)) - 1)) AS INTEGER) DESC`)
     .limit(1);
 
   if (!Array.isArray(result) || result.length === 0) {
-    return "BK-1000";
+    return `BK-1000-${generateBookingSuffix()}`;
   }
 
-  const match = result[0].bookingNumber?.match(/^BK-(\d+)$/);
+  const match = result[0].bookingNumber?.match(/^BK-(\d+)/);
   if (!match) {
-    return "BK-1000";
+    return `BK-1000-${generateBookingSuffix()}`;
   }
 
-  return `BK-${parseInt(match[1], 10) + 1}`;
+  const nextNum = parseInt(match[1], 10) + 1;
+  return `BK-${nextNum}-${generateBookingSuffix()}`;
 }
 
 // ============================================================================
