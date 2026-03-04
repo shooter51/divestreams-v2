@@ -426,27 +426,42 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
 
   test("[KAN-346] C.2 Edit tour form loads with existing data", async ({ page }) => {
     await loginToTenant(page);
-    const tourId = testData.createdIds.tour;
-    if (!tourId) {
-      await page.goto(getTenantUrl("/tenant/tours"));
-      await page.waitForLoadState("load");
-      const authenticated = await isAuthenticated(page);
-      if (!authenticated) {
-        expect(page.url()).toContain("/login");
-        return;
-      }
-      expect(page.url()).toContain("/tours");
-      return;
-    }
-    await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
+
+    // Navigate to tours list first — handles cross-shard case where testData.createdIds.tour
+    // may not be set (each shard runs in a separate Node.js process with fresh module state)
+    await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForLoadState("load");
     const authenticated = await isAuthenticated(page);
     if (!authenticated) {
       expect(page.url()).toContain("/login");
       return;
     }
-    // Use waitFor to handle SSR hydration delays; isVisible() is a one-shot check with no retry
-    const hasForm = await page.locator("form").waitFor({ state: "visible", timeout: 10000 }).then(() => true).catch(() => false);
+
+    // Prefer tour ID from the current test run; fall back to any tour visible in the list
+    let tourId = testData.createdIds.tour;
+    if (!tourId) {
+      const anyTourLink = page.locator('a[href*="/tenant/tours/"]').first();
+      if (await anyTourLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+        const href = await anyTourLink.getAttribute("href") ?? "";
+        const match = href.match(/\/tenant\/tours\/([a-f0-9-]{36})/i);
+        if (match) tourId = match[1];
+      }
+    }
+
+    if (!tourId) {
+      // No tour available to edit — skip gracefully
+      expect(page.url()).toContain("/tours");
+      return;
+    }
+
+    await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
+    await page.waitForLoadState("load");
+    if (!(await isAuthenticated(page))) {
+      expect(page.url()).toContain("/login");
+      return;
+    }
+    // Check for the name input — specific to the tour edit form (vs a generic form element)
+    const hasForm = await page.locator('input[name="name"]').waitFor({ state: "visible", timeout: 10000 }).then(() => true).catch(() => false);
     expect(hasForm).toBeTruthy();
   });
 
