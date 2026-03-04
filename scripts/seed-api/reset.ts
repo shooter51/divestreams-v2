@@ -6,9 +6,11 @@ export async function resetDemoData(
 ): Promise<void> {
   console.log("🗑️  Resetting demo data...");
 
-  const url = `${client.baseUrl}/api/seed/reset?tenant=demo&key=${encodeURIComponent(seedKey)}`;
+  const url = `${client.baseUrl}/api/seed/reset`;
   const response = await fetch(url, {
     method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: seedKey, tenant: "demo" }),
   });
 
   if (response.status === 404) {
