@@ -15,6 +15,7 @@ import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours, equipment } from "../../../../lib/db/schema";
 import { eq, gte, and, sql, count, lte, desc } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+import { pluralize } from "../../../lib/format";
 import { useState, useRef, useEffect } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Reports - DiveStreams" }];
@@ -411,8 +412,8 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
@@ -717,7 +718,7 @@ export default function ReportsPage() {
                       <div className="absolute bottom-full mb-2 hidden group-hover:block bg-surface text-foreground border border-border text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
                         <div>{data.period}</div>
                         <div>{formatCurrency(data.revenue)}</div>
-                        <div>{data.bookings} {data.bookings === 1 ? "booking" : "bookings"}</div>
+                        <div>{pluralize(Number(data.bookings), "booking")}</div>
                       </div>
                     </div>
                   ))}
@@ -749,7 +750,7 @@ export default function ReportsPage() {
                     <div key={status.status}>
                       <div className="flex justify-between items-center mb-1">
                         <span className={`text-sm font-medium ${colors.text}`}>
-                          {bookingStatusLabels[status.status] || status.status.replace(/_/g, " ")}
+                          {bookingStatusLabels[status.status] || status.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                         </span>
                         <span className="text-sm text-foreground-muted">
                           {status.count} ({percentage}%)
@@ -802,7 +803,7 @@ export default function ReportsPage() {
                       </span>
                       <div>
                         <p className="font-medium">{tour.name}</p>
-                        <p className="text-sm text-foreground-muted">{tour.bookings} {tour.bookings === 1 ? "booking" : "bookings"}</p>
+                        <p className="text-sm text-foreground-muted">{pluralize(Number(tour.bookings), "booking")}</p>
                       </div>
                     </div>
                     <p className="font-semibold text-success">{formatCurrency(tour.revenue)}</p>
@@ -881,7 +882,7 @@ export default function ReportsPage() {
 
                     return (
                       <tr key={category.category} className="border-b last:border-0">
-                        <td className="py-3 font-medium">{equipmentCategoryLabels[category.category] || (category.category.charAt(0).toUpperCase() + category.category.slice(1))}</td>
+                        <td className="py-3 font-medium">{equipmentCategoryLabels[category.category] || category.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</td>
                         <td className="py-3 text-center">{category.total}</td>
                         <td className="py-3 text-center text-success">{category.available}</td>
                         <td className="py-3 text-center text-brand">{category.rented}</td>

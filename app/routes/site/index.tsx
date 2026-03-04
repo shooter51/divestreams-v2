@@ -54,6 +54,14 @@ interface HomeLoaderData {
 // Loader
 // ============================================================================
 
+function formatTripTime(t: string | null): string {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoaderData> {
   // Get organization ID from URL (subdomain or custom domain resolution)
   // We need to re-do resolution here since we can't import from parent
@@ -253,7 +261,7 @@ function TripCard({
           >
             {formattedPrice}
           </span>
-          <span className="text-sm opacity-60">{trip.startTime}</span>
+          <span className="text-sm opacity-60">{formatTripTime(trip.startTime)}</span>
         </div>
       </div>
     </Link>
