@@ -332,7 +332,8 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
     if (hasTripLinks) {
       await tripLink.click();
-      await page.waitForLoadState("load");
+      // Use waitForURL for SPA navigation (waitForLoadState("load") doesn't detect client-side route changes)
+      await page.waitForURL(/\/site\/trips\/[\w-]+/i, { timeout: 8000 }).catch(() => {});
       expect(page.url()).toMatch(/\/site\/trips\/[\w-]+/i);
     } else {
       // No trips available - test a random ID to ensure 404 handling
