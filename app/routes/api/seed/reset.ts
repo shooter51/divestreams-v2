@@ -1,4 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
+import { timingSafeEqual } from "crypto";
 import { db } from "../../../../lib/db";
 import { eq } from "drizzle-orm";
 import {
@@ -31,6 +32,20 @@ async function deleteAndCount(
   return rows.length;
 }
 
+/**
+ * Timing-safe string comparison to prevent timing attacks on key validation.
+ */
+function safeKeyCompare(provided: string, expected: string): boolean {
+  const expectedBuf = Buffer.from(expected);
+  const providedBuf = Buffer.from(provided);
+  if (expectedBuf.length !== providedBuf.length) {
+    // Compare against expected to keep constant time even on length mismatch
+    timingSafeEqual(expectedBuf, expectedBuf);
+    return false;
+  }
+  return timingSafeEqual(providedBuf, expectedBuf);
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "DELETE") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -41,11 +56,19 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json({ error: "Seed endpoint not enabled" }, { status: 403 });
   }
 
-  const url = new URL(request.url);
-  const key = url.searchParams.get("key");
-  const tenant = url.searchParams.get("tenant") || "demo";
+  // Read key and tenant from request body (not query string) to prevent
+  // leaking the key via server logs, browser history, and Referer headers
+  let key: string | null = null;
+  let tenant = "demo";
+  try {
+    const body = await request.json();
+    key = body.key || null;
+    tenant = body.tenant || "demo";
+  } catch {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
 
-  if (key !== seedKey) {
+  if (!key || !safeKeyCompare(key, seedKey)) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
