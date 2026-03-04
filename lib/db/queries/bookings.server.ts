@@ -303,6 +303,7 @@ export async function getBookingWithFullDetails(organizationId: string, id: stri
       participants: booking.participants,
       subtotal: booking.subtotal.toFixed(2),
       equipmentTotal: equipmentTotal.toFixed(2),
+      tax: booking.tax.toFixed(2),
       discount: booking.discount.toFixed(2),
       total: booking.total.toFixed(2),
     },

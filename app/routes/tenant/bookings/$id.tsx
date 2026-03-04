@@ -405,20 +405,30 @@ export default function BookingDetailPage() {
               Participants ({booking.participants})
             </h2>
             <div className="space-y-3">
-              {(Array.isArray(booking.participantDetails) ? booking.participantDetails : []).map((p: { name: string; certLevel?: string }, i: number) => (
-                <div
-                  key={i}
-                  className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{p.name}</p>
-                    {p.certLevel && (
-                      <p className="text-sm text-foreground-muted">{p.certLevel}</p>
-                    )}
+              {Array.isArray(booking.participantDetails) && booking.participantDetails.length > 0 ? (
+                booking.participantDetails.map((p: { name: string; certLevel?: string }, i: number) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">{p.name}</p>
+                      {p.certLevel && (
+                        <p className="text-sm text-foreground-muted">{p.certLevel}</p>
+                      )}
+                    </div>
+                    <span className="text-sm text-foreground-subtle">#{i + 1}</span>
                   </div>
-                  <span className="text-sm text-foreground-subtle">#{i + 1}</span>
+                ))
+              ) : (
+                <div className="flex justify-between items-center p-3 bg-surface-inset rounded-lg">
+                  <div>
+                    <p className="font-medium">{booking.customer.firstName} {booking.customer.lastName}</p>
+                    <p className="text-sm text-foreground-muted">Primary contact</p>
+                  </div>
+                  <span className="text-sm text-foreground-subtle">#1</span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -534,6 +544,12 @@ export default function BookingDetailPage() {
                 <div className="flex justify-between">
                   <span>Equipment</span>
                   <span>{formatCurrency(booking.pricing.equipmentTotal)}</span>
+                </div>
+              )}
+              {parseFloat(booking.pricing.tax) > 0 && (
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>{formatCurrency(booking.pricing.tax)}</span>
                 </div>
               )}
               {parseFloat(booking.pricing.discount) > 0 && (
