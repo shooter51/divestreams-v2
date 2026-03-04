@@ -12,6 +12,7 @@ import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { eq, and, desc } from "drizzle-orm";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Manage Rentals - DiveStreams" }];
@@ -355,7 +356,7 @@ export default function RentalsPage() {
                           : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
-                      {rentalStatusLabels[rental.status] || rental.status}
+                      {rentalStatusLabels[rental.status] || formatLabel(rental.status)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">

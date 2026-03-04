@@ -41,8 +41,15 @@ vi.mock("bcryptjs", () => ({
   },
 }));
 
+vi.mock("../../../../../lib/security/csrf.server", () => ({
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  generateAnonCsrfToken: vi.fn().mockReturnValue("mock-csrf-token"),
+  CSRF_FIELD_NAME: "_csrf",
+}));
+
 import { db } from "../../../../../lib/db";
 import { getCustomerBySession, logoutCustomer } from "../../../../../lib/auth/customer-auth.server";
+import { validateAnonCsrfToken } from "../../../../../lib/security/csrf.server";
 import { loader, action } from "../../../../../app/routes/site/account/profile";
 
 describe("site/account/profile route", () => {
@@ -58,6 +65,7 @@ describe("site/account/profile route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getCustomerBySession as Mock).mockResolvedValue(mockCustomer);
+    (validateAnonCsrfToken as Mock).mockReturnValue(true);
   });
 
   describe("loader", () => {
@@ -280,6 +288,29 @@ describe("site/account/profile route", () => {
       } as Parameters<typeof action>[0]);
 
       expect((result as unknown).error).toBe("Not authenticated");
+    });
+
+    it("DS-30f: rejects action when CSRF token is invalid", async () => {
+      (validateAnonCsrfToken as Mock).mockReturnValue(false);
+
+      const formData = new FormData();
+      formData.set("intent", "update-profile");
+      formData.set("firstName", "Jane");
+      formData.set("lastName", "Smith");
+
+      const request = new Request("https://demo.divestreams.com/site/account/profile", {
+        method: "POST",
+        body: formData,
+      });
+      request.headers.append("Cookie", "customer_session=valid-token");
+
+      const result = await action({
+        request,
+        params: {},
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      expect((result as unknown).error).toContain("CSRF");
     });
   });
 });

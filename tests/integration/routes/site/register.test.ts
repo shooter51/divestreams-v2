@@ -37,8 +37,15 @@ vi.mock("../../../../lib/utils/rate-limit", () => ({
   getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
 }));
 
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  generateAnonCsrfToken: vi.fn().mockReturnValue("mock-csrf-token"),
+  CSRF_FIELD_NAME: "_csrf",
+}));
+
 import { db } from "../../../../lib/db";
 import { registerCustomer, loginCustomer } from "../../../../lib/auth/customer-auth.server";
+import { validateAnonCsrfToken } from "../../../../lib/security/csrf.server";
 import { action } from "../../../../app/routes/site/register";
 
 describe("site/register route", () => {
@@ -47,6 +54,7 @@ describe("site/register route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (db.limit as Mock).mockResolvedValue([mockOrg]);
+    (validateAnonCsrfToken as Mock).mockReturnValue(true);
   });
 
   function createFormData(fields: Record<string, string>) {
@@ -233,7 +241,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.email).toContain("already registered");
+      expect((result as unknown).errors?.email).toContain("Unable to create account");
     });
 
     it("handles generic registration errors", async () => {
@@ -297,6 +305,35 @@ describe("site/register route", () => {
           expect(error.headers.get("Location")).toBe("/site/login?registered=true");
         }
       }
+    });
+
+    it("DS-53ow: does not reveal email enumeration on duplicate registration", async () => {
+      (registerCustomer as Mock).mockRejectedValue(new Error("Email already registered"));
+
+      const formData = createFormData(validFields);
+      const result = await action({
+        request: createRequest(formData),
+        params: {},
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      const emailError = (result as unknown).errors?.email || "";
+      // Must not contain revealing phrases
+      expect(emailError).not.toContain("already registered");
+      expect(emailError).not.toContain("sign in");
+    });
+
+    it("DS-30f: rejects action when CSRF token is invalid", async () => {
+      (validateAnonCsrfToken as Mock).mockReturnValue(false);
+
+      const formData = createFormData(validFields);
+      const result = await action({
+        request: createRequest(formData),
+        params: {},
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      expect((result as unknown).error).toContain("CSRF");
     });
   });
 });

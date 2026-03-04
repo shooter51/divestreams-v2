@@ -4,6 +4,7 @@ import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-conte
 import { getSessionById, createEnrollment, getSessions } from "../../../../../lib/db/training.server";
 import { getCustomers } from "../../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { formatTime } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
@@ -182,7 +183,7 @@ export default function NewEnrollmentPage() {
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.courseName} - {new Date(s.startDate).toLocaleDateString()}
-                  {s.startTime ? ` at ${s.startTime}` : ""}
+                  {s.startTime ? ` at ${formatTime(s.startTime)}` : ""}
                   {" "}({s.enrolledCount || 0}/{s.maxStudents || "∞"} enrolled)
                 </option>
               ))}

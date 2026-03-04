@@ -10,6 +10,7 @@ import { Form, Link, useActionData, useNavigation, useRouteLoaderData, redirect 
 import type { ActionFunctionArgs } from "react-router";
 import { registerCustomer, loginCustomer } from "../../../lib/auth/customer-auth.server";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -181,6 +182,13 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   }
 
   const formData = await request.formData();
+
+  // CSRF validation (DS-30f)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (!validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid CSRF token. Please refresh the page and try again." };
+  }
+
   const url = new URL(request.url);
 
   // Extract organization ID from the URL host
@@ -343,7 +351,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       if (error.message === "Email already registered") {
         return {
           success: false,
-          errors: { email: "This email is already registered. Please sign in instead." },
+          errors: { email: "Unable to create account with this email. Please try a different email or contact support." },
         };
       }
       return { success: false, error: error.message };
@@ -445,6 +453,7 @@ export default function SiteRegisterPage() {
           }}
         >
           <Form method="post" className="space-y-5">
+            <input type="hidden" name="_csrf" value={loaderData?.csrfToken || ""} />
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-4">
               {/* First Name */}

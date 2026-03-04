@@ -3,6 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getEnrollments, getSessions } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
+import { formatCurrency } from "../../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Enrollments - DiveStreams" }];
 
@@ -320,7 +321,7 @@ export default function EnrollmentsPage() {
                       {paymentStatusLabels[enrollment.paymentStatus || "pending"] || enrollment.paymentStatus || "Pending"}
                     </span>
                     <p className="text-xs text-foreground-muted mt-1">
-                      ${enrollment.amountPaid}
+                      {formatCurrency(enrollment.amountPaid)}
                     </p>
                   </td>
                   <td className="px-6 py-4">

@@ -256,7 +256,8 @@ describe("Tenant Reset Password Route", () => {
       const result = await tenantResetLoader(makeArgs(request));
 
       expect((result as unknown).hasToken).toBe(true);
-      expect((result as unknown).email).toBe("user@example.com");
+      // DS-ch0: email must NOT be exposed to prevent cross-tenant disclosure
+      expect(result).not.toHaveProperty("email");
     });
 
     it("redirects when already logged in with token", async () => {

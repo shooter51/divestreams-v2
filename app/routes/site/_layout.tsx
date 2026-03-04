@@ -15,6 +15,7 @@ import type { Customer } from "../../../lib/db/schema";
 import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/themes/public-site-themes";
 import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { generateAnonCsrfToken } from "../../../lib/security/csrf.server";
 
 // ============================================================================
 // FONT FAMILIES
@@ -57,6 +58,7 @@ export interface SiteLoaderData {
   };
   contactInfo: PublicSiteSettings["contactInfo"];
   customer: Customer | null;
+  csrfToken: string;
 }
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoaderData> {
@@ -160,6 +162,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     enabledPages: settings.pages,
     contactInfo: settings.contactInfo,
     customer,
+    csrfToken: generateAnonCsrfToken(),
   };
 }
 

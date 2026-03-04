@@ -567,7 +567,7 @@ describe("tenant/settings/team route", () => {
 
         const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result).toEqual({ error: "This email already has a pending invitation. See the Pending Invitations section below to resend or cancel it." });
+        expect(result.error).toMatch(/pending@example\.com.*already pending|already pending.*pending@example\.com/i);
         expect(db.insert).not.toHaveBeenCalled();
       });
     });
