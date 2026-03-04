@@ -451,7 +451,7 @@ export default function BillingPage() {
                     : "bg-warning-muted text-warning"
                 }`}
               >
-                {subscriptionStatusLabels[billing.subscriptionStatus] || billing.subscriptionStatus}
+                {subscriptionStatusLabels[billing.subscriptionStatus] || billing.subscriptionStatus.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </span>
             </div>
             <p className="text-foreground-muted mt-1">
@@ -482,7 +482,7 @@ export default function BillingPage() {
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-foreground-muted">Bookings</span>
                 <span>
-                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit === Infinity || billing.usage.bookingsLimit === -1 ? "Unlimited" : billing.usage.bookingsLimit}
+                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit == null || billing.usage.bookingsLimit === Infinity || billing.usage.bookingsLimit === -1 ? "Unlimited" : billing.usage.bookingsLimit}
                 </span>
               </div>
               <div className="w-full bg-surface-overlay rounded-full h-2">
@@ -507,7 +507,7 @@ export default function BillingPage() {
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-foreground-muted">Team Members</span>
                 <span>
-                  {billing.usage.teamMembers} / {billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1 ? "Unlimited" : billing.usage.teamLimit}
+                  {billing.usage.teamMembers} / {billing.usage.teamLimit == null || billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1 ? "Unlimited" : billing.usage.teamLimit}
                 </span>
               </div>
               <div className="w-full bg-surface-overlay rounded-full h-2">
@@ -515,14 +515,14 @@ export default function BillingPage() {
                   className="h-2 rounded-full bg-brand"
                   style={{
                     width: `${
-                      billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1
+                      billing.usage.teamLimit == null || billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1
                         ? 0
                         : Math.min((billing.usage.teamMembers / billing.usage.teamLimit) * 100, 100)
                     }%`,
                   }}
                 />
               </div>
-              {(billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1) && (
+              {(billing.usage.teamLimit == null || billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1) && (
                 <p className="text-xs text-success mt-1">Unlimited</p>
               )}
             </div>
@@ -557,8 +557,9 @@ export default function BillingPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Yearly{" "}
-              <span className="ml-1 text-xs text-success font-semibold">
+              Yearly
+              {" · "}
+              <span className="text-xs text-success font-semibold">
                 Save {plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20}%
               </span>
             </button>
@@ -787,7 +788,7 @@ export default function BillingPage() {
           <h2 className="font-semibold mb-2 text-warning">Subscription Canceled</h2>
           <p className="text-warning text-sm mb-4">
             Your subscription has been canceled. You will retain access until{" "}
-            {billing.nextBillingDate}. After that, your account will be deactivated.
+            {new Date(billing.nextBillingDate + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}. After that, your account will be deactivated.
           </p>
           <p className="text-warning text-sm">
             To reactivate your subscription, please select a plan above.
