@@ -18,6 +18,8 @@ describe("KAN-637: Site layout auth header state", () => {
   let testSessionToken: string;
 
   beforeAll(async () => {
+    // CSRF module requires AUTH_SECRET to generate tokens
+    process.env.AUTH_SECRET = process.env.AUTH_SECRET || "test-secret-for-integration-tests";
     // Create a test organization with UUID
     const orgId = randomUUID();
     const uniqueSlug = `kan637test-${Date.now()}`;
