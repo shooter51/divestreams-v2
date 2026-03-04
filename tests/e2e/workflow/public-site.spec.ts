@@ -472,7 +472,8 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
     // Submit
     await page.getByRole("button", { name: /create account|register|sign up/i }).click();
-    await page.waitForLoadState("load").catch(() => {});
+    // Use waitForURL for SPA navigation (waitForLoadState("load") doesn't detect client-side route changes)
+    await page.waitForURL(/\/site\/(account|login)/, { timeout: 8000 }).catch(() => {});
 
     // Should redirect to account or show success
     const redirectedToAccount = page.url().includes("/account");
