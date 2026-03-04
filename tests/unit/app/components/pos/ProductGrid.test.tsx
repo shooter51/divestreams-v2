@@ -189,8 +189,8 @@ describe("ProductGrid", () => {
       const fins = makeProduct({ id: "prod-002", name: "Fins", category: "fins" });
       render(<ProductGrid {...baseProps} tab="retail" products={[defaultProduct, fins]} />);
       expect(screen.getByText("All")).toBeInTheDocument();
-      expect(screen.getByText("masks")).toBeInTheDocument();
-      expect(screen.getByText("fins")).toBeInTheDocument();
+      expect(screen.getByText("Masks")).toBeInTheDocument();
+      expect(screen.getByText("Fins")).toBeInTheDocument();
     });
 
     it("calls onSelectCategory(null) when 'All' pill is clicked", () => {
@@ -217,7 +217,7 @@ describe("ProductGrid", () => {
           onSelectCategory={onSelectCategory}
         />
       );
-      fireEvent.click(screen.getByText("masks"));
+      fireEvent.click(screen.getByText("Masks"));
       expect(onSelectCategory).toHaveBeenCalledWith("masks");
     });
 
