@@ -9,8 +9,8 @@
 import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
 import { db } from "../../../../../lib/db/index.js";
-import { bookings, customers, trips } from "../../../../../lib/db/schema.js";
-import { eq, and, count, gte } from "drizzle-orm";
+import { bookings, customers, trips, tours } from "../../../../../lib/db/schema.js";
+import { eq, and, count, gte, sql } from "drizzle-orm";
 import { getNextBookingNumber } from "../../../../../lib/db/queries/bookings.server.js";
 import { checkRateLimit } from "../../../../../lib/utils/rate-limit";
 
@@ -136,16 +136,53 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Verify trip exists and belongs to organization
-    const [trip] = await db
-      .select()
+    // Verify trip exists, belongs to organization, and get pricing + capacity
+    const [tripData] = await db
+      .select({
+        id: trips.id,
+        tripPrice: trips.price,
+        tourPrice: tours.price,
+        currency: tours.currency,
+        tripMaxParticipants: trips.maxParticipants,
+        tourMaxParticipants: tours.maxParticipants,
+      })
       .from(trips)
+      .innerJoin(tours, eq(trips.tourId, tours.id))
       .where(and(eq(trips.id, body.trip_id), eq(trips.organizationId, orgId)))
       .limit(1);
 
-    if (!trip) {
+    if (!tripData) {
       return Response.json({ error: "Trip not found" }, { status: 404 });
     }
+
+    // Check trip capacity (DS-260b)
+    const maxParticipants = Number(tripData.tripMaxParticipants || tripData.tourMaxParticipants);
+    if (maxParticipants > 0) {
+      const [bookedCount] = await db
+        .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.tripId, body.trip_id),
+            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+          )
+        );
+
+      const bookedParticipants = Number(bookedCount?.total || 0);
+      const availableSpots = maxParticipants - bookedParticipants;
+
+      if (body.participants > availableSpots) {
+        return Response.json(
+          { error: `Only ${availableSpots} spots available (${bookedParticipants}/${maxParticipants} booked)` },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Calculate pricing server-side (DS-ubet)
+    const pricePerPerson = parseFloat(tripData.tripPrice || tripData.tourPrice || "0");
+    const subtotal = pricePerPerson * body.participants;
+    const total = subtotal;
 
     // Find or create customer
     let [customer] = await db
@@ -179,13 +216,14 @@ export async function action({ request }: ActionFunctionArgs) {
       .insert(bookings)
       .values({
         organizationId: orgId,
-        tripId: trip.id,
+        tripId: tripData.id,
         customerId: customer.id,
         participants: body.participants,
         status: "pending",
         bookingNumber,
-        subtotal: "0",
-        total: "0",
+        subtotal: subtotal.toFixed(2),
+        total: total.toFixed(2),
+        currency: tripData.currency,
         internalNotes: body.notes || null,
       })
       .returning();
