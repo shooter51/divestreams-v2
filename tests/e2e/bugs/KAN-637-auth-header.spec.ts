@@ -56,6 +56,14 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
     await page.getByLabel(/phone/i).fill("555-0100");
     await page.getByLabel(/^password$/i).first().fill(password);
     await page.getByLabel(/confirm.*password/i).fill(password);
+    // Accept terms of service (required for registration)
+    const termsCheckbox = page.getByRole("checkbox", { name: /terms/i });
+    if (await termsCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await termsCheckbox.check();
+    } else {
+      // Fallback: find any checkbox on the page
+      await page.locator('input[name="terms"]').check();
+    }
     await page.getByRole("button", { name: /create.*account|sign up/i }).click();
 
     // Wait for successful registration (redirects to account or shows success message)
