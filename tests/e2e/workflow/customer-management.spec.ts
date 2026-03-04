@@ -216,13 +216,15 @@ test.describe.serial("Block A: Navigation & List View", () => {
     await page.goto(getTenantUrl("/tenant"));
     await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
-    const customersLink = page.getByRole("link", { name: /customer/i }).first();
+    // Scope to sidebar nav to avoid matching booking links with customer names
+    const customersLink = page.locator('nav[aria-label="Main navigation"]').getByRole("link", { name: /customers/i }).first();
     if (await customersLink.isVisible().catch(() => false)) {
       await customersLink.click();
-      await page.waitForLoadState("load").catch(() => {});
+      await page.waitForURL(/\/customers/, { timeout: 10000 }).catch(() => {});
       expect(page.url()).toContain("/customers");
     } else {
       await page.goto(getTenantUrl("/tenant/customers"));
+      await page.waitForLoadState("load");
       expect(page.url()).toContain("/customers");
     }
   });

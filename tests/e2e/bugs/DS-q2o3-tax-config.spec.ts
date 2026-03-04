@@ -24,8 +24,8 @@ test.describe("DS-q2o3: Tax configuration in settings", () => {
     await page.goto(getTenantUrl("demo", "/tenant/settings/profile"));
     await page.waitForLoadState("load");
 
-    // There should be a Tax Settings section
-    await expect(page.getByText(/tax settings/i)).toBeVisible();
+    // There should be a Tax Settings section (use first() to avoid strict mode violation if label appears twice)
+    await expect(page.getByText(/tax settings/i).first()).toBeVisible();
 
     // There should be a tax rate input
     const taxRateInput = page.locator("#taxRate");

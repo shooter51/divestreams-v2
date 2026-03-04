@@ -108,9 +108,13 @@ test.describe('KAN-630: Album Image Upload', () => {
     // BEFORE the browser follows the redirect. This is the most reliable way to detect
     // storage errors since React's useNotification removes URL params almost immediately
     // after navigation (in useEffect), before page.url() or page.on('response') can read them.
+    //
+    // IMPORTANT: maxRedirects: 0 is required. route.fetch() defaults to following up to 20
+    // redirects, which would return the final 200 response (no Location header). Without
+    // maxRedirects: 0, capturedRedirectLocation is always empty and success/error detection fails.
     let capturedRedirectLocation = '';
     await page.route('**/tenant/gallery/upload', async route => {
-      const response = await route.fetch();
+      const response = await route.fetch({ maxRedirects: 0 });
       capturedRedirectLocation = response.headers()['location'] ?? '';
       await route.fulfill({ response });
     });

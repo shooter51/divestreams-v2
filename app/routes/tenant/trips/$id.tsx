@@ -808,7 +808,7 @@ export default function TripDetailPage() {
                             day: "numeric",
                           })}
                         </p>
-                        <p className="text-sm text-foreground-muted">{instance.startTime}</p>
+                        <p className="text-sm text-foreground-muted">{formatTime(instance.startTime)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <StatusBadge status={mapTripStatusToBadgeStatus(instance.status)} />
