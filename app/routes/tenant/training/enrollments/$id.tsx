@@ -8,7 +8,7 @@ import {
   deleteEnrollment,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
-import { formatLabel } from "../../../../lib/format";
+import { formatLabel, formatDisplayDate } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [
@@ -252,7 +252,7 @@ export default function EnrollmentDetailPage() {
             </span>
           </div>
           <p className="text-foreground-muted">
-            {enrollment.courseName} - Enrolled {enrollment.enrolledAt}
+            {enrollment.courseName} - Enrolled {formatDisplayDate(enrollment.enrolledAt)}
           </p>
         </div>
         <div className="flex gap-2">
@@ -330,9 +330,9 @@ export default function EnrollmentDetailPage() {
               <div>
                 <p className="text-sm text-foreground-muted">Session Dates</p>
                 <p>
-                  {enrollment.sessionStartDate}
+                  {formatDisplayDate(enrollment.sessionStartDate)}
                   {enrollment.sessionEndDate &&
-                    ` - ${enrollment.sessionEndDate}`}
+                    ` - ${formatDisplayDate(enrollment.sessionEndDate)}`}
                 </p>
               </div>
               <div>
@@ -577,7 +577,7 @@ export default function EnrollmentDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-foreground-muted">Issue Date</p>
-                  <p>{enrollment.certificationDate}</p>
+                  <p>{formatDisplayDate(enrollment.certificationDate)}</p>
                 </div>
               </div>
             ) : (
@@ -597,8 +597,8 @@ export default function EnrollmentDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Created: {enrollment.createdAt}</p>
-            <p>Updated: {enrollment.updatedAt}</p>
+            <p>Created: {formatDisplayDate(enrollment.createdAt)}</p>
+            <p>Updated: {formatDisplayDate(enrollment.updatedAt)}</p>
             <p>ID: {enrollment.id}</p>
           </div>
         </div>
