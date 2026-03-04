@@ -265,8 +265,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     const deleteBtn = page.getByRole("button", { name: /delete/i });
     expect(await deleteBtn.isVisible()).toBeTruthy();
 
-    // Set up listener for dialog
-    page.on('dialog', dialog => dialog.accept());
+    // Mock window.confirm to avoid unreliable CDP dialog handling in CI
+    await page.evaluate(() => { (window as unknown as { confirm: () => boolean }).confirm = () => true; });
 
     // Click delete
     await deleteBtn.click();
@@ -304,8 +304,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
       return;
     }
 
-    // Set up listener for dialog
-    page.on('dialog', dialog => dialog.accept());
+    // Mock window.confirm to avoid unreliable CDP dialog handling in CI
+    await page.evaluate(() => { (window as unknown as { confirm: () => boolean }).confirm = () => true; });
 
     // Click delete
     await deleteBtn.click();
