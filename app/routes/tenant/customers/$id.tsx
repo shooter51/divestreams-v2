@@ -9,7 +9,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
-import { formatCurrency } from "../../../lib/format";
+import { formatCurrency, formatDisplayDate } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
@@ -185,11 +185,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-function formatDate(d: string | null | undefined): string {
-  if (!d) return "";
-  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-}
-
 export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
@@ -276,7 +271,7 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDate(customer.lastDiveAt) : "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDisplayDate(customer.lastDiveAt) : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
@@ -295,7 +290,7 @@ export default function CustomerDetailPage() {
               </div>
               <div>
                 <p className="text-foreground-muted">Date of Birth</p>
-                <p>{customer.dateOfBirth ? formatDate(customer.dateOfBirth) : "—"}</p>
+                <p>{customer.dateOfBirth ? formatDisplayDate(customer.dateOfBirth) : "—"}</p>
               </div>
               <div>
                 <p className="text-foreground-muted">Language</p>
@@ -341,7 +336,7 @@ export default function CustomerDetailPage() {
                       {booking.tripName}
                     </Link>
                     <p className="text-sm text-foreground-muted">
-                      {booking.bookingNumber} • {formatDate(booking.date)}
+                      {booking.bookingNumber} • {formatDisplayDate(booking.date)}
                     </p>
                   </div>
                   <div className="text-right">
@@ -364,7 +359,7 @@ export default function CustomerDetailPage() {
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
                   {cert.number && <p className="text-foreground-muted">#{cert.number}</p>}
-                  {cert.date && <p className="text-foreground-muted">{formatDate(cert.date)}</p>}
+                  {cert.date && <p className="text-foreground-muted">{formatDisplayDate(cert.date)}</p>}
                 </div>
               ))
             ) : (
@@ -444,7 +439,7 @@ export default function CustomerDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Customer since {formatDate(customer.createdAt)}</p>
+            <p>Customer since {formatDisplayDate(customer.createdAt)}</p>
             <p>Marketing: {customer.marketingOptIn ? "Opted in" : "Opted out"}</p>
           </div>
         </div>
