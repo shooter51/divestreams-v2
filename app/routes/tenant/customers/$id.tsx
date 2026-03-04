@@ -1,6 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect, useRouteLoaderData } from "react-router";
 import { useState } from "react";
+import { CSRF_FIELD_NAME } from "../../../../lib/security/csrf-constants";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
@@ -194,13 +195,14 @@ export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
 
   // Show notifications from URL params
   useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this customer? This cannot be undone.")) {
-      fetcher.submit({ intent: "delete" }, { method: "post" });
+      fetcher.submit({ intent: "delete", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
     }
   };
 
