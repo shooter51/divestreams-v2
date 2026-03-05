@@ -10,6 +10,12 @@ export default [
   route("privacy", "routes/marketing/privacy.tsx"),
   route("tenant-setup", "routes/marketing/tenant-setup.tsx"),
 
+  // Help Center / User Guide (public, no auth)
+  layout("routes/guide.tsx", [
+    route("guide", "routes/guide._index.tsx", { index: true }),
+    route("guide/:section", "routes/guide.$section.tsx"),
+  ]),
+
   // Stripe webhook
   route("api/stripe-webhook", "routes/api/stripe-webhook.tsx"),
 
