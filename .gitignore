@@ -64,6 +64,7 @@ orchestrator/dist/
 github-secrets-1password*.csv
 
 # Terraform
+terraform/
 .terraform/
 .terraform.lock.hcl
 terraform.tfstate
