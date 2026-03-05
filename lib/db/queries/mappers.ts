@@ -183,11 +183,21 @@ export function mapTrip(row: TripInput) {
     startTime: pick(row.startTime, r.start_time) as string,
     endTime: pick(row.endTime, r.end_time) as string | null,
     status: row.status,
-    maxParticipants: pick(row.maxParticipants, r.max_participants) as number | null,
+    maxParticipants: (() => {
+      const tripMax = pick(row.maxParticipants, r.max_participants) as number | null;
+      const tourMax = (r.tour_max_participants ?? r.tourMaxParticipants) as number | null | undefined;
+      return tripMax ?? tourMax ?? null;
+    })(),
     price: row.price ? Number(row.price) : (row.tour_price ? Number(row.tour_price) : null),
     notes: row.notes,
     weatherNotes: pick(row.weatherNotes, r.weather_notes) as string | null ?? null,
     isPublic: pick(row.isPublic, r.is_public) ?? false,
+    isRecurring: (pick(row.isRecurring, r.is_recurring) ?? false) as boolean,
+    recurrencePattern: (pick(row.recurrencePattern, r.recurrence_pattern) ?? null) as string | null,
+    recurringTemplateId: (pick(row.recurringTemplateId, r.recurring_template_id) ?? null) as string | null,
+    recurrenceDays: (pick(row.recurrenceDays, r.recurrence_days) ?? null) as number[] | null,
+    recurrenceEndDate: (pick(row.recurrenceEndDate, r.recurrence_end_date) ?? null) as string | null,
+    recurrenceCount: (pick(row.recurrenceCount, r.recurrence_count) ?? null) as number | null,
     tourName: pick(row.tourName, row.tour_name),
     tourType: pick(row.tourType, row.tour_type),
     boatName: pick(row.boatName, row.boat_name),
