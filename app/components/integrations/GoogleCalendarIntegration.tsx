@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, Form } from "react-router";
 import { Icons } from "./Icons";
 
 interface GoogleCalendarIntegrationProps {
@@ -78,7 +78,7 @@ export function GoogleCalendarIntegration({
               </button>
             </div>
 
-            <fetcher.Form method="post" className="space-y-4">
+            <Form method="post" className="space-y-4">
               <input type="hidden" name="intent" value="connectGoogle" />
 
               <div>
@@ -144,13 +144,12 @@ export function GoogleCalendarIntegration({
                 </button>
                 <button
                   type="submit"
-                  disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
                 >
-                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to Google"}
+                  Continue to Google
                 </button>
               </div>
-            </fetcher.Form>
+            </Form>
           </div>
         </div>
       )}

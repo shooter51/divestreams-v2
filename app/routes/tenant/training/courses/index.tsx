@@ -1,10 +1,26 @@
-import type { MetaFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getCourses, getAgencies } from "../../../../../lib/db/training.server";
+import { getCourses, getAgencies, getCourseById, updateCourse } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Training Courses - DiveStreams" }];
+
+export async function action({ request }: ActionFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+  const form = await request.formData();
+  const intent = form.get("intent");
+  const courseId = form.get("courseId") as string;
+
+  if (intent === "toggle-public" && courseId) {
+    const course = await getCourseById(ctx.org.id, courseId);
+    if (course) {
+      await updateCourse(ctx.org.id, courseId, { isPublic: !course.isPublic });
+    }
+  }
+  return null;
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -73,6 +89,7 @@ export default function CoursesIndexPage() {
   const { courses, agencies, total, search, agencyFilter, statusFilter } =
     useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
+  const fetcher = useFetcher();
 
   // Show notifications from URL params
   useNotification();
@@ -263,12 +280,29 @@ export default function CoursesIndexPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Link
-                      to={`/tenant/training/courses/${course.id}`}
-                      className="text-brand hover:underline text-sm"
-                    >
-                      View
-                    </Link>
+                    <div className="flex items-center justify-end gap-3">
+                      <fetcher.Form method="post">
+                        <CsrfInput />
+                        <input type="hidden" name="intent" value="toggle-public" />
+                        <input type="hidden" name="courseId" value={course.id} />
+                        <button
+                          type="submit"
+                          className={`text-sm px-3 py-1 rounded-lg border ${
+                            course.isPublic
+                              ? "border-brand text-brand hover:bg-brand-muted"
+                              : "border-foreground-muted text-foreground-muted hover:bg-surface-inset"
+                          }`}
+                        >
+                          {course.isPublic ? "Public" : "Make Public"}
+                        </button>
+                      </fetcher.Form>
+                      <Link
+                        to={`/tenant/training/courses/${course.id}`}
+                        className="text-brand hover:underline text-sm"
+                      >
+                        View
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
