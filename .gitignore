@@ -69,3 +69,9 @@ github-secrets-1password*.csv
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
+
+# Transient files
+plan.md
+
+# Playwright MCP
+.playwright-mcp/

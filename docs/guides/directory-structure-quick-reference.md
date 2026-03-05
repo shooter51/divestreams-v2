@@ -53,10 +53,9 @@ npm run cleanup:structure --apply
 - `.env.example`, `.gitignore`, `.dockerignore`
 - `Dockerfile`, `Caddyfile`, `docker-compose*.yml`
 
-**Essential docs only** (max 3):
+**Essential docs only** (max 2):
 - `README.md` - Project overview
 - `CLAUDE.md` - AI agent instructions
-- `DIRECTORY_STRUCTURE_POLICY.md` - Structure policy
 
 ### ❌ Not Allowed in Root
 
@@ -120,12 +119,23 @@ app/routes/tenant/bookings/new.tsx
   → tests/e2e/workflow/booking-creation.spec.ts
 ```
 
+## `lib/` vs `app/lib/`
+
+- `lib/` — Server-side business logic (`.server.ts` convention)
+- `app/lib/` — Client-side shared utilities (imported by routes and components)
+
+## Enforcement
+
+Structure is validated automatically:
+- **Pre-commit hook** — runs `npm run validate:structure` before every commit
+- **CI gate** — `validate:structure` step in `ci-pr.yml` blocks PRs with violations
+- **`--strict` mode** — `npm run validate:structure -- --strict` fails on warnings too (used in CI)
+
 ## Need More Details?
 
-- **Full policy**: See `DIRECTORY_STRUCTURE_POLICY.md`
-- **Implementation**: See `DIRECTORY_CLEANUP_SUMMARY.md`
+- **Full policy**: See `docs/policies/directory-structure-policy.md`
 - **Documentation guide**: See `docs/README.md`
 
 ---
 
-**Last Updated**: 2026-02-15
+**Last Updated**: 2026-03-05
