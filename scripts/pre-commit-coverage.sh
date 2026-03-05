@@ -12,6 +12,15 @@
 
 set -e
 
+# Validate directory structure
+echo "Validating directory structure..."
+npx tsx scripts/validate-directory-structure.ts
+if [ $? -ne 0 ]; then
+  echo "Directory structure validation failed."
+  echo "Run 'npm run validate:structure' for details."
+  exit 1
+fi
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
