@@ -50,6 +50,7 @@ import {
   TransactionLookupModal,
   RefundConfirmationModal,
 } from "../../components/pos/RefundModals";
+import { ReceiptModal } from "../../components/pos/TransactionModals";
 import type { CartItem } from "../../../lib/validation/pos";
 import { useToast } from "../../../lib/toast-context";
 import { formatLabel } from "../../lib/format";
@@ -83,6 +84,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(1);
 
   const taxRate = settings?.taxRate ? parseFloat(settings.taxRate) : 0;
+  const taxName = settings?.taxName || "Tax";
+  const currency = settings?.currency || "USD";
 
   // Generate agreement number - handle case where rentals table may not exist yet
   let agreementNumber = `RA-${new Date().getFullYear()}-0001`;
@@ -115,6 +118,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     trips,
     agreementNumber,
     taxRate,
+    taxName,
+    currency,
     // Stripe card payment info
     stripeConnected: stripeConnected || false,
     stripePublishableKey: stripeConnected ? stripePublishableKey : null,
@@ -301,7 +306,42 @@ export async function action({ request }: ActionFunctionArgs) {
         discountCode: data.discountCode,
       });
 
-      return { success: true, receiptNumber: result.receiptNumber };
+      // Look up customer name if customerId provided
+      let customerName: string | null = null;
+      if (data.customerId) {
+        const [cust] = await db
+          .select({ firstName: tables.customers.firstName, lastName: tables.customers.lastName })
+          .from(tables.customers)
+          .where(eq(tables.customers.id, data.customerId))
+          .limit(1);
+        if (cust) customerName = `${cust.firstName} ${cust.lastName}`;
+      }
+
+      return {
+        success: true,
+        receiptNumber: result.receiptNumber,
+        transaction: {
+          id: result.receiptNumber,
+          type: "sale" as const,
+          amount: data.total,
+          paymentMethod: data.payments.length === 1 ? data.payments[0].method : "split",
+          customerName,
+          customerEmail: null,
+          items: data.items.map((item) => {
+            if (item.type === "product") {
+              return { description: item.name, quantity: item.quantity, unitPrice: item.unitPrice, total: item.total };
+            }
+            if (item.type === "rental") {
+              return { description: item.name, quantity: 1, unitPrice: item.total, total: item.total };
+            }
+            // booking
+            return { description: item.tourName, quantity: item.participants, unitPrice: item.unitPrice, total: item.total };
+          }),
+          createdAt: new Date().toISOString(),
+          stripePaymentId: data.payments.find((p): p is typeof p & { stripePaymentIntentId: string } => p.method === "card")?.stripePaymentIntentId || null,
+          refundedTransactionId: null,
+        },
+      };
     } catch (error) {
       return { error: error instanceof Error ? error.message : "Checkout failed" };
     }
@@ -318,6 +358,8 @@ export default function POSPage() {
     trips,
     agreementNumber,
     taxRate,
+    taxName,
+    currency,
     stripeConnected,
     stripePublishableKey,
     hasTerminalReaders,
@@ -377,6 +419,21 @@ export default function POSPage() {
       email: string;
     } | null;
   } | null>(null);
+
+  // Receipt modal state (shown after successful sale)
+  const [completedTransaction, setCompletedTransaction] = useState<{
+    id: string;
+    type: string;
+    amount: number;
+    paymentMethod: string | null;
+    customerName: string | null;
+    customerEmail: string | null;
+    items: Array<{ description: string; quantity: number; unitPrice: number; total: number }> | null;
+    createdAt: Date;
+    stripePaymentId: string | null;
+    refundedTransactionId: string | null;
+  } | null>(null);
+
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
   // Use per-product taxRate if available, otherwise fall back to org-level taxRate
@@ -557,6 +614,18 @@ export default function POSPage() {
       scannedBarcode?: string;
       success?: boolean;
       receiptNumber?: string;
+      transaction?: {
+        id: string;
+        type: string;
+        amount: number;
+        paymentMethod: string | null;
+        customerName: string | null;
+        customerEmail: string | null;
+        items: Array<{ description: string; quantity: number; unitPrice: number; total: number }>;
+        createdAt: string;
+        stripePaymentId: string | null;
+        refundedTransactionId: string | null;
+      };
       refundId?: string;
       amount?: number;
     } | undefined;
@@ -577,8 +646,14 @@ export default function POSPage() {
       setTimeout(() => setBarcodeError(null), 3000);
     }
 
-    // Handle sale success — clear cart AFTER server confirms the sale
+    // Handle sale success — show receipt modal and clear cart
     if (fetcherData?.success && fetcherData?.receiptNumber && !fetcherData?.refundId) {
+      if (fetcherData.transaction) {
+        setCompletedTransaction({
+          ...fetcherData.transaction,
+          createdAt: new Date(fetcherData.transaction.createdAt),
+        });
+      }
       clearCart();
       showToast(`Sale complete! Receipt #${fetcherData.receiptNumber}`, "success");
     }
@@ -789,6 +864,21 @@ export default function POSPage() {
           }}
           transaction={selectedTransaction}
           onConfirm={handleRefundConfirm}
+        />
+      )}
+
+      {/* Receipt Modal — shown after successful sale */}
+      {completedTransaction && (
+        <ReceiptModal
+          isOpen={!!completedTransaction}
+          onClose={() => setCompletedTransaction(null)}
+          transaction={completedTransaction}
+          organization={{
+            name: tenant.name,
+            taxRate: String(taxRate),
+            taxName,
+            currency,
+          }}
         />
       )}
 
