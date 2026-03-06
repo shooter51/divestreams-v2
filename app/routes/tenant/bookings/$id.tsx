@@ -1,12 +1,22 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { formatCurrency, formatTime as sharedFormatTime, formatDisplayDate, formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
+
+// Valid booking status transitions
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["completed", "cancelled", "no_show"],
+  completed: [],
+  cancelled: [],
+  no_show: [],
+};
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];
 
@@ -62,27 +72,47 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const bookingId = params.id!;
 
+  // Helper to validate status transitions
+  const validateTransition = async (targetStatus: string) => {
+    const booking = await getBookingWithFullDetails(organizationId, bookingId);
+    if (!booking) return { error: "Booking not found" };
+    const allowed = VALID_TRANSITIONS[booking.status] || [];
+    if (!allowed.includes(targetStatus)) {
+      return { error: `Cannot transition from "${booking.status}" to "${targetStatus}"` };
+    }
+    return null;
+  };
+
   if (intent === "cancel") {
+    const err = await validateTransition("cancelled");
+    if (err) return err;
     await updateBookingStatus(organizationId, bookingId, "cancelled");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully cancelled", "success"));
   }
 
   if (intent === "confirm") {
+    const err = await validateTransition("confirmed");
+    if (err) return err;
     await updateBookingStatus(organizationId, bookingId, "confirmed");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully confirmed", "success"));
   }
 
   if (intent === "complete") {
+    const err = await validateTransition("completed");
+    if (err) return err;
     await updateBookingStatus(organizationId, bookingId, "completed");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as complete", "success"));
   }
 
   if (intent === "no-show") {
+    const err = await validateTransition("no_show");
+    if (err) return err;
     await updateBookingStatus(organizationId, bookingId, "no_show");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as no-show", "success"));
   }
@@ -130,6 +160,27 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   return null;
 }
+
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "TBD";
+  return sharedFormatTime(t) || "TBD";
+}
+
+function formatDate(d: string | null | undefined): string {
+  return formatDisplayDate(d);
+}
+
+const sourceLabels: Record<string, string> = {
+  referral: "Referral",
+  walk_in: "Walk-in",
+  direct: "Direct",
+  online: "Online",
+  phone: "Phone",
+  repeat: "Repeat Customer",
+  website: "Website",
+  partner: "Partner/Agent",
+  other: "Other",
+};
 
 export default function BookingDetailPage() {
   useNotification();
@@ -253,7 +304,7 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
             <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
-          <p className="text-foreground-muted">Created {booking.createdAt}</p>
+          <p className="text-foreground-muted">Created {formatDate(booking.createdAt)}</p>
         </div>
         <div className="flex gap-2">
           {booking.status === "pending" && (
@@ -325,10 +376,10 @@ export default function BookingDetailPage() {
                 </Link>
                 <div className="mt-2 space-y-1 text-sm">
                   <p>
-                    <span className="text-foreground-muted">Date:</span> {booking.trip.date}
+                    <span className="text-foreground-muted">Date:</span> {formatDate(booking.trip.date)}
                   </p>
                   <p>
-                    <span className="text-foreground-muted">Time:</span> {booking.trip.startTime} - {booking.trip.endTime}
+                    <span className="text-foreground-muted">Time:</span> {formatTime(booking.trip.startTime)} - {formatTime(booking.trip.endTime)}
                   </p>
                   <p>
                     <span className="text-foreground-muted">Boat:</span> {booking.trip.boatName}
@@ -350,20 +401,30 @@ export default function BookingDetailPage() {
               Participants ({booking.participants})
             </h2>
             <div className="space-y-3">
-              {(Array.isArray(booking.participantDetails) ? booking.participantDetails : []).map((p: { name: string; certLevel?: string }, i: number) => (
-                <div
-                  key={i}
-                  className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{p.name}</p>
-                    {p.certLevel && (
-                      <p className="text-sm text-foreground-muted">{p.certLevel}</p>
-                    )}
+              {Array.isArray(booking.participantDetails) && booking.participantDetails.length > 0 ? (
+                booking.participantDetails.map((p: { name: string; certLevel?: string }, i: number) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">{p.name}</p>
+                      {p.certLevel && (
+                        <p className="text-sm text-foreground-muted">{p.certLevel}</p>
+                      )}
+                    </div>
+                    <span className="text-sm text-foreground-subtle">#{i + 1}</span>
                   </div>
-                  <span className="text-sm text-foreground-subtle">#{i + 1}</span>
+                ))
+              ) : (
+                <div className="flex justify-between items-center p-3 bg-surface-inset rounded-lg">
+                  <div>
+                    <p className="font-medium">{booking.customer.firstName} {booking.customer.lastName}</p>
+                    <p className="text-sm text-foreground-muted">Primary contact</p>
+                  </div>
+                  <span className="text-sm text-foreground-subtle">#1</span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -372,17 +433,17 @@ export default function BookingDetailPage() {
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Equipment Rental</h2>
               <div className="space-y-2">
-                {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; quantity: number; price: number }, i: number) => (
+                {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; size?: string; quantity?: number; price: number }, i: number) => (
                   <div key={i} className="flex justify-between text-sm">
                     <span>
-                      {item.item} x{item.quantity}
+                      {item.item}{item.quantity ? ` x${item.quantity}` : ""}
                     </span>
-                    <span>${item.price}</span>
+                    <span>{formatCurrency(item.price)}</span>
                   </div>
                 ))}
                 <div className="flex justify-between font-medium pt-2 border-t">
                   <span>Equipment Total</span>
-                  <span>${booking.pricing.equipmentTotal}</span>
+                  <span>{formatCurrency(booking.pricing.equipmentTotal)}</span>
                 </div>
               </div>
             </div>
@@ -411,9 +472,9 @@ export default function BookingDetailPage() {
                     className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
                   >
                     <div>
-                      <p className="font-medium">${payment.amount}</p>
+                      <p className="font-medium">{formatCurrency(payment.amount)}</p>
                       <p className="text-sm text-foreground-muted">
-                        {payment.method} • {payment.date}
+                        {payment.method} • {formatDate(payment.date)}
                       </p>
                       {payment.note && (
                         <p className="text-xs text-foreground-subtle">{payment.note}</p>
@@ -471,34 +532,40 @@ export default function BookingDetailPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>
-                  ${booking.pricing.basePrice} x {booking.pricing.participants} pax
+                  {formatCurrency(booking.pricing.basePrice)} x {booking.pricing.participants} pax
                 </span>
-                <span>${booking.pricing.subtotal}</span>
+                <span>{formatCurrency(booking.pricing.subtotal)}</span>
               </div>
               {parseFloat(booking.pricing.equipmentTotal) > 0 && (
                 <div className="flex justify-between">
                   <span>Equipment</span>
-                  <span>${booking.pricing.equipmentTotal}</span>
+                  <span>{formatCurrency(booking.pricing.equipmentTotal)}</span>
+                </div>
+              )}
+              {parseFloat(booking.pricing.tax) > 0 && (
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>{formatCurrency(booking.pricing.tax)}</span>
                 </div>
               )}
               {parseFloat(booking.pricing.discount) > 0 && (
                 <div className="flex justify-between text-success">
                   <span>Discount</span>
-                  <span>-${booking.pricing.discount}</span>
+                  <span>-{formatCurrency(booking.pricing.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-lg pt-2 border-t">
                 <span>Total</span>
-                <span>${booking.pricing.total}</span>
+                <span>{formatCurrency(booking.pricing.total)}</span>
               </div>
               <div className="flex justify-between text-success">
                 <span>Paid</span>
-                <span>${booking.paidAmount}</span>
+                <span>{formatCurrency(booking.paidAmount)}</span>
               </div>
               {parseFloat(booking.balanceDue) > 0 && (
                 <div className="flex justify-between text-danger font-medium">
                   <span>Balance Due</span>
-                  <span>${booking.balanceDue}</span>
+                  <span>{formatCurrency(booking.balanceDue)}</span>
                 </div>
               )}
             </div>
@@ -547,8 +614,8 @@ export default function BookingDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Source: {booking.source}</p>
-            <p>Updated: {booking.updatedAt}</p>
+            <p>Source: {booking.source ? (sourceLabels[booking.source] || formatLabel(booking.source)) : ""}</p>
+            <p>Updated: {formatDate(booking.updatedAt)}</p>
             <p>ID: {booking.id}</p>
           </div>
         </div>
@@ -562,7 +629,7 @@ export default function BookingDetailPage() {
               <div>
                 <h2 className="text-lg font-bold">Record Payment</h2>
                 <p className="text-sm text-foreground-muted">
-                  Balance due: ${booking.balanceDue}
+                  Balance due: {formatCurrency(booking.balanceDue)}
                 </p>
               </div>
               <button
@@ -574,6 +641,7 @@ export default function BookingDetailPage() {
             </div>
 
             <form onSubmit={handleRecordPayment} className="space-y-4">
+              <CsrfInput />
               <div>
                 <label className="block text-sm font-medium mb-1">Amount *</label>
                 <div className="relative">

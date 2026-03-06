@@ -5,10 +5,12 @@
  * Includes password validation, terms acceptance, and auto-login on success.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Link, useActionData, useNavigation, useRouteLoaderData, redirect } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
 import { registerCustomer, loginCustomer } from "../../../lib/auth/customer-auth.server";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -168,7 +170,25 @@ function validatePassword(password: string): PasswordValidation {
 // ============================================================================
 
 export async function action({ request }: ActionFunctionArgs): Promise<ActionData | Response> {
+  // Rate limit registration attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`register:${clientIp}`, {
+    maxAttempts: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many registration attempts. Please try again later." };
+  }
+
   const formData = await request.formData();
+
+  // CSRF validation (DS-30f)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (!validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid CSRF token. Please refresh the page and try again." };
+  }
+
   const url = new URL(request.url);
 
   // Extract organization ID from the URL host
@@ -331,7 +351,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       if (error.message === "Email already registered") {
         return {
           success: false,
-          errors: { email: "This email is already registered. Please sign in instead." },
+          errors: { email: "Unable to create account with this email. Please try a different email or contact support." },
         };
       }
       return { success: false, error: error.message };
@@ -389,10 +409,17 @@ export default function SiteRegisterPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  // Track password for real-time validation display
+  // Track password fields for real-time validation display and error clearing
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // Track which fields user has typed in since last server error (to clear stale errors)
+  const [clearedErrors, setClearedErrors] = useState<Set<string>>(new Set());
+  // Reset cleared errors when new actionData arrives (new submission cycle)
+  useEffect(() => {
+    setClearedErrors(new Set());
+  }, [actionData]);
 
   // Loading state
   if (!loaderData) {
@@ -426,6 +453,7 @@ export default function SiteRegisterPage() {
           }}
         >
           <Form method="post" className="space-y-5">
+            <input type="hidden" name="_csrf" value={loaderData?.csrfToken || ""} />
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-4">
               {/* First Name */}
@@ -446,7 +474,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.firstName
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -485,7 +513,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.lastName
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -514,7 +542,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Email <span className="text-danger">*</span>
+                Email Address <span className="text-danger">*</span>
               </label>
               <input
                 type="email"
@@ -525,7 +553,7 @@ export default function SiteRegisterPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.email
-                    ? "#ef4444"
+                    ? "var(--danger)"
                     : "var(--accent-color)",
                   // @ts-expect-error -- CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
@@ -563,7 +591,7 @@ export default function SiteRegisterPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.phone
-                    ? "#ef4444"
+                    ? "var(--danger)"
                     : "var(--accent-color)",
                   // @ts-expect-error -- CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
@@ -591,21 +619,30 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Password <span className="text-danger">*</span>
+                Password <span className="text-danger" aria-hidden="true">*</span>
               </label>
               <div className="relative">
                 <input
+                  aria-label="Password"
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
                   required
                   autoComplete="new-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setClearedErrors((prev) => {
+                      const next = new Set(prev);
+                      next.add("password");
+                      next.add("confirmPassword");
+                      return next;
+                    });
+                  }}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.password
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -626,7 +663,7 @@ export default function SiteRegisterPage() {
                   )}
                 </button>
               </div>
-              {actionData?.errors?.password && (
+              {actionData?.errors?.password && !clearedErrors.has("password") && (
                 <p className="mt-1 text-sm text-danger flex items-center gap-1">
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.password}
@@ -653,17 +690,22 @@ export default function SiteRegisterPage() {
                   name="confirmPassword"
                   required
                   autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setClearedErrors((prev) => new Set(prev).add("confirmPassword"));
+                  }}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
-                    borderColor: actionData?.errors?.confirmPassword
-                      ? "#ef4444"
+                    borderColor: actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword")
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
-                  aria-invalid={actionData?.errors?.confirmPassword ? "true" : undefined}
+                  aria-invalid={actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") ? "true" : undefined}
                   aria-describedby={
-                    actionData?.errors?.confirmPassword ? "confirmPassword-error" : undefined
+                    actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") ? "confirmPassword-error" : undefined
                   }
                 />
                 <button
@@ -679,7 +721,7 @@ export default function SiteRegisterPage() {
                   )}
                 </button>
               </div>
-              {actionData?.errors?.confirmPassword && (
+              {actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") && (
                 <p
                   id="confirmPassword-error"
                   className="mt-1 text-sm text-danger flex items-center gap-1"

@@ -413,14 +413,15 @@ export default function SiteContactPage() {
           ) : (
             <Form method="post" className="space-y-6">
               {/* Honeypot field - hidden from users, bots will fill it */}
-              <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
-                <label htmlFor="website">Website</label>
+              <div style={{ position: "absolute", left: "-9999px", height: "0", overflow: "hidden" }} aria-hidden="true">
+                <label htmlFor="website" aria-hidden="true">Website</label>
                 <input
                   type="text"
                   id="website"
                   name="website"
                   tabIndex={-1}
                   autoComplete="off"
+                  aria-hidden="true"
                 />
               </div>
 
@@ -442,7 +443,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.name
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -481,7 +482,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.email
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -519,7 +520,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.phone
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -557,7 +558,7 @@ export default function SiteContactPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 resize-y"
                   style={{
                     borderColor: actionData?.errors?.message
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -716,7 +717,7 @@ export default function SiteContactPage() {
                 !contactInfo?.email &&
                 !contactInfo?.hours && (
                   <p className="opacity-75">
-                    Contact information coming soon. Please check back later.
+                    Send us a message using the contact form and we'll get back to you.
                   </p>
                 )}
             </div>

@@ -1,21 +1,132 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
 import { loader } from "../../../../../app/routes/tenant/bookings/index";
-import * as orgContext from "../../../../../lib/auth/org-context.server";
-import { db } from "../../../../../lib/db";
 
-// Mock dependencies
-vi.mock("../../../../../lib/auth/org-context.server");
+vi.mock("../../../../../lib/auth/org-context.server", () => ({
+  requireOrgContext: vi.fn(),
+}));
+
 vi.mock("../../../../../lib/db", () => ({
   db: {
-    select: vi.fn(),
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    offset: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
   },
 }));
 
-describe("app/routes/tenant/bookings/index.tsx", () => {
-  const mockOrganizationId = "org-123";
+vi.mock("../../../../../lib/db/schema", () => ({
+  bookings: {
+    id: "id",
+    organizationId: "organizationId",
+    bookingNumber: "bookingNumber",
+    customerId: "customerId",
+    tripId: "tripId",
+    participants: "participants",
+    total: "total",
+    paidAmount: "paidAmount",
+    status: "status",
+    createdAt: "createdAt",
+  },
+  customers: { id: "id", firstName: "firstName", lastName: "lastName", email: "email" },
+  trips: { id: "id", tourId: "tourId", date: "date", startTime: "startTime" },
+  tours: { id: "id", name: "name" },
+}));
 
+vi.mock("drizzle-orm", () => ({
+  eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  or: vi.fn((...conditions) => ({ type: "or", conditions })),
+  and: vi.fn((...conditions) => ({ type: "and", conditions })),
+  gte: vi.fn((a, b) => ({ type: "gte", field: a, value: b })),
+  ne: vi.fn((a, b) => ({ type: "ne", field: a, value: b })),
+  lt: vi.fn((a, b) => ({ type: "lt", field: a, value: b })),
+  ilike: vi.fn((field, pattern) => ({ type: "ilike", field, pattern })),
+  sql: vi.fn((strings, ...values) => ({ type: "sql", strings, values })),
+  count: vi.fn(() => ({ type: "count" })),
+}));
+
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { db } from "../../../../../lib/db";
+
+const mockOrgContext = {
+  org: { id: "org-123", name: "Test Org", subdomain: "test" },
+  canAddBooking: true,
+  limits: { bookingsPerMonth: 100 },
+  isPremium: false,
+};
+
+/**
+ * Sets up db.select mock for the loader's 6 queries:
+ * 1. bookingList  (resolves at offset)
+ * 2. totalCount   (resolves at where)
+ * 3. statsToday   (resolves at where, has leftJoin) ─┐
+ * 4. statsUpcoming (resolves at where)               ├─ Promise.all
+ * 5. statsPending  (resolves at where)              ─┘
+ * 6. monthlyCount  (resolves at where)
+ */
+function setupDbMock(opts: {
+  bookings?: object[];
+  total?: number;
+  statsToday?: number;
+  statsUpcoming?: number;
+  statsPending?: number;
+  monthly?: number;
+}) {
+  const {
+    bookings: rows = [],
+    total = 0,
+    statsToday = 0,
+    statsUpcoming = 0,
+    statsPending = 0,
+    monthly = 0,
+  } = opts;
+
+  const chainable = (terminal: Record<string, unknown> = {}) => {
+    const q: Record<string, unknown> = {
+      select: vi.fn().mockReturnThis(),
+      from: vi.fn().mockReturnThis(),
+      leftJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      offset: vi.fn().mockReturnThis(),
+    };
+    Object.assign(q, terminal);
+    return q as ReturnType<typeof vi.fn> & typeof q;
+  };
+
+  const countOnly = (value: number) =>
+    chainable({ where: vi.fn().mockResolvedValue([{ value }]) });
+
+  const bookingListQuery = chainable({ offset: vi.fn().mockResolvedValue(rows) });
+  const todayQuery = chainable({ where: vi.fn().mockResolvedValue([{ value: statsToday }]) });
+
+  const queries = [
+    bookingListQuery,
+    countOnly(total),
+    todayQuery,
+    countOnly(statsUpcoming),
+    countOnly(statsPending),
+    countOnly(monthly),
+  ];
+
+  let callCount = 0;
+  (db.select as Mock).mockImplementation(() => {
+    const q = queries[callCount] ?? countOnly(0);
+    callCount++;
+    return q;
+  });
+
+  return bookingListQuery;
+}
+
+describe("app/routes/tenant/bookings/index.tsx", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
   });
 
   describe("loader", () => {
@@ -40,38 +151,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         },
       ];
 
-      const mockCount = [{ value: 1 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else {
-          return mockCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
-        canAddBooking: true,
-        limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      setupDbMock({ bookings: mockBookings, total: 1, monthly: 1 });
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
@@ -87,39 +167,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should filter bookings by status", async () => {
-      const mockBookings: unknown[] = [];
-      const mockCount = [{ value: 0 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else {
-          return mockCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
-        canAddBooking: true,
-        limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      setupDbMock({});
 
       const request = new Request("http://test.com/tenant/bookings?status=confirmed");
       const result = await loader({ request, params: {}, context: {} });
@@ -129,82 +177,18 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should handle pagination correctly", async () => {
-      const mockBookings: unknown[] = [];
-      const mockCount = [{ value: 50 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else {
-          return mockCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
-        canAddBooking: true,
-        limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      const bookingListQuery = setupDbMock({ total: 50, monthly: 5 });
 
       const request = new Request("http://test.com/tenant/bookings?page=2");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.page).toBe(2);
-      expect(result.totalPages).toBe(3); // 50 total / 20 per page = 2.5 rounded up to 3
-      expect(mockSelectBuilder.offset).toHaveBeenCalledWith(20); // Page 2 = offset 20
+      expect(result.totalPages).toBe(3); // 50 total / 20 per page = 2.5 → 3
+      expect(bookingListQuery.offset).toHaveBeenCalledWith(20); // Page 2 = offset 20
     });
 
     it("should include search parameter in results", async () => {
-      const mockBookings: unknown[] = [];
-      const mockCount = [{ value: 0 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else {
-          return mockCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
-        canAddBooking: true,
-        limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      setupDbMock({});
 
       const request = new Request("http://test.com/tenant/bookings?search=john");
       const result = await loader({ request, params: {}, context: {} });
@@ -213,125 +197,23 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should calculate stats correctly", async () => {
-      const mockBookings = [
-        {
-          id: "booking-1",
-          bookingNumber: "BK-001",
-          status: "confirmed",
-          participants: 2,
-          total: "200.00",
-          paidAmount: "200.00",
-          createdAt: new Date(),
-          customerId: "cust-1",
-          customerFirstName: "John",
-          customerLastName: "Doe",
-          customerEmail: "john@example.com",
-          tripId: "trip-1",
-          tripDate: new Date(),
-          tripTime: "09:00",
-          tourName: "Reef Dive",
-        },
-        {
-          id: "booking-2",
-          bookingNumber: "BK-002",
-          status: "pending",
-          participants: 1,
-          total: "100.00",
-          paidAmount: "50.00",
-          createdAt: new Date(),
-          customerId: "cust-2",
-          customerFirstName: "Jane",
-          customerLastName: "Smith",
-          customerEmail: "jane@example.com",
-          tripId: "trip-2",
-          tripDate: new Date(),
-          tripTime: "14:00",
-          tourName: "Wreck Dive",
-        },
-      ];
-
-      const mockCount = [{ value: 2 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else {
-          return mockCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
-        canAddBooking: true,
-        limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      setupDbMock({ statsUpcoming: 1, statsPending: 1, total: 2, monthly: 2 });
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
 
-      expect(result.stats.upcoming).toBe(1); // 1 confirmed booking
-      expect(result.stats.pendingPayment).toBe(1); // 1 booking with partial payment
+      expect(result.stats.upcoming).toBe(1);
+      expect(result.stats.pendingPayment).toBe(1);
     });
 
     it("should handle freemium limits", async () => {
-      const mockBookings: unknown[] = [];
-      const mockCount = [{ value: 0 }];
-      const mockMonthlyCount = [{ value: 95 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      const mockMonthlyCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockMonthlyCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else if (selectCallCount === 2) {
-          return mockCountBuilder as unknown;
-        } else {
-          return mockMonthlyCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      (requireOrgContext as Mock).mockResolvedValue({
+        ...mockOrgContext,
         canAddBooking: false,
         limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      });
+
+      setupDbMock({ monthly: 95 });
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
@@ -357,44 +239,13 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
           customerLastName: "Doe",
           customerEmail: "john@example.com",
           tripId: "trip-1",
-          tripDate: "2024-02-01", // String date
+          tripDate: "2024-02-01", // String date (not a Date object)
           tripTime: "09:00",
           tourName: "Reef Dive",
         },
       ];
 
-      const mockCount = [{ value: 1 }];
-
-      const mockSelectBuilder = {
-        from: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockBookings),
-      };
-
-      const mockCountBuilder = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockCount),
-      };
-
-      let selectCallCount = 0;
-      vi.mocked(db.select).mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return mockSelectBuilder as unknown;
-        } else {
-          return mockCountBuilder as unknown;
-        }
-      });
-
-      vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-        org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
-        canAddBooking: true,
-        limits: { bookingsPerMonth: 100 },
-        isPremium: false,
-      } as unknown);
+      setupDbMock({ bookings: mockBookings, total: 1, monthly: 1 });
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });

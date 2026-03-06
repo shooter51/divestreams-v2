@@ -29,10 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } catch (error) {
     console.error("Failed to generate QuickBooks auth URL:", error);
 
-    // Redirect back to integrations page with error
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to start QuickBooks authorization";
-
+    // Redirect back to integrations page with generic error
     const getRedirectUrl = () => {
       if (subdomain) {
         const baseUrl = new URL(process.env.APP_URL || "http://localhost:5173");
@@ -41,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return "/tenant/settings/integrations";
     };
 
-    return redirect(`${getRedirectUrl()}?error=${encodeURIComponent(errorMessage)}`);
+    return redirect(`${getRedirectUrl()}?error=${encodeURIComponent("Failed to start QuickBooks authorization")}`);
   }
 }
 

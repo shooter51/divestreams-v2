@@ -4,6 +4,7 @@ import { loader } from "../../../../../app/routes/tenant/settings/integrations";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
   getSubdomainFromRequest: vi.fn(),
 }));
 

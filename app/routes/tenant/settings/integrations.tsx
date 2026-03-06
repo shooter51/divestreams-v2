@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher, Link, redirect, useSearchParams } from "react-router";
 import { useState, useEffect } from "react";
 // Server-only imports for loader/action
-import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, getSubdomainFromRequest, requireRole} from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES, FEATURE_UPGRADE_INFO, type PlanFeaturesObject } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
@@ -112,6 +112,7 @@ const availableIntegrations = [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_INTEGRATIONS);
   const subdomain = getSubdomainFromRequest(request);
 
@@ -254,6 +255,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -303,7 +305,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting Google Calendar:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect Google Calendar" };
+      return { error: "Failed to connect Google Calendar" };
     }
   }
 
@@ -323,7 +325,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting Mailchimp:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect Mailchimp" };
+      return { error: "Failed to connect Mailchimp" };
     }
   }
 
@@ -343,7 +345,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting QuickBooks:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect QuickBooks" };
+      return { error: "Failed to connect QuickBooks" };
     }
   }
 
@@ -363,7 +365,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(authUrl);
     } catch (error) {
       console.error("Error connecting Xero:", error);
-      return { error: error instanceof Error ? error.message : "Failed to connect Xero" };
+      return { error: "Failed to connect Xero" };
     }
   }
 
@@ -398,7 +400,7 @@ export async function action({ request }: ActionFunctionArgs) {
       };
     } catch (error) {
       console.error("Error during sync:", error);
-      return { error: error instanceof Error ? error.message : "Sync failed" };
+      return { error: "Sync failed" };
     }
   }
 

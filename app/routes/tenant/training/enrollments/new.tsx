@@ -1,15 +1,17 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Link, redirect, useSearchParams } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getSessionById, createEnrollment, getSessions } from "../../../../../lib/db/training.server";
 import { getCustomers } from "../../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { formatTime } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const url = new URL(request.url);
   const sessionId = url.searchParams.get("sessionId");
 
@@ -52,6 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   const sessionId = formData.get("sessionId") as string;
@@ -119,10 +122,10 @@ export async function action({ request }: ActionFunctionArgs) {
       return { errors: { form: "Cannot enroll in a cancelled session" }, values };
     }
     if (errorMessage.includes("full")) {
-      return { errors: { form: errorMessage }, values };
+      return { errors: { form: "This session is full" }, values };
     }
 
-    return { errors: { form: errorMessage }, values };
+    return { errors: { form: "Failed to create enrollment. Please try again." }, values };
   }
 }
 
@@ -180,7 +183,7 @@ export default function NewEnrollmentPage() {
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.courseName} - {new Date(s.startDate).toLocaleDateString()}
-                  {s.startTime ? ` at ${s.startTime}` : ""}
+                  {s.startTime ? ` at ${formatTime(s.startTime)}` : ""}
                   {" "}({s.enrolledCount || 0}/{s.maxStudents || "∞"} enrolled)
                 </option>
               ))}

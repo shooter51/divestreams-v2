@@ -1,13 +1,15 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
 import React, { useState } from "react";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
+import { escapeHtml } from "../../../../../lib/security/sanitize";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Get all available agencies from global templates
   const agencies = await getAvailableAgencies();
@@ -17,6 +19,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const orgContext = await requireOrgContext(request);
+  requireRole(orgContext, ["owner", "admin"]);
 
   const formData = await request.formData();
   const step = formData.get("step") as string;
@@ -47,6 +50,9 @@ export async function action({ request }: ActionFunctionArgs) {
       const importedCourses: string[] = [];
       const errors: { course: string; reason: string }[] = [];
 
+      // Pre-fetch agencies once outside the loop to avoid N+1 queries
+      let existingAgencies = await getAgencies(orgContext.org.id);
+
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -73,7 +79,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
         try {
           // Find or create agency
-          const existingAgencies = await getAgencies(orgContext.org.id);
           let agency = existingAgencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
 
           if (!agency) {
@@ -83,6 +88,8 @@ export async function action({ request }: ActionFunctionArgs) {
               code: agencyCode.toLowerCase(),
               isActive: true,
             });
+            // Refresh the cached list so subsequent rows find this agency
+            existingAgencies = await getAgencies(orgContext.org.id);
           }
 
           // Check for duplicate course before creating
@@ -109,19 +116,19 @@ export async function action({ request }: ActionFunctionArgs) {
             continue;
           }
 
-          // Create course
+          // Sanitize string fields to prevent stored XSS
           await createCourse({
             organizationId: orgContext.org.id,
             agencyId: agency.id,
-            name: courseName,
-            code: courseCode || "",
-            description: description || "",
+            name: escapeHtml(courseName),
+            code: escapeHtml(courseCode || ""),
+            description: escapeHtml(description || ""),
             durationDays: parseInt(durationDays) || 0,
             classroomHours: classroomHours ? parseInt(classroomHours) : undefined,
             poolHours: poolHours ? parseInt(poolHours) : undefined,
             openWaterDives: openWaterDives ? parseInt(openWaterDives) : undefined,
             minAge: minAge ? parseInt(minAge) : undefined,
-            prerequisites: prerequisites || undefined,
+            prerequisites: prerequisites ? escapeHtml(prerequisites) : undefined,
             price: price || "0.00",
             currency: currency || "USD",
             isActive: true,

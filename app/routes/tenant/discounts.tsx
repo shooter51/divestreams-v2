@@ -4,10 +4,10 @@
  * Create and manage discount codes that can be applied to bookings.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { useLoaderData, useFetcher, redirect } from "react-router";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -21,6 +21,7 @@ export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Discount codes are used in POS - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
@@ -39,6 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Discount codes are used in POS - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
@@ -243,11 +245,19 @@ function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; 
   }
 
   if (discount.validFrom && new Date(discount.validFrom) > now) {
-    return { label: "Scheduled", color: "bg-brand-muted text-brand" };
+    return { label: "Not Yet Active", color: "bg-warning-muted text-warning" };
   }
 
   return { label: "Active", color: "bg-success-muted text-success" };
 }
+
+const applicableToLabels: Record<string, string> = {
+  all: "All",
+  tours: "Tours",
+  equipment: "Equipment",
+  products: "Products",
+  courses: "Courses",
+};
 
 function formatDiscountValue(type: string, value: string): string {
   if (type === "percentage") {
@@ -282,33 +292,32 @@ export default function DiscountsPage() {
     setDiscountStatuses(statusMap);
   }, [discountCodes]);
 
+  // Track last processed fetcher data to avoid re-processing stale responses
+  const lastProcessedData = useRef<typeof fetcherData>(undefined);
+
   // Close modal and show toast on successful create/update/delete
   useEffect(() => {
-    if (fetcherData?.success && fetcherData?.message) {
-      setShowForm(false);
-      setEditingDiscount(null);
-      showToast(fetcherData.message, "success");
-    } else if (fetcherData?.error) {
-      showToast(fetcherData.error, "error");
+    if (fetcherData && fetcherData !== lastProcessedData.current) {
+      lastProcessedData.current = fetcherData;
+      if (fetcherData.success && fetcherData.message) {
+        setShowForm(false);
+        setEditingDiscount(null);
+        showToast(fetcherData.message, "success");
+      } else if (fetcherData.error) {
+        showToast(fetcherData.error, "error");
+      }
     }
   }, [fetcherData, showToast]);
 
-  // Close modal on successful create/update/delete
-  useEffect(() => {
-    if (fetcherData?.success) {
-      setShowForm(false);
-      setEditingDiscount(null);
-    }
-  }, [fetcherData?.success]);
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);
-    return status && (status.label === "Active" || status.label === "Scheduled");
+    return status && (status.label === "Active" || status.label === "Not Yet Active");
   });
   const inactiveDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);
-    return !status || (status.label !== "Active" && status.label !== "Scheduled");
+    return !status || (status.label !== "Active" && status.label !== "Not Yet Active");
   });
 
   const formatDateForInput = (dateVal: Date | string | null): string => {
@@ -325,6 +334,7 @@ export default function DiscountsPage() {
           <p className="text-foreground-muted">Create and manage discount codes for bookings</p>
         </div>
         <button
+          type="button"
           onClick={() => {
             setEditingDiscount(null);
             setDiscountType("percentage");
@@ -376,7 +386,7 @@ export default function DiscountsPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 capitalize text-sm">{discount.applicableTo}</td>
+                      <td className="px-4 py-3 text-sm">{applicableToLabels[discount.applicableTo] || discount.applicableTo}</td>
                       <td className="px-4 py-3 text-sm text-foreground-muted">
                         {discount.validFrom ? (
                           <>
@@ -390,17 +400,24 @@ export default function DiscountsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {discount.usedCount}
-                        {discount.maxUses && ` / ${discount.maxUses}`}
+                        {discount.maxUses
+                          ? `${discount.usedCount} / ${discount.maxUses}`
+                          : `${discount.usedCount} uses`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
                           {status.label}
                         </span>
+                        {status.label === "Not Yet Active" && discount.validFrom && (
+                          <p className="text-xs text-warning mt-1">
+                            Active from {new Date(discount.validFrom).toLocaleDateString()}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            type="button"
                             onClick={() => {
                               const disc = discount as DiscountCode;
                               setEditingDiscount(disc);
@@ -435,6 +452,7 @@ export default function DiscountsPage() {
           <div className="bg-surface-inset rounded-lg p-8 text-center">
             <p className="text-foreground-muted mb-4">No active discount codes.</p>
             <button
+              type="button"
               onClick={() => {
                 setDiscountType("percentage");
                 setShowForm(true);
@@ -479,8 +497,9 @@ export default function DiscountsPage() {
                         {formatDiscountValue(discount.discountType, discount.discountValue)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {discount.usedCount}
-                        {discount.maxUses && ` / ${discount.maxUses}`}
+                        {discount.maxUses
+                          ? `${discount.usedCount} / ${discount.maxUses}`
+                          : `${discount.usedCount} uses`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
@@ -504,6 +523,7 @@ export default function DiscountsPage() {
                             </fetcher.Form>
                           )}
                           <button
+                            type="button"
                             onClick={() => {
                               const disc = discount as DiscountCode;
                               setEditingDiscount(disc);
@@ -705,29 +725,28 @@ export default function DiscountsPage() {
                     {isSubmitting ? "Saving..." : editingDiscount ? "Update" : "Create"}
                   </button>
                 </div>
-
-                {editingDiscount && (
-                  <div className="pt-4 border-t">
-                    <fetcher.Form method="post">
-                      <CsrfInput />
-                      <input type="hidden" name="intent" value="delete" />
-                      <input type="hidden" name="id" value={editingDiscount.id} />
-                      <button
-                        type="submit"
-                        onClick={(e) => {
-                          if (!confirm("Delete this discount code? This cannot be undone.")) {
-                            e.preventDefault();
-                          }
-                          // Don't close modal here - let useEffect handle it after success
-                        }}
-                        className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
-                      >
-                        Delete Discount Code
-                      </button>
-                    </fetcher.Form>
-                  </div>
-                )}
               </fetcher.Form>
+
+              {editingDiscount && (
+                <div className="pt-4 border-t">
+                  <fetcher.Form method="post">
+                    <CsrfInput />
+                    <input type="hidden" name="intent" value="delete" />
+                    <input type="hidden" name="id" value={editingDiscount.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) => {
+                        if (!confirm("Delete this discount code? This cannot be undone.")) {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
+                    >
+                      Delete Discount Code
+                    </button>
+                  </fetcher.Form>
+                </div>
+              )}
             </div>
           </div>
         </div>

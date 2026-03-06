@@ -173,7 +173,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .where(
       and(
         eq(bookings.tripId, tripId),
-        sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     );
 
@@ -539,7 +539,7 @@ export default function SiteTripDetailPage() {
                       )}
                       <div className="mt-2 flex flex-wrap gap-3 text-sm">
                         {site.maxDepth && (
-                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>Max Depth: {site.maxDepth}m</span>
+                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>Max Depth: {site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</span>
                         )}
                         {site.highlights.length > 0 && (
                           <span className="opacity-60" style={{ color: "var(--text-color)" }}>

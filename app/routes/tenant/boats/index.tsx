@@ -8,6 +8,7 @@ import { boats as boatsTable, trips } from "../../../../lib/db/schema";
 import { eq, ilike, count, and } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatLabel } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
@@ -114,6 +115,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isPremium: ctx.isPremium,
   };
 }
+
+const vesselTypeLabels: Record<string, string> = {
+  catamaran: "Catamaran",
+  speedboat: "Speedboat",
+  sailboat: "Sailboat",
+  inflatable: "Inflatable",
+  rigid_inflatable: "Rigid Inflatable",
+  dive_boat: "Dive Boat",
+  other: "Other",
+};
 
 export default function BoatsPage() {
   // Show notifications from URL params
@@ -224,7 +235,7 @@ export default function BoatsPage() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-lg">{boat.name}</h3>
-                    <p className="text-foreground-muted text-sm">{boat.type}</p>
+                    <p className="text-foreground-muted text-sm">{vesselTypeLabels[boat.type] || formatLabel(boat.type)}</p>
                   </div>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${

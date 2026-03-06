@@ -55,6 +55,11 @@ vi.mock("../../../../../lib/jobs", () => ({
   }),
 }));
 
+vi.mock("../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 60000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { db } from "../../../../../lib/db";
 import { getSubdomainFromHost } from "../../../../../lib/utils/url";
 import { getCustomerBySession } from "../../../../../lib/auth/customer-auth.server";
@@ -326,7 +331,7 @@ describe("site/book/$type.$id route", () => {
 
       expect(result).toHaveProperty("errors");
       const errors = (result as { errors: Record<string, string> }).errors;
-      expect(errors.participants).toBe("At least 1 participant is required");
+      expect(errors.participants).toBe("Participants must be a whole number (minimum 1)");
     });
 
     it("returns error when session not selected for course booking", async () => {

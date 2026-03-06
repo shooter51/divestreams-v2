@@ -56,6 +56,10 @@ vi.mock("../../../../lib/db/schema/auth", () => ({
     organizationId: "organizationId",
     role: "role",
   },
+  user: {
+    id: "id",
+    email: "email",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -65,11 +69,20 @@ vi.mock("drizzle-orm", () => ({
 
 vi.mock("../../../../lib/utils/url", () => ({
   getAppUrl: vi.fn(() => "https://divestreams.com"),
+  getTenantUrl: vi.fn((slug: string, path: string) => `https://${slug}.divestreams.com${path}`),
 }));
 
+// Mock rate limiting - always allow in tests
 vi.mock("../../../../lib/utils/rate-limit", () => ({
-  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10 }),
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 900000 }),
   getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
+// Mock CSRF module
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("test-csrf-token"),
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  CSRF_FIELD_NAME: "_csrf",
 }));
 
 import { loader, action } from "../../../../app/routes/auth/login";
@@ -92,15 +105,14 @@ describe("auth/login route", () => {
   });
 
   describe("loader", () => {
-    it("redirects to main site when no subdomain", async () => {
+    it("returns discovery mode when no subdomain", async () => {
       (getSubdomainFromRequest as Mock).mockReturnValue(null);
 
       const request = new Request("https://divestreams.com/auth/login");
 
-      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(response).toBeInstanceOf(Response);
-      expect((response as Response).status).toBe(302);
+      expect(result).toMatchObject({ mode: "discovery", csrfToken: "test-csrf-token" });
     });
 
     it("redirects to /tenant when already logged in", async () => {
@@ -140,20 +152,29 @@ describe("auth/login route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result).toEqual({
+        mode: "tenant",
         tenantName: "Demo Dive Shop",
         mainSiteUrl: "https://divestreams.com",
-        noAccessError: null
+        noAccessError: null,
+        csrfToken: "test-csrf-token"
       });
     });
   });
 
   describe("action", () => {
-    it("redirects when no subdomain", async () => {
+    it("redirects to tenant login when user found via discovery", async () => {
       (getSubdomainFromRequest as Mock).mockReturnValue(null);
+      const mockUser = { id: "user-1" };
+      const mockMembership = { organizationId: "org-1" };
+      const mockOrgWithSlug = { slug: "demo" };
+      // Chain: user lookup → membership lookup → org lookup
+      (db.limit as Mock)
+        .mockResolvedValueOnce([mockUser])
+        .mockResolvedValueOnce([mockMembership])
+        .mockResolvedValueOnce([mockOrgWithSlug]);
 
       const formData = new FormData();
       formData.append("email", "test@example.com");
-      formData.append("password", "password123");
 
       const request = new Request("https://divestreams.com/auth/login", {
         method: "POST",
@@ -164,6 +185,24 @@ describe("auth/login route", () => {
 
       expect(response).toBeInstanceOf(Response);
       expect((response as Response).status).toBe(302);
+      expect((response as Response).headers.get("location")).toBe("https://demo.divestreams.com/auth/login");
+    });
+
+    it("returns error when email not found in discovery mode", async () => {
+      (getSubdomainFromRequest as Mock).mockReturnValue(null);
+      (db.limit as Mock).mockResolvedValueOnce([]); // no user found
+
+      const formData = new FormData();
+      formData.append("email", "notfound@example.com");
+
+      const request = new Request("https://divestreams.com/auth/login", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+      expect(result).toMatchObject({ mode: "discovery", errors: { email: expect.stringContaining("No account") } });
     });
 
     it("returns error when email is missing", async () => {

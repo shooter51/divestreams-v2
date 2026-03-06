@@ -11,6 +11,7 @@ export const cartProductSchema = z.object({
   name: z.string(),
   quantity: z.number().int().positive(),
   unitPrice: z.number().positive(),
+  taxRate: z.number().min(0).optional(),
   total: z.number().positive(),
 });
 
@@ -74,6 +75,7 @@ export const checkoutSchema = z.object({
   tax: z.number().min(0),
   total: z.number().positive(),
   notes: z.string().optional(),
+  discountCode: z.string().optional(),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

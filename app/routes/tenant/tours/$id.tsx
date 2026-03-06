@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getTourById,
   getTourStats,
@@ -128,6 +128,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -164,6 +165,14 @@ const tourTypes: Record<string, string> = {
   night_dive: "Night Dive",
   other: "Other",
 };
+
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "TBD";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
 
 export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
@@ -248,7 +257,7 @@ export default function TourDetailPage() {
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{tour.tripCount}</p>
-              <p className="text-foreground-muted text-sm">Trips Run</p>
+              <p className="text-foreground-muted text-sm">{tour.tripCount !== 1 ? "Trips" : "Trip"} Run</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${tour.totalRevenue}</p>
@@ -362,7 +371,7 @@ export default function TourDetailPage() {
                         )}
                       </div>
                       {site.maxDepth && (
-                        <p className="text-sm text-foreground-muted">{site.maxDepth}m max depth</p>
+                        <p className="text-sm text-foreground-muted">{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft max depth</p>
                       )}
                     </div>
                   </Link>
@@ -394,7 +403,7 @@ export default function TourDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {trip.date} at {trip.time}
+                        {trip.date} at {formatTime(trip.time)}
                       </p>
                       <p className="text-sm text-foreground-muted">{trip.boatName}</p>
                     </div>
@@ -443,12 +452,14 @@ export default function TourDetailPage() {
                   {tour.isActive ? "Deactivate Tour" : "Activate Tour"}
                 </button>
               </fetcher.Form>
-              <Link
-                to={`/tenant/tours/${tour.id}/duplicate`}
-                className="block w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
-              >
-                Duplicate Tour
-              </Link>
+              <fetcher.Form method="post" action={`/tenant/tours/${tour.id}/duplicate`}>
+                <button
+                  type="submit"
+                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
+                >
+                  Duplicate Tour
+                </button>
+              </fetcher.Form>
             </div>
           </div>
 

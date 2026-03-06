@@ -256,7 +256,7 @@ export async function getTourStats(organizationId: string, tourId: string) {
     .where(and(
       eq(schema.trips.tourId, tourId),
       eq(schema.trips.organizationId, organizationId),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'refunded')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'refunded')`
     ));
 
   return {
@@ -300,7 +300,7 @@ export async function getUpcomingTripsForTour(organizationId: string, tourId: st
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 

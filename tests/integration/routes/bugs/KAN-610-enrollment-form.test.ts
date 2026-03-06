@@ -22,8 +22,10 @@ vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(async () => ({
     user: { id: "user-1", email: "admin@test.com" },
     org: { id: "org-1", name: "Test Org" },
+    membership: { role: "owner" },
     isPremium: true,
   })),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../lib/db/training.server", () => ({

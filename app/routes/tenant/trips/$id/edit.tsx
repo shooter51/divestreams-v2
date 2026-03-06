@@ -1,9 +1,10 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getTripWithFullDetails, getAllBoats, getAllTours, getStaff } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { updateRecurringTrip, getRecurringTemplate } from "../../../../../lib/trips/recurring.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
@@ -11,6 +12,7 @@ export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const tripId = params.id;
 
@@ -38,6 +40,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return String(date);
   };
 
+  // Determine the recurring template ID for this trip (if it's part of a series)
+  const recurringTemplateId = tripData.recurringTemplateId || (tripData.isRecurring ? tripData.id : null);
+  let recurrencePattern: string | null = null;
+  if (tripData.isRecurring) {
+    if (tripData.recurrencePattern) {
+      recurrencePattern = tripData.recurrencePattern;
+    } else if (tripData.recurringTemplateId) {
+      const template = await getRecurringTemplate(organizationId, tripId);
+      recurrencePattern = template?.recurrencePattern ?? null;
+    }
+  }
+
   const trip = {
     id: tripData.id,
     tourId: tripData.tour.id,
@@ -55,6 +69,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPublic: tripData.isPublic ?? true,
     staffIds: tripData.staffIds ?? [],
     diveSites: tripData.diveSites ?? [],
+    isRecurring: tripData.isRecurring ?? false,
+    isRecurringTemplate: tripData.isRecurring && !tripData.recurringTemplateId,
+    recurringTemplateId,
+    recurrencePattern,
   };
 
   const staff = staffData.map((s) => ({ id: s.id, name: s.name, role: s.role }));
@@ -64,6 +82,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const tripId = params.id;
 
@@ -78,17 +97,41 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const date = formData.get("date") as string;
   const startTime = formData.get("startTime") as string;
   const endTime = formData.get("endTime") as string;
-  const maxParticipants = parseInt(formData.get("maxParticipants") as string) || 10;
+  const maxParticipantsRaw = formData.get("maxParticipants") as string;
+  const maxParticipants = maxParticipantsRaw ? parseInt(maxParticipantsRaw) || null : null;
   const price = formData.get("price") as string;
   const status = formData.get("status") as string;
   const weatherNotes = formData.get("weatherNotes") as string;
   const notes = formData.get("notes") as string;
   const isPublic = formData.get("isPublic") === "true";
   const staffIds = formData.getAll("staffIds") as string[];
+  const editScope = formData.get("editScope") as string | null; // "single" | "series"
+  const recurringTemplateId = formData.get("recurringTemplateId") as string | null;
 
-  // Update trip in database
   const { db, schema } = getTenantDb(organizationId);
 
+  // If editing a recurring series and a templateId is available, use updateRecurringTrip
+  if (editScope === "series" && recurringTemplateId) {
+    await updateRecurringTrip(
+      organizationId,
+      recurringTemplateId,
+      {
+        tourId,
+        boatId: boatId || null,
+        startTime,
+        endTime: endTime || null,
+        maxParticipants,
+        price: price ? Number(price) : null,
+        notes: notes || null,
+        staffIds: staffIds.length > 0 ? staffIds : null,
+        weatherNotes: weatherNotes || null,
+      },
+      { updateFutureInstances: true }
+    );
+    return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Series updated successfully", "success"));
+  }
+
+  // Otherwise update just this single trip
   await db
     .update(schema.trips)
     .set({
@@ -128,6 +171,52 @@ export default function EditTripPage() {
 
       <form method="post" className="space-y-6">
         <CsrfInput />
+        {/* Recurring trip hidden fields and scope selector */}
+        {trip.isRecurring && (
+          <>
+            <input type="hidden" name="recurringTemplateId" value={trip.recurringTemplateId ?? ""} />
+            <div className="bg-brand-muted border border-brand rounded-xl p-4">
+              <p className="text-sm font-medium text-brand mb-3">
+                This is a recurring trip ({trip.recurrencePattern ?? "series"}).
+                How would you like to save changes?
+              </p>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="editScope"
+                    value="single"
+                    defaultChecked
+                    className="accent-brand"
+                  />
+                  <span className="text-sm">This trip only</span>
+                </label>
+                {trip.recurringTemplateId && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="editScope"
+                      value="series"
+                      className="accent-brand"
+                    />
+                    <span className="text-sm">This and all future trips in the series</span>
+                  </label>
+                )}
+                {trip.isRecurringTemplate && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="editScope"
+                      value="series"
+                      className="accent-brand"
+                    />
+                    <span className="text-sm">All future trips in the series</span>
+                  </label>
+                )}
+              </div>
+            </div>
+          </>
+        )}
         {/* Trip Details */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Trip Details</h2>
@@ -222,13 +311,13 @@ export default function EditTripPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="maxParticipants" className="block text-sm font-medium mb-1">
-                Max Participants *
+                Max Participants
+                <span className="text-foreground-muted font-normal text-xs ml-1">(leave blank to use tour default)</span>
               </label>
               <input
                 type="number"
                 id="maxParticipants"
                 name="maxParticipants"
-                required
                 min="1"
                 max="100"
                 defaultValue={trip.maxParticipants ?? ""}
@@ -272,7 +361,7 @@ export default function EditTripPage() {
               <option value="confirmed">Confirmed</option>
               <option value="full">Full</option>
               <option value="completed">Completed</option>
-              <option value="canceled">Cancelled</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
         </div>
@@ -336,7 +425,7 @@ export default function EditTripPage() {
                 <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
                   <span className="text-sm font-medium">{site.name}</span>
                   <div className="flex items-center gap-3 text-xs text-foreground-muted">
-                    {site.maxDepth && <span>{site.maxDepth}m max</span>}
+                    {site.maxDepth && <span>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft max</span>}
                     {site.difficulty && <span className="capitalize">{site.difficulty}</span>}
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { useOutletContext, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 import { CsrfInput } from "../../../components/CsrfInput";
@@ -54,6 +54,7 @@ const fontFamilies = [
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -61,6 +62,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const theme = (formData.get("theme") as PublicSiteSettings["theme"]) || "ocean";
     const primaryColor = (formData.get("primaryColor") as string) || "#0ea5e9";
     const secondaryColor = (formData.get("secondaryColor") as string) || "#06b6d4";
+    const heroImageUrl = (formData.get("heroImageUrl") as string) || "";
     const fontFamily =
       (formData.get("fontFamily") as PublicSiteSettings["fontFamily"]) || "inter";
 
@@ -87,6 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
       primaryColor,
       secondaryColor,
       fontFamily,
+      heroImageUrl: heroImageUrl || null,
     });
 
     return { success: true, message: "Appearance settings updated successfully" };
@@ -105,6 +108,7 @@ export default function PublicSiteAppearanceSettings() {
   const [primaryColor, setPrimaryColor] = useState(settings.primaryColor);
   const [secondaryColor, setSecondaryColor] = useState(settings.secondaryColor);
   const [fontFamily, setFontFamily] = useState(settings.fontFamily);
+  const [heroImageUrl, setHeroImageUrl] = useState(settings.heroImageUrl || "");
 
   // Update state when settings change (after save)
   useEffect(() => {
@@ -112,6 +116,7 @@ export default function PublicSiteAppearanceSettings() {
     setPrimaryColor(settings.primaryColor);
     setSecondaryColor(settings.secondaryColor);
     setFontFamily(settings.fontFamily);
+    setHeroImageUrl(settings.heroImageUrl || "");
   }, [settings]);
 
   // Update custom colors when theme changes
@@ -143,6 +148,43 @@ export default function PublicSiteAppearanceSettings() {
       <fetcher.Form method="post">
         <CsrfInput />
         <input type="hidden" name="intent" value="update-appearance" />
+
+        {/* Hero Image URL */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
+          <h2 className="font-semibold mb-2">Hero Image</h2>
+          <p className="text-sm text-foreground-muted mb-4">
+            Set the hero image URL for your public site landing page
+          </p>
+          <div>
+            <label htmlFor="heroImageUrl" className="block text-sm font-medium mb-1">
+              Hero Image URL
+            </label>
+            <input
+              type="url"
+              id="heroImageUrl"
+              name="heroImageUrl"
+              value={heroImageUrl}
+              placeholder="https://images.unsplash.com/photo-..."
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              onChange={(e) => setHeroImageUrl(e.target.value)}
+            />
+            <p className="text-xs text-foreground-muted mt-1">
+              Enter a URL for the hero banner image. Recommended size: 1600x900 or larger.
+            </p>
+          </div>
+          {heroImageUrl && (
+            <div className="mt-4 rounded-lg overflow-hidden border border-border">
+              <img
+                src={heroImageUrl}
+                alt="Hero preview"
+                className="w-full h-48 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Theme Selector */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">

@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -21,7 +21,7 @@ type WidgetSettings = {
 };
 
 const defaultSettings: WidgetSettings = {
-  primaryColor: "#2563eb",
+  primaryColor: "var(--info)",
   buttonText: "Book Now",
   showPrices: true,
   showAvailability: true,
@@ -32,6 +32,7 @@ const defaultSettings: WidgetSettings = {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Parse widget settings from org metadata
   let metadata: { widget?: Partial<WidgetSettings>; branding?: { primaryColor?: string } } = {};
@@ -63,6 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   // Parse existing metadata
@@ -319,14 +321,14 @@ export default function BookingWidgetPage() {
           {/* Preview */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Preview</h2>
-            <div className="border rounded-lg overflow-hidden" style={{ height: "400px" }}>
-              <iframe
-                src={embedUrl}
-                width="100%"
-                height="100%"
-                style={{ border: "none" }}
-                title="Widget Preview"
-              />
+            <p className="text-sm text-foreground-muted mb-3">
+              Use the link above to preview your widget in a new tab. The embed code shown above is ready to paste into your website.
+            </p>
+            <div className="border rounded-lg p-4 bg-surface text-center text-foreground-muted text-sm">
+              <p className="mb-2">Your widget is available at:</p>
+              <a href={embedUrl} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline break-all">
+                {embedUrl}
+              </a>
             </div>
           </div>
         </div>

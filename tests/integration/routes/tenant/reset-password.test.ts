@@ -52,34 +52,21 @@ describe("tenant/reset-password route", () => {
       ).rejects.toEqual(expect.objectContaining({ status: 302 }));
     });
 
-    it("returns hasToken and email when valid", async () => {
+    it("DS-ch0: does not expose email in loader (cross-tenant leak prevention)", async () => {
       (auth.api.getSession as Mock).mockResolvedValue(null);
-      (db.limit as Mock).mockResolvedValue([{ identifier: "user@example.com" }]);
 
       const result = await loader({
-        request: new Request("https://demo.divestreams.com/reset-password?token=valid-token"),
+        request: new Request(
+          "https://demo.divestreams.com/reset-password?token=valid-token",
+        ),
         params: {},
         context: {},
         unstable_pattern: "",
       } as Parameters<typeof loader>[0]);
 
       expect(result.hasToken).toBe(true);
-      expect(result.email).toBe("user@example.com");
-    });
-
-    it("returns empty email when verification not found", async () => {
-      (auth.api.getSession as Mock).mockResolvedValue(null);
-      (db.limit as Mock).mockResolvedValue([]);
-
-      const result = await loader({
-        request: new Request("https://demo.divestreams.com/reset-password?token=valid-token"),
-        params: {},
-        context: {},
-        unstable_pattern: "",
-      } as Parameters<typeof loader>[0]);
-
-      expect(result.hasToken).toBe(true);
-      expect(result.email).toBe("");
+      // email must NOT be exposed to prevent cross-tenant disclosure
+      expect(result).not.toHaveProperty("email");
     });
   });
 

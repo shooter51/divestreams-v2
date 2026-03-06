@@ -1,13 +1,16 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect, useRouteLoaderData } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { CSRF_FIELD_NAME } from "../../../../lib/security/csrf-constants";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
-import { customerCommunications } from "../../../../lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { customerCommunications, transactions } from "../../../../lib/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { formatCurrency, formatDisplayDate } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
@@ -20,7 +23,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Customer ID required", { status: 400 });
   }
 
-  const [customer, bookings, communications] = await Promise.all([
+  const [customer, bookings, communications, totalSpentResult] = await Promise.all([
     getCustomerById(organizationId, customerId),
     getCustomerBookings(organizationId, customerId),
     db
@@ -35,6 +38,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .orderBy(desc(customerCommunications.createdAt))
       .limit(20)
       .catch(() => []), // Table might not exist yet
+    db
+      .select({ total: sql<string>`COALESCE(SUM(${transactions.amount}), '0')` })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.organizationId, organizationId),
+          eq(transactions.customerId, customerId),
+          eq(transactions.type, "payment")
+        )
+      ),
   ]);
 
   if (!customer) {
@@ -56,12 +69,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     date: formatDate(cert.date),
   }));
 
+  // Compute actual totalSpent from payment transactions
+  const actualTotalSpent = Number(totalSpentResult[0]?.total ?? 0);
+
   // Format customer with dates as strings
   const formattedCustomer = {
     ...customer,
+    totalSpent: actualTotalSpent,
     dateOfBirth: formatDate(customer.dateOfBirth),
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),
+    lastDiveAt: formatDate(customer.lastDiveAt),
     certifications: formattedCertifications,
   };
 
@@ -83,6 +101,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -102,11 +121,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "send-email") {
     const subject = formData.get("subject") as string;
     const body = formData.get("body") as string;
-    const customerEmail = formData.get("customerEmail") as string;
 
     if (!subject || !body) {
       return { error: "Subject and body are required" };
     }
+
+    // Fetch customer email from DB — never trust client-supplied email address
+    const customerData = await getCustomerById(organizationId, customerId);
+    if (!customerData?.email) {
+      return { error: "Customer not found or has no email address" };
+    }
+    const customerEmail = customerData.email;
 
     // Actually send the email via SMTP [KAN-607 FIX]
     try {
@@ -165,13 +190,14 @@ export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
 
   // Show notifications from URL params
   useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this customer? This cannot be undone.")) {
-      fetcher.submit({ intent: "delete" }, { method: "post" });
+      fetcher.submit({ intent: "delete", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
     }
   };
 
@@ -243,11 +269,11 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Dives</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">${customer.totalSpent}</p>
+              <p className="text-2xl font-bold">{formatCurrency(customer.totalSpent)}</p>
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt ? String(customer.lastDiveAt) : "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDisplayDate(customer.lastDiveAt) : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
@@ -266,7 +292,7 @@ export default function CustomerDetailPage() {
               </div>
               <div>
                 <p className="text-foreground-muted">Date of Birth</p>
-                <p>{customer.dateOfBirth || "—"}</p>
+                <p>{customer.dateOfBirth ? formatDisplayDate(customer.dateOfBirth) : "—"}</p>
               </div>
               <div>
                 <p className="text-foreground-muted">Language</p>
@@ -312,22 +338,12 @@ export default function CustomerDetailPage() {
                       {booking.tripName}
                     </Link>
                     <p className="text-sm text-foreground-muted">
-                      {booking.bookingNumber} • {booking.date}
+                      {booking.bookingNumber} • {formatDisplayDate(booking.date)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${booking.total}</p>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        booking.status === "completed"
-                          ? "bg-surface-inset text-foreground-muted"
-                          : booking.status === "confirmed"
-                          ? "bg-success-muted text-success"
-                          : "bg-warning-muted text-warning"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
+                    <p className="font-medium">{formatCurrency(booking.total)}</p>
+                    <StatusBadge status={booking.status as BadgeStatus} />
                   </div>
                 </div>
               ))}
@@ -345,7 +361,7 @@ export default function CustomerDetailPage() {
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
                   {cert.number && <p className="text-foreground-muted">#{cert.number}</p>}
-                  {cert.date && <p className="text-foreground-muted">{cert.date}</p>}
+                  {cert.date && <p className="text-foreground-muted">{formatDisplayDate(cert.date)}</p>}
                 </div>
               ))
             ) : (
@@ -406,8 +422,8 @@ export default function CustomerDetailPage() {
                   <div key={comm.id} className="text-sm border-l-2 border-brand pl-3">
                     <p className="font-medium">{comm.subject || "(No subject)"}</p>
                     <p className="text-foreground-muted text-xs">
-                      {new Date(comm.createdAt).toLocaleDateString()} at{" "}
-                      {new Date(comm.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(comm.createdAt).toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })} at{" "}
+                      {new Date(comm.createdAt).toLocaleTimeString("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 ))}
@@ -425,7 +441,7 @@ export default function CustomerDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Customer since {customer.createdAt}</p>
+            <p>Customer since {formatDisplayDate(customer.createdAt)}</p>
             <p>Marketing: {customer.marketingOptIn ? "Opted in" : "Opted out"}</p>
           </div>
         </div>

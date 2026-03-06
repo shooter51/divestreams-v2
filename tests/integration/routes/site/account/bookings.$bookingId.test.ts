@@ -207,7 +207,7 @@ describe("site/account/bookings.$bookingId route", () => {
     it("returns 400 for already cancelled bookings", async () => {
       (db.limit as Mock).mockResolvedValue([{
         id: "booking-1",
-        status: "canceled",
+        status: "cancelled",
         tripId: "trip-1",
         organizationId: "org-1",
       }]);
@@ -264,6 +264,44 @@ describe("site/account/bookings.$bookingId route", () => {
       expect((result as Response).status).toBe(200);
       const body = await (result as Response).json();
       expect(body.success).toBe(true);
+    });
+
+    it("DS-35y4: cancel UPDATE includes ownership filter (customerId + organizationId)", async () => {
+      (db.limit as Mock).mockResolvedValue([{
+        id: "booking-1",
+        status: "confirmed",
+        tripId: "trip-1",
+        organizationId: "org-1",
+      }]);
+      (db.set as Mock).mockReturnThis();
+      (db.where as Mock)
+        .mockReturnValueOnce(db)           // select chain
+        .mockResolvedValueOnce(undefined); // update chain
+
+      const formData = new FormData();
+      formData.set("_action", "cancel");
+      formData.set("reason", "Schedule conflict");
+
+      const request = new Request("https://demo.divestreams.com/site/account/bookings/booking-1", {
+        method: "POST",
+        body: formData,
+      });
+      request.headers.append("Cookie", "customer_session=valid-token");
+
+      await action({
+        request,
+        params: { bookingId: "booking-1" },
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      // The second .where() call is the UPDATE's WHERE clause
+      // It should include an and() with bookingId, customerId, AND organizationId
+      const updateWhereCall = (db.where as Mock).mock.calls[1];
+      expect(updateWhereCall).toBeDefined();
+      const whereArg = updateWhereCall[0];
+      // The and() mock wraps conditions, verify it has 3 conditions (id + customerId + orgId)
+      expect(whereArg.type).toBe("and");
+      expect(whereArg.conditions).toHaveLength(3);
     });
   });
 });

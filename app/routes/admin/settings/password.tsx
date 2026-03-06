@@ -3,16 +3,24 @@ import { useLoaderData, useActionData, Form, Link } from "react-router";
 import { requirePlatformContext } from "../../../../lib/auth/platform-context.server";
 import { db } from "../../../../lib/db";
 import { account } from "../../../../lib/db/schema";
-import { hashPassword } from "../../../../lib/auth/password.server";
+import { and } from "drizzle-orm";
+import { hashPassword, verifyPassword } from "../../../../lib/auth/password.server";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
 
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams Admin" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requirePlatformContext(request);
-  const url = new URL(request.url);
-  const forced = url.searchParams.get("forced") === "true";
+  const ctx = await requirePlatformContext(request);
+
+  // Check the database flag, not the URL parameter, to determine if password change is forced
+  const [userAccount] = await db
+    .select({ forcePasswordChange: account.forcePasswordChange })
+    .from(account)
+    .where(eq(account.userId, ctx.user.id))
+    .limit(1);
+
+  const forced = userAccount?.forcePasswordChange === true;
 
   return {
     forced,
@@ -43,16 +51,31 @@ export async function action({ request }: ActionFunctionArgs) {
     return { error: "Password must be at least 8 characters" };
   }
 
-  // Check if forced (skip current password check)
-  const url = new URL(request.url);
-  const forced = url.searchParams.get("forced") === "true";
+  // Check the database flag to determine if password change is forced (not URL parameter)
+  const [userAccount] = await db
+    .select({ forcePasswordChange: account.forcePasswordChange })
+    .from(account)
+    .where(eq(account.userId, ctx.user.id))
+    .limit(1);
+
+  const forced = userAccount?.forcePasswordChange === true;
 
   if (!forced && !currentPassword) {
     return { error: "Current password is required" };
   }
 
-  // TODO: Verify current password if not forced
-  // This would require Better Auth password verification
+  // Verify current password if not forced
+  if (!forced) {
+    const [existingAccount] = await db
+      .select({ password: account.password })
+      .from(account)
+      .where(and(eq(account.userId, ctx.user.id), eq(account.providerId, "credential")))
+      .limit(1);
+
+    if (!existingAccount?.password || !(await verifyPassword(currentPassword, existingAccount.password))) {
+      return { error: "Current password is incorrect" };
+    }
+  }
 
   // Update password using Better Auth format
   try {

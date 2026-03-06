@@ -60,6 +60,14 @@ async function globalSetup(_config: FullConfig) {
       console.log("✓ Demo organization created");
     } else {
       console.log("✓ Demo organization already exists");
+      // Ensure org name is set to proper display name (not just slug)
+      if (existingOrg.name === "demo" || !existingOrg.name) {
+        await db
+          .update(organization)
+          .set({ name: "Demo Dive Shop" })
+          .where(eq(organization.slug, "demo"));
+        console.log("✓ Updated demo org name to 'Demo Dive Shop'");
+      }
     }
 
     // Always check if the demo user exists (even if org exists)

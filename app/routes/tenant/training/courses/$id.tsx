@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, Link, useFetcher } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
   getCourseById,
   getSessions,
@@ -8,6 +8,7 @@ import {
   updateCourse,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { formatLabel, formatTime } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Course Details - DiveStreams" }];
@@ -34,6 +35,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const courseId = params.id!;
@@ -157,8 +159,8 @@ export default function CourseDetailPage() {
               <p className="text-foreground-muted text-sm">Price ({course.currency})</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{course.durationDays || 0}</p>
-              <p className="text-foreground-muted text-sm">Days</p>
+              <p className="text-2xl font-bold">{course.durationDays || "—"}</p>
+              <p className="text-foreground-muted text-sm">{course.durationDays === 1 ? "Day" : "Days"}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{upcomingSessions.length}</p>
@@ -251,8 +253,8 @@ export default function CourseDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {new Date(session.startDate).toLocaleDateString()}
-                        {session.startTime && ` at ${session.startTime}`}
+                        {new Date(session.startDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        {session.startTime && ` at ${formatTime(session.startTime)}`}
                       </p>
                       <p className="text-sm text-foreground-muted">
                         {session.location || "Location TBD"}
@@ -275,7 +277,7 @@ export default function CourseDetailPage() {
                             : "bg-brand-muted text-brand"
                         }`}
                       >
-                        {session.status}
+                        {formatLabel(session.status)}
                       </span>
                     </div>
                   </Link>

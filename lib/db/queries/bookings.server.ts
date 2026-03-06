@@ -6,7 +6,8 @@
  */
 
 import { desc, eq, gte, and, sql } from "drizzle-orm";
-import { db } from "../index";
+import { randomBytes } from "node:crypto";
+import { db, type DbTransaction } from "../index";
 import * as schema from "../schema";
 import { dbLogger } from "../../logger";
 import { mapBooking } from "./mappers";
@@ -14,6 +15,58 @@ import { formatRelativeTime } from "./formatters";
 import { getOrganizationById } from "./reports.server";
 import { getCustomerById } from "./customers.server";
 import { getTripById } from "./trips.server";
+
+// ============================================================================
+// Booking Number Generation
+// ============================================================================
+
+/**
+ * Generate a random 4-character alphanumeric suffix for booking numbers.
+ * Uses characters that avoid ambiguity (no O/0, I/1, L).
+ */
+function generateBookingSuffix(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(4);
+  return Array.from(bytes)
+    .map((b) => chars[b % chars.length])
+    .join("");
+}
+
+/**
+ * Generate the next sequential booking number for an organization.
+ * Format: BK-NNNN-XXXX (e.g. BK-1000-A3KP, BK-1001-R7TZ)
+ * Starts at BK-1000 if no prior bookings exist.
+ * DS-45x1: Random suffix prevents prediction/enumeration.
+ * Accepts an optional transaction (tx) so it can be called inside transactions.
+ */
+export async function getNextBookingNumber(
+  organizationId: string,
+  dbInstance: typeof db | DbTransaction = db
+): Promise<string> {
+  const result = await (dbInstance as typeof db)
+    .select({ bookingNumber: schema.bookings.bookingNumber })
+    .from(schema.bookings)
+    .where(
+      and(
+        eq(schema.bookings.organizationId, organizationId),
+        sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+'`
+      )
+    )
+    .orderBy(sql`CAST(SUBSTRING(${schema.bookings.bookingNumber} FROM 4 FOR (POSITION('-' IN SUBSTRING(${schema.bookings.bookingNumber} FROM 4)) - 1)) AS INTEGER) DESC`)
+    .limit(1);
+
+  if (!Array.isArray(result) || result.length === 0) {
+    return `BK-1000-${generateBookingSuffix()}`;
+  }
+
+  const match = result[0].bookingNumber?.match(/^BK-(\d+)/);
+  if (!match) {
+    return `BK-1000-${generateBookingSuffix()}`;
+  }
+
+  const nextNum = parseInt(match[1], 10) + 1;
+  return `BK-${nextNum}-${generateBookingSuffix()}`;
+}
 
 // ============================================================================
 // Dashboard Booking Queries
@@ -151,7 +204,7 @@ export async function createBooking(organizationId: string, data: {
   specialRequests?: string;
   source?: string;
 }) {
-  const bookingNumber = `BK${Date.now().toString(36).toUpperCase()}`;
+  const bookingNumber = await getNextBookingNumber(organizationId);
 
   const [booking] = await db
     .insert(schema.bookings)
@@ -251,8 +304,30 @@ export async function getBookingWithFullDetails(organizationId: string, id: stri
   const booking = await getBookingById(organizationId, id);
   if (!booking) return null;
 
-  const customer = await getCustomerById(organizationId, booking.customerId);
-  const trip = await getTripById(organizationId, booking.tripId);
+  // Fetch raw JSONB fields that mapBooking doesn't include
+  const [rawBooking, customer, trip] = await Promise.all([
+    db
+      .select({
+        participantDetails: schema.bookings.participantDetails,
+        equipmentRental: schema.bookings.equipmentRental,
+      })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.organizationId, organizationId),
+        eq(schema.bookings.id, id)
+      ))
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    getCustomerById(organizationId, booking.customerId),
+    getTripById(organizationId, booking.tripId),
+  ]);
+
+  const participantDetails = rawBooking?.participantDetails || [];
+  const equipmentRental = rawBooking?.equipmentRental || [];
+  const equipmentTotal = equipmentRental.reduce(
+    (sum: number, item: { price: number }) => sum + (Number(item.price) || 0),
+    0
+  );
 
   // Calculate pricing structure expected by UI
   const basePrice = trip?.price || booking.total / (booking.participants || 1);
@@ -280,14 +355,15 @@ export async function getBookingWithFullDetails(organizationId: string, id: stri
       basePrice: basePrice.toFixed(2),
       participants: booking.participants,
       subtotal: booking.subtotal.toFixed(2),
-      equipmentTotal: "0.00",
+      equipmentTotal: equipmentTotal.toFixed(2),
+      tax: booking.tax.toFixed(2),
       discount: booking.discount.toFixed(2),
       total: booking.total.toFixed(2),
     },
     paidAmount: booking.paidAmount.toFixed(2),
     balanceDue,
-    participantDetails: [],
-    equipmentRental: [],
+    participantDetails,
+    equipmentRental,
     internalNotes: null,
   };
 }
@@ -333,6 +409,7 @@ export async function recordPayment(organizationId: string, data: {
       .select({
         total: schema.bookings.total,
         paidAmount: schema.bookings.paidAmount,
+        status: schema.bookings.status,
       })
       .from(schema.bookings)
       .where(
@@ -376,14 +453,23 @@ export async function recordPayment(organizationId: string, data: {
     const newPaidAmount = alreadyPaid + amount;
     const newPaymentStatus = newPaidAmount >= totalDue - 0.01 ? "paid" : "partial";
 
+    // Auto-confirm pending bookings when fully paid
+    const autoConfirmStatus = newPaymentStatus === "paid" && booking.status === "pending"
+      ? "confirmed"
+      : undefined;
+
     await tx
       .update(schema.bookings)
       .set({
         paidAmount: String(newPaidAmount),
         paymentStatus: newPaymentStatus,
+        ...(autoConfirmStatus !== undefined && { status: autoConfirmStatus }),
         updatedAt: new Date(),
       })
-      .where(eq(schema.bookings.id, bookingId));
+      .where(and(
+        eq(schema.bookings.organizationId, organizationId),
+        eq(schema.bookings.id, bookingId)
+      ));
 
     return transaction;
   });

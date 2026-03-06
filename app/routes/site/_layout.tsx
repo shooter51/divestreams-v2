@@ -15,6 +15,7 @@ import type { Customer } from "../../../lib/db/schema";
 import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/themes/public-site-themes";
 import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { generateAnonCsrfToken } from "../../../lib/security/csrf.server";
 
 // ============================================================================
 // FONT FAMILIES
@@ -57,6 +58,7 @@ export interface SiteLoaderData {
   };
   contactInfo: PublicSiteSettings["contactInfo"];
   customer: Customer | null;
+  csrfToken: string;
 }
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoaderData> {
@@ -140,14 +142,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 
   // Check for customer session
   const cookieHeader = request.headers.get("Cookie") || "";
-  const cookies = Object.fromEntries(
-    cookieHeader.split("; ").filter(Boolean).map((c) => {
-      const [key, ...rest] = c.split("=");
-      return [key, rest.join("=")];
-    })
-  );
-
-  const sessionToken = cookies["customer_session"];
+  const sessionToken = parseCookieValue(cookieHeader, "customer_session");
   let customer: Customer | null = null;
 
   if (sessionToken) {
@@ -167,7 +162,27 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     enabledPages: settings.pages,
     contactInfo: settings.contactInfo,
     customer,
+    csrfToken: generateAnonCsrfToken(),
   };
+}
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+/**
+ * Parse a specific cookie value from a Cookie header string.
+ * Handles both "; " and ";" separators for maximum compatibility.
+ */
+function parseCookieValue(cookieHeader: string, name: string): string | null {
+  const cookies = cookieHeader.split(";").map((c) => c.trim());
+  for (const cookie of cookies) {
+    const [key, ...rest] = cookie.split("=");
+    if (key === name) {
+      return rest.join("=");
+    }
+  }
+  return null;
 }
 
 // ============================================================================
@@ -465,9 +480,9 @@ export function ErrorBoundary() {
   const isRouteError = isRouteErrorResponse(error);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "#f8fafc", color: "#1e293b" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "var(--surface-inset)", color: "var(--foreground)" }}>
       <div className="max-w-md w-full text-center">
-        <h1 className="text-6xl font-bold mb-4" style={{ color: "#0369a1" }}>
+        <h1 className="text-6xl font-bold mb-4" style={{ color: "var(--info)" }}>
           {isRouteError ? error.status : "Oops"}
         </h1>
         <h2 className="text-2xl font-semibold mb-2">
@@ -477,7 +492,7 @@ export function ErrorBoundary() {
               : "Something Went Wrong"
             : "Unexpected Error"}
         </h2>
-        <p className="text-gray-600 mb-8">
+        <p className="mb-8" style={{ color: "var(--foreground-muted)" }}>
           {isRouteError
             ? error.status === 404
               ? "The page you're looking for doesn't exist or has been moved."
@@ -488,13 +503,14 @@ export function ErrorBoundary() {
           <Link
             to="/site"
             className="px-6 py-3 text-white rounded-lg font-medium transition-colors"
-            style={{ backgroundColor: "#0369a1" }}
+            style={{ backgroundColor: "var(--info)" }}
           >
             Back to Home
           </Link>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-white text-gray-700 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 rounded-lg font-medium border transition-colors"
+            style={{ backgroundColor: "var(--surface-inset)", color: "var(--foreground-muted)", borderColor: "var(--border)" }}
           >
             Try Again
           </button>

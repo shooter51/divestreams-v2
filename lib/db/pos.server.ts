@@ -5,6 +5,7 @@
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
+import { getNextBookingNumber } from "./queries/bookings.server";
 import type { CartItem, Payment } from "../validation/pos";
 import { dbLogger } from "../logger";
 
@@ -18,6 +19,7 @@ type POSProduct = {
   name: string;
   category: string;
   price: string;
+  taxRate: string | null;
   salePrice: string | null;
   saleStartDate: Date | null;
   saleEndDate: Date | null;
@@ -37,6 +39,7 @@ export async function getPOSProducts(tables: TenantTables, organizationId: strin
         name: tables.products.name,
         category: tables.products.category,
         price: tables.products.price,
+        taxRate: tables.products.taxRate,
         salePrice: tables.products.salePrice,
         saleStartDate: tables.products.saleStartDate,
         saleEndDate: tables.products.saleEndDate,
@@ -75,6 +78,7 @@ export async function getPOSProducts(tables: TenantTables, organizationId: strin
     // Add null sale fields to match the expected type
     return basicProducts.map(p => ({
       ...p,
+      taxRate: null,
       salePrice: null,
       saleStartDate: null,
       saleEndDate: null,
@@ -119,7 +123,7 @@ export async function getPOSTrips(tables: TenantTables, organizationId: string, 
       tables.bookings,
       and(
         eq(tables.bookings.tripId, tables.trips.id),
-        sql`${tables.bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${tables.bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     )
     .where(
@@ -235,6 +239,7 @@ export async function processPOSCheckout(
     tax: number;
     total: number;
     notes?: string;
+    discountCode?: string;
   }
 ) {
   // SECURITY: Look up actual prices from the database instead of trusting
@@ -245,6 +250,7 @@ export async function processPOSCheckout(
 
   // Fetch actual product prices from database
   let serverSubtotal = 0;
+  const productTaxRateMap = new Map<string, number | null>();
 
   if (productItems.length > 0) {
     const productIds = productItems.map(p => p.productId);
@@ -252,6 +258,7 @@ export async function processPOSCheckout(
       .select({
         id: tables.products.id,
         price: tables.products.price,
+        taxRate: tables.products.taxRate,
         salePrice: tables.products.salePrice,
         saleStartDate: tables.products.saleStartDate,
         saleEndDate: tables.products.saleEndDate,
@@ -273,6 +280,9 @@ export async function processPOSCheckout(
       const effectivePrice = isSaleActive ? Number(p.salePrice) : Number(p.price);
       return [p.id, effectivePrice];
     }));
+
+    // Build per-product tax rate map for server-side tax calculation
+    dbProducts.forEach(p => productTaxRateMap.set(p.id, p.taxRate ? Number(p.taxRate) : null));
 
     for (const item of productItems) {
       const dbPrice = productPriceMap.get(item.productId);
@@ -340,11 +350,32 @@ export async function processPOSCheckout(
     }
   }
 
-  // Recalculate totals using server-verified prices
-  const calculatedTotal = serverSubtotal + data.tax;
+  // SECURITY: Recalculate tax server-side instead of trusting client-submitted value (DS-6h11)
+  const [orgSettings] = await db
+    .select({ taxRate: tables.organizationSettings.taxRate })
+    .from(tables.organizationSettings)
+    .where(eq(tables.organizationSettings.organizationId, organizationId))
+    .limit(1);
+  const orgTaxRate = orgSettings?.taxRate ? parseFloat(orgSettings.taxRate) : 0;
+
+  let serverTax = 0;
+  for (const item of productItems) {
+    const perProductRate = productTaxRateMap.get(item.productId);
+    const itemTaxRate = perProductRate != null ? perProductRate : orgTaxRate;
+    serverTax += item.total * (itemTaxRate / 100);
+  }
+  for (const item of bookingItems) {
+    serverTax += item.total * (orgTaxRate / 100);
+  }
+  for (const item of rentalItems) {
+    serverTax += item.total * (orgTaxRate / 100);
+  }
+  serverTax = Math.round(serverTax * 100) / 100;
 
   // Override client-submitted totals with server-calculated values
   data.subtotal = serverSubtotal;
+  data.tax = serverTax;
+  const calculatedTotal = serverSubtotal + serverTax;
   data.total = calculatedTotal;
 
   // Verify payment amounts sum to server-calculated total
@@ -464,7 +495,7 @@ export async function processPOSCheckout(
       if (!data.customerId) continue;
 
       // Generate booking number
-      const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
+      const bookingNumber = await getNextBookingNumber(organizationId, tx);
 
       await tx.insert(tables.bookings).values({
         organizationId,
@@ -531,7 +562,42 @@ export async function processPOSCheckout(
           stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
           updatedAt: new Date(),
         })
-        .where(eq(tables.products.id, product.productId));
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.id, product.productId)
+        ));
+    }
+
+    // Atomically enforce maxUses and increment usedCount for discount code
+    if (data.discountCode) {
+      const [discount] = await tx
+        .select()
+        .from(tables.discountCodes)
+        .where(
+          and(
+            eq(tables.discountCodes.organizationId, organizationId),
+            eq(tables.discountCodes.code, data.discountCode),
+            eq(tables.discountCodes.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (!discount) {
+        throw new Error(`Discount code "${data.discountCode}" not found or inactive`);
+      }
+      if (discount.maxUses !== null && discount.usedCount >= discount.maxUses) {
+        throw new Error(`Discount code "${data.discountCode}" has reached its maximum usage limit`);
+      }
+
+      await tx
+        .update(tables.discountCodes)
+        .set({ usedCount: sql`${tables.discountCodes.usedCount} + 1` })
+        .where(
+          and(
+            eq(tables.discountCodes.organizationId, organizationId),
+            eq(tables.discountCodes.code, data.discountCode)
+          )
+        );
     }
 
     return txnRecord;

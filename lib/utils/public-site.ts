@@ -238,8 +238,8 @@ export function getDefaultSiteSettings(): PublicSiteSettings {
   return {
     enabled: false,
     theme: "ocean",
-    primaryColor: "#0077B6",
-    secondaryColor: "#00B4D8",
+    primaryColor: "var(--brand)",
+    secondaryColor: "var(--brand)",
     logoUrl: null,
     heroImageUrl: null,
     heroVideoUrl: null,

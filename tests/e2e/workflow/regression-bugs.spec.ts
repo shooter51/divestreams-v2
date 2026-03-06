@@ -186,22 +186,20 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
       await phoneField.fill(testData.customer.phone);
     }
 
-    // Submit
+    // Submit — wait for redirect away from /new, indicating successful creation
     await page.getByRole("button", { name: /create|save|add/i }).click();
+    await page.waitForURL(/\/tenant\/customers(?!\/new)/, { timeout: 10000 }).catch(() => {});
     await page.waitForLoadState("load").catch(() => {});
-    await page.waitForLoadState("load");
 
-    // Extract customer ID - navigate to list and wait for full load
-    await page.goto(getTenantUrl("/tenant/customers"));
+    // Extract customer ID - search by last name to avoid pagination issues (list is sorted alphabetically, 20 per page)
+    await page.goto(getTenantUrl(`/tenant/customers?search=${encodeURIComponent(testData.customer.lastName)}`));
     await page.waitForLoadState("load");
-    await page.waitForLoadState("load").catch(() => {});
     let customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
 
     // Retry once if not found (race condition mitigation)
     if (!customerId) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForLoadState("load").catch(() => {});
       customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
     }
     if (customerId) testData.createdIds.customer = customerId;
@@ -267,8 +265,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     const deleteBtn = page.getByRole("button", { name: /delete/i });
     expect(await deleteBtn.isVisible()).toBeTruthy();
 
-    // Set up listener for dialog
-    page.on('dialog', dialog => dialog.accept());
+    // Mock window.confirm to avoid unreliable CDP dialog handling in CI
+    await page.evaluate(() => { (window as unknown as { confirm: () => boolean }).confirm = () => true; });
 
     // Click delete
     await deleteBtn.click();
@@ -306,8 +304,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
       return;
     }
 
-    // Set up listener for dialog
-    page.on('dialog', dialog => dialog.accept());
+    // Mock window.confirm to avoid unreliable CDP dialog handling in CI
+    await page.evaluate(() => { (window as unknown as { confirm: () => boolean }).confirm = () => true; });
 
     // Click delete
     await deleteBtn.click();

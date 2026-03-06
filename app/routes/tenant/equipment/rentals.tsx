@@ -6,18 +6,20 @@
 
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, redirect } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { eq, and, desc } from "drizzle-orm";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Manage Rentals - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_EQUIPMENT_BOATS);
 
   const organizationId = ctx.org.id;
@@ -93,6 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_EQUIPMENT_BOATS);
 
   const organizationId = ctx.org.id;
@@ -163,6 +166,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return null;
 }
+
+const rentalStatusLabels: Record<string, string> = {
+  active: "Active",
+  overdue: "Overdue",
+  returned: "Returned",
+  cancelled: "Cancelled",
+};
 
 export default function RentalsPage() {
   useNotification();
@@ -346,7 +356,7 @@ export default function RentalsPage() {
                           : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
-                      {rental.status}
+                      {rentalStatusLabels[rental.status] || formatLabel(rental.status)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">

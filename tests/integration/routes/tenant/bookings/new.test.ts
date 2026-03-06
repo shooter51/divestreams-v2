@@ -10,7 +10,10 @@ import * as emailTriggers from "../../../../../lib/email/triggers";
 vi.mock("../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../lib/db/queries.server");
 vi.mock("../../../../../lib/validation");
-vi.mock("../../../../../lib/email/triggers");
+vi.mock("../../../../../lib/email/triggers", () => ({
+  triggerBookingConfirmation: vi.fn(),
+  getNotificationSettings: vi.fn(() => ({ emailBookingConfirmation: true })),
+}));
 
 describe("app/routes/tenant/bookings/new.tsx", () => {
   const mockOrganizationId = "org-123";
@@ -153,7 +156,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
 
       expect(result.upcomingTrips[0].tourName).toBe("Trip");
       expect(result.upcomingTrips[0].startTime).toBe("00:00");
-      expect(result.upcomingTrips[0].spotsAvailable).toBe(10); // Default max 10 - 0 booked
+      expect(result.upcomingTrips[0].spotsAvailable).toBeNull(); // null maxParticipants = unlimited
       expect(result.upcomingTrips[0].price).toBe("0.00");
     });
 

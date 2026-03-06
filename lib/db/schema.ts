@@ -326,7 +326,7 @@ export const trips = pgTable("trips", {
   startTime: time("start_time").notNull(),
   endTime: time("end_time"),
 
-  status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, canceled
+  status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, cancelled
 
   // Override tour defaults if needed
   maxParticipants: integer("max_participants"),
@@ -385,7 +385,7 @@ export const bookings = pgTable("bookings", {
     equipment?: string[];
   }[]>(),
 
-  status: text("status").notNull().default("pending"), // pending, confirmed, checked_in, completed, canceled, no_show
+  status: text("status").notNull().default("pending"), // pending, confirmed, checked_in, completed, cancelled, no_show
 
   // Pricing
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
@@ -407,6 +407,7 @@ export const bookings = pgTable("bookings", {
   equipmentRental: jsonb("equipment_rental").$type<{
     item: string;
     size?: string;
+    quantity?: number;
     price: number;
   }[]>(),
 

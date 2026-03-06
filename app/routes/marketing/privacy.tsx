@@ -3,12 +3,31 @@
  * Public-facing privacy policy for legal compliance (GDPR, CCPA, etc.)
  */
 
-import type { MetaFunction } from "react-router";
-import { Link } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs } from "react-router";
+import { Link, useLoaderData } from "react-router";
+import { eq } from "drizzle-orm";
+import { db } from "../../../lib/db";
+import { organization } from "../../../lib/db/schema/auth";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 
-export const meta: MetaFunction = () => [
-  { title: "Privacy Policy - DiveStreams" },
-  { name: "description", content: "DiveStreams privacy policy and data protection practices" },
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const subdomain = getSubdomainFromHost(url.host);
+  let orgName: string | null = null;
+  if (subdomain && subdomain !== "admin" && subdomain !== "www") {
+    const [org] = await db
+      .select({ name: organization.name })
+      .from(organization)
+      .where(eq(organization.slug, subdomain))
+      .limit(1);
+    orgName = org?.name ?? null;
+  }
+  return { orgName };
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => [
+  { title: `Privacy Policy - ${data?.orgName ?? "DiveStreams"}` },
+  { name: "description", content: "Privacy policy and data protection practices" },
 ];
 
 export const headers = () => ({
@@ -16,19 +35,20 @@ export const headers = () => ({
 });
 
 export default function PrivacyPage() {
+  const { orgName } = useLoaderData<typeof loader>();
   const lastUpdated = "January 31, 2026";
 
   return (
     <div className="min-h-screen bg-surface">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <Link to="/" className="text-brand hover:underline">
+          <Link to="/site" className="text-brand hover:underline">
             ← Back to Home
           </Link>
         </div>
 
         <article className="prose prose-slate max-w-none">
-          <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
+          <h1 className="text-4xl font-bold mb-2">{orgName ? `${orgName} — ` : ""}Privacy Policy</h1>
           <p className="text-foreground-muted mb-8">Last updated: {lastUpdated}</p>
 
           <section className="mb-8">

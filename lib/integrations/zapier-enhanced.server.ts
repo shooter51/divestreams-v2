@@ -9,6 +9,41 @@
  */
 
 import { createHash, randomBytes } from "crypto";
+
+/**
+ * Validates that a webhook URL is safe to call:
+ * - Must use HTTPS protocol
+ * - Must not target private/loopback IP ranges (SSRF prevention)
+ */
+function validateWebhookUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("Invalid webhook URL");
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error("Webhook URL must use HTTPS");
+  }
+
+  const hostname = parsed.hostname;
+  // Block loopback and private IP ranges
+  const privatePatterns = [
+    /^localhost$/i,
+    /^127\./,
+    /^10\./,
+    /^172\.(1[6-9]|2\d|3[01])\./,
+    /^192\.168\./,
+    /^169\.254\./,
+    /^::1$/,
+    /^fc00:/i,
+    /^fe80:/i,
+  ];
+  if (privatePatterns.some((re) => re.test(hostname))) {
+    throw new Error("Webhook URL must not target private or loopback addresses");
+  }
+}
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
@@ -186,12 +221,8 @@ export async function subscribeWebhook(
   eventType: string,
   targetUrl: string
 ): Promise<ZapierWebhookSubscription> {
-  // Validate URL
-  try {
-    new URL(targetUrl);
-  } catch {
-    throw new Error("Invalid target URL");
-  }
+  // Validate URL — must be HTTPS and not target private addresses
+  validateWebhookUrl(targetUrl);
 
   // Check if subscription already exists
   const existing = await db
@@ -361,6 +392,9 @@ export async function deliverWebhook(
       timestamp: new Date().toISOString(),
       data: eventData,
     };
+
+    // Re-validate URL before making outbound request
+    validateWebhookUrl(targetUrl);
 
     // Send webhook
     const response = await fetch(targetUrl, {

@@ -5,9 +5,11 @@ import { eq, and } from "drizzle-orm";
 import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
-import { organization, member } from "../../../lib/db/schema/auth";
-import { getAppUrl } from "../../../lib/utils/url";
+import { organization, member, user } from "../../../lib/db/schema/auth";
+import { getAppUrl, getTenantUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -15,10 +17,11 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
+  const csrfToken = generateAnonCsrfToken();
 
   if (!subdomain) {
-    // No subdomain - redirect to main site
-    return redirect(getAppUrl());
+    // No subdomain - show tenant discovery form instead of redirecting
+    return { mode: "discovery" as const, csrfToken };
   }
 
   // Get organization name for display
@@ -46,20 +49,61 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData && sessionData.user) {
     // User is logged in but doesn't have access to this organization
     return {
+      mode: "tenant" as const,
       tenantName: org.name,
       mainSiteUrl: getAppUrl(),
-      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`
+      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`,
+      csrfToken,
     };
   }
 
-  return { tenantName: org.name, noAccessError: null, mainSiteUrl: getAppUrl() };
+  return { mode: "tenant" as const, tenantName: org.name, noAccessError: null, mainSiteUrl: getAppUrl(), csrfToken };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
 
   if (!subdomain) {
-    return redirect(getAppUrl());
+    // Discovery mode - find which tenant the user belongs to
+    const formData = await request.formData();
+    const email = (formData.get("email") as string || "").trim();
+    const csrfToken = generateAnonCsrfToken();
+
+    if (!email) {
+      return { mode: "discovery" as const, errors: { email: "Email is required" }, csrfToken };
+    }
+
+    const [foundUser] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+
+    if (!foundUser) {
+      return { mode: "discovery" as const, errors: { email: "No account found with this email address" }, csrfToken };
+    }
+
+    const [membership] = await db
+      .select({ organizationId: member.organizationId })
+      .from(member)
+      .where(eq(member.userId, foundUser.id))
+      .limit(1);
+
+    if (!membership) {
+      return { mode: "discovery" as const, errors: { email: "No organization found for this account" }, csrfToken };
+    }
+
+    const [org] = await db
+      .select({ slug: organization.slug })
+      .from(organization)
+      .where(eq(organization.id, membership.organizationId))
+      .limit(1);
+
+    if (!org) {
+      return { mode: "discovery" as const, errors: { email: "Organization not found" }, csrfToken };
+    }
+
+    return redirect(getTenantUrl(org.slug, "/auth/login"));
   }
 
   // Get organization
@@ -77,12 +121,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
+  // Validate CSRF token
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { errors: { form: "Invalid form submission. Please refresh and try again." } };
+  }
+
   const errors: Record<string, string> = {};
 
   // Rate limit login attempts
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`login:${clientIp}`, {
-    maxAttempts: 30,
+    maxAttempts: 10,
     windowMs: 15 * 60 * 1000,
   });
 
@@ -153,8 +203,8 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get redirect URL from query params and validate to prevent open redirects
     const url = new URL(request.url);
     const rawRedirect = url.searchParams.get("redirect") || "/tenant";
-    // Only allow relative URLs (must start with / and not contain ://)
-    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+    // Only allow relative URLs (must start with / and not contain :// or //)
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.includes("://")
       ? rawRedirect
       : "/tenant";
 
@@ -169,12 +219,59 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginPage() {
-  const { tenantName, noAccessError, mainSiteUrl } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
   const isSubmitting = navigation.state === "submitting";
 
+  // Discovery mode: root domain with no tenant subdomain
+  if (loaderData.mode === "discovery") {
+    const discoveryActionData = actionData?.mode === "discovery" ? actionData : null;
+    const csrfToken = loaderData.csrfToken;
+    return (
+      <div className="min-h-screen bg-surface-inset flex items-center justify-center">
+        <div className="max-w-md w-full px-4">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-brand">DiveStreams</h1>
+            <p className="text-foreground-muted mt-2">Enter your email to find your account</p>
+          </div>
+          <form method="post" noValidate className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+            <CsrfTokenInput token={csrfToken} />
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  placeholder="you@example.com"
+                  required
+                />
+                {discoveryActionData?.errors?.email && (
+                  <p className="text-danger text-sm mt-1">{discoveryActionData.errors.email}</p>
+                )}
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
+            >
+              {isSubmitting ? "Searching..." : "Find My Account"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  const { tenantName, noAccessError, mainSiteUrl, csrfToken } = loaderData;
 
   return (
     <div className="min-h-screen bg-surface-inset flex items-center justify-center">
@@ -205,7 +302,8 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+        <form method="post" noValidate className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+          <CsrfTokenInput token={csrfToken} />
           {actionData?.errors?.form && (
             <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-4">
               {actionData.errors.form}
@@ -241,6 +339,8 @@ export default function LoginPage() {
                   id="password"
                   name="password"
                   autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />

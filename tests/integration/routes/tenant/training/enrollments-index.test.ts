@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/training.server", () => ({
@@ -89,7 +90,7 @@ describe("tenant/training/enrollments/index route", () => {
           agencyName: "PADI",
           levelName: "Beginner",
         },
-        sessionDate: "2026-03-01",
+        sessionDate: "Mar 1, 2026",
         status: "enrolled",
         paymentStatus: "paid",
         amountPaid: "350.00",

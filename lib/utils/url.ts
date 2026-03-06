@@ -182,34 +182,28 @@ export function getSubdomainFromHost(host: string): string | null {
     return null;
   }
 
-  // Handle production and staging
   const parts = host.split(".");
 
-  // Check if this is the staging environment
-  // Format: staging.divestreams.com (base) or {tenant}.staging.divestreams.com (tenant)
-  if (parts.length >= 3 && parts[parts.length - 3] === "staging") {
-    // This is staging environment
-    if (parts.length === 3) {
-      // staging.divestreams.com - base staging site, no tenant
-      return null;
-    }
-    if (parts.length >= 4) {
-      // {tenant}.staging.divestreams.com
-      const subdomain = parts[0].toLowerCase();
-      // Ignore www as it's not a real subdomain
-      if (subdomain === "www") {
+  // Handle environment roots and tenant subdomains for dev/test/staging
+  // e.g. test.divestreams.com (3 parts) → null (env root, no tenant)
+  //      demo.test.divestreams.com (4 parts) → "demo" (tenant on test env)
+  if (parts.length >= 3) {
+    const envPart = parts[parts.length - 3]; // 3rd from end: "test", "dev", "staging"
+    if (ENV_SUBDOMAINS.includes(envPart)) {
+      if (parts.length === 3) {
+        // e.g. test.divestreams.com — environment root, no tenant
         return null;
       }
-      return subdomain;
+      // e.g. demo.test.divestreams.com — tenant subdomain
+      const subdomain = parts[0].toLowerCase();
+      return subdomain === "www" ? null : subdomain;
     }
   }
 
-  // Handle production
-  // Format: subdomain.divestreams.com
+  // Handle production: subdomain.divestreams.com
   if (parts.length >= 3) {
     const subdomain = parts[0].toLowerCase();
-    // Ignore www and staging as they're not tenant subdomains
-    if (subdomain === "www" || subdomain === "staging") {
+    if (subdomain === "www" || ENV_SUBDOMAINS.includes(subdomain)) {
       return null;
     }
     return subdomain;

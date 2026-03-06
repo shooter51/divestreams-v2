@@ -5,16 +5,23 @@ import { loader, action } from "../../../../../app/routes/tenant/settings/profil
 // Mock the org-context module
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 // Mock the database module
-vi.mock("../../../../../lib/db", () => ({
-  db: {
-    update: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue([]),
-  },
-}));
+vi.mock("../../../../../lib/db", () => {
+  const limit = vi.fn().mockResolvedValue([]);
+  const where = vi.fn().mockReturnValue({ limit });
+  const from = vi.fn().mockReturnValue({ where, limit });
+  return {
+    db: {
+      select: vi.fn().mockReturnValue({ from }),
+      update: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([]),
+    },
+  };
+});
 
 vi.mock("../../../../../lib/db/schema", () => ({
   organization: {
@@ -22,6 +29,12 @@ vi.mock("../../../../../lib/db/schema", () => ({
     name: "name",
     slug: "slug",
     metadata: "metadata",
+  },
+  organizationSettings: {
+    organizationId: "organizationId",
+    taxRate: "taxRate",
+    taxName: "taxName",
+    taxIncludedInPrice: "taxIncludedInPrice",
   },
 }));
 

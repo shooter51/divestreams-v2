@@ -233,11 +233,13 @@ describe("Cart", () => {
       expect(screen.getByText("$192.48")).toBeInTheDocument();
     });
 
-    it("shows $0.00 subtotal, tax, and total for empty cart", () => {
+    it("shows $0.00 subtotal and total for empty cart (tax line hidden)", () => {
       render(<Cart {...baseProps} items={[]} taxRate={10} />);
+      // Tax line is hidden when cart is empty
+      expect(screen.queryByText(/Tax \(/)).toBeNull();
+      // Subtotal and total both show $0.00
       const zeros = screen.getAllByText("$0.00");
-      // subtotal, tax, total all 0
-      expect(zeros.length).toBeGreaterThanOrEqual(3);
+      expect(zeros.length).toBeGreaterThanOrEqual(2);
     });
   });
 

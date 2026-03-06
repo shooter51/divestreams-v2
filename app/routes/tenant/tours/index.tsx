@@ -320,7 +320,7 @@ export default function ToursPage() {
                     ${tour.price}
                   </span>
                   <span className="text-foreground-muted">
-                    {tour.tripCount} trips run
+                    {tour.tripCount} {Number(tour.tripCount) === 1 ? "trip" : "trips"} run
                   </span>
                 </div>
               </div>

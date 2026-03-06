@@ -42,8 +42,10 @@ import {
   trainingEnrollments,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
-import { nanoid } from "nanoid";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
+import { getNextBookingNumber } from "../../../../lib/db/queries/bookings.server";
 
 // ============================================================================
 // TYPES
@@ -141,11 +143,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // HELPER FUNCTIONS
 // ============================================================================
 
-function generateBookingNumber(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = nanoid(4).toUpperCase();
-  return `BK-${timestamp}-${random}`;
-}
 
 // ============================================================================
 // LOADER
@@ -291,7 +288,7 @@ export async function loader({
       .where(
         and(
           eq(bookings.tripId, id),
-          sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+          sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
         )
       );
 
@@ -471,7 +468,7 @@ export async function loader({
             .where(
               and(
                 eq(bookings.tripId, session.id),
-                sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+                sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
               )
             );
           bookedPart = Number(bookingCount?.total || 0);
@@ -528,6 +525,13 @@ export async function action({
   request,
   params,
 }: ActionFunctionArgs): Promise<ActionData | Response> {
+  // Rate limit site booking by IP
+  const clientIp = getClientIp(request);
+  const rateResult = await checkRateLimit(`site:booking:${clientIp}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return { errors: { _form: "Too many booking attempts. Please try again later." } };
+  }
+
   const { type, id } = params;
   const formData = await request.formData();
 
@@ -552,6 +556,22 @@ export async function action({
     return { errors: { _form: "Organization not found" } };
   }
 
+  // Resolve logged-in customer session
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const actionCookies = Object.fromEntries(
+    cookieHeader
+      .split("; ")
+      .filter(Boolean)
+      .map((c) => {
+        const [key, ...rest] = c.split("=");
+        return [key, rest.join("=")];
+      })
+  );
+  const actionSessionToken = actionCookies["customer_session"];
+  const sessionCustomer = actionSessionToken
+    ? await getCustomerBySession(actionSessionToken)
+    : null;
+
   // Extract form data
   const sessionId = formData.get("sessionId") as string;
   const participants = parseInt(formData.get("participants") as string) || 1;
@@ -560,8 +580,22 @@ export async function action({
   const email = (formData.get("email") as string)?.toLowerCase().trim();
   const phone = (formData.get("phone") as string)?.trim() || null;
   const specialRequests = (formData.get("specialRequests") as string)?.trim();
-  const customerId = formData.get("customerId") as string;
+  const rawCustomerId = formData.get("customerId") as string;
   const selectedEquipment = formData.getAll("equipment") as string[];
+
+  // Verify customerId ownership: if a session exists, customerId must match the
+  // session's customer; if no session, reject any supplied customerId (guest
+  // checkout must provide name/email instead).
+  let customerId: string | null = null;
+  if (rawCustomerId) {
+    if (!sessionCustomer) {
+      return { errors: { _form: "You must be logged in to use a saved profile" } };
+    }
+    if (rawCustomerId !== sessionCustomer.id) {
+      return { errors: { _form: "Invalid customer" } };
+    }
+    customerId = rawCustomerId;
+  }
 
   // Validation
   const errors: Record<string, string> = {};
@@ -575,8 +609,8 @@ export async function action({
     }
   }
 
-  if (participants < 1) {
-    errors.participants = "At least 1 participant is required";
+  if (!Number.isInteger(participants) || participants < 1) {
+    errors.participants = "Participants must be a whole number (minimum 1)";
   }
 
   // For courses, session selection is required
@@ -615,10 +649,20 @@ export async function action({
 
     if (trainingSession) {
       // This is a training course - use enrollment flow
-      // Find or create customer
-      let enrollCustomerId = customerId;
+      // Find or create customer — verify any supplied customerId belongs to this org
+      let enrollCustomerId: string;
 
-      if (!customerId) {
+      if (customerId) {
+        const [verifiedCustomer] = await db
+          .select({ id: customers.id })
+          .from(customers)
+          .where(and(eq(customers.id, customerId), eq(customers.organizationId, org.id)))
+          .limit(1);
+        if (!verifiedCustomer) {
+          return { errors: { _form: "Invalid customer" } };
+        }
+        enrollCustomerId = verifiedCustomer.id;
+      } else {
         const [existingCustomer] = await db
           .select({ id: customers.id })
           .from(customers)
@@ -724,17 +768,17 @@ export async function action({
         enrollmentIds.push(enrollment.id);
       }
 
-      // Update enrolled count on session
+      // Update enrolled count on session — scoped to org to prevent cross-tenant tampering
       await db
         .update(trainingSessions)
         .set({
           enrolledCount: sql`${trainingSessions.enrolledCount} + ${participants}`,
           updatedAt: new Date(),
         })
-        .where(eq(trainingSessions.id, sessionId));
+        .where(and(eq(trainingSessions.id, sessionId), eq(trainingSessions.organizationId, org.id)));
 
       // Generate a booking reference for the confirmation page
-      const bookingRef = generateBookingNumber();
+      const bookingRef = await getNextBookingNumber(org.id);
 
       // Queue confirmation email (fire-and-forget)
       try {
@@ -778,9 +822,20 @@ export async function action({
 
   // Find or create customer (outside the booking transaction to avoid
   // holding the trip row lock longer than necessary)
-  let finalCustomerId = customerId;
+  let finalCustomerId: string;
 
-  if (!customerId) {
+  if (customerId) {
+    // Verify supplied customerId belongs to this org to prevent IDOR
+    const [verifiedCustomer] = await db
+      .select({ id: customers.id })
+      .from(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.organizationId, org.id)))
+      .limit(1);
+    if (!verifiedCustomer) {
+      return { errors: { _form: "Invalid customer" } };
+    }
+    finalCustomerId = verifiedCustomer.id;
+  } else {
     // Check if customer already exists
     const [existingCustomer] = await db
       .select({ id: customers.id })
@@ -791,17 +846,7 @@ export async function action({
       .limit(1);
 
     if (existingCustomer) {
-      // Update existing customer info
-      await db
-        .update(customers)
-        .set({
-          firstName: firstName!,
-          lastName: lastName!,
-          phone,
-          updatedAt: new Date(),
-        })
-        .where(eq(customers.id, existingCustomer.id));
-
+      // Do NOT overwrite existing customer profile from unauthenticated guest checkout
       finalCustomerId = existingCustomer.id;
     } else {
       // Create new customer
@@ -879,7 +924,7 @@ export async function action({
         .where(
           and(
             eq(bookings.tripId, tripId),
-            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
           )
         );
 
@@ -931,7 +976,7 @@ export async function action({
       const total = subtotal + tax;
 
       // Generate booking number
-      const bookingNumber = generateBookingNumber();
+      const bookingNumber = await getNextBookingNumber(org.id, tx);
 
       // Insert booking within the same transaction
       const [booking] = await tx
@@ -987,28 +1032,31 @@ export async function action({
     throw error;
   }
 
-  // Queue booking confirmation email (fire-and-forget, do not block redirect)
-  try {
-    const { getEmailQueue } = await import("../../../../lib/jobs");
-    const emailQueue = getEmailQueue();
-    await emailQueue.add("booking-confirmation", {
-      to: email || "",
-      customerName: `${firstName || ""} ${lastName || ""}`.trim(),
-      tripName: newBooking.tourName,
-      tripDate: newBooking.tripDate,
-      tripTime: newBooking.tripStartTime || "",
-      participants,
-      total: newBooking.total,
-      bookingNumber: newBooking.bookingNumber,
-      shopName: org.name,
-      tenantId: org.id,
-    }, {
-      attempts: 3,
-      backoff: { type: "exponential", delay: 1000 },
-    });
-  } catch (emailError) {
-    // Log but do not block the booking flow
-    console.error("Failed to queue booking confirmation email:", emailError);
+  // Queue booking confirmation email if notification settings allow it
+  const notifSettings = getNotificationSettings(org.metadata);
+  if (notifSettings.emailBookingConfirmation) {
+    try {
+      const { getEmailQueue } = await import("../../../../lib/jobs");
+      const emailQueue = getEmailQueue();
+      await emailQueue.add("booking-confirmation", {
+        to: email || "",
+        customerName: `${firstName || ""} ${lastName || ""}`.trim(),
+        tripName: newBooking.tourName,
+        tripDate: newBooking.tripDate,
+        tripTime: newBooking.tripStartTime || "",
+        participants,
+        total: newBooking.total,
+        bookingNumber: newBooking.bookingNumber,
+        shopName: org.name,
+        tenantId: org.id,
+      }, {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 1000 },
+      });
+    } catch (emailError) {
+      // Log but do not block the booking flow
+      console.error("Failed to queue booking confirmation email:", emailError);
+    }
   }
 
   // Redirect to confirmation page with booking details
@@ -1460,7 +1508,7 @@ export default function BookingPage() {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                         style={{
                           borderColor: actionData?.errors?.firstName
-                            ? "#ef4444"
+                            ? "var(--danger)"
                             : "var(--accent-color)",
                         }}
                         required
@@ -1486,7 +1534,7 @@ export default function BookingPage() {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                         style={{
                           borderColor: actionData?.errors?.lastName
-                            ? "#ef4444"
+                            ? "var(--danger)"
                             : "var(--accent-color)",
                         }}
                         required
@@ -1514,7 +1562,7 @@ export default function BookingPage() {
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                       style={{
                         borderColor: actionData?.errors?.email
-                          ? "#ef4444"
+                          ? "var(--danger)"
                           : "var(--accent-color)",
                       }}
                       required

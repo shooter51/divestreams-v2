@@ -235,23 +235,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
 
     // Check if booking can be cancelled
-    if (booking.status === "canceled" || booking.status === "no_show" || booking.status === "completed") {
+    if (booking.status === "cancelled" || booking.status === "no_show" || booking.status === "completed") {
       return new Response(
         JSON.stringify({ error: "This booking cannot be cancelled" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Update booking status
+    // Update booking status — include ownership filters for defense-in-depth
     await db
       .update(bookings)
       .set({
-        status: "canceled",
+        status: "cancelled",
         cancelledAt: new Date(),
         cancellationReason: reason,
         updatedAt: new Date(),
       })
-      .where(eq(bookings.id, bookingId));
+      .where(
+        and(
+          eq(bookings.id, bookingId),
+          eq(bookings.customerId, customer.id),
+          eq(bookings.organizationId, customer.organizationId)
+        )
+      );
 
     // Sync cancellation to Google Calendar (remove customer from attendees)
     try {
@@ -290,7 +296,7 @@ export default function BookingDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const isCancelled = booking.status === "canceled" || booking.status === "no_show";
+  const isCancelled = booking.status === "cancelled" || booking.status === "no_show";
   const isCompleted = booking.status === "completed";
   const canCancel = !isCancelled && !isCompleted;
 
@@ -592,7 +598,7 @@ export default function BookingDetail() {
 // Helper to map booking status to BadgeStatus type
 function getBookingStatus(status: string): BadgeStatus {
   // Map cancelled/canceled to cancelled
-  if (status === "canceled" || status === "cancelled") return "cancelled";
+  if (status === "cancelled" || status === "cancelled") return "cancelled";
   // Map payment status strings to badge types
   if (status === "pending" || status === "confirmed" || status === "checked_in" || status === "completed") {
     return status as BadgeStatus;

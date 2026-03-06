@@ -183,13 +183,32 @@ export async function requireCsrf(
   const clonedRequest = request.clone();
 
   let token: string | null = null;
-  try {
-    const formData = await clonedRequest.formData();
-    token = formData.get(CSRF_FIELD_NAME) as string | null;
-  } catch {
-    // If the request body is not form data (e.g., JSON API), skip validation.
-    // JSON APIs should use their own auth mechanisms.
-    return;
+  const contentType = request.headers.get("content-type") || "";
+
+  if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+    try {
+      const formData = await clonedRequest.formData();
+      token = formData.get(CSRF_FIELD_NAME) as string | null;
+    } catch {
+      // Malformed form data — reject
+      throw new Response("Forbidden: Invalid form data", {
+        status: 403,
+        statusText: "Forbidden",
+      });
+    }
+  } else if (contentType.includes("application/json")) {
+    try {
+      const body = await clonedRequest.json();
+      token = typeof body?.[CSRF_FIELD_NAME] === "string" ? body[CSRF_FIELD_NAME] : null;
+    } catch {
+      throw new Response("Forbidden: Invalid request body", {
+        status: 403,
+        statusText: "Forbidden",
+      });
+    }
+  } else {
+    // Unknown content type for a mutation request — require CSRF header as fallback
+    token = request.headers.get("x-csrf-token");
   }
 
   if (!token) {

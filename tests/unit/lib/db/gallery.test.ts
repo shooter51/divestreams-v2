@@ -118,6 +118,8 @@ vi.mock("drizzle-orm", () => ({
   asc: vi.fn((a) => ({ asc: a })),
   sql: vi.fn(),
   inArray: vi.fn((a, b) => ({ inArray: [a, b] })),
+  not: vi.fn((a) => ({ not: a })),
+  ilike: vi.fn((a, b) => ({ ilike: [a, b] })),
 }));
 
 describe("gallery.server", () => {

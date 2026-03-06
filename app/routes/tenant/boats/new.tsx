@@ -1,7 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createBoat } from "../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
@@ -12,13 +12,15 @@ import { CsrfInput } from "../../../components/CsrfInput";
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   console.log("[boats/new] Action started");
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   console.log("[boats/new] Org:", ctx.org.slug, "OrgId:", organizationId);
   const formData = await request.formData();

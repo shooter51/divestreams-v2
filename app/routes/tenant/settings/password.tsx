@@ -11,9 +11,16 @@ import { CsrfInput } from "../../../components/CsrfInput";
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
-  const url = new URL(request.url);
-  const forced = url.searchParams.get("forced") === "true";
+  const ctx = await requireOrgContext(request);
+
+  // Check the database flag, not the URL parameter, to determine if password change is forced
+  const [userAccount] = await db
+    .select({ forcePasswordChange: account.forcePasswordChange })
+    .from(account)
+    .where(eq(account.userId, ctx.user.id))
+    .limit(1);
+
+  const forced = userAccount?.forcePasswordChange === true;
 
   return {
     forced,
@@ -44,9 +51,14 @@ export async function action({ request }: ActionFunctionArgs) {
     return { error: "Password must be at least 8 characters" };
   }
 
-  // Check if forced (skip current password check)
-  const url = new URL(request.url);
-  const forced = url.searchParams.get("forced") === "true";
+  // Check the database flag to determine if password change is forced (not URL parameter)
+  const [userAccount] = await db
+    .select({ forcePasswordChange: account.forcePasswordChange })
+    .from(account)
+    .where(eq(account.userId, ctx.user.id))
+    .limit(1);
+
+  const forced = userAccount?.forcePasswordChange === true;
 
   if (!forced && !currentPassword) {
     return { error: "Current password is required" };

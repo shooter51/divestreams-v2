@@ -94,7 +94,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Build query conditions
   const conditions = [
     eq(trips.organizationId, org.id),
-    eq(trips.isPublic, true),
     eq(trips.status, "scheduled"),
     gte(trips.date, fromDate),
   ];
@@ -152,7 +151,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         .where(
           and(
             eq(bookings.tripId, trip.id),
-            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
           )
         );
 

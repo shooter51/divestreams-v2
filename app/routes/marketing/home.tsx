@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
+import { isAdminSubdomain, getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 import { getPlatformContext } from "../../../lib/auth/platform-context.server";
 
 export const meta: MetaFunction = () => {
@@ -23,6 +23,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
       throw redirect("/login");
     }
   }
+
+  // If on a tenant subdomain, redirect to the public site
+  const subdomain = getSubdomainFromRequest(request);
+  if (subdomain) {
+    throw redirect("/site");
+  }
+
   return null;
 }
 
@@ -38,6 +45,9 @@ export default function HomePage() {
           </a>
           <a href="/pricing" className="text-foreground-muted hover:text-brand">
             Pricing
+          </a>
+          <a href="/auth/login" className="text-foreground-muted hover:text-brand">
+            Log In
           </a>
           <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial

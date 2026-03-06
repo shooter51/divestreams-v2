@@ -98,7 +98,15 @@ export async function loader() {
       return { plans: DEFAULT_PLANS };
     }
 
-    return { plans };
+    // Merge DEFAULT_PLANS features when DB plan has empty features
+    const enrichedPlans = plans.map((plan) => {
+      const hasFeatures = Array.isArray(plan.features) && plan.features.length > 0;
+      if (hasFeatures) return plan;
+      const defaultPlan = DEFAULT_PLANS.find((d) => d.name === plan.name);
+      return { ...plan, features: defaultPlan?.features ?? [] };
+    });
+
+    return { plans: enrichedPlans };
   } catch (error) {
     // If database query fails, return default plans so page still renders
     console.error("Failed to fetch subscription plans from database:", error);
@@ -123,6 +131,9 @@ export default function PricingPage() {
           </a>
           <a href="/pricing" className="text-brand font-medium">
             Pricing
+          </a>
+          <a href="/auth/login" className="text-foreground-muted hover:text-brand">
+            Log In
           </a>
           <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
@@ -169,7 +180,11 @@ export default function PricingPage() {
             const popular = isPlanPopular(plan.name);
             const description = getPlanDescription(plan.name);
             const cta = getPlanCta(plan.name);
-            const features: string[] = Array.isArray(plan.features) ? plan.features : [];
+            const features: string[] = Array.isArray(plan.features)
+              ? plan.features
+              : (plan.features && typeof plan.features === "object" && "descriptions" in plan.features && Array.isArray((plan.features as { descriptions?: string[] }).descriptions))
+                ? (plan.features as { descriptions: string[] }).descriptions
+                : [];
 
             const price = billingInterval === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
             const displayPrice = billingInterval === 'monthly'

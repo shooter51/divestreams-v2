@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock dependencies before imports
 vi.mock("../../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../../lib/db/gallery.server", () => ({
@@ -10,6 +11,7 @@ vi.mock("../../../../../../lib/db/gallery.server", () => ({
   getGalleryAlbum: vi.fn(),
   updateGalleryAlbum: vi.fn(),
   deleteGalleryAlbum: vi.fn(),
+  getAllGalleryAlbums: vi.fn().mockResolvedValue([]),
   getAllGalleryImages: vi.fn(),
   updateGalleryImage: vi.fn(),
   deleteGalleryImage: vi.fn(),

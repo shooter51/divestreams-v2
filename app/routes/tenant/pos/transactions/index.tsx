@@ -7,7 +7,7 @@
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getPOSSummary } from "../../../../../lib/db/queries.server";
 import { db } from "../../../../../lib/db";
 import * as schema from "../../../../../lib/db/schema";
@@ -15,6 +15,7 @@ import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { sendEmail } from "../../../../../lib/email/email.server";
 import { getPOSReceiptEmail } from "../../../../../lib/email/templates";
 import { TransactionActions } from "../../../../../app/components/pos/TransactionActions";
+import { formatLabel } from "../../../../lib/format";
 import {
   ReceiptModal,
   TransactionDetailsModal,
@@ -127,6 +128,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -268,6 +270,7 @@ function formatDateTime(date: Date | string): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "UTC",
   }).format(d);
 }
 
@@ -278,6 +281,20 @@ const typeColors: Record<string, string> = {
   payment: "bg-info-muted text-info",
 };
 
+
+const transactionTypeLabels: Record<string, string> = {
+  sale: "Sale",
+  refund: "Refund",
+  deposit: "Deposit",
+  payment: "Payment",
+};
+
+const paymentMethodLabels: Record<string, string> = {
+  cash: "Cash",
+  card: "Card",
+  stripe: "Stripe",
+  bank_transfer: "Bank Transfer",
+};
 
 export default function TransactionsPage() {
   const { transactions, summary, organization } = useLoaderData<typeof loader>();
@@ -454,11 +471,11 @@ export default function TransactionsPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-xs px-2 py-1 rounded capitalize ${
+                        className={`text-xs px-2 py-1 rounded ${
                           typeColors[tx.type] || "bg-surface-inset text-foreground"
                         }`}
                       >
-                        {tx.type}
+                        {transactionTypeLabels[tx.type] || formatLabel(tx.type)}
                       </span>
                       {tx.refundedTransactionId && (
                         <span className="text-xs px-2 py-1 rounded bg-warning-muted text-warning">
@@ -487,7 +504,7 @@ export default function TransactionsPage() {
                     {tx.customerName || <span className="text-foreground-subtle">Walk-in</span>}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm capitalize">{tx.paymentMethod}</span>
+                    <span className="text-sm">{paymentMethodLabels[tx.paymentMethod || ""] || formatLabel(tx.paymentMethod) || "N/A"}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span

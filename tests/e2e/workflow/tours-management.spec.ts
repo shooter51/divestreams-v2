@@ -213,13 +213,15 @@ test.describe.serial("Block A: Navigation & List View", () => {
     await page.goto(getTenantUrl("/tenant"));
     await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
-    const toursLink = page.getByRole("link", { name: /tour/i }).first();
+    // Scope to sidebar nav to avoid matching trip/tour name links on the dashboard
+    const toursLink = page.locator('nav[aria-label="Main navigation"]').getByRole("link", { name: /tours/i }).first();
     if (await toursLink.isVisible().catch(() => false)) {
       await toursLink.click();
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForURL(/\/tours/, { timeout: 10000 }).catch(() => {});
       expect(page.url()).toContain("/tours");
     } else {
       await page.goto(getTenantUrl("/tenant/tours"));
+      await page.waitForLoadState("domcontentloaded");
       expect(page.url()).toContain("/tours");
     }
   });
@@ -424,26 +426,42 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
 
   test("[KAN-346] C.2 Edit tour form loads with existing data", async ({ page }) => {
     await loginToTenant(page);
-    const tourId = testData.createdIds.tour;
-    if (!tourId) {
-      await page.goto(getTenantUrl("/tenant/tours"));
-      await page.waitForLoadState("load");
-      const authenticated = await isAuthenticated(page);
-      if (!authenticated) {
-        expect(page.url()).toContain("/login");
-        return;
-      }
-      expect(page.url()).toContain("/tours");
-      return;
-    }
-    await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
+
+    // Navigate to tours list first — handles cross-shard case where testData.createdIds.tour
+    // may not be set (each Playwright shard runs in a separate Node.js process with fresh module state)
+    await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForLoadState("load");
     const authenticated = await isAuthenticated(page);
     if (!authenticated) {
       expect(page.url()).toContain("/login");
       return;
     }
-    const hasForm = await page.locator("form").isVisible().catch(() => false);
+
+    // Prefer tour ID from the current test run; fall back to any tour visible in the list
+    let tourId = testData.createdIds.tour;
+    if (!tourId) {
+      const anyTourLink = page.locator('a[href*="/tenant/tours/"]').first();
+      if (await anyTourLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+        const href = await anyTourLink.getAttribute("href") ?? "";
+        const match = href.match(/\/tenant\/tours\/([a-f0-9-]{36})/i);
+        if (match) tourId = match[1];
+      }
+    }
+
+    if (!tourId) {
+      // No tour available to edit — skip gracefully
+      expect(page.url()).toContain("/tours");
+      return;
+    }
+
+    await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
+    await page.waitForLoadState("load");
+    if (!(await isAuthenticated(page))) {
+      expect(page.url()).toContain("/login");
+      return;
+    }
+    // Check for the name input — specific to the tour edit form (vs a generic form element)
+    const hasForm = await page.locator('input[name="name"]').waitFor({ state: "visible", timeout: 10000 }).then(() => true).catch(() => false);
     expect(hasForm).toBeTruthy();
   });
 

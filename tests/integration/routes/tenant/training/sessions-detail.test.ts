@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/training.server", () => ({
@@ -63,7 +64,7 @@ const mockSession = {
   meetingPoint: "Front desk",
   instructorName: "John Smith",
   maxStudents: 8,
-  enrolledCount: 3,
+  enrolledCount: 1,
   completedCount: 0,
   priceOverride: null,
   coursePrice: "350.00",
@@ -174,7 +175,7 @@ describe("tenant/training/sessions/$id route", () => {
         const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updateSession).not.toHaveBeenCalled();
-        expect(result).toEqual({ error: "Status is required" });
+        expect(result).toEqual({ error: "Invalid status value" });
       });
     });
 

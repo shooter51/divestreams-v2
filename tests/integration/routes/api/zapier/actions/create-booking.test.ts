@@ -4,7 +4,7 @@ import { action } from "../../../../../../app/routes/api/zapier/actions/create-b
 
 /**
  * Integration tests for api/zapier/actions/create-booking route
- * Tests Zapier booking creation with validation and plan limits
+ * Tests Zapier booking creation with validation, plan limits, capacity checks
  */
 
 // Mock Zapier validation
@@ -29,8 +29,51 @@ vi.mock("../../../../../../lib/plan-features", () => ({
   },
 }));
 
+// Mock rate limiting to avoid Redis dependency in unit tests
+vi.mock("../../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 }),
+}));
+
+// Mock getNextBookingNumber to return a sequential number without hitting DB
+vi.mock("../../../../../../lib/db/queries/bookings.server", () => ({
+  getNextBookingNumber: vi.fn().mockResolvedValue("BK-1000"),
+}));
+
 import { validateZapierApiKey } from "../../../../../../lib/integrations/zapier-enhanced.server";
 import { db } from "../../../../../../lib/db";
+
+/** Helper: creates a mock for premium subscription check (2 selects) */
+function mockPremiumSubscription() {
+  const mockSubSelect = {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([{ plan: "premium", status: "active", planId: "plan-1" }]),
+  };
+  const mockPlanSelect = {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([{ monthlyPrice: 99, isActive: true }]),
+  };
+  return [mockSubSelect, mockPlanSelect];
+}
+
+/** Helper: creates a mock for trip query (now uses innerJoin) */
+function mockTripQuery(tripData: Record<string, unknown> | null) {
+  return {
+    from: vi.fn().mockReturnThis(),
+    innerJoin: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue(tripData ? [tripData] : []),
+  };
+}
+
+/** Helper: creates a mock for capacity check */
+function mockCapacityCheck(bookedTotal: number) {
+  return {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockResolvedValue([{ total: bookedTotal }]),
+  };
+}
 
 describe("api/zapier/actions/create-booking route", () => {
   beforeEach(() => {
@@ -90,6 +133,11 @@ describe("api/zapier/actions/create-booking route", () => {
     it("returns 400 when trip_id is missing", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
+      (db.select as Mock)
+        .mockReturnValueOnce(mockSubSelect)
+        .mockReturnValueOnce(mockPlanSelect);
+
       const request = new Request("https://divestreams.com/api/zapier/actions/create-booking", {
         method: "POST",
         headers: { "x-api-key": "valid-key" },
@@ -108,6 +156,11 @@ describe("api/zapier/actions/create-booking route", () => {
 
     it("returns 400 when customer_email is missing", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
+
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
+      (db.select as Mock)
+        .mockReturnValueOnce(mockSubSelect)
+        .mockReturnValueOnce(mockPlanSelect);
 
       const request = new Request("https://divestreams.com/api/zapier/actions/create-booking", {
         method: "POST",
@@ -128,6 +181,11 @@ describe("api/zapier/actions/create-booking route", () => {
     it("returns 400 when participants is missing", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
+      (db.select as Mock)
+        .mockReturnValueOnce(mockSubSelect)
+        .mockReturnValueOnce(mockPlanSelect);
+
       const request = new Request("https://divestreams.com/api/zapier/actions/create-booking", {
         method: "POST",
         headers: { "x-api-key": "valid-key" },
@@ -147,31 +205,12 @@ describe("api/zapier/actions/create-booking route", () => {
     it("returns 404 when trip not found", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
-      // Mock subscription check (premium plan to skip limits)
-      const mockSubSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ plan: "premium", status: "active", planId: "plan-1" }]),
-      };
-
-      // Mock plan details check
-      const mockPlanSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ monthlyPrice: 99, isActive: true }]),
-      };
-
-      // Mock trip query (not found)
-      const mockTripSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([]),
-      };
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
 
       (db.select as Mock)
         .mockReturnValueOnce(mockSubSelect)
         .mockReturnValueOnce(mockPlanSelect)
-        .mockReturnValueOnce(mockTripSelect);
+        .mockReturnValueOnce(mockTripQuery(null));
 
       const request = new Request("https://divestreams.com/api/zapier/actions/create-booking", {
         method: "POST",
@@ -193,39 +232,19 @@ describe("api/zapier/actions/create-booking route", () => {
     it("creates booking with existing customer", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
-      // Mock subscription (premium)
-      const mockSubSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ plan: "premium", status: "active", planId: "plan-1" }]),
-      };
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
 
-      // Mock plan details
-      const mockPlanSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ monthlyPrice: 99, isActive: true }]),
-      };
-
-      // Mock trip query
-      const mockTripSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ id: "trip-1", organizationId: "org-123" }]),
-      };
-
-      // Mock customer query (existing)
       const mockCustomerSelect = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([{ id: "cust-1", email: "existing@example.com" }]),
       };
 
-      // Mock booking insert
       const mockBookingInsert = {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: "booking-abc123",
+          bookingNumber: "BK-1000",
           tripId: "trip-1",
           customerId: "cust-1",
           participants: 2,
@@ -237,7 +256,15 @@ describe("api/zapier/actions/create-booking route", () => {
       (db.select as Mock)
         .mockReturnValueOnce(mockSubSelect)
         .mockReturnValueOnce(mockPlanSelect)
-        .mockReturnValueOnce(mockTripSelect)
+        .mockReturnValueOnce(mockTripQuery({
+          id: "trip-1",
+          tripPrice: "50.00",
+          tourPrice: "50.00",
+          currency: "USD",
+          tripMaxParticipants: 10,
+          tourMaxParticipants: 10,
+        }))
+        .mockReturnValueOnce(mockCapacityCheck(2))
         .mockReturnValueOnce(mockCustomerSelect);
 
       (db.insert as Mock).mockReturnValue(mockBookingInsert);
@@ -267,33 +294,14 @@ describe("api/zapier/actions/create-booking route", () => {
     it("creates booking and new customer when customer does not exist", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
-      // Mock subscription (premium)
-      const mockSubSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ plan: "premium", status: "active", planId: "plan-1" }]),
-      };
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
 
-      const mockPlanSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ monthlyPrice: 99, isActive: true }]),
-      };
-
-      const mockTripSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ id: "trip-1", organizationId: "org-123" }]),
-      };
-
-      // Mock customer query (not found)
       const mockCustomerSelect = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      // Mock customer insert
       const mockCustomerInsert = {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
@@ -304,11 +312,11 @@ describe("api/zapier/actions/create-booking route", () => {
         }]),
       };
 
-      // Mock booking insert
       const mockBookingInsert = {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: "booking-xyz789",
+          bookingNumber: "BK-1000",
           tripId: "trip-1",
           customerId: "new-cust-1",
           participants: 3,
@@ -320,7 +328,15 @@ describe("api/zapier/actions/create-booking route", () => {
       (db.select as Mock)
         .mockReturnValueOnce(mockSubSelect)
         .mockReturnValueOnce(mockPlanSelect)
-        .mockReturnValueOnce(mockTripSelect)
+        .mockReturnValueOnce(mockTripQuery({
+          id: "trip-1",
+          tripPrice: "75.00",
+          tourPrice: "75.00",
+          currency: "USD",
+          tripMaxParticipants: 10,
+          tourMaxParticipants: 10,
+        }))
+        .mockReturnValueOnce(mockCapacityCheck(0))
         .mockReturnValueOnce(mockCustomerSelect);
 
       (db.insert as Mock)
@@ -352,14 +368,12 @@ describe("api/zapier/actions/create-booking route", () => {
     it("returns 403 when free plan booking limit is reached", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
-      // Mock subscription (free plan)
       const mockSubSelect = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue([{ plan: "free", status: "active", planId: null }]),
       };
 
-      // Mock plan query (free plan with limits)
       const mockPlanSelect = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
@@ -370,7 +384,6 @@ describe("api/zapier/actions/create-booking route", () => {
         }]),
       };
 
-      // Mock booking count (at limit) - returns count result directly
       const mockCountQuery = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([{ count: 10 }]),
@@ -402,23 +415,7 @@ describe("api/zapier/actions/create-booking route", () => {
     it("includes booking_number in response", async () => {
       (validateZapierApiKey as Mock).mockResolvedValue("org-123");
 
-      const mockSubSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ plan: "premium", status: "active", planId: "plan-1" }]),
-      };
-
-      const mockPlanSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ monthlyPrice: 99, isActive: true }]),
-      };
-
-      const mockTripSelect = {
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{ id: "trip-1", organizationId: "org-123" }]),
-      };
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
 
       const mockCustomerSelect = {
         from: vi.fn().mockReturnThis(),
@@ -430,6 +427,7 @@ describe("api/zapier/actions/create-booking route", () => {
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: "booking-abcd1234efgh5678",
+          bookingNumber: "BK-1000",
           tripId: "trip-1",
           customerId: "cust-1",
           participants: 1,
@@ -441,7 +439,15 @@ describe("api/zapier/actions/create-booking route", () => {
       (db.select as Mock)
         .mockReturnValueOnce(mockSubSelect)
         .mockReturnValueOnce(mockPlanSelect)
-        .mockReturnValueOnce(mockTripSelect)
+        .mockReturnValueOnce(mockTripQuery({
+          id: "trip-1",
+          tripPrice: "100.00",
+          tourPrice: "100.00",
+          currency: "USD",
+          tripMaxParticipants: 10,
+          tourMaxParticipants: 10,
+        }))
+        .mockReturnValueOnce(mockCapacityCheck(0))
         .mockReturnValueOnce(mockCustomerSelect);
 
       (db.insert as Mock).mockReturnValue(mockBookingInsert);
@@ -458,8 +464,43 @@ describe("api/zapier/actions/create-booking route", () => {
       const response = await action({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      expect(data.booking_number).toBe("BK-booking-");
+      expect(data.booking_number).toMatch(/^BK-\d+$/);
       expect(data.created_at).toBeDefined();
+    });
+
+    it("returns 409 when trip is at capacity (DS-260b)", async () => {
+      (validateZapierApiKey as Mock).mockResolvedValue("org-123");
+
+      const [mockSubSelect, mockPlanSelect] = mockPremiumSubscription();
+
+      (db.select as Mock)
+        .mockReturnValueOnce(mockSubSelect)
+        .mockReturnValueOnce(mockPlanSelect)
+        .mockReturnValueOnce(mockTripQuery({
+          id: "trip-1",
+          tripPrice: "50.00",
+          tourPrice: "50.00",
+          currency: "USD",
+          tripMaxParticipants: 6,
+          tourMaxParticipants: 6,
+        }))
+        .mockReturnValueOnce(mockCapacityCheck(5));
+
+      const request = new Request("https://divestreams.com/api/zapier/actions/create-booking", {
+        method: "POST",
+        headers: { "x-api-key": "valid-key" },
+        body: JSON.stringify({
+          trip_id: "trip-1",
+          customer_email: "test@example.com",
+          participants: 3,
+        }),
+      });
+      const response = await action({ request, params: {}, context: {} } as unknown);
+
+      expect(response.status).toBe(409);
+
+      const data = await response.json();
+      expect(data.error).toContain("Only 1 spots available");
     });
   });
 });

@@ -332,8 +332,9 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
     if (hasTripLinks) {
       await tripLink.click();
-      await page.waitForLoadState("load");
-      expect(page.url()).toMatch(/\/site\/trips\/[a-f0-9-]+/);
+      // Use waitForURL for SPA navigation (waitForLoadState("load") doesn't detect client-side route changes)
+      await page.waitForURL(/\/site\/trips\/[\w-]+/i, { timeout: 8000 }).catch(() => {});
+      expect(page.url()).toMatch(/\/site\/trips\/[\w-]+/i);
     } else {
       // No trips available - test a random ID to ensure 404 handling
       await page.goto(getPublicSiteUrl("/trips/00000000-0000-0000-0000-000000000000"));
@@ -376,23 +377,23 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     await page.goto(getPublicSiteUrl("/"));
     await page.waitForLoadState("domcontentloaded");
 
-    // Try to find navigation links
-    const tripsLink = page.getByRole("link", { name: /trips/i }).first();
+    // Try to find navigation links — scope to nav to avoid matching CTA or trip-card links
+    const tripsLink = page.locator("nav").getByRole("link", { name: /^trips$/i }).first();
     const hasTripsLink = await tripsLink.isVisible().catch(() => false);
 
     if (hasTripsLink) {
       await tripsLink.click();
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForURL(/\/trips/, { timeout: 10000 }).catch(() => {});
       expect(page.url()).toContain("/trips");
     }
 
-    // Try to find contact link
-    const contactLink = page.getByRole("link", { name: /contact/i }).first();
+    // Try to find contact link — scope to nav
+    const contactLink = page.locator("nav").getByRole("link", { name: /^contact$/i }).first();
     const hasContactLink = await contactLink.isVisible().catch(() => false);
 
     if (hasContactLink) {
       await contactLink.click();
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForURL(/\/contact/, { timeout: 10000 }).catch(() => {});
       expect(page.url()).toContain("/contact");
     }
 
@@ -471,7 +472,8 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
     // Submit
     await page.getByRole("button", { name: /create account|register|sign up/i }).click();
-    await page.waitForLoadState("load").catch(() => {});
+    // Use waitForURL for SPA navigation (waitForLoadState("load") doesn't detect client-side route changes)
+    await page.waitForURL(/\/site\/(account|login)/, { timeout: 8000 }).catch(() => {});
 
     // Should redirect to account or show success
     const redirectedToAccount = page.url().includes("/account");

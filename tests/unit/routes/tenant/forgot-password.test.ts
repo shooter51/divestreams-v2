@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
 
+// Set AUTH_SECRET before importing routes (needed for CSRF token generation)
+process.env.AUTH_SECRET = "test-secret-for-csrf-token-generation";
+
 /**
  * Unit Tests for Tenant Forgot Password Route (KAN-664)
  *
@@ -253,7 +256,8 @@ describe("Tenant Reset Password Route", () => {
       const result = await tenantResetLoader(makeArgs(request));
 
       expect((result as unknown).hasToken).toBe(true);
-      expect((result as unknown).email).toBe("user@example.com");
+      // DS-ch0: email must NOT be exposed to prevent cross-tenant disclosure
+      expect(result).not.toHaveProperty("email");
     });
 
     it("redirects when already logged in with token", async () => {
@@ -484,6 +488,7 @@ describe("Auth Forgot Password Route", () => {
       const result = await authForgotLoader(makeArgs(request));
 
       expect((result as unknown).tenantName).toBe("Demo Dive Shop");
+      expect((result as unknown).csrfToken).toBeDefined();
     });
   });
 

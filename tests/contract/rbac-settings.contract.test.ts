@@ -225,8 +225,8 @@ describe("Contract: RBAC — settings/team action", () => {
     });
 
     it("returns { success: true } after a valid role update", async () => {
-      // Mock the db.where chain used for the UPDATE
-      (db.where as Mock).mockResolvedValue(undefined);
+      // First limit() call: return a non-owner target member to allow role update
+      (db.limit as Mock).mockResolvedValueOnce([{ role: "admin", userId: OTHER_USER_ID }]);
 
       const fd = new FormData();
       fd.append("intent", "update-role");

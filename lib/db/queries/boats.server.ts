@@ -4,7 +4,7 @@
  * All boat-related database operations including CRUD, stats, and trip history.
  */
 
-import { desc, eq, gte, and, sql, inArray } from "drizzle-orm";
+import { desc, eq, gte, lt, and, sql, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { mapBoat } from "./mappers";
@@ -96,6 +96,8 @@ export async function createBoat(organizationId: string, data: {
 // ============================================================================
 
 export async function getBoatRecentTrips(organizationId: string, boatId: string, limit = 5) {
+  const today = new Date().toISOString().split("T")[0];
+
   const trips = await db
     .select({
       id: schema.trips.id,
@@ -107,7 +109,8 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
     .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
     .where(and(
       eq(schema.trips.boatId, boatId),
-      eq(schema.trips.organizationId, organizationId)
+      eq(schema.trips.organizationId, organizationId),
+      lt(schema.trips.date, today)
     ))
     .orderBy(desc(schema.trips.date))
     .limit(limit);
@@ -125,7 +128,7 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -178,7 +181,7 @@ export async function getBoatUpcomingTrips(organizationId: string, boatId: strin
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -199,13 +202,17 @@ export async function getBoatStats(organizationId: string, boatId: string) {
   const tripCountResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.trips)
-    .where(eq(schema.trips.boatId, boatId));
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      eq(schema.trips.boatId, boatId)
+    ));
 
   // Get completed trips
   const completedResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.trips)
     .where(and(
+      eq(schema.trips.organizationId, organizationId),
       eq(schema.trips.boatId, boatId),
       eq(schema.trips.status, "completed")
     ));
@@ -219,15 +226,19 @@ export async function getBoatStats(organizationId: string, boatId: string) {
     .from(schema.bookings)
     .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
     .where(and(
+      eq(schema.trips.organizationId, organizationId),
       eq(schema.trips.boatId, boatId),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ));
 
   // Get boat capacity for avg occupancy calculation
   const [boat] = await db
     .select({ capacity: schema.boats.capacity })
     .from(schema.boats)
-    .where(eq(schema.boats.id, boatId))
+    .where(and(
+      eq(schema.boats.organizationId, organizationId),
+      eq(schema.boats.id, boatId)
+    ))
     .limit(1);
 
   const totalTrips = Number(tripCountResult[0]?.count || 0);

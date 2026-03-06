@@ -6,6 +6,7 @@ vi.mock("../../../../lib/db/index", () => ({
     insert: vi.fn(),
     select: vi.fn(),
     execute: vi.fn(),
+    update: vi.fn(),
   },
 }));
 
@@ -34,6 +35,11 @@ describe("seedDemoData", () => {
     const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
 
     (db.insert as ReturnType<typeof vi.fn>).mockReturnValue({ values: mockValues });
+
+    // Set up update chain mock
+    const mockUpdateWhere = vi.fn().mockResolvedValue([]);
+    const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere });
+    (db.update as ReturnType<typeof vi.fn>).mockReturnValue({ set: mockUpdateSet });
 
     // Set up select chain mocks
     // First call: organization lookup (should return the org)

@@ -65,8 +65,9 @@ vi.mock("../../../../lib/db/schema/integrations", () => ({
 
 describe("Integration Service", () => {
   beforeAll(() => {
-    // Set AUTH_SECRET for encryption functions
+    // Set AUTH_SECRET and INTEGRATION_ENCRYPTION_SALT for encryption functions
     process.env.AUTH_SECRET = 'test-secret-key-for-unit-tests';
+    process.env.INTEGRATION_ENCRYPTION_SALT = 'test-salt-for-unit-tests';
   });
 
   beforeEach(() => {

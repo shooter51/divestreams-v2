@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
@@ -11,12 +11,14 @@ import { CsrfInput } from "../../../components/CsrfInput";
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 
@@ -203,24 +205,6 @@ export default function NewDiveSitePage() {
             </div>
 
             <div>
-              <label htmlFor="location" className="block text-sm font-medium mb-1">
-                Location *
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                required
-                placeholder="e.g., South Bay, Outer Reef"
-                defaultValue={actionData?.values?.location}
-                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-              />
-              {actionData?.errors?.location && (
-                <p className="text-danger text-sm mt-1">{actionData.errors.location}</p>
-              )}
-            </div>
-
-            <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
                 Description
               </label>
@@ -249,7 +233,7 @@ export default function NewDiveSitePage() {
                 name="maxDepth"
                 required
                 min="1"
-                max="100"
+                max="1000"
                 defaultValue={actionData?.values?.maxDepth}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />

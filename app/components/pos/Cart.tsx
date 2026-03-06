@@ -28,8 +28,16 @@ export function Cart({
   requiresCustomer,
 }: CartProps) {
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * (taxRate / 100);
+  // Use per-product taxRate when available (same logic as pos.tsx) so displayed
+  // total matches the value passed to checkout modals.
+  const tax = items.reduce((sum, item) => {
+    const itemTaxRate = item.type === "product" && item.taxRate != null ? item.taxRate : taxRate;
+    return sum + item.total * (itemTaxRate / 100);
+  }, 0);
   const total = subtotal + tax;
+  // Compute the effective tax rate to display — when products have per-item taxRates
+  // the org-level taxRate of 0% would be misleading. Show the actual effective rate.
+  const effectiveTaxRate = subtotal > 0 ? Math.round((tax / subtotal) * 10000) / 100 : taxRate;
 
   const canCheckout = items.length > 0 && (!requiresCustomer || customer);
 
@@ -48,7 +56,7 @@ export function Cart({
           items.map((item, index) => (
             <div key={index} className="flex items-start gap-3 p-3 bg-surface-inset rounded-lg">
               <div className="flex-1">
-                <p className="font-medium">
+                <p className="font-medium" title={item.type === "booking" ? item.tourName : item.name}>
                   {item.type === "booking" ? item.tourName : item.name}
                 </p>
                 <p className="text-sm text-foreground-muted">
@@ -126,10 +134,12 @@ export function Cart({
           <span>Subtotal</span>
           <span>${subtotal.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span>Tax ({taxRate}%)</span>
-          <span>${tax.toFixed(2)}</span>
-        </div>
+        {items.length > 0 && (
+          <div className="flex justify-between text-sm">
+            <span>Tax ({effectiveTaxRate}%)</span>
+            <span>${tax.toFixed(2)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-lg font-bold">
           <span>Total</span>
           <span>${total.toFixed(2)}</span>

@@ -1,16 +1,18 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
-import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
+import { triggerBookingConfirmation, getNotificationSettings } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { formatDisplayDate as sharedFormatDisplayDate, formatTime as sharedFormatTime } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const customerId = url.searchParams.get("customerId");
@@ -36,9 +38,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Map trips to expected format with availability
   const upcomingTrips = tripsData.map((t) => {
-    const maxParticipants = t.maxParticipants || 10;
+    const hasCapacityLimit = (t.maxParticipants ?? 0) > 0;
     const bookedParticipants = t.bookedParticipants || 0;
-    const spotsAvailable = Math.max(0, maxParticipants - bookedParticipants);
+    const spotsAvailable = hasCapacityLimit ? Math.max(0, t.maxParticipants! - bookedParticipants) : null;
     return {
       id: t.id,
       tourName: t.tourName || "Trip",
@@ -47,23 +49,49 @@ export async function loader({ request }: LoaderFunctionArgs) {
       spotsAvailable,
       price: t.price ? t.price.toFixed(2) : "0.00",
     };
-  }).filter((t) => t.spotsAvailable > 0); // Only show trips with availability
+  }).filter((t) => t.spotsAvailable === null || t.spotsAvailable > 0);
 
-  // Map equipment to expected format
-  const rentalEquipment = equipmentData.map((e) => ({
-    id: e.id,
-    name: e.name,
-    price: e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00",
-  }));
+  // Group equipment by name+price so multiple physical units appear as one entry
+  const equipmentGroups = new Map<string, { name: string; price: string; count: number; ids: string[] }>();
+  for (const e of equipmentData) {
+    const price = e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00";
+    const key = `${e.name}|${price}`;
+    if (!equipmentGroups.has(key)) {
+      equipmentGroups.set(key, { name: e.name, price, count: 0, ids: [] });
+    }
+    const entry = equipmentGroups.get(key)!;
+    entry.count++;
+    entry.ids.push(e.id);
+  }
+  const rentalEquipment = Array.from(equipmentGroups.values());
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
-  const selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
+
+  // If tripId is provided, fetch it directly so it always pre-fills regardless of status/capacity
+  let selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
+  if (tripId && !selectedTrip) {
+    const tripData = await getTripById(organizationId, tripId);
+    if (tripData) {
+      const hasCapacityLimit = (tripData.maxParticipants ?? 0) > 0;
+      const bookedParticipants = tripData.bookedParticipants || 0;
+      const spotsAvailable = hasCapacityLimit ? Math.max(0, tripData.maxParticipants! - bookedParticipants) : null;
+      selectedTrip = {
+        id: tripData.id,
+        tourName: tripData.tourName || "Trip",
+        date: typeof tripData.date === "string" ? tripData.date : new Date(tripData.date).toISOString().split("T")[0],
+        startTime: tripData.startTime || "00:00",
+        spotsAvailable,
+        price: tripData.price ? tripData.price.toFixed(2) : "0.00",
+      };
+    }
+  }
 
   return { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 
@@ -115,25 +143,36 @@ export async function action({ request }: ActionFunctionArgs) {
     throw error;
   }
 
-  // Queue confirmation email (don't fail booking if email fails)
-  try {
-    await triggerBookingConfirmation({
-      customerEmail: customer.email,
-      customerName: `${customer.firstName} ${customer.lastName}`,
-      tripName: trip.tourName || "Trip",
-      tripDate: typeof trip.date === "string" ? trip.date : new Date(trip.date).toISOString().split("T")[0],
-      tripTime: trip.startTime || "",
-      participants,
-      totalCents: Math.round(total * 100), // Convert to cents for email formatting
-      bookingNumber: booking.bookingNumber,
-      shopName: ctx.org.name,
-      tenantId: ctx.org.id,
-    });
-  } catch (emailError) {
-    console.error("Failed to queue booking confirmation email:", emailError);
+  // Queue confirmation email if notification settings allow it
+  const notifSettings = getNotificationSettings(ctx.org.metadata);
+  if (notifSettings.emailBookingConfirmation) {
+    try {
+      await triggerBookingConfirmation({
+        customerEmail: customer.email,
+        customerName: `${customer.firstName} ${customer.lastName}`,
+        tripName: trip.tourName || "Trip",
+        tripDate: typeof trip.date === "string" ? trip.date : new Date(trip.date).toISOString().split("T")[0],
+        tripTime: trip.startTime || "",
+        participants,
+        totalCents: Math.round(total * 100), // Convert to cents for email formatting
+        bookingNumber: booking.bookingNumber,
+        shopName: ctx.org.name,
+        tenantId: ctx.org.id,
+      });
+    } catch (emailError) {
+      console.error("Failed to queue booking confirmation email:", emailError);
+    }
   }
 
   return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
+}
+
+function formatDisplayDate(d: string | null | undefined): string {
+  return sharedFormatDisplayDate(d);
+}
+
+function formatTime(t: string | null | undefined): string {
+  return sharedFormatTime(t);
 }
 
 export default function NewBookingPage() {
@@ -150,7 +189,7 @@ export default function NewBookingPage() {
         <h1 className="text-2xl font-bold mt-2">New Booking</h1>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" noValidate className="space-y-6">
         <CsrfInput />
         {/* Customer Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
@@ -210,10 +249,10 @@ export default function NewBookingPage() {
               <div>
                 <p className="font-medium">{selectedTrip.tourName}</p>
                 <p className="text-sm text-foreground-muted">
-                  {selectedTrip.date} at {selectedTrip.startTime} • ${selectedTrip.price}/person
+                  {formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)} • ${selectedTrip.price}/person
                 </p>
                 <p className="text-sm text-success">
-                  {selectedTrip.spotsAvailable} spots available
+                  {selectedTrip.spotsAvailable !== null ? `${selectedTrip.spotsAvailable} spots available` : "Unlimited spots"}
                 </p>
               </div>
               <Link
@@ -239,7 +278,7 @@ export default function NewBookingPage() {
                 <option value="">Choose a trip...</option>
                 {upcomingTrips.map((trip) => (
                   <option key={trip.id} value={trip.id}>
-                    {trip.tourName} - {trip.date} at {trip.startTime} (${trip.price}, {trip.spotsAvailable} spots)
+                    {trip.tourName} - {formatDisplayDate(trip.date)} at {formatTime(trip.startTime)} (${trip.price}, {trip.spotsAvailable !== null ? `${trip.spotsAvailable} spots` : "unlimited spots"})
                   </option>
                 ))}
               </select>
@@ -263,14 +302,14 @@ export default function NewBookingPage() {
                 id="participants"
                 name="participants"
                 min="1"
-                max={selectedTrip?.spotsAvailable || 10}
+                max={selectedTrip?.spotsAvailable ?? undefined}
                 defaultValue={actionData?.values?.participants || "1"}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {selectedTrip && (
                 <p className="text-sm text-foreground-muted mt-1">
-                  Max {selectedTrip.spotsAvailable} available
+                  {selectedTrip.spotsAvailable !== null ? `Max ${selectedTrip.spotsAvailable} available` : "Unlimited availability"}
                 </p>
               )}
             </div>
@@ -301,17 +340,20 @@ export default function NewBookingPage() {
           <div className="grid grid-cols-2 gap-3">
             {rentalEquipment.map((item) => (
               <label
-                key={item.id}
+                key={item.name}
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     name="equipment"
-                    value={item.id}
+                    value={item.ids[0]}
                     className="w-4 h-4 text-brand rounded focus:ring-brand"
                   />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-sm font-medium">
+                    {item.name}
+                    <span className="text-foreground-muted font-normal"> ({item.count} available)</span>
+                  </span>
                 </div>
                 <span className="text-sm text-foreground-muted">${item.price}</span>
               </label>
@@ -381,11 +423,10 @@ export default function NewBookingPage() {
             <h3 className="font-semibold mb-2">Booking Summary</h3>
             <div className="text-sm space-y-1">
               <p>{selectedTrip.tourName}</p>
-              <p>{selectedTrip.date} at {selectedTrip.startTime}</p>
+              <p>{formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)}</p>
               <p className="text-lg font-bold mt-2">
-                Total: ${(parseFloat(selectedTrip.price) * 1).toFixed(2)}
+                ${parseFloat(selectedTrip.price).toFixed(2)} per person
               </p>
-              <p className="text-xs text-foreground-muted">(Price updates based on participants)</p>
             </div>
           </div>
         )}

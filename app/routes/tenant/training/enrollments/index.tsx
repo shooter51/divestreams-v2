@@ -3,8 +3,22 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getEnrollments, getSessions } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
+import { formatCurrency } from "../../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Enrollments - DiveStreams" }];
+
+function formatDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "TBD";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -35,17 +49,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
       agencyName: e.agencyName || "",
       levelName: e.levelName || "",
     },
-    sessionDate: e.sessionStartDate || "",
+    sessionDate: e.sessionStartDate
+      ? new Date(e.sessionStartDate + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      : "",
     status: e.status,
     paymentStatus: e.paymentStatus,
     amountPaid: e.amountPaid || "0.00",
     certificationNumber: e.certificationNumber,
-    certificationDate: e.certificationDate,
+    certificationDate: e.certificationDate
+      ? new Date(e.certificationDate + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      : null,
     enrolledAt: e.enrolledAt
-      ? new Date(e.enrolledAt).toLocaleDateString()
+      ? new Date(e.enrolledAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
       : "",
     completedAt: e.completedAt
-      ? new Date(e.completedAt).toLocaleDateString()
+      ? new Date(e.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
       : null,
   }));
 
@@ -67,6 +85,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+const enrollmentStatusLabels: Record<string, string> = {
+  enrolled: "Enrolled",
+  in_progress: "In Progress",
+  completed: "Completed",
+  dropped: "Dropped",
+  failed: "Failed",
+};
+
 const statusColors: Record<string, string> = {
   enrolled: "bg-brand-muted text-brand",
   in_progress: "bg-warning-muted text-warning",
@@ -75,11 +101,29 @@ const statusColors: Record<string, string> = {
   failed: "bg-danger-muted text-danger",
 };
 
+const statusLabels: Record<string, string> = {
+  enrolled: "Enrolled",
+  in_progress: "In Progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  withdrawn: "Withdrawn",
+  dropped: "Dropped",
+  failed: "Failed",
+};
+
 const paymentStatusColors: Record<string, string> = {
   pending: "bg-warning-muted text-warning",
   partial: "bg-warning-muted text-warning",
   paid: "bg-success-muted text-success",
   refunded: "bg-surface-inset text-foreground-muted",
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  paid: "Paid",
+  partial: "Partial",
+  pending: "Pending",
+  waived: "Waived",
+  refunded: "Refunded",
 };
 
 export default function EnrollmentsPage() {
@@ -172,7 +216,7 @@ export default function EnrollmentsPage() {
             <option value="">All Sessions</option>
             {sessions.map((session) => (
               <option key={session.id} value={session.id}>
-                {session.courseName} - {session.startDate}
+                {session.courseName} - {formatDate(session.startDate)}{session.startTime ? ` at ${formatTime(session.startTime)}` : ""}
               </option>
             ))}
           </select>
@@ -264,7 +308,7 @@ export default function EnrollmentsPage() {
                         "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {enrollment.status.replace("_", " ")}
+                      {statusLabels[enrollment.status] || enrollment.status}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -274,10 +318,10 @@ export default function EnrollmentsPage() {
                         "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {enrollment.paymentStatus || "pending"}
+                      {paymentStatusLabels[enrollment.paymentStatus || "pending"] || enrollment.paymentStatus || "Pending"}
                     </span>
                     <p className="text-xs text-foreground-muted mt-1">
-                      ${enrollment.amountPaid} paid
+                      {formatCurrency(enrollment.amountPaid)}
                     </p>
                   </td>
                   <td className="px-6 py-4">

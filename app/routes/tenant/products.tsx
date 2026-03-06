@@ -4,9 +4,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, useRouteLoaderData, Link } from "react-router";
+import { useLoaderData, useFetcher, Form } from "react-router";
 import { getTenantDb } from "../../../lib/db/tenant.server";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
 import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
@@ -14,13 +14,14 @@ import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { escapeHtml } from "../../../lib/security/sanitize";
 import { CsrfInput } from "../../components/CsrfInput";
-import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Products are part of POS functionality - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
@@ -73,6 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Products are part of POS functionality - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
@@ -446,23 +448,17 @@ export async function action({ request }: ActionFunctionArgs) {
         errors.push(`Row ${i + 1}: "${row.name}" has an invalid category. Valid categories are: ${validCategories.join(", ")}. Setting to "other".`);
       }
 
-      const parsedStock = parseInt(row.stockquantity);
-      if (parsedStock < 0) {
-        errors.push(`Row ${i + 1}: "${row.name}" has a negative stock quantity (${parsedStock}). Stock must be 0 or greater.`);
-        continue;
-      }
-
       try {
         await db.insert(tables.products).values({
-          organizationId, // Use actual organization UUID
-          name: row.name,
-          sku: row.sku,
+          organizationId,
+          name: escapeHtml(row.name),
+          sku: escapeHtml(row.sku),
           category: validCategories.includes(category) ? category : "other",
           price: row.price,
           costPrice: row.costprice || null,
-          stockQuantity: parsedStock,
+          stockQuantity: parseInt(row.stockquantity),
           lowStockThreshold: row.lowstockthreshold ? parseInt(row.lowstockthreshold) : 5,
-          description: row.description || null,
+          description: row.description ? escapeHtml(row.description) : null,
           isActive: row.isactive?.toLowerCase() !== "false",
           trackInventory: true,
         });
@@ -557,6 +553,23 @@ function isOnSale(
   return true;
 }
 
+// Helper to get the effective price (sale price if on sale, otherwise regular price)
+// Pass current time as parameter to avoid hydration mismatch
+function getEffectivePrice(
+  product: {
+    price: string;
+    salePrice?: string | null;
+    saleStartDate?: Date | string | null;
+    saleEndDate?: Date | string | null;
+  },
+  now: Date
+): number {
+  if (isOnSale(product, now)) {
+    return Number(product.salePrice);
+  }
+  return Number(product.price);
+}
+
 // Helper to format date for datetime-local input
 function formatDateForInput(dateVal: Date | string | null): string {
   if (!dateVal) return "";
@@ -591,8 +604,6 @@ type ProductWithSaleFields = {
 export default function ProductsPage() {
   const { products } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
-  const csrfToken = layoutData?.csrfToken;
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string; currentStock: number } | null>(null);
@@ -655,14 +666,20 @@ export default function ProductsPage() {
     }
   }, [fetcherData]);
 
+  // Track last processed fetcher data to avoid re-processing stale responses
+  const lastProcessedData = useRef<typeof fetcherData>(undefined);
+
   // Close modal and show toast on successful create/update/delete
   useEffect(() => {
-    if (fetcherData?.success && fetcherData?.message) {
-      setShowForm(false);
-      setEditingProduct(null);
-      showToast(fetcherData.message, "success");
-    } else if (fetcherData?.error) {
-      showToast(fetcherData.error, "error");
+    if (fetcherData && fetcherData !== lastProcessedData.current) {
+      lastProcessedData.current = fetcherData;
+      if (fetcherData.success && fetcherData.message) {
+        setShowForm(false);
+        setEditingProduct(null);
+        showToast(fetcherData.message, "success");
+      } else if (fetcherData.error) {
+        showToast(fetcherData.error, "error");
+      }
     }
   }, [fetcherData, showToast]);
 
@@ -693,7 +710,6 @@ export default function ProductsPage() {
     formData.append("intent", "bulk-update-stock");
     formData.append("productIds", JSON.stringify(Array.from(selectedProducts)));
     formData.append("updateType", bulkUpdateType);
-    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "post" });
     setShowBulkUpdate(false);
     setSelectedProducts(new Set());
@@ -759,7 +775,6 @@ export default function ProductsPage() {
     const formData = new FormData();
     formData.append("intent", "import-csv");
     formData.append("csvData", text);
-    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "post" });
     setShowImportModal(false);
@@ -837,13 +852,12 @@ export default function ProductsPage() {
           <h3 className="font-semibold text-warning mb-2">Low Stock Alert</h3>
           <div className="flex flex-wrap gap-2">
             {lowStockProducts.map((p) => (
-              <Link
+              <span
                 key={p.id}
-                to={`/tenant/pos/products/${p.id}`}
-                className="px-3 py-1 bg-warning-muted text-warning rounded-full text-sm hover:bg-warning hover:text-white transition-colors"
+                className="px-3 py-1 bg-warning-muted text-warning rounded-full text-sm"
               >
                 {p.name}: {p.stockQuantity} left
-              </Link>
+              </span>
             ))}
           </div>
         </div>
@@ -1439,6 +1453,7 @@ export default function ProductsPage() {
             </h2>
 
             <form onSubmit={handleBulkUpdate} className="space-y-4">
+              <CsrfInput />
               <div>
                 <label className="block text-sm font-medium mb-2">Update Type</label>
                 <div className="flex gap-4">

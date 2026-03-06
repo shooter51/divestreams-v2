@@ -15,6 +15,7 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import {
   redirect,
   useActionData,
+  useLoaderData,
   useNavigation,
   useRouteLoaderData,
   useSearchParams,
@@ -31,6 +32,7 @@ import {
 } from "../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -120,7 +122,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  return { organizationId: org.id };
+  return { organizationId: org.id, csrfToken: generateAnonCsrfToken() };
 }
 
 // ============================================================================
@@ -176,6 +178,13 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
+
+  // CSRF validation (DS-30f)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (!validateAnonCsrfToken(csrfToken)) {
+    return { errors: { form: "Invalid CSRF token. Please refresh the page and try again." } as ActionErrors, email: "" };
+  }
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const rememberMe = formData.get("rememberMe") === "on";
@@ -256,11 +265,13 @@ function isValidEmail(email: string): boolean {
 // ============================================================================
 
 export default function SiteLoginPage() {
+  const loaderData = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
 
   const isSubmitting = navigation.state === "submitting";
   const organization = layoutData?.organization;
@@ -274,7 +285,7 @@ export default function SiteLoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="mt-2 opacity-75">
-            Sign in to your {organization?.name || "account"}
+            Sign in to your {organization?.name ? `${organization.name} account` : "account"}
           </p>
         </div>
 
@@ -283,9 +294,9 @@ export default function SiteLoginPage() {
           <div
             className="mb-6 p-4 rounded-lg text-sm max-w-4xl break-words"
             style={{
-              backgroundColor: "var(--success-bg, #d1fae5)",
-              color: "var(--success-text, #065f46)",
-              border: "1px solid var(--success-border, #34d399)",
+              backgroundColor: "var(--success-bg, var(--success-muted))",
+              color: "var(--success-text, var(--success))",
+              border: "1px solid var(--success-border, var(--success))",
             }}
           >
             <div className="flex items-center gap-2">
@@ -316,6 +327,7 @@ export default function SiteLoginPage() {
           }}
         >
           <Form method="post" className="space-y-6">
+            <input type="hidden" name="_csrf" value={loaderData?.csrfToken || ""} />
             {/* Form Error */}
             {actionData?.errors?.form && (
               <div
@@ -399,6 +411,8 @@ export default function SiteLoginPage() {
                   id="password"
                   name="password"
                   autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.password

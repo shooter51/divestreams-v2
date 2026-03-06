@@ -81,7 +81,7 @@ export async function createStripeCustomer(orgId: string): Promise<string | null
     await db.insert(subscription).values({
       organizationId: orgId,
       plan: "standard",
-      planId: standardPlan?.id || null, // Set both plan and planId
+      planId: standardPlan?.id, // Set both plan and planId
       status: "active",
       stripeCustomerId: customer.id,
     });
@@ -476,7 +476,7 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
       .set({
         stripeSubscriptionId: stripeSubscription.id,
         stripePriceId: priceId || null,
-        planId: planId,
+        ...(planId ? { planId } : {}),
         plan: planName,
         status: status,
         currentPeriodStart: periodStart,

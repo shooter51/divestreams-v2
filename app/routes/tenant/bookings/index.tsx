@@ -3,10 +3,11 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
-import { eq, sql, count, and, gte } from "drizzle-orm";
+import { eq, sql, count, and, gte, ne, lt } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatTime, formatDisplayDate, formatCurrency } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -15,21 +16,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const status = url.searchParams.get("status") || "";
-  const page = parseInt(url.searchParams.get("page") || "1");
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  // Build query with organization filter
-  const baseCondition = eq(bookings.organizationId, ctx.org.id);
-
-  // Add status filter if provided
-  const statusCondition = status ? eq(bookings.status, status) : undefined;
-
-  // Combine conditions
-  let whereCondition = baseCondition;
-  if (statusCondition) {
-    whereCondition = sql`${baseCondition} AND ${statusCondition}`;
+  // Build query conditions
+  const whereConditions = [eq(bookings.organizationId, ctx.org.id)];
+  if (status) whereConditions.push(eq(bookings.status, status));
+  if (search) {
+    whereConditions.push(sql`(
+      ${bookings.bookingNumber} ILIKE ${'%' + search + '%'} OR
+      ${customers.firstName} ILIKE ${'%' + search + '%'} OR
+      ${customers.lastName} ILIKE ${'%' + search + '%'} OR
+      ${customers.email} ILIKE ${'%' + search + '%'}
+    )`);
   }
+  const whereCondition = and(...whereConditions);
 
   // Get bookings with customer and trip info
   const bookingList = await db
@@ -59,11 +61,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(limit)
     .offset(offset);
 
-  // Get total count for pagination
-  const [{ value: total }] = await db
+  // Get total count for pagination (join customers when search is active)
+  const countQuery = db
     .select({ value: count() })
     .from(bookings)
+    .leftJoin(customers, eq(bookings.customerId, customers.id))
     .where(whereCondition);
+  const [{ value: total }] = await countQuery;
 
   // Transform to UI format
   const bookingData = bookingList.map((b) => ({
@@ -78,24 +82,56 @@ export async function loader({ request }: LoaderFunctionArgs) {
     trip: {
       id: b.tripId,
       tourName: b.tourName || "Unknown Tour",
-      date: b.tripDate ? (typeof b.tripDate === 'object' && 'toLocaleDateString' in b.tripDate ? (b.tripDate as Date).toLocaleDateString() : String(b.tripDate)) : "",
+      date: b.tripDate ? (typeof b.tripDate === 'object' && b.tripDate !== null && 'toISOString' in b.tripDate ? (b.tripDate as Date).toISOString().split("T")[0] : String(b.tripDate)) : "",
       startTime: b.tripTime || "",
     },
     participants: b.participants,
-    total: Number(b.total || 0).toFixed(2),
+    total: Number(b.total || 0),
     status: b.status,
-    paidAmount: Number(b.paidAmount || 0).toFixed(2),
+    paidAmount: Number(b.paidAmount || 0),
     createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "",
   }));
 
-  // Calculate stats from the current page data
-  const today = new Date().toLocaleDateString();
+  // Calculate stats from full DB (not just current page)
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+
+  const [[{ value: statsToday }], [{ value: statsUpcoming }], [{ value: statsPendingPayment }]] =
+    await Promise.all([
+      db
+        .select({ value: count() })
+        .from(bookings)
+        .leftJoin(trips, eq(bookings.tripId, trips.id))
+        .where(
+          and(
+            eq(bookings.organizationId, ctx.org.id),
+            gte(trips.date, todayDate.toISOString().slice(0, 10)),
+            lt(trips.date, tomorrowDate.toISOString().slice(0, 10))
+          )
+        ),
+      db
+        .select({ value: count() })
+        .from(bookings)
+        .where(and(eq(bookings.organizationId, ctx.org.id), eq(bookings.status, "confirmed"))),
+      db
+        .select({ value: count() })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.organizationId, ctx.org.id),
+            ne(bookings.status, "cancelled"),
+            ne(bookings.status, "canceled"),
+            lt(bookings.paidAmount, bookings.total)
+          )
+        ),
+    ]);
+
   const stats = {
-    today: bookingData.filter((b) => b.trip.date === today).length,
-    upcoming: bookingData.filter((b) => b.status === "confirmed").length,
-    pendingPayment: bookingData.filter(
-      (b) => b.status !== "cancelled" && b.status !== "canceled" && parseFloat(b.paidAmount) < parseFloat(b.total)
-    ).length,
+    today: statsToday,
+    upcoming: statsUpcoming,
+    pendingPayment: statsPendingPayment,
   };
 
   // Get monthly booking count for limit tracking
@@ -131,7 +167,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Map database status to BadgeStatus type
 function mapBookingStatus(status: string): BadgeStatus {
-  if (status === "canceled") return "cancelled";
+  if (status === "cancelled") return "cancelled";
   if (status === "checked_in") return "checked_in";
   return status as BadgeStatus;
 }
@@ -246,7 +282,7 @@ export default function BookingsPage() {
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
-          <option value="canceled">Cancelled</option>
+          <option value="cancelled">Cancelled</option>
           <option value="no_show">No Show</option>
         </select>
         <button
@@ -304,15 +340,15 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <p className="font-medium">{booking.trip.tourName}</p>
                     <p className="text-sm text-foreground-muted">
-                      {booking.trip.date} at {booking.trip.startTime}
+                      {formatDisplayDate(booking.trip.date)} at {formatTime(booking.trip.startTime)}
                     </p>
                   </td>
                   <td className="px-6 py-4">{booking.participants}</td>
                   <td className="px-6 py-4">
-                    <p className="font-medium">${booking.total}</p>
-                    {parseFloat(booking.paidAmount) < parseFloat(booking.total) && (
+                    <p className="font-medium">{formatCurrency(booking.total)}</p>
+                    {booking.paidAmount < booking.total && (
                       <p className="text-xs text-warning">
-                        ${booking.paidAmount} paid
+                        {formatCurrency(booking.paidAmount)} paid
                       </p>
                     )}
                   </td>

@@ -81,6 +81,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+  expert: "Expert",
+};
+
 const difficultyColors: Record<string, string> = {
   beginner: "bg-success-muted text-success",
   intermediate: "bg-brand-muted text-brand",
@@ -200,7 +207,7 @@ export default function DiveSitesPage() {
                       difficultyColors[site.difficulty]
                     }`}
                   >
-                    {site.difficulty}
+                    {difficultyLabels[site.difficulty] || site.difficulty}
                   </span>
                 </div>
 
@@ -221,7 +228,7 @@ export default function DiveSitesPage() {
 
               <div className="flex justify-between items-center text-sm border-t pt-3">
                 <span className="text-foreground-muted">
-                  Max depth: <strong>{site.maxDepth}m</strong>
+                  Max depth: <strong>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</strong>
                 </span>
               </div>
 

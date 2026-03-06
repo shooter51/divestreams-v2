@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock dependencies before importing the action
 vi.mock("../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../lib/storage", () => ({

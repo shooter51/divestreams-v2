@@ -3,6 +3,7 @@ import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
+import { formatLabel, formatTime, formatDisplayDate } from "../../../lib/format";
 import {
   getTrainingDashboardStats,
   getUpcomingTrainingSessions,
@@ -131,8 +132,14 @@ export default function TrainingDashboardPage() {
                   <div>
                     <p className="font-medium">{session.courseName}</p>
                     <p className="text-sm text-foreground-muted">
-                      {session.startDate}
-                      {session.startTime ? ` at ${session.startTime}` : ""}
+                      {session.startDate
+                        ? new Date(session.startDate + "T00:00:00").toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : ""}
+                      {session.startTime ? ` at ${formatTime(session.startTime)}` : ""}
                     </p>
                     {session.location && (
                       <p className="text-xs text-foreground-subtle">{session.location}</p>
@@ -188,11 +195,11 @@ export default function TrainingDashboardPage() {
                         enrollment.status
                       )}`}
                     >
-                      {enrollment.status}
+                      {formatLabel(enrollment.status)}
                     </span>
                     {enrollment.enrolledAt && (
                       <p className="text-xs text-foreground-subtle mt-1">
-                        {enrollment.enrolledAt}
+                        {formatDisplayDate(enrollment.enrolledAt)}
                       </p>
                     )}
                   </div>

@@ -6,7 +6,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, Link, Form, redirect } from "react-router";
 import { useState } from "react";
 import { eq, and, asc } from "drizzle-orm";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getProductById, deleteProduct, adjustProductStock } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../../components/CsrfInput";
@@ -68,6 +68,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -108,7 +109,7 @@ export default function ProductDetailPage() {
   const { product, images } = useLoaderData<typeof loader>();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const margin = product.costPrice
+  const margin = product.costPrice && product.price > 0
     ? Math.round(((product.price - product.costPrice) / product.price) * 100)
     : null;
 

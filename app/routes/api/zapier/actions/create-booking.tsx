@@ -9,8 +9,10 @@
 import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
 import { db } from "../../../../../lib/db/index.js";
-import { bookings, customers, trips } from "../../../../../lib/db/schema.js";
-import { eq, and, count, gte } from "drizzle-orm";
+import { bookings, customers, trips, tours } from "../../../../../lib/db/schema.js";
+import { eq, and, count, gte, sql } from "drizzle-orm";
+import { getNextBookingNumber } from "../../../../../lib/db/queries/bookings.server.js";
+import { checkRateLimit } from "../../../../../lib/utils/rate-limit";
 
 interface CreateBookingInput {
   trip_id: string;
@@ -39,6 +41,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const orgId = await validateZapierApiKey(apiKey);
   if (!orgId) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
+  }
+
+  // Rate limit per API key
+  const rateResult = await checkRateLimit(`zapier:create-booking:${apiKey}`, { maxAttempts: 60, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return Response.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
   }
 
   // Check plan booking limits before creating (DB-driven, single source of truth)
@@ -100,7 +108,11 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   } catch (limitError) {
     console.error("Failed to check booking limits:", limitError);
-    // Allow the booking to proceed if limit check fails to avoid blocking legitimate requests
+    // Fail closed — deny booking if limit check fails to prevent abuse
+    return Response.json(
+      { error: "Unable to verify booking limits. Please try again later." },
+      { status: 503 }
+    );
   }
 
   try {
@@ -116,16 +128,61 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Verify trip exists and belongs to organization
-    const [trip] = await db
-      .select()
+    // Validate participants is a positive integer
+    if (!Number.isInteger(body.participants) || body.participants < 1) {
+      return Response.json(
+        { error: "participants must be a positive integer (minimum 1)" },
+        { status: 400 }
+      );
+    }
+
+    // Verify trip exists, belongs to organization, and get pricing + capacity
+    const [tripData] = await db
+      .select({
+        id: trips.id,
+        tripPrice: trips.price,
+        tourPrice: tours.price,
+        currency: tours.currency,
+        tripMaxParticipants: trips.maxParticipants,
+        tourMaxParticipants: tours.maxParticipants,
+      })
       .from(trips)
+      .innerJoin(tours, eq(trips.tourId, tours.id))
       .where(and(eq(trips.id, body.trip_id), eq(trips.organizationId, orgId)))
       .limit(1);
 
-    if (!trip) {
+    if (!tripData) {
       return Response.json({ error: "Trip not found" }, { status: 404 });
     }
+
+    // Check trip capacity (DS-260b)
+    const maxParticipants = Number(tripData.tripMaxParticipants || tripData.tourMaxParticipants);
+    if (maxParticipants > 0) {
+      const [bookedCount] = await db
+        .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.tripId, body.trip_id),
+            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+          )
+        );
+
+      const bookedParticipants = Number(bookedCount?.total || 0);
+      const availableSpots = maxParticipants - bookedParticipants;
+
+      if (body.participants > availableSpots) {
+        return Response.json(
+          { error: `Only ${availableSpots} spots available (${bookedParticipants}/${maxParticipants} booked)` },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Calculate pricing server-side (DS-ubet)
+    const pricePerPerson = parseFloat(tripData.tripPrice || tripData.tourPrice || "0");
+    const subtotal = pricePerPerson * body.participants;
+    const total = subtotal;
 
     // Find or create customer
     let [customer] = await db
@@ -154,24 +211,26 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Create booking
+    const bookingNumber = await getNextBookingNumber(orgId);
     const [booking] = await db
       .insert(bookings)
       .values({
         organizationId: orgId,
-        tripId: trip.id,
+        tripId: tripData.id,
         customerId: customer.id,
         participants: body.participants,
         status: "pending",
-        bookingNumber: `BK-${Date.now()}`,
-        subtotal: "0",
-        total: "0",
+        bookingNumber,
+        subtotal: subtotal.toFixed(2),
+        total: total.toFixed(2),
+        currency: tripData.currency,
         internalNotes: body.notes || null,
       })
       .returning();
 
     return Response.json({
       id: booking.id,
-      booking_number: `BK-${booking.id.substring(0, 8)}`,
+      booking_number: booking.bookingNumber,
       trip_id: booking.tripId,
       customer_id: booking.customerId,
       status: booking.status,
@@ -182,7 +241,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Zapier create booking error:", error);
     return Response.json(
       {
-        error: error instanceof Error ? error.message : "Failed to create booking",
+        error: "Failed to create booking",
       },
       { status: 500 }
     );

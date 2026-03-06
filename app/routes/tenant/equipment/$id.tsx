@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { serviceRecords } from "../../../../lib/db/schema";
 import {
@@ -15,6 +15,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
@@ -116,6 +117,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -175,6 +177,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
+function formatDate(d: string | null | undefined): string {
+  if (!d) return "";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
 const categoryLabels: Record<string, string> = {
   bcd: "BCD",
   regulator: "Regulator",
@@ -183,6 +190,7 @@ const categoryLabels: Record<string, string> = {
   fins: "Fins",
   tank: "Tank",
   computer: "Dive Computer",
+  torch: "Torch/Light",
   other: "Other",
 };
 
@@ -193,11 +201,25 @@ const statusColors: Record<string, string> = {
   retired: "bg-surface-inset text-foreground-muted",
 };
 
+const statusLabels: Record<string, string> = {
+  available: "Available",
+  rented: "Rented",
+  maintenance: "Maintenance",
+  retired: "Retired",
+};
+
 const conditionColors: Record<string, string> = {
   excellent: "bg-success-muted text-success",
   good: "bg-brand-muted text-brand",
   fair: "bg-warning-muted text-warning",
   poor: "bg-danger-muted text-danger",
+};
+
+const conditionLabels: Record<string, string> = {
+  excellent: "Excellent",
+  good: "Good",
+  fair: "Fair",
+  poor: "Poor",
 };
 
 export default function EquipmentDetailPage() {
@@ -232,16 +254,16 @@ export default function EquipmentDetailPage() {
             <span
               className={`text-sm px-3 py-1 rounded-full ${statusColors[equipment.status]}`}
             >
-              {equipment.status}
+              {statusLabels[equipment.status] || formatLabel(equipment.status)}
             </span>
             <span
               className={`text-sm px-3 py-1 rounded-full ${conditionColors[equipment.condition ?? "good"]}`}
             >
-              {equipment.condition}
+              {conditionLabels[equipment.condition ?? "good"] || formatLabel(equipment.condition)}
             </span>
           </div>
           <p className="text-foreground-muted">
-            {categoryLabels[equipment.category]} • {equipment.brand} {equipment.model}
+            {categoryLabels[equipment.category]} • {[equipment.brand, equipment.model].filter(Boolean).join(" ") || "No brand"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -347,7 +369,7 @@ export default function EquipmentDetailPage() {
                     <div>
                       <p className="font-medium">{rental.customerName}</p>
                       <p className="text-sm text-foreground-muted">
-                        {rental.bookingNumber} • {rental.date}
+                        {rental.bookingNumber} • {formatDate(rental.date)}
                       </p>
                     </div>
                     <span
@@ -375,7 +397,7 @@ export default function EquipmentDetailPage() {
                     <div className="flex justify-between items-start">
                       <span className="font-medium capitalize">{service.type}</span>
                       <span className="text-foreground-muted text-xs">
-                        {service.date}
+                        {formatDate(service.date)}
                       </span>
                     </div>
                     <p className="text-foreground-muted text-xs mt-1">{service.description}</p>
@@ -499,7 +521,7 @@ export default function EquipmentDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Model</span>
-                <span>{equipment.model}</span>
+                <span>{equipment.model || "—"}</span>
               </div>
               {equipment.serialNumber && (
                 <div className="flex justify-between">
@@ -539,12 +561,12 @@ export default function EquipmentDetailPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Last Service</span>
-                <span>{equipment.lastServiceDate || "Never"}</span>
+                <span>{equipment.lastServiceDate ? formatDate(equipment.lastServiceDate) : "Never"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Next Due</span>
                 <span className={serviceDue ? "text-warning font-medium" : ""}>
-                  {equipment.nextServiceDate || "Not set"}
+                  {equipment.nextServiceDate ? formatDate(equipment.nextServiceDate) : "Not set"}
                 </span>
               </div>
               {serviceDue && (
@@ -567,7 +589,7 @@ export default function EquipmentDetailPage() {
                 {equipment.purchaseDate && (
                   <div className="flex justify-between">
                     <span className="text-foreground-muted">Date</span>
-                    <span>{equipment.purchaseDate}</span>
+                    <span>{formatDate(equipment.purchaseDate)}</span>
                   </div>
                 )}
                 {equipment.purchasePrice && (
@@ -582,8 +604,8 @@ export default function EquipmentDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Created: {equipment.createdAt}</p>
-            <p>Updated: {equipment.updatedAt}</p>
+            <p>Created: {formatDate(equipment.createdAt)}</p>
+            <p>Updated: {formatDate(equipment.updatedAt)}</p>
             <p>ID: {equipment.id}</p>
           </div>
         </div>

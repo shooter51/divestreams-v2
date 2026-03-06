@@ -12,9 +12,10 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { bookings, customers } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, lte } from "drizzle-orm";
+import { bookings, customers, trips, tours, equipment } from "../../../../lib/db/schema";
+import { eq, gte, and, sql, count, lte, desc } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+import { pluralize } from "../../../lib/format";
 import { useState, useRef, useEffect } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Reports - DiveStreams" }];
@@ -208,7 +209,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
       );
 
     bookingsInPeriod = bookingCountResult?.count || 0;
-    avgBookingValue = bookingsInPeriod > 0 ? Math.round(currentPeriodRevenue / bookingsInPeriod) : 0;
+
+    if (bookingsInPeriod > 0) {
+      avgBookingValue = Math.round(currentPeriodRevenue / bookingsInPeriod);
+    } else {
+      // No bookings in selected period — fall back to all-time average
+      const [allTimeResult] = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(${bookings.total}), 0)`,
+          count: count(),
+        })
+        .from(bookings)
+        .where(eq(bookings.organizationId, ctx.org.id));
+      const allTimeRevenue = Number(allTimeResult?.total || 0);
+      const allTimeCount = allTimeResult?.count || 0;
+      avgBookingValue = allTimeCount > 0 ? Math.round(allTimeRevenue / allTimeCount) : 0;
+    }
 
     // Get total customer count (not filtered by date range)
     const [customerCountResult] = await db
@@ -260,11 +276,81 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } | null = null;
 
   if (ctx.isPremium) {
+    const revenueData = await db
+      .select({
+        period: sql<string>`DATE(${bookings.createdAt})`,
+        revenue: sql<number>`SUM(${bookings.total})`,
+        bookings: sql<number>`COUNT(*)`,
+      })
+      .from(bookings)
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(sql`DATE(${bookings.createdAt})`)
+      .orderBy(sql`DATE(${bookings.createdAt}) ASC`);
+
+    const bookingsByStatus = await db
+      .select({
+        status: bookings.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(bookings)
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(bookings.status);
+
+    const topTours = await db
+      .select({
+        id: tours.id,
+        name: tours.name,
+        bookings: sql<number>`COUNT(${bookings.id})`,
+        revenue: sql<number>`SUM(${bookings.total})`,
+      })
+      .from(bookings)
+      .innerJoin(trips, eq(bookings.tripId, trips.id))
+      .innerJoin(tours, eq(trips.tourId, tours.id))
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(tours.id, tours.name)
+      .orderBy(desc(sql`SUM(${bookings.total})`))
+      .limit(5);
+
+    const equipmentRaw = await db
+      .select({
+        category: equipment.category,
+        status: equipment.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(equipment)
+      .where(eq(equipment.organizationId, ctx.org.id))
+      .groupBy(equipment.category, equipment.status);
+
+    const equipmentMap = new Map<string, { category: string; total: number; available: number; rented: number; maintenance: number }>();
+    for (const row of equipmentRaw) {
+      if (!equipmentMap.has(row.category)) {
+        equipmentMap.set(row.category, { category: row.category, total: 0, available: 0, rented: 0, maintenance: 0 });
+      }
+      const entry = equipmentMap.get(row.category)!;
+      entry.total += Number(row.count);
+      if (row.status === "available") entry.available += Number(row.count);
+      if (row.status === "rented") entry.rented += Number(row.count);
+      if (row.status === "maintenance") entry.maintenance += Number(row.count);
+    }
+    const equipmentUtilization = Array.from(equipmentMap.values());
+
     advancedData = {
-      revenueData: [] as RevenueDataItem[], // Placeholder - would need daily aggregation query
-      bookingsByStatus: [] as BookingStatusItem[], // Placeholder - would need status grouping query
-      topTours: [] as TopTourItem[], // Placeholder - would need tour revenue aggregation
-      equipmentUtilization: [] as EquipmentUtilizationItem[], // Placeholder - would need equipment status query
+      revenueData: revenueData.map(r => ({ period: String(r.period), revenue: Number(r.revenue), bookings: Number(r.bookings) })),
+      bookingsByStatus: bookingsByStatus.map(b => ({ status: String(b.status), count: Number(b.count) })),
+      topTours: topTours.map(t => ({ id: t.id, name: t.name, bookings: Number(t.bookings), revenue: Number(t.revenue) })),
+      equipmentUtilization,
     };
   }
 
@@ -289,13 +375,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+// Status label mapping
+const bookingStatusLabels: Record<string, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  checked_in: "Checked In",
+  completed: "Completed",
+  canceled: "Canceled",
+  no_show: "No Show",
+};
+
+// Equipment category display map
+const equipmentCategoryLabels: Record<string, string> = {
+  bcd: "BCD",
+  regulator: "Regulator",
+  wetsuit: "Wetsuit",
+  mask: "Mask",
+  fins: "Fins",
+  tank: "Tank",
+  computer: "Dive Computer",
+  torch: "Torch",
+  other: "Other",
+};
+
 // Status color mapping
 const statusColors: Record<string, { bg: string; text: string; bar: string }> = {
   confirmed: { bg: "bg-success-muted", text: "text-success", bar: "bg-success" },
   pending: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
   checked_in: { bg: "bg-brand-muted", text: "text-brand", bar: "bg-brand" },
   completed: { bg: "bg-surface-inset", text: "text-foreground", bar: "bg-surface-overlay" },
-  canceled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
+  cancelled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
   no_show: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
 };
 
@@ -303,8 +412,8 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
@@ -581,8 +690,8 @@ export default function ReportsPage() {
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.yearToDate)}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <p className="text-foreground-muted text-sm mb-1">Avg Booking Value</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.avgBookingValue)}</p>
+          <p className="text-foreground-muted text-sm mb-1">Avg Booking Value</p>
         </div>
       </div>
 
@@ -590,14 +699,14 @@ export default function ReportsPage() {
         {/* Revenue Chart - Premium Feature */}
         <PremiumGate feature="Advanced Revenue Charts" isPremium={isPremium}>
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Revenue Trend (Last 30 Days)</h2>
+            <h2 className="font-semibold mb-4">Revenue Trend ({periodLabel})</h2>
             {revenueData.length > 0 ? (
               <div className="h-48">
-                <div className="flex items-end justify-between h-full gap-1">
+                <div className="flex justify-between h-full gap-1">
                   {revenueData.map((data) => (
                     <div
                       key={data.period}
-                      className="flex-1 flex flex-col items-center group relative"
+                      className="flex-1 flex flex-col justify-end h-full group relative"
                     >
                       <div
                         className="w-full bg-brand rounded-t transition-all hover:bg-brand"
@@ -609,7 +718,7 @@ export default function ReportsPage() {
                       <div className="absolute bottom-full mb-2 hidden group-hover:block bg-surface text-foreground border border-border text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
                         <div>{data.period}</div>
                         <div>{formatCurrency(data.revenue)}</div>
-                        <div>{data.bookings} bookings</div>
+                        <div>{pluralize(Number(data.bookings), "booking")}</div>
                       </div>
                     </div>
                   ))}
@@ -640,8 +749,8 @@ export default function ReportsPage() {
                   return (
                     <div key={status.status}>
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-sm font-medium capitalize ${colors.text}`}>
-                          {status.status.replace("_", " ")}
+                        <span className={`text-sm font-medium ${colors.text}`}>
+                          {bookingStatusLabels[status.status] || status.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                         </span>
                         <span className="text-sm text-foreground-muted">
                           {status.count} ({percentage}%)
@@ -694,7 +803,7 @@ export default function ReportsPage() {
                       </span>
                       <div>
                         <p className="font-medium">{tour.name}</p>
-                        <p className="text-sm text-foreground-muted">{tour.bookings} bookings</p>
+                        <p className="text-sm text-foreground-muted">{pluralize(Number(tour.bookings), "booking")}</p>
                       </div>
                     </div>
                     <p className="font-semibold text-success">{formatCurrency(tour.revenue)}</p>
@@ -773,7 +882,7 @@ export default function ReportsPage() {
 
                     return (
                       <tr key={category.category} className="border-b last:border-0">
-                        <td className="py-3 font-medium capitalize">{category.category}</td>
+                        <td className="py-3 font-medium">{equipmentCategoryLabels[category.category] || category.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</td>
                         <td className="py-3 text-center">{category.total}</td>
                         <td className="py-3 text-center text-success">{category.available}</td>
                         <td className="py-3 text-center text-brand">{category.rented}</td>

@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/public-site.server", () => ({
@@ -129,6 +130,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         primaryColor: "#14b8a6",
         secondaryColor: "#0d9488",
         fontFamily: "poppins",
+        heroImageUrl: null,
       });
     });
 
@@ -149,6 +151,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         primaryColor: "#0ea5e9",
         secondaryColor: "#06b6d4",
         fontFamily: "inter",
+        heroImageUrl: null,
       });
     });
 

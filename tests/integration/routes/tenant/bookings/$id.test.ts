@@ -61,6 +61,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
           participants: 2,
           subtotal: "180.00",
           equipmentTotal: "20.00",
+          tax: "0.00",
           discount: "0.00",
           total: "200.00",
         },
@@ -158,6 +159,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
           participants: 1,
           subtotal: "100.00",
           equipmentTotal: "0.00",
+          tax: "0.00",
           discount: "0.00",
           total: "100.00",
         },
@@ -217,6 +219,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     });
 
     it("should complete booking when intent is complete", async () => {
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue({ status: "confirmed" } as unknown);
       vi.mocked(queries.updateBookingStatus).mockResolvedValue(undefined);
 
       const formData = new FormData();
@@ -236,6 +239,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     });
 
     it("should mark as no-show when intent is no-show", async () => {
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue({ status: "confirmed" } as unknown);
       vi.mocked(queries.updateBookingStatus).mockResolvedValue(undefined);
 
       const formData = new FormData();

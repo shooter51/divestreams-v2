@@ -96,7 +96,12 @@ export type TourInput = z.infer<typeof tourSchema>;
 export const tripSchema = z.object({
   tourId: z.string().uuid("Tour required"),
   boatId: z.string().uuid().optional(),
-  date: z.string().min(1, "Date required"), // ISO date
+  date: z.string().min(1, "Date required").refine((val) => {
+    const tripDate = new Date(val + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return tripDate >= today;
+  }, "Trip date cannot be in the past"), // ISO date
   startTime: z.string().min(1, "Start time required"), // HH:mm
   endTime: z.string().optional(),
   maxParticipants: optionalIntNumber,
@@ -194,7 +199,6 @@ export type BookingInput = z.infer<typeof bookingSchema>;
 
 export const diveSiteSchema = z.object({
   name: z.string().min(1, "Site name required").max(200),
-  location: z.string().min(1, "Location required").max(200),
   description: z.string().optional(),
   latitude: z.preprocess(
     (val) => (val === "" || val === undefined || val === null ? undefined : val),

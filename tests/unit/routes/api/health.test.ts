@@ -30,12 +30,20 @@ vi.mock("drizzle-orm", () => ({
 import { loader } from "../../../../app/routes/api/health";
 
 describe("Health API", () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   describe("loader", () => {
-    it("returns ok status", async () => {
+    it("returns ok status when no HEALTH_CHECK_KEY is set", async () => {
+      delete process.env.HEALTH_CHECK_KEY;
       const request = new Request("http://localhost:3000/api/health");
       const response = await loader({ request, params: {}, context: {} });
 
@@ -45,27 +53,22 @@ describe("Health API", () => {
       expect(data.status).toBe("ok");
     });
 
-    it("returns timestamp", async () => {
+    it("does not expose timestamp (security hardening)", async () => {
       const request = new Request("http://localhost:3000/api/health");
-      const before = new Date().toISOString();
       const response = await loader({ request, params: {}, context: {} });
-      const after = new Date().toISOString();
 
       const data = await response.json();
 
-      expect(data.timestamp).toBeDefined();
-      expect(data.timestamp >= before).toBe(true);
-      expect(data.timestamp <= after).toBe(true);
+      expect(data.timestamp).toBeUndefined();
     });
 
-    it("returns version", async () => {
+    it("does not expose version (security hardening)", async () => {
       const request = new Request("http://localhost:3000/api/health");
       const response = await loader({ request, params: {}, context: {} });
 
       const data = await response.json();
 
-      expect(data.version).toBeDefined();
-      expect(typeof data.version).toBe("string");
+      expect(data.version).toBeUndefined();
     });
 
     it("returns JSON content type", async () => {
@@ -73,6 +76,41 @@ describe("Health API", () => {
       const response = await loader({ request, params: {}, context: {} });
 
       expect(response.headers.get("content-type")).toContain("application/json");
+    });
+
+    describe("DS-tpuo: health check requires auth when HEALTH_CHECK_KEY is set", () => {
+      beforeEach(() => {
+        process.env.HEALTH_CHECK_KEY = "test-health-key";
+      });
+
+      it("returns 401 when HEALTH_CHECK_KEY is set but no key provided", async () => {
+        const request = new Request("http://localhost:3000/api/health");
+        const response = await loader({ request, params: {}, context: {} });
+
+        expect(response.status).toBe(401);
+        const data = await response.json();
+        expect(data.error).toBe("Unauthorized");
+      });
+
+      it("returns 401 when wrong key provided", async () => {
+        const request = new Request("http://localhost:3000/api/health", {
+          headers: { "X-Health-Key": "wrong-key" },
+        });
+        const response = await loader({ request, params: {}, context: {} });
+
+        expect(response.status).toBe(401);
+      });
+
+      it("returns ok when correct key provided", async () => {
+        const request = new Request("http://localhost:3000/api/health", {
+          headers: { "X-Health-Key": "test-health-key" },
+        });
+        const response = await loader({ request, params: {}, context: {} });
+
+        expect(response.status).toBe(200);
+        const data = await response.json();
+        expect(data.status).toBe("ok");
+      });
     });
   });
 });

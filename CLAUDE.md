@@ -6,7 +6,7 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
 ## Directory Structure
 **IMPORTANT: Follow the directory structure policy when creating or organizing files.**
 
-- **Policy**: See `DIRECTORY_STRUCTURE_POLICY.md` for full details
+- **Policy**: See `docs/policies/directory-structure-policy.md` for full details
 - **Quick Reference**: See `docs/guides/directory-structure-quick-reference.md`
 - **Validation**: Run `npm run validate:structure` before commits
 - **Key Rules**:

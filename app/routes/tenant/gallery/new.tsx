@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { createGalleryAlbum } from "../../../../lib/db/gallery.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
+import { createGalleryAlbum, getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
 import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
 import { CsrfInput } from "../../../components/CsrfInput";
@@ -11,12 +11,14 @@ export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
 const MAX_COVER_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
@@ -27,6 +29,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!name) {
     return { errors: { name: "Album name is required" } };
+  }
+
+  // Check for duplicate slug
+  const existingAlbums = await getAllGalleryAlbums(ctx.org.id);
+  if (existingAlbums.some((a) => a.slug === slug)) {
+    return { errors: { slug: "An album with this URL slug already exists" } };
   }
 
   // Handle cover image upload
@@ -129,6 +137,9 @@ export default function NewGalleryAlbumPage() {
               <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to auto-generate from album name
               </p>
+              {actionData?.errors?.slug && (
+                <p className="text-danger text-sm mt-1">{actionData.errors.slug}</p>
+              )}
             </div>
 
             <div>

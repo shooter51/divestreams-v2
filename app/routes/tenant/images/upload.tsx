@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, count } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { uploadToS3, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
@@ -23,6 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const ctx = await requireOrgContext(request);
+    requireRole(ctx, ["owner", "admin"]);
     const organizationId = ctx.org.id;
 
     let formData: FormData;
@@ -141,6 +142,19 @@ export async function action({ request }: ActionFunctionArgs) {
         isPrimary: nextOrder === 0, // First image is primary
       })
       .returning();
+
+    // Sync products.imageUrl when a primary product image is uploaded
+    if (entityType === "product" && image.isPrimary) {
+      await db
+        .update(schema.products)
+        .set({ imageUrl: image.url })
+        .where(
+          and(
+            eq(schema.products.id, entityId),
+            eq(schema.products.organizationId, organizationId)
+          )
+        );
+    }
 
     return new Response(
       JSON.stringify({

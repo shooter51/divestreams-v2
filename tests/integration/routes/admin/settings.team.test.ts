@@ -309,7 +309,7 @@ describe("admin/settings.team route", () => {
         const formData = new FormData();
         formData.append("intent", "update-role");
         formData.append("memberId", "m2");
-        formData.append("role", "owner");
+        formData.append("role", "admin");
 
         const result = await action(makeActionArgs(formData));
 
@@ -524,7 +524,7 @@ describe("admin/settings.team route", () => {
 
         const result = await action(makeActionArgs(formData));
 
-        expect(result).toMatchObject({ success: true, temporaryPassword: "temp123" });
+        expect(result).toMatchObject({ success: true, message: "Password reset successful. The temporary password has been emailed to the user." });
       });
 
       it("prevents resetting owner password", async () => {

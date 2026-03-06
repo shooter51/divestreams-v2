@@ -5,6 +5,7 @@ import { loader, action } from "../../../../../app/routes/tenant/settings/notifi
 // Mock dependencies
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db", () => {

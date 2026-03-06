@@ -30,6 +30,14 @@ const roles = [
   },
 ];
 
+const roleDisplayLabels: Record<string, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  staff: "Staff",
+  member: "Staff",
+  customer: "Customer",
+};
+
 export async function loader({ request }: LoaderFunctionArgs) {
   // Import server-only modules inline to prevent client bundle leakage
   const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
@@ -130,8 +138,13 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Team invitations require a premium subscription" };
     }
 
-    const email = formData.get("email") as string;
+    const email = (formData.get("email") as string).trim().toLowerCase();
     const role = formData.get("role") as string;
+
+    // Prevent self-invite
+    if (email === ctx.user.email?.toLowerCase()) {
+      return { error: "You cannot invite yourself" };
+    }
 
     // Validate role against allowed values
     const allowedRoles = ["admin", "member", "staff"];
@@ -209,7 +222,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingInvite) {
-      return { error: "This email already has a pending invitation. See the Pending Invitations section below to resend or cancel it." };
+      return { error: `An invitation for ${email} is already pending (sent ${existingInvite.createdAt ? new Date(existingInvite.createdAt).toLocaleDateString() : "recently"}). You can resend or cancel it in the Pending Invitations section below.` };
     }
 
     // User doesn't exist - create invitation for new user
@@ -266,6 +279,20 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Invalid role" };
     }
 
+    // Fetch target member to prevent demoting owners
+    const [targetMember] = await db
+      .select({ role: member.role })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, ctx.org.id)))
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+    if (targetMember.role === "owner") {
+      return { error: "Cannot change the role of an organization owner" };
+    }
+
     await db
       .update(member)
       .set({ role })
@@ -290,6 +317,20 @@ export async function action({ request }: ActionFunctionArgs) {
     // Prevent users from removing themselves
     if (userId === ctx.user.id) {
       return { error: "You cannot modify your own role" };
+    }
+
+    // Prevent removing owners
+    const [targetMember] = await db
+      .select({ role: member.role })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, ctx.org.id)))
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+    if (targetMember.role === "owner") {
+      return { error: "Cannot remove the owner from the team" };
     }
 
     await db.delete(member).where(
@@ -403,16 +444,41 @@ export async function action({ request }: ActionFunctionArgs) {
         userAgent: request.headers.get("user-agent") || undefined,
       });
 
+      // Email the temporary password instead of returning in response
+      if (method === "auto_generated" && result.temporaryPassword) {
+        const [targetUser] = await db
+          .select({ email: user.email, name: user.name })
+          .from(user)
+          .where(eq(user.id, userId))
+          .limit(1);
+
+        if (targetUser?.email) {
+          try {
+            await sendEmail({
+              to: targetUser.email,
+              subject: `Your ${ctx.org.name} password has been reset`,
+              html: `
+                <p>Hi${targetUser.name ? ` ${targetUser.name}` : ''},</p>
+                <p>Your password has been reset by an administrator.</p>
+                <p>Your temporary password is: <strong>${result.temporaryPassword}</strong></p>
+                <p>You will be required to change this password on your next login.</p>
+              `,
+            });
+          } catch (emailErr) {
+            console.error("Failed to email temporary password:", emailErr);
+          }
+        }
+      }
+
       return {
         success: true,
-        temporaryPassword: result.temporaryPassword,
         message: method === "auto_generated"
-          ? `Password reset successful. Temporary password: ${result.temporaryPassword}`
+          ? "Password reset successful. The temporary password has been emailed to the user."
           : "Password reset successful",
       };
     } catch (error) {
       console.error("Password reset error:", error);
-      return { error: error instanceof Error ? error.message : "Failed to reset password" };
+      return { error: "Failed to reset password" };
     }
   }
 
@@ -564,7 +630,7 @@ export default function TeamPage() {
                         : "bg-surface-inset text-foreground"
                     }`}
                   >
-                    {roles.find((r) => r.id === member.role)?.name || member.role}
+                    {roles.find((r) => r.id === member.role)?.name || roleDisplayLabels[member.role] || member.role}
                   </span>
                   <p className="text-xs text-foreground-subtle mt-1">{member.lastActive}</p>
                 </div>

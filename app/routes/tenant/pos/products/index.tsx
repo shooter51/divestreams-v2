@@ -6,13 +6,14 @@
 
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, Form, useSearchParams } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole } from "../../../../../lib/auth/org-context.server";
 import {
   getProducts,
   getProductCategories,
   deleteProduct,
   type Product,
 } from "../../../../../lib/db/queries.server";
+import { formatLabel } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
@@ -34,6 +35,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -60,6 +62,23 @@ const categoryColors: Record<string, string> = {
   accessories: "bg-success-muted text-success",
   courses: "bg-accent-muted text-accent",
   rental: "bg-accent-muted text-accent",
+};
+
+const categoryLabels: Record<string, string> = {
+  regulator: "Regulator",
+  bcd: "BCD",
+  wetsuit: "Wetsuit",
+  mask: "Mask",
+  fins: "Fins",
+  tank: "Tank",
+  computer: "Dive Computer",
+  torch: "Torch",
+  equipment: "Equipment",
+  apparel: "Apparel",
+  accessories: "Accessories",
+  courses: "Courses",
+  rental: "Rental",
+  other: "Other",
 };
 
 export default function ProductsPage() {
@@ -166,11 +185,11 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`text-xs px-2 py-1 rounded capitalize ${
+                      className={`text-xs px-2 py-1 rounded ${
                         categoryColors[product.category] || "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {product.category}
+                      {categoryLabels[product.category] || formatLabel(product.category)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-foreground-muted">

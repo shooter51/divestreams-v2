@@ -2,14 +2,14 @@
  * POS Checkout Modals
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useFetcher } from "react-router";
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   total: number;
-  onComplete: (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string }>) => void;
+  onComplete: (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>) => void;
 }
 
 interface CardModalProps extends CheckoutModalProps {
@@ -544,7 +544,7 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
             Cancel
           </button>
           <button
-            onClick={() => onComplete([{ method: "cash", amount: total }])}
+            onClick={() => onComplete([{ method: "cash", amount: total, tendered: tenderedAmount, change: Math.max(0, change) }])}
             disabled={tenderedAmount < total}
             className="flex-1 py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
@@ -573,7 +573,8 @@ export function SplitModal({
   customerId
 }: SplitModalProps) {
   const fetcher = useFetcher();
-  const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string }>>([]);
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>>([]);
   const [currentAmount, setCurrentAmount] = useState("");
   const [currentMethod, setCurrentMethod] = useState<"cash" | "card">("cash");
   const [processingCard, setProcessingCard] = useState(false);
@@ -719,17 +720,23 @@ export function SplitModal({
   };
 
   const addCashPayment = () => {
-    const amount = parseFloat(currentAmount);
-    if (!isNaN(amount) && amount > 0 && amount <= remaining) {
-      setPayments([...payments, { method: "cash", amount }]);
+    // Read from DOM ref first - more reliable than React state when Playwright's
+    // fill() triggers onChange but the state update hasn't committed before click.
+    const inputValue = amountInputRef.current?.value ?? currentAmount;
+    const amount = parseFloat(inputValue);
+    if (!isNaN(amount) && amount > 0 && amount <= remaining + 0.005) {
+      // If within 0.5 cents of remaining, treat as full payment (handles floating-point display rounding)
+      const adjustedAmount = amount >= remaining - 0.005 ? remaining : Math.min(amount, remaining);
+      setPayments([...payments, { method: "cash", amount: adjustedAmount, tendered: adjustedAmount, change: 0 }]);
       setCurrentAmount("");
+      if (amountInputRef.current) amountInputRef.current.value = "";
       setError(null);
     }
   };
 
   const addCardPayment = () => {
     const amount = parseFloat(currentAmount);
-    if (!isNaN(amount) && amount > 0 && amount <= remaining) {
+    if (!isNaN(amount) && amount > 0 && amount <= remaining + 0.005) {
       if (!cardComplete) {
         setError("Please enter complete card details");
         return;
@@ -850,8 +857,9 @@ export function SplitModal({
               {/* Amount input */}
               <div className="flex gap-2">
                 <input
-                  type="number"
-                  step="0.01"
+                  ref={amountInputRef}
+                  type="text"
+                  inputMode="decimal"
                   value={currentAmount}
                   onChange={(e) => setCurrentAmount(e.target.value)}
                   placeholder="Amount"
@@ -886,9 +894,6 @@ export function SplitModal({
               <button
                 onClick={currentMethod === "cash" ? addCashPayment : addCardPayment}
                 disabled={
-                  !currentAmount ||
-                  parseFloat(currentAmount) <= 0 ||
-                  parseFloat(currentAmount) > remaining ||
                   processingCard ||
                   (currentMethod === "card" && !cardComplete)
                 }
@@ -913,7 +918,7 @@ export function SplitModal({
           </button>
           <button
             onClick={() => onComplete(payments)}
-            disabled={remaining > 0.01 || processingCard}
+            disabled={remaining > 0.005 || processingCard}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale

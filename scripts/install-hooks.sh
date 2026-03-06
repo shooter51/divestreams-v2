@@ -3,6 +3,12 @@
 
 set -e
 
+# Skip in non-git environments (e.g., Docker build)
+if [ ! -d .git ] && [ ! -f .git ]; then
+  echo "Not a git repository, skipping hook installation."
+  exit 0
+fi
+
 # Find the actual hooks directory
 if [ -f .git ]; then
   # This is a worktree, read the gitdir

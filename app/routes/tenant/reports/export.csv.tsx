@@ -8,10 +8,10 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, desc } from "drizzle-orm";
+import { eq, gte, lte, and, sql, count, desc } from "drizzle-orm";
 
 /**
  * Escape a CSV field to prevent formula injection and handle special characters.
@@ -29,11 +29,20 @@ function escapeCsvField(value: string): string {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Parse date range from query params
   const url = new URL(request.url);
   const startDateParam = url.searchParams.get("startDate");
   const endDateParam = url.searchParams.get("endDate");
+
+  // Validate date params
+  if (startDateParam && isNaN(Date.parse(startDateParam))) {
+    return new Response("Invalid startDate parameter", { status: 400 });
+  }
+  if (endDateParam && isNaN(Date.parse(endDateParam))) {
+    return new Response("Invalid endDate parameter", { status: 400 });
+  }
 
   // Default to current month if no dates provided
   const startOfMonth = new Date();
@@ -62,7 +71,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startDate)
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         )
       );
     currentMonthRevenue = Number(currentMonthResult?.total || 0);
@@ -87,7 +97,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startDate)
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         )
       );
     bookingsThisMonth = bookingCountResult?.count || 0;
@@ -107,7 +118,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(customers.organizationId, ctx.org.id),
-          gte(customers.createdAt, startDate)
+          gte(customers.createdAt, startDate),
+          lte(customers.createdAt, endDate)
         )
       );
     newCustomersThisMonth = newCustomerResult?.count || 0;
@@ -144,7 +156,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startDate)
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         )
       )
       .orderBy(desc(bookings.createdAt))

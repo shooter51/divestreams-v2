@@ -231,18 +231,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await db
         .update(subscription)
         .set({
-          planId: planId || null,
+          ...(planId ? { planId } : {}),
           plan: planName, // Keep legacy field updated for backwards compatibility
           status: status as "active" | "trialing" | "past_due" | "canceled",
           updatedAt: new Date(),
         })
         .where(eq(subscription.id, existingSub.id));
-    } else {
+    } else if (planId) {
       // [KAN-594 FIX] Create subscription with BOTH fields set
       await db.insert(subscription).values({
         id: crypto.randomUUID(),
         organizationId: org.id,
-        planId: planId || null,
+        planId,
         plan: planName, // Keep legacy field for backwards compatibility
         status: status as "active" | "trialing" | "past_due" | "canceled",
         createdAt: new Date(),
@@ -260,7 +260,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "removeMember") {
     const memberId = formData.get("memberId") as string;
     if (memberId) {
-      await db.delete(member).where(eq(member.id, memberId));
+      const [targetMember] = await db
+        .select({ role: member.role })
+        .from(member)
+        .where(and(eq(member.id, memberId), eq(member.organizationId, org.id)))
+        .limit(1);
+
+      if (!targetMember) {
+        return { error: "Member not found in this organization" };
+      }
+      if (targetMember.role === "owner") {
+        return { error: "Cannot remove the owner from the organization" };
+      }
+
+      await db.delete(member).where(and(eq(member.id, memberId), eq(member.organizationId, org.id)));
       return { success: true };
     }
   }
@@ -269,10 +282,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const memberId = formData.get("memberId") as string;
     const role = formData.get("role") as string;
     if (memberId && role) {
+      const [targetMember] = await db
+        .select({ role: member.role })
+        .from(member)
+        .where(and(eq(member.id, memberId), eq(member.organizationId, org.id)))
+        .limit(1);
+
+      if (!targetMember) {
+        return { error: "Member not found in this organization" };
+      }
+      if (targetMember.role === "owner") {
+        return { error: "Cannot change the role of an organization owner" };
+      }
+
       await db
         .update(member)
         .set({ role, updatedAt: new Date() })
-        .where(eq(member.id, memberId));
+        .where(and(eq(member.id, memberId), eq(member.organizationId, org.id)));
       return { success: true };
     }
   }
@@ -283,6 +309,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     if (!userId) {
       return { error: "User ID is required" };
+    }
+
+    // Verify user belongs to this organization
+    const [orgMembership] = await db
+      .select({ userId: member.userId })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, org.id)))
+      .limit(1);
+
+    if (!orgMembership) {
+      return { error: "User not found in this organization" };
     }
 
     // Get the user
@@ -339,6 +376,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     if (!userId || !newEmail) {
       return { error: "User ID and new email are required" };
+    }
+
+    // Verify user belongs to this organization
+    const [emailOrgMembership] = await db
+      .select({ userId: member.userId })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, org.id)))
+      .limit(1);
+
+    if (!emailOrgMembership) {
+      return { error: "User not found in this organization" };
     }
 
     // Validate email format

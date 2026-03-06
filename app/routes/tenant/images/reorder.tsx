@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 interface ReorderItem {
@@ -23,6 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const ctx = await requireOrgContext(request);
+    requireRole(ctx, ["owner", "admin"]);
 
     const body = await request.json();
     const { entityType, entityId, images } = body as {
@@ -39,14 +40,16 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const { db, schema } = getTenantDb(ctx.org.slug);
+    const organizationId = ctx.org.id;
 
-    // Verify all images belong to this entity
+    // Verify all images belong to this entity and organization
     const imageIds = images.map((img) => img.id);
     const existingImages = await db
       .select({ id: schema.images.id })
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, entityType),
           eq(schema.images.entityId, entityId),
           inArray(schema.images.id, imageIds)
@@ -66,6 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .set({ isPrimary: false })
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, entityType),
           eq(schema.images.entityId, entityId)
         )
@@ -79,7 +83,35 @@ export async function action({ request }: ActionFunctionArgs) {
           sortOrder: img.sortOrder,
           isPrimary: img.isPrimary || false,
         })
-        .where(eq(schema.images.id, img.id));
+        .where(
+          and(
+            eq(schema.images.organizationId, organizationId),
+            eq(schema.images.id, img.id)
+          )
+        );
+    }
+
+    // Sync products.imageUrl when the primary image changes for a product
+    if (entityType === "product") {
+      const primaryItem = images.find((img) => img.isPrimary);
+      if (primaryItem) {
+        const [primaryImg] = await db
+          .select({ url: schema.images.url })
+          .from(schema.images)
+          .where(eq(schema.images.id, primaryItem.id));
+
+        if (primaryImg) {
+          await db
+            .update(schema.products)
+            .set({ imageUrl: primaryImg.url })
+            .where(
+              and(
+                eq(schema.products.id, entityId),
+                eq(schema.products.organizationId, organizationId)
+              )
+            );
+        }
+      }
     }
 
     return Response.json({ success: true });

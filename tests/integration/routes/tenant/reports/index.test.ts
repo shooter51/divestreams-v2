@@ -14,14 +14,19 @@ vi.mock("../../../../../lib/db", () => ({
 // Helper to create thenable mock builder
 function createMockBuilder(results: unknown[]) {
   let callCount = 0;
-  return {
+  const builder = {
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    groupBy: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    innerJoin: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
     then: vi.fn((resolve) => {
       const result = results[callCount++];
       return Promise.resolve(result).then(resolve);
     }),
   };
+  return builder;
 }
 
 describe("app/routes/tenant/reports/index.tsx", () => {
@@ -146,6 +151,11 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 25 }],
         [{ count: 150 }],
         [{ count: 10 }],
+        // Premium queries: revenueData, bookingsByStatus, topTours, equipmentRaw
+        [{ period: "2024-01-01", revenue: 1000, bookings: 5 }],
+        [{ status: "confirmed", count: 10 }],
+        [{ id: "tour-1", name: "Reef Dive", bookings: 5, revenue: 500 }],
+        [{ category: "wetsuit", status: "available", count: 3 }],
       ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports");

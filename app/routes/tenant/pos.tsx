@@ -8,7 +8,8 @@ import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { z } from "zod";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { checkoutSchema } from "../../../lib/validation/pos";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
@@ -51,11 +52,13 @@ import {
 } from "../../components/pos/RefundModals";
 import type { CartItem } from "../../../lib/validation/pos";
 import { useToast } from "../../../lib/toast-context";
+import { formatLabel } from "../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
   const tenant = {
     id: ctx.org.id,
@@ -122,6 +125,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const tenant = {
     id: ctx.org.id,
     subdomain: ctx.org.slug,
@@ -279,7 +283,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "checkout") {
     try {
-      const data = JSON.parse(formData.get("data") as string);
+      const rawData = JSON.parse(formData.get("data") as string);
+      const data = checkoutSchema.parse(rawData);
 
       // Get the actual user ID from the authenticated session
       const userId = ctx.user.id;
@@ -293,6 +298,7 @@ export async function action({ request }: ActionFunctionArgs) {
         tax: data.tax,
         total: data.total,
         notes: data.notes,
+        discountCode: data.discountCode,
       });
 
       return { success: true, receiptNumber: result.receiptNumber };
@@ -320,6 +326,12 @@ export default function POSPage() {
   const { showToast } = useToast();
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
+
+  // Date state — initialized to empty string to avoid SSR/client hydration mismatch (#418)
+  const [currentDate, setCurrentDate] = useState("");
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString());
+  }, []);
 
   // State
   const [tab, setTab] = useState<"retail" | "rentals" | "trips">("retail");
@@ -367,7 +379,11 @@ export default function POSPage() {
   } | null>(null);
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * (taxRate / 100);
+  // Use per-product taxRate if available, otherwise fall back to org-level taxRate
+  const tax = cart.reduce((sum, item) => {
+    const itemTaxRate = item.type === "product" && item.taxRate != null ? item.taxRate : taxRate;
+    return sum + item.total * (itemTaxRate / 100);
+  }, 0);
   const total = subtotal + tax;
 
   // Check if cart requires customer (has rentals or bookings)
@@ -376,7 +392,7 @@ export default function POSPage() {
   const requiresCustomer = hasRentals || hasBookings;
 
   // Cart operations
-  const addProduct = useCallback((product: { id: string; name: string; price: string }) => {
+  const addProduct = useCallback((product: { id: string; name: string; price: string; taxRate?: string | null }) => {
     setCart(prev => {
       const existing = prev.findIndex(
         item => item.type === "product" && item.productId === product.id
@@ -394,6 +410,7 @@ export default function POSPage() {
         name: product.name,
         quantity: 1,
         unitPrice: Number(product.price),
+        taxRate: product.taxRate != null ? Number(product.taxRate) : undefined,
         total: Number(product.price),
       }];
     });
@@ -468,7 +485,7 @@ export default function POSPage() {
     }
   }, [pendingCheckout]);
 
-  const completeCheckout = useCallback(async (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string }>) => {
+  const completeCheckout = useCallback(async (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>) => {
     const formData = new FormData();
     formData.append("intent", "checkout");
     formData.append("data", JSON.stringify({
@@ -482,11 +499,10 @@ export default function POSPage() {
     if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
-
-    // Clear on success
-    clearCart();
+    // Close the checkout modal immediately — the cart will be cleared by useEffect
+    // once the server confirms the sale (success response with receiptNumber).
     setCheckoutMethod(null);
-  }, [cart, customer, subtotal, tax, total, fetcher, clearCart, csrfToken]);
+  }, [cart, customer, subtotal, tax, total, fetcher, csrfToken]);
 
   // Customer search
   const handleCustomerSearch = useCallback((query: string) => {
@@ -561,8 +577,9 @@ export default function POSPage() {
       setTimeout(() => setBarcodeError(null), 3000);
     }
 
-    // Handle sale success
+    // Handle sale success — clear cart AFTER server confirms the sale
     if (fetcherData?.success && fetcherData?.receiptNumber && !fetcherData?.refundId) {
+      clearCart();
       showToast(`Sale complete! Receipt #${fetcherData.receiptNumber}`, "success");
     }
 
@@ -572,7 +589,7 @@ export default function POSPage() {
       setShowRefundConfirmation(false);
       setSelectedTransaction(null);
     }
-  }, [fetcher.data, addProduct, showToast]);
+  }, [fetcher.data, addProduct, showToast, clearCart]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -617,7 +634,7 @@ export default function POSPage() {
           </Link>
         </div>
         <div className="text-sm text-foreground-muted">
-          {tenant.name} - {new Date().toLocaleDateString()}
+          {tenant.name}{currentDate ? ` - ${currentDate}` : ""}
         </div>
       </div>
 
@@ -635,13 +652,13 @@ export default function POSPage() {
                   setSelectedCategory(null);
                   setSearchQuery("");
                 }}
-                className={`px-6 py-2 rounded-t-lg font-medium capitalize ${
+                className={`px-6 py-2 rounded-t-lg font-medium ${
                   tab === t
                     ? "bg-surface-raised text-brand border-t border-x"
                     : "bg-surface-overlay text-foreground-muted hover:bg-border"
                 }`}
               >
-                {t}
+                {formatLabel(t)}
               </button>
             ))}
           </div>

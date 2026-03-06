@@ -54,6 +54,14 @@ interface HomeLoaderData {
 // Loader
 // ============================================================================
 
+function formatTripTime(t: string | null): string {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoaderData> {
   // Get organization ID from URL (subdomain or custom domain resolution)
   // We need to re-do resolution here since we can't import from parent
@@ -181,6 +189,7 @@ function TripCard({
     weekday: "short",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 
   const price = trip.price || trip.tour?.price || "0";
@@ -227,7 +236,7 @@ function TripCard({
         <div
           className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold"
           style={{
-            backgroundColor: "rgba(255,255,255,0.9)",
+            backgroundColor: "var(--surface-inset)",
             color: "var(--primary-color)",
           }}
         >
@@ -252,7 +261,7 @@ function TripCard({
           >
             {formattedPrice}
           </span>
-          <span className="text-sm opacity-60">{trip.startTime}</span>
+          <span className="text-sm opacity-60">{formatTripTime(trip.startTime)}</span>
         </div>
       </div>
     </Link>
@@ -302,7 +311,7 @@ function CourseCard({
           <div
             className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold"
             style={{
-              backgroundColor: "rgba(255,255,255,0.9)",
+              backgroundColor: "var(--surface-inset)",
               color: "var(--primary-color)",
             }}
           >
@@ -367,14 +376,12 @@ export default function SiteHomePage() {
                 backgroundPosition: "center",
               }
             : {
-                background: `linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)`,
+                background: `linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--secondary-color) 85%, #000) 100%)`,
               }
         }
       >
-        {/* Overlay for image backgrounds */}
-        {settings?.heroImageUrl && (
-          <div className="absolute inset-0 bg-black/40" />
-        )}
+        {/* Overlay for readability */}
+        <div className={`absolute inset-0 ${settings?.heroImageUrl ? "bg-black/40" : "bg-black/10"}`} />
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
@@ -386,7 +393,7 @@ export default function SiteHomePage() {
           </h1>
           <p
             className="mt-4 text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            style={{ color: "white" }}
           >
             Discover amazing underwater adventures and dive experiences
           </p>

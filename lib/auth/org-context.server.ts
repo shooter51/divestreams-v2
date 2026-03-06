@@ -287,10 +287,11 @@ export async function getOrgContext(
 
   // Determine if premium based on plan details (not legacy string field)
   // Use planDetails.monthlyPrice to ensure we check the authoritative FK relationship
+  // Include "trialing" status: organizations on a paid trial have access to all premium features
   const isPremium =
     planDetails &&
     planDetails.monthlyPrice > 0 &&
-    sub?.status === "active";
+    (sub?.status === "active" || sub?.status === "trialing");
 
   // Build TierLimits from the DB plan data (single source of truth).
   // Falls back to FREE_TIER_LIMITS when no plan is found.
@@ -315,7 +316,8 @@ export async function getOrgContext(
       .then(([result]) => result?.count ?? 0)
       .catch((error) => {
         authLogger.error({ err: error, organizationId: org.id }, "Failed to count customers");
-        return 0;
+        // Fail closed: return limit value so canAdd check returns false on error
+        return limits.customers === Infinity ? Number.MAX_SAFE_INTEGER : limits.customers;
       }),
     // Count tours for this organization
     db
@@ -325,7 +327,8 @@ export async function getOrgContext(
       .then(([result]) => result?.count ?? 0)
       .catch((error) => {
         authLogger.error({ err: error, organizationId: org.id }, "Failed to count tours");
-        return 0;
+        // Fail closed: return limit value so canAdd check returns false on error
+        return limits.tours === Infinity ? Number.MAX_SAFE_INTEGER : limits.tours;
       }),
     // Count bookings created this month for this organization
     db
@@ -340,7 +343,8 @@ export async function getOrgContext(
       .then(([result]) => result?.count ?? 0)
       .catch((error) => {
         authLogger.error({ err: error, organizationId: org.id }, "Failed to count bookings");
-        return 0;
+        // Fail closed: return limit value so canAdd check returns false on error
+        return limits.bookingsPerMonth === Infinity ? Number.MAX_SAFE_INTEGER : limits.bookingsPerMonth;
       }),
   ]);
 

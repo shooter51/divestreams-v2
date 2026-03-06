@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
   getSessionById,
   getEnrollments,
@@ -32,22 +32,26 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Session not found", { status: 404 });
   }
 
-  return { session, enrollments, courses, isPremium: ctx.isPremium };
+  // Compute enrolledCount from actual enrollments (the cached counter on the session can be stale)
+  const enrolledCount = enrollments.filter(e => e.status !== "withdrawn").length;
+  return { session: { ...session, enrolledCount }, enrollments, courses, isPremium: ctx.isPremium };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const sessionId = params.id!;
 
   if (intent === "update-status") {
     const newStatus = formData.get("status") as string;
-    if (newStatus) {
-      await updateSession(ctx.org.id, sessionId, { status: newStatus });
-      return redirect(redirectWithNotification(`/tenant/training/sessions/${sessionId}`, "Session has been successfully updated", "success"));
+    const allowedStatuses = ["scheduled", "in_progress", "completed", "cancelled"];
+    if (!newStatus || !allowedStatuses.includes(newStatus)) {
+      return { error: "Invalid status value" };
     }
-    return { error: "Status is required" };
+    await updateSession(ctx.org.id, sessionId, { status: newStatus });
+    return redirect(redirectWithNotification(`/tenant/training/sessions/${sessionId}`, "Session has been successfully updated", "success"));
   }
 
   if (intent === "update-session") {
@@ -97,6 +101,22 @@ const statusLabels: Record<string, string> = {
   in_progress: "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  paid: "Paid",
+  partial: "Partial",
+  pending: "Pending",
+  refunded: "Refunded",
+};
+
+const enrollmentStatusLabels: Record<string, string> = {
+  enrolled: "Enrolled",
+  in_progress: "In Progress",
+  completed: "Completed",
+  withdrawn: "Withdrawn",
+  dropped: "Dropped",
+  failed: "Failed",
 };
 
 const enrollmentStatusColors: Record<string, string> = {
@@ -164,7 +184,7 @@ export default function SessionDetailPage() {
           </div>
           <p className="text-foreground-muted">
             {sessionDate}
-            {session.startTime && ` at ${session.startTime}`}
+            {session.startTime && ` at ${(() => { const [h, m] = session.startTime.split(":"); const hr = parseInt(h, 10); return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m || "00"} ${hr >= 12 ? "PM" : "AM"}`; })()}`}
           </p>
           {session.agencyName && (
             <p className="text-sm text-foreground-muted mt-1">
@@ -375,7 +395,7 @@ export default function SessionDetailPage() {
                 </div>
                 <div>
                   <p className="text-foreground-muted">Time</p>
-                  <p>{session.startTime || "Not set"}</p>
+                  <p>{session.startTime ? (() => { const [h, m] = session.startTime!.split(":"); const hr = parseInt(h, 10); return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${String(parseInt(m, 10)).padStart(2, "0")} ${hr >= 12 ? "PM" : "AM"}`; })() : "Not set"}</p>
                 </div>
                 <div>
                   <p className="text-foreground-muted">Course</p>
@@ -385,7 +405,7 @@ export default function SessionDetailPage() {
                 </div>
                 <div>
                   <p className="text-foreground-muted">Duration</p>
-                  <p>{session.courseDurationDays ? `${session.courseDurationDays} days` : "Not specified"}</p>
+                  <p>{session.courseDurationDays ? `${session.courseDurationDays} ${session.courseDurationDays === 1 ? "day" : "days"}` : "Not specified"}</p>
                 </div>
                 <div>
                   <p className="text-foreground-muted">Instructor</p>
@@ -446,7 +466,7 @@ export default function SessionDetailPage() {
                                 : "bg-surface-inset text-foreground-muted"
                             }`}
                           >
-                            {enrollment.paymentStatus}
+                            {paymentStatusLabels[enrollment.paymentStatus] || enrollment.paymentStatus}
                           </span>
                         )}
                       </div>
@@ -455,7 +475,7 @@ export default function SessionDetailPage() {
                           enrollmentStatusColors[enrollment.status] || "bg-surface-inset text-foreground"
                         }`}
                       >
-                        {enrollment.status}
+                        {enrollmentStatusLabels[enrollment.status] || enrollment.status}
                       </span>
                     </div>
                   </Link>

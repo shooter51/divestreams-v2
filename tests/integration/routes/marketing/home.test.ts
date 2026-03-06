@@ -4,6 +4,7 @@ import { loader } from "../../../../app/routes/marketing/home";
 
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   isAdminSubdomain: vi.fn(),
+  getSubdomainFromRequest: vi.fn().mockReturnValue(null),
 }));
 
 vi.mock("../../../../lib/auth/platform-context.server", () => ({

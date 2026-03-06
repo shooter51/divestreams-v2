@@ -283,7 +283,7 @@ export default function CourseDetailPage() {
                       isSelected ? 'bg-brand-muted' : 'bg-surface-inset hover:bg-surface-overlay'
                     }`}
                     style={{
-                      borderColor: isSelected ? branding.primaryColor : "#e5e7eb",
+                      borderColor: isSelected ? branding.primaryColor : "var(--border)",
                     }}
                     onClick={handleSelect}
                     onKeyDown={handleSelect}
