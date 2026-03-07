@@ -6,6 +6,7 @@ import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server"
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
 
@@ -81,14 +82,15 @@ export default function EditBookingPage() {
   const { booking } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/bookings/${booking.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Booking
+          {t("tenant.bookings.backToBooking")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Booking</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.bookings.editBooking")}</h1>
         <p className="text-foreground-muted">{booking.bookingNumber}</p>
       </div>
 
@@ -96,22 +98,22 @@ export default function EditBookingPage() {
         <CsrfInput />
         {/* Booking Info (Read-only) */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Booking Details</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.bookings.bookingDetails")}</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Customer</span>
+              <span className="text-foreground-muted">{t("common.customer")}</span>
               <Link to={`/tenant/customers/${booking.customerId}`} className="text-brand hover:underline">
                 {booking.customerName}
               </Link>
             </div>
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Trip</span>
+              <span className="text-foreground-muted">{t("common.trip")}</span>
               <Link to={`/tenant/trips/${booking.tripId}`} className="text-brand hover:underline">
                 {booking.tripName}
               </Link>
             </div>
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Total Amount</span>
+              <span className="text-foreground-muted">{t("tenant.bookings.totalAmount")}</span>
               <span className="font-medium">${booking.totalAmount}</span>
             </div>
           </div>
@@ -119,12 +121,12 @@ export default function EditBookingPage() {
 
         {/* Editable Fields */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Update Booking</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.bookings.updateBooking")}</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="participants" className="block text-sm font-medium mb-1">
-                  Number of Participants *
+                  {t("tenant.bookings.numParticipants")} *
                 </label>
                 <input
                   type="number"
@@ -140,7 +142,7 @@ export default function EditBookingPage() {
 
               <div>
                 <label htmlFor="status" className="block text-sm font-medium mb-1">
-                  Status *
+                  {t("common.status")} *
                 </label>
                 <select
                   id="status"
@@ -149,24 +151,24 @@ export default function EditBookingPage() {
                   defaultValue={booking.status}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="no_show">No Show</option>
+                  <option value="pending">{t("tenant.bookings.statusPending")}</option>
+                  <option value="confirmed">{t("tenant.bookings.statusConfirmed")}</option>
+                  <option value="completed">{t("tenant.bookings.statusCompleted")}</option>
+                  <option value="cancelled">{t("tenant.bookings.statusCancelled")}</option>
+                  <option value="no_show">{t("tenant.bookings.statusNoShow")}</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label htmlFor="specialRequests" className="block text-sm font-medium mb-1">
-                Special Requests
+                {t("tenant.bookings.specialRequestsLabel")}
               </label>
               <textarea
                 id="specialRequests"
                 name="specialRequests"
                 rows={3}
-                placeholder="Any special requirements or requests from the customer..."
+                placeholder={t("tenant.bookings.specialRequestsPlaceholder")}
                 defaultValue={booking.specialRequests}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -174,13 +176,13 @@ export default function EditBookingPage() {
 
             <div>
               <label htmlFor="internalNotes" className="block text-sm font-medium mb-1">
-                Internal Notes
+                {t("tenant.bookings.internalNotesLabel")}
               </label>
               <textarea
                 id="internalNotes"
                 name="internalNotes"
                 rows={3}
-                placeholder="Notes visible only to staff..."
+                placeholder={t("tenant.bookings.internalNotesPlaceholder")}
                 defaultValue={booking.internalNotes}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -195,13 +197,13 @@ export default function EditBookingPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/bookings/${booking.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

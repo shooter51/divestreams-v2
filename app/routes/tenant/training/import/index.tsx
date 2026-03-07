@@ -6,6 +6,7 @@ import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/t
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 import { escapeHtml } from "../../../../../lib/security/sanitize";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -366,6 +367,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TrainingImportPage() {
+  const t = useT();
   const { agencies } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -377,16 +379,16 @@ export default function TrainingImportPage() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Import Training Courses</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("tenant.training.import.title")}</h1>
         <p className="text-foreground-muted">
-          Import course templates from certification agencies to quickly populate your course catalog
+          {t("tenant.training.import.subtitle")}
         </p>
 
         {/* CSV Upload Section */}
         <div className="mt-4 p-4 bg-brand-muted border border-brand rounded-lg">
-          <h3 className="font-medium text-brand mb-3">Import Custom Courses via CSV</h3>
+          <h3 className="font-medium text-brand mb-3">{t("tenant.training.import.csvTitle")}</h3>
           <p className="text-sm text-brand mb-4">
-            Download our CSV template, fill it with your course data, then upload it below to bulk import custom courses
+            {t("tenant.training.import.csvDescription")}
           </p>
           <div className="flex gap-3">
             <a
@@ -397,7 +399,7 @@ export default function TrainingImportPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Download CSV Template
+              {t("tenant.training.import.downloadTemplate")}
             </a>
             <Form method="post" encType="multipart/form-data" className="flex-1 flex gap-2">
               <CsrfInput />
@@ -417,12 +419,12 @@ export default function TrainingImportPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                Upload CSV
+                {t("tenant.training.import.uploadCsv")}
               </button>
             </Form>
           </div>
           <p className="text-xs text-brand mt-2 italic">
-            CSV format: agency_code, course_name, course_code, description, duration_days, classroom_hours, pool_hours, open_water_dives, min_age, prerequisites, price, currency
+            {t("tenant.training.import.csvFormat")}
           </p>
         </div>
       </div>
@@ -430,15 +432,15 @@ export default function TrainingImportPage() {
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <Step number={1} title="Select Agency" active={currentStep === "select-agency"} completed={currentStep !== "select-agency"} />
+          <Step number={1} title={t("tenant.training.import.step.selectAgency")} active={currentStep === "select-agency"} completed={currentStep !== "select-agency"} />
           <div className="flex-1 h-1 bg-surface-overlay mx-2">
             <div className={`h-full transition-all ${currentStep !== "select-agency" ? "bg-brand" : "bg-surface-overlay"}`} />
           </div>
-          <Step number={2} title="Choose Courses" active={currentStep === "select-courses"} completed={currentStep === "preview" || currentStep === "complete"} />
+          <Step number={2} title={t("tenant.training.import.step.chooseCourses")} active={currentStep === "select-courses"} completed={currentStep === "preview" || currentStep === "complete"} />
           <div className="flex-1 h-1 bg-surface-overlay mx-2">
             <div className={`h-full transition-all ${currentStep === "preview" || currentStep === "complete" ? "bg-brand" : "bg-surface-overlay"}`} />
           </div>
-          <Step number={3} title="Import" active={currentStep === "preview" || currentStep === "complete"} completed={currentStep === "complete"} />
+          <Step number={3} title={t("tenant.training.import.step.import")} active={currentStep === "preview" || currentStep === "complete"} completed={currentStep === "complete"} />
         </div>
       </div>
 
@@ -448,14 +450,14 @@ export default function TrainingImportPage() {
           <div className="flex items-start gap-2">
             <span className="text-danger font-bold text-xl">⚠</span>
             <div className="flex-1">
-              <h3 className="font-semibold text-danger mb-1">Import Error</h3>
+              <h3 className="font-semibold text-danger mb-1">{t("tenant.training.import.importError")}</h3>
               <p className="text-danger text-sm mb-2">{actionData.error}</p>
               {actionData.suggestion && (
                 <p className="text-danger-hover text-sm italic">💡 {actionData.suggestion}</p>
               )}
               {actionData.detailedErrors && actionData.detailedErrors.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  <p className="text-danger text-sm font-medium">Course-specific errors:</p>
+                  <p className="text-danger text-sm font-medium">{t("tenant.training.import.courseErrors")}:</p>
                   {actionData.detailedErrors.map((err: { course: string; reason: string }, idx: number) => (
                     <div key={idx} className="bg-surface-raised rounded p-2 text-sm">
                       <span className="font-medium text-foreground">{err.course}:</span>
@@ -521,6 +523,7 @@ function Step({ number, title, active, completed }: { number: number; title: str
 }
 
 function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: string | null; name: string; description?: string }>; isSubmitting: boolean }) {
+  const t = useT();
   const [selectedAgency, setSelectedAgency] = React.useState<string>("");
 
   const handleAgencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -531,9 +534,9 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: 
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Step 1: Select Certification Agency</h2>
+      <h2 className="text-2xl font-semibold mb-4">{t("tenant.training.import.step1Title")}</h2>
       <p className="text-foreground-muted mb-6">
-        Choose the certification agency whose courses you want to import. We support 10 major certification agencies with 680+ course templates.
+        {t("tenant.training.import.step1Description")}
       </p>
 
       <Form method="post" className="max-w-md">
@@ -545,7 +548,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: 
         <div className="space-y-4">
           <div>
             <label htmlFor="agencySelect" className="block text-sm font-medium mb-2">
-              Certification Agency *
+              {t("tenant.training.import.certificationAgency")} *
             </label>
             <select
               id="agencySelect"
@@ -555,7 +558,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: 
               required
               disabled={isSubmitting}
             >
-              <option value="">Select an agency...</option>
+              <option value="">{t("tenant.training.import.selectAgency")}</option>
               {agencies.filter(a => a.code !== null).map((agency) => (
                 <option key={agency.code!} value={agency.code!}>
                   {agency.name}
@@ -575,7 +578,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: 
               disabled={isSubmitting}
               className="w-full bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium disabled:bg-brand-disabled"
             >
-              {isSubmitting ? "Loading courses..." : "Next: Select Courses →"}
+              {isSubmitting ? t("tenant.training.import.loadingCourses") : t("tenant.training.import.nextSelectCourses")}
             </button>
           </div>
         </div>
@@ -601,6 +604,7 @@ function SelectCoursesStep({
   agency: { code: string; name: string };
   isSubmitting: boolean;
 }) {
+  const t = useT();
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
 
   const toggleCourse = (courseId: string) => {
@@ -625,9 +629,9 @@ function SelectCoursesStep({
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-2">Step 2: Choose Courses to Import</h2>
+      <h2 className="text-2xl font-semibold mb-2">{t("tenant.training.import.step2Title")}</h2>
       <p className="text-foreground-muted mb-6">
-        Select which courses from <span className="font-medium">{agency.name}</span> you'd like to import into your catalog
+        {t("tenant.training.import.step2Description", { agency: agency.name })}
       </p>
 
       <div className="mb-4 flex gap-2">
@@ -636,17 +640,17 @@ function SelectCoursesStep({
           onClick={selectAll}
           className="px-3 py-1 text-sm bg-surface-inset hover:bg-surface-overlay rounded"
         >
-          Select All
+          {t("tenant.training.import.selectAll")}
         </button>
         <button
           type="button"
           onClick={selectNone}
           className="px-3 py-1 text-sm bg-surface-inset hover:bg-surface-overlay rounded"
         >
-          Select None
+          {t("tenant.training.import.selectNone")}
         </button>
         <span className="ml-auto text-sm text-foreground-muted">
-          {selectedCourses.size} of {courses.length} selected
+          {t("tenant.training.import.selectedOfTotal", { selected: selectedCourses.size, total: courses.length })}
         </span>
       </div>
 
@@ -682,9 +686,9 @@ function SelectCoursesStep({
                   </div>
                   <p className="text-sm text-foreground-muted mt-1">{course.description}</p>
                   <div className="flex gap-4 mt-2 text-xs text-foreground-muted">
-                    <span>{course.durationDays} days</span>
-                    <span>{course.openWaterDives} open water dives</span>
-                    <span>Min age: {course.minAge}</span>
+                    <span>{t("tenant.training.import.durationDays", { count: course.durationDays })}</span>
+                    <span>{t("tenant.training.import.openWaterDives", { count: course.openWaterDives })}</span>
+                    <span>{t("tenant.training.import.minAge", { age: course.minAge })}</span>
                   </div>
                 </div>
               </div>
@@ -697,14 +701,14 @@ function SelectCoursesStep({
             href="/tenant/training/import"
             className="px-6 py-3 border border-border-strong rounded-lg hover:bg-surface-inset transition-colors text-center"
           >
-            ← Back
+            ← {t("common.back")}
           </a>
           <button
             type="submit"
             disabled={selectedCourses.size === 0 || isSubmitting}
             className="flex-1 bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium disabled:bg-surface-overlay disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Loading preview..." : `Preview Import (${selectedCourses.size} courses) →`}
+            {isSubmitting ? t("tenant.training.import.loadingPreview") : t("tenant.training.import.previewImport", { count: selectedCourses.size })}
           </button>
         </div>
       </Form>
@@ -725,33 +729,34 @@ function PreviewStep({
   agency: { code: string; name: string };
   isSubmitting: boolean;
 }) {
+  const t = useT();
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-2">Step 3: Preview & Import</h2>
+      <h2 className="text-2xl font-semibold mb-2">{t("tenant.training.import.step3Title")}</h2>
       <p className="text-foreground-muted mb-6">
-        Ready to import {selectedCourses.length} courses from {agency.name} into your catalog
+        {t("tenant.training.import.step3Description", { count: selectedCourses.length, agency: agency.name })}
       </p>
 
       <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-brand mb-2">What will happen:</h3>
+        <h3 className="font-medium text-brand mb-2">{t("tenant.training.import.whatWillHappen")}:</h3>
         <ul className="space-y-2 text-sm text-brand">
           <li className="flex items-start gap-2">
             <span className="text-brand mt-0.5">✓</span>
-            <span>{selectedCourses.length} course templates will be added to your catalog</span>
+            <span>{t("tenant.training.import.willAddTemplates", { count: selectedCourses.length })}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-brand mt-0.5">✓</span>
-            <span>Courses will be created as drafts (not public) with $0 price</span>
+            <span>{t("tenant.training.import.willCreateDrafts")}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-brand mt-0.5">✓</span>
-            <span>You can customize pricing, schedule, and settings for each course after import</span>
+            <span>{t("tenant.training.import.willCustomize")}</span>
           </li>
         </ul>
       </div>
 
       <div className="mb-6">
-        <h3 className="font-medium mb-3">Courses to import:</h3>
+        <h3 className="font-medium mb-3">{t("tenant.training.import.coursesToImport")}:</h3>
         <ul className="space-y-2 text-sm">
           {selectedCourses.map((course) => (
             <li key={course.id} className="flex items-center gap-2 p-2 bg-surface-inset rounded">
@@ -774,14 +779,14 @@ function PreviewStep({
             href="/tenant/training/import"
             className="px-6 py-3 border border-border-strong rounded-lg hover:bg-surface-inset transition-colors text-center"
           >
-            ← Start Over
+            ← {t("tenant.training.import.startOver")}
           </a>
           <button
             type="submit"
             disabled={isSubmitting}
             className="flex-1 bg-success text-white px-6 py-3 rounded-lg hover:bg-success-hover transition-colors font-medium disabled:bg-success-muted"
           >
-            {isSubmitting ? "Importing courses..." : `Import ${selectedCourses.length} Courses`}
+            {isSubmitting ? t("tenant.training.import.importingCourses") : t("tenant.training.import.importCourses", { count: selectedCourses.length })}
           </button>
         </div>
       </Form>
@@ -798,22 +803,23 @@ function CompleteStep({
   importedCourses: string[];
   detailedErrors?: Array<{ course: string; reason: string }>;
 }) {
+  const t = useT();
   return (
     <div className="text-center">
       <div className="w-20 h-20 bg-success-muted rounded-full flex items-center justify-center mx-auto mb-6">
         <span className="text-4xl text-success">✓</span>
       </div>
 
-      <h2 className="text-2xl font-semibold mb-2">Import Complete!</h2>
+      <h2 className="text-2xl font-semibold mb-2">{t("tenant.training.import.importComplete")}</h2>
       <p className="text-foreground-muted mb-6">
-        Successfully imported {importedCount} {importedCount === 1 ? 'course' : 'courses'} into your catalog
+        {t("tenant.training.import.successfullyImported", { count: importedCount })}
       </p>
 
       {detailedErrors && detailedErrors.length > 0 && (
         <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-4 mb-6 text-left">
           <div className="flex items-start gap-2 mb-3">
             <span className="text-warning">⚠</span>
-            <h3 className="font-medium text-warning">Some courses couldn't be imported:</h3>
+            <h3 className="font-medium text-warning">{t("tenant.training.import.someCoursesNotImported")}:</h3>
           </div>
           <div className="space-y-2">
             {detailedErrors.map((error, i) => (
@@ -827,7 +833,7 @@ function CompleteStep({
       )}
 
       <div className="bg-surface-inset rounded-lg p-4 mb-6 text-left">
-        <h3 className="font-medium mb-2">Imported courses:</h3>
+        <h3 className="font-medium mb-2">{t("tenant.training.import.importedCourses")}:</h3>
         <ul className="text-sm space-y-1">
           {importedCourses.map((name, i) => (
             <li key={i} className="flex items-center gap-2">
@@ -839,12 +845,12 @@ function CompleteStep({
       </div>
 
       <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-brand mb-2">Next steps:</h3>
+        <h3 className="font-medium text-brand mb-2">{t("tenant.training.import.nextSteps")}:</h3>
         <ul className="text-sm text-brand text-left space-y-1">
-          <li>1. Set pricing for each imported course</li>
-          <li>2. Configure course details and requirements</li>
-          <li>3. Publish courses to make them visible on your public site</li>
-          <li>4. Create training sessions to start accepting enrollments</li>
+          <li>1. {t("tenant.training.import.nextStep1")}</li>
+          <li>2. {t("tenant.training.import.nextStep2")}</li>
+          <li>3. {t("tenant.training.import.nextStep3")}</li>
+          <li>4. {t("tenant.training.import.nextStep4")}</li>
         </ul>
       </div>
 
@@ -853,13 +859,13 @@ function CompleteStep({
           href="/tenant/training/courses"
           className="bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium"
         >
-          View Courses →
+          {t("tenant.training.import.viewCourses")} →
         </a>
         <a
           href="/tenant/training/import"
           className="px-6 py-3 border border-border-strong rounded-lg hover:bg-surface-inset transition-colors"
         >
-          Import More
+          {t("tenant.training.import.importMore")}
         </a>
       </div>
     </div>

@@ -11,6 +11,7 @@ import { useState } from "react";
 import { eq, and } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { equipment, images, organization } from "../../../../lib/db/schema";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Equipment" }];
@@ -195,6 +196,7 @@ const EQUIPMENT_CATEGORIES: Record<string, { label: string; icon: string }> = {
 };
 
 export default function SiteEquipmentDetailPage() {
+  const t = useT();
   const { equipment, images } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -224,9 +226,9 @@ export default function SiteEquipmentDetailPage() {
       <div className="border-b" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <nav className="flex items-center gap-2 text-sm" style={{ color: "var(--text-color)" }}>
-            <Link to="/site" className="opacity-60 hover:opacity-100">Home</Link>
+            <Link to="/site" className="opacity-60 hover:opacity-100">{t("nav.home")}</Link>
             <span className="opacity-40">/</span>
-            <Link to="/site/equipment" className="opacity-60 hover:opacity-100">Equipment</Link>
+            <Link to="/site/equipment" className="opacity-60 hover:opacity-100">{t("nav.equipment")}</Link>
             <span className="opacity-40">/</span>
             <span className="font-medium">{equipment.name}</span>
           </nav>
@@ -321,11 +323,11 @@ export default function SiteEquipmentDetailPage() {
                   {formatPrice(equipment.rentalPrice)}
                 </span>
                 {equipment.rentalPrice && (
-                  <span className="text-lg opacity-60" style={{ color: "var(--text-color)" }}>per day</span>
+                  <span className="text-lg opacity-60" style={{ color: "var(--text-color)" }}>{t("site.equipment.perDay")}</span>
                 )}
               </div>
               <p className="text-sm opacity-60 mb-4" style={{ color: "var(--text-color)" }}>
-                Multi-day discounts available. Contact us for weekly rates.
+                {t("site.equipment.multiDayDiscounts")}
               </p>
 
               {/* Availability Status */}
@@ -339,7 +341,7 @@ export default function SiteEquipmentDetailPage() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="font-medium">Available for Rent</span>
+                    <span className="font-medium">{t("site.equipment.availableForRent")}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-danger">
@@ -350,7 +352,7 @@ export default function SiteEquipmentDetailPage() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="font-medium">Currently Unavailable</span>
+                    <span className="font-medium">{t("site.equipment.currentlyUnavailable")}</span>
                   </div>
                 )}
               </div>
@@ -363,53 +365,53 @@ export default function SiteEquipmentDetailPage() {
                   className="w-full px-6 py-3 rounded-lg text-white font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
-                  {isAvailable ? "Add to Booking" : "Contact Us"}
+                  {isAvailable ? t("site.equipment.addToBooking") : t("site.contact.title")}
                 </button>
                 <Link
                   to="/site/contact"
                   className="block w-full px-6 py-3 rounded-lg text-center font-medium border transition-colors"
                   style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                 >
-                  Check Availability
+                  {t("site.equipment.checkAvailability")}
                 </Link>
               </div>
             </div>
 
             {/* Specifications */}
             <div className="rounded-xl shadow-sm p-6 border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
-              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Specifications</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>{t("site.equipment.specifications")}</h2>
               <dl className="space-y-3">
                 {equipment.brand && (
                   <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
-                    <dt className="opacity-70">Brand</dt>
+                    <dt className="opacity-70">{t("site.equipment.brand")}</dt>
                     <dd className="font-medium">{equipment.brand}</dd>
                   </div>
                 )}
                 {equipment.model && (
                   <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
-                    <dt className="opacity-70">Model</dt>
+                    <dt className="opacity-70">{t("site.equipment.model")}</dt>
                     <dd className="font-medium">{equipment.model}</dd>
                   </div>
                 )}
                 {equipment.size && (
                   <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
-                    <dt className="opacity-70">Size</dt>
+                    <dt className="opacity-70">{t("site.equipment.size")}</dt>
                     <dd className="font-medium">{equipment.size}</dd>
                   </div>
                 )}
                 <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
-                  <dt className="opacity-70">Condition</dt>
+                  <dt className="opacity-70">{t("site.equipment.condition")}</dt>
                   <dd className="font-medium capitalize">{equipment.condition || "Good"}</dd>
                 </div>
                 {equipment.lastServiceDate && (
                   <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
-                    <dt className="opacity-70">Last Serviced</dt>
+                    <dt className="opacity-70">{t("site.equipment.lastServiced")}</dt>
                     <dd className="font-medium">{formatDate(equipment.lastServiceDate)}</dd>
                   </div>
                 )}
                 {equipment.nextServiceDate && (
                   <div className="flex justify-between py-2" style={{ color: "var(--text-color)" }}>
-                    <dt className="opacity-70">Next Service</dt>
+                    <dt className="opacity-70">{t("site.equipment.nextService")}</dt>
                     <dd className="font-medium">{formatDate(equipment.nextServiceDate)}</dd>
                   </div>
                 )}
@@ -419,7 +421,7 @@ export default function SiteEquipmentDetailPage() {
             {/* Description / Notes */}
             {equipment.notes && (
               <div className="rounded-xl shadow-sm p-6 border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Description</h2>
+                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>{t("common.description")}</h2>
                 <p className="opacity-80 whitespace-pre-wrap" style={{ color: "var(--text-color)" }}>{equipment.notes}</p>
               </div>
             )}
@@ -436,7 +438,7 @@ export default function SiteEquipmentDetailPage() {
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  Service Information
+                  {t("site.equipment.serviceInfo")}
                 </h3>
                 <p className="text-sm text-brand">{equipment.serviceNotes}</p>
               </div>
@@ -444,7 +446,7 @@ export default function SiteEquipmentDetailPage() {
 
             {/* Rental Terms */}
             <div className="rounded-xl p-6 border" style={{ backgroundColor: "var(--accent-color)", borderColor: "var(--color-border)" }}>
-              <h3 className="font-semibold mb-3" style={{ color: "var(--text-color)" }}>Rental Terms</h3>
+              <h3 className="font-semibold mb-3" style={{ color: "var(--text-color)" }}>{t("site.equipment.rentalTerms")}</h3>
               <ul className="space-y-2 text-sm opacity-80" style={{ color: "var(--text-color)" }}>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -454,7 +456,7 @@ export default function SiteEquipmentDetailPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Equipment is professionally maintained and serviced regularly
+                  {t("site.equipment.rentalTerm1")}
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -464,7 +466,7 @@ export default function SiteEquipmentDetailPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Rental agreement must be signed before checkout
+                  {t("site.equipment.rentalTerm2")}
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -474,7 +476,7 @@ export default function SiteEquipmentDetailPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Equipment must be returned in the same condition
+                  {t("site.equipment.rentalTerm3")}
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -484,7 +486,7 @@ export default function SiteEquipmentDetailPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Damage or loss may result in additional charges
+                  {t("site.equipment.rentalTerm4")}
                 </li>
               </ul>
             </div>
@@ -501,7 +503,7 @@ export default function SiteEquipmentDetailPage() {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back to Equipment
+            {t("site.equipment.backToEquipment")}
           </Link>
         </div>
       </div>

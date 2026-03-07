@@ -12,6 +12,7 @@ import { db } from "../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../lib/db/schema";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { useState, useCallback, useMemo } from "react";
+import { useT } from "../../i18n/use-t";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -127,6 +128,7 @@ interface TripModalProps {
 }
 
 function TripModal({ trip, onClose }: TripModalProps) {
+  const t = useT();
   if (!trip) return null;
 
   const colors = tourTypeColors[trip.tourType] || tourTypeColors.other;
@@ -215,14 +217,14 @@ function TripModal({ trip, onClose }: TripModalProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <div className="flex items-center gap-2">
-              <span>{trip.bookedParticipants} / {trip.maxParticipants === 0 ? "Unlimited" : trip.maxParticipants} booked</span>
+              <span>{trip.bookedParticipants} / {trip.maxParticipants === 0 ? t("common.unlimited") : trip.maxParticipants} {t("tenant.calendar.booked")}</span>
               <span
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: capacityColor }}
               />
               {isFull && (
                 <span className="text-xs font-medium text-danger bg-danger-muted px-1.5 py-0.5 rounded">
-                  FULL
+                  {t("tenant.calendar.full")}
                 </span>
               )}
             </div>
@@ -243,7 +245,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
             to={`/tenant/trips/${trip.id}`}
             className="flex-1 text-center bg-brand text-white py-2 rounded-lg hover:bg-brand-hover transition-colors"
           >
-            View Trip
+            {t("tenant.calendar.viewTrip")}
           </Link>
           <Link
             to={`/tenant/bookings/new?tripId=${trip.id}`}
@@ -254,7 +256,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
             }`}
             onClick={isFull ? (e) => e.preventDefault() : undefined}
           >
-            {isFull ? "Full" : "Add Booking"}
+            {isFull ? t("tenant.calendar.full") : t("tenant.calendar.addBooking")}
           </Link>
         </div>
       </div>
@@ -263,6 +265,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
 }
 
 export default function CalendarPage() {
+  const t = useT();
   const { trips } = useLoaderData<typeof loader>();
   const [selectedTrip, setSelectedTrip] = useState<CalendarTrip | null>(null);
   const [currentView, setCurrentView] = useState<"dayGridMonth" | "timeGridWeek">("dayGridMonth");
@@ -317,15 +320,15 @@ export default function CalendarPage() {
         {timeText && (
           <div className="text-xs opacity-75 mt-0.5">{timeText}</div>
         )}
-        <div className="text-xs opacity-75">{booked}/{max === 0 ? "Unlimited" : max} booked</div>
+        <div className="text-xs opacity-75">{booked}/{max === 0 ? t("common.unlimited") : max} {t("tenant.calendar.booked")}</div>
       </div>
     );
-  }, []);
+  }, [t]);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Calendar</h1>
+        <h1 className="text-2xl font-bold">{t("tenant.calendar.title")}</h1>
         <div className="flex items-center gap-4">
           {/* View Toggle */}
           <div className="flex bg-surface-inset rounded-lg p-1">
@@ -337,7 +340,7 @@ export default function CalendarPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Month
+              {t("tenant.calendar.month")}
             </button>
             <button
               onClick={() => setCurrentView("timeGridWeek")}
@@ -347,14 +350,14 @@ export default function CalendarPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Week
+              {t("tenant.calendar.week")}
             </button>
           </div>
           <Link
             to="/tenant/trips/new"
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover text-sm"
           >
-            Schedule Trip
+            {t("tenant.calendar.scheduleTrip")}
           </Link>
         </div>
       </div>
@@ -362,22 +365,22 @@ export default function CalendarPage() {
       {/* Legend */}
       <div className="mb-4 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-foreground-muted">Capacity:</span>
+          <span className="text-foreground-muted">{t("tenant.calendar.capacity")}:</span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full bg-success"></span>
-            Available
+            {t("tenant.calendar.available")}
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full bg-warning"></span>
-            Half
+            {t("tenant.calendar.half")}
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full bg-accent"></span>
-            Almost Full
+            {t("tenant.calendar.almostFull")}
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-full bg-danger"></span>
-            Full
+            {t("tenant.calendar.full")}
           </span>
         </div>
       </div>

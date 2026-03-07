@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { formatLabel, formatTime, formatDisplayDate } from "../../../lib/format";
+import { useT } from "../../../i18n/use-t";
 import {
   getTrainingDashboardStats,
   getUpcomingTrainingSessions,
@@ -54,12 +55,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function TrainingDashboardPage() {
   const { stats, upcomingSessions, recentEnrollments, orgName } =
     useLoaderData<typeof loader>();
+  const t = useT();
 
   return (
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Training Dashboard</h1>
+          <h1 className="text-2xl font-bold">{t("tenant.training.dashboard.title")}</h1>
           <p className="text-foreground-muted">{orgName}</p>
         </div>
 
@@ -68,25 +70,25 @@ export default function TrainingDashboardPage() {
             to="/tenant/training/import"
             className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover transition-colors"
           >
-            Import Courses
+            {t("tenant.training.dashboard.importCourses")}
           </Link>
           <Link
             to="/tenant/training/courses"
             className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors"
           >
-            Manage Courses
+            {t("tenant.training.dashboard.manageCourses")}
           </Link>
           <Link
             to="/tenant/training/sessions"
             className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
           >
-            View Sessions
+            {t("tenant.training.dashboard.viewSessions")}
           </Link>
           <Link
             to="/tenant/training/series"
             className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
           >
-            View Series
+            {t("tenant.training.dashboard.viewSeries")}
           </Link>
         </div>
       </div>
@@ -94,32 +96,32 @@ export default function TrainingDashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Active Courses"
+          title={t("tenant.training.dashboard.activeCourses")}
           value={stats.activeCourses}
           icon="📚"
           linkTo="/tenant/training/courses"
         />
         <StatCard
-          title="Upcoming Sessions"
+          title={t("tenant.training.dashboard.upcomingSessions")}
           value={stats.upcomingSessions}
           icon="📅"
           linkTo="/tenant/training/sessions"
         />
         <StatCard
-          title="Active Enrollments"
+          title={t("tenant.training.dashboard.activeEnrollments")}
           value={stats.activeEnrollments}
           icon="👥"
           linkTo="/tenant/training/enrollments"
         />
         <StatCard
-          title="Certifications This Month"
+          title={t("tenant.training.dashboard.certificationsThisMonth")}
           value={stats.certificationsThisMonth}
           icon="🏅"
           linkTo="/tenant/training/enrollments?status=completed"
         />
         {stats.activeSeries !== undefined && (
           <StatCard
-            title="Active Series"
+            title={t("tenant.training.dashboard.activeSeries")}
             value={stats.activeSeries}
             icon="📋"
             linkTo="/tenant/training/series"
@@ -130,11 +132,11 @@ export default function TrainingDashboardPage() {
       <div className="grid grid-cols-2 gap-6">
         {/* Upcoming Sessions */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Upcoming Training Sessions</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("tenant.training.dashboard.upcomingTrainingSessions")}</h2>
           <div className="space-y-3">
             {upcomingSessions.length === 0 ? (
               <p className="text-foreground-muted text-center py-4">
-                No upcoming sessions scheduled
+                {t("tenant.training.dashboard.noUpcomingSessions")}
               </p>
             ) : (
               upcomingSessions.map((session) => (
@@ -163,7 +165,7 @@ export default function TrainingDashboardPage() {
                     <p className="font-medium">
                       {session.enrolledCount}/{session.maxStudents || "~"}
                     </p>
-                    <p className="text-sm text-foreground-muted">enrolled</p>
+                    <p className="text-sm text-foreground-muted">{t("tenant.training.enrolled")}</p>
                     {session.agencyName && (
                       <span className="text-xs px-2 py-1 bg-brand-muted text-brand rounded-full">
                         {session.agencyName}
@@ -178,17 +180,17 @@ export default function TrainingDashboardPage() {
             to="/tenant/training/sessions"
             className="block text-center text-brand mt-4 text-sm hover:underline"
           >
-            View all sessions
+            {t("tenant.training.dashboard.viewAllSessions")}
           </Link>
         </div>
 
         {/* Recent Enrollments */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Recent Enrollments</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("tenant.training.dashboard.recentEnrollments")}</h2>
           <div className="space-y-3">
             {recentEnrollments.length === 0 ? (
               <p className="text-foreground-muted text-center py-4">
-                No recent enrollments
+                {t("tenant.training.dashboard.noRecentEnrollments")}
               </p>
             ) : (
               recentEnrollments.map((enrollment) => (
@@ -225,42 +227,42 @@ export default function TrainingDashboardPage() {
             to="/tenant/training/enrollments"
             className="block text-center text-brand mt-4 text-sm hover:underline"
           >
-            View all enrollments
+            {t("tenant.training.dashboard.viewAllEnrollments")}
           </Link>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="mt-8 bg-surface-raised rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("common.quickActions")}</h2>
         <div className="flex gap-4">
           <Link
             to="/tenant/training/courses/new"
             className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
-            <span>Create Course</span>
+            <span>{t("tenant.training.courses.createCourse")}</span>
           </Link>
           <Link
             to="/tenant/training/sessions/new"
             className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
-            <span>Schedule Session</span>
+            <span>{t("tenant.training.sessions.scheduleSession")}</span>
           </Link>
           <Link
             to="/tenant/training/enrollments/new"
             className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
-            <span>New Enrollment</span>
+            <span>{t("tenant.training.enrollments.newEnrollment")}</span>
           </Link>
           <Link
             to="/tenant/training/series/new"
             className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
-            <span>Create Series</span>
+            <span>{t("tenant.training.series.createSeries")}</span>
           </Link>
         </div>
       </div>

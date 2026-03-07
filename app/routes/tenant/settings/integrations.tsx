@@ -48,6 +48,7 @@ import type {
   StripeSettings,
 } from "../../../components/integrations";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Integrations - DiveStreams" }];
 
@@ -526,6 +527,7 @@ export async function action({ request }: ActionFunctionArgs) {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function IntegrationsPage() {
+  const t = useT();
   const {
     connectedIntegrations,
     availableIntegrations: integrations,
@@ -603,11 +605,11 @@ export default function IntegrationsPage() {
   };
 
   const categories = [
-    { id: "payments", name: "Payments" },
-    { id: "calendar", name: "Calendar" },
-    { id: "marketing", name: "Marketing" },
-    { id: "accounting", name: "Accounting" },
-    { id: "automation", name: "Automation" },
+    { id: "payments", name: t("tenant.settings.integrations.categoryPayments") },
+    { id: "calendar", name: t("tenant.settings.integrations.categoryCalendar") },
+    { id: "marketing", name: t("tenant.settings.integrations.categoryMarketing") },
+    { id: "accounting", name: t("tenant.settings.integrations.categoryAccounting") },
+    { id: "automation", name: t("tenant.settings.integrations.categoryAutomation") },
   ];
 
   // Callback for child components to surface notifications
@@ -638,16 +640,16 @@ export default function IntegrationsPage() {
 
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          &larr; {t("common.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Integrations</h1>
-        <p className="text-foreground-muted">Connect third-party services to enhance DiveStreams</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.integrations.title")}</h1>
+        <p className="text-foreground-muted">{t("tenant.settings.integrations.subtitle")}</p>
       </div>
 
       {/* Connected Integrations */}
       {connectedIntegrations.length > 0 && (
         <div className="mb-8">
-          <h2 className="font-semibold mb-4">Connected</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.integrations.connected")}</h2>
           <div className="space-y-4">
             {connectedIntegrations.map((connection) => {
               const integration = integrations.find((i) => i.id === connection.id);
@@ -668,14 +670,14 @@ export default function IntegrationsPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{integration.name}</h3>
                           <span className="text-xs bg-success-muted text-success px-2 py-0.5 rounded-full">
-                            Connected
+                            {t("tenant.settings.integrations.connected")}
                           </span>
                         </div>
                         <p className="text-sm text-foreground-muted">{integration.description}</p>
                         <div className="mt-2 text-xs text-foreground-subtle">
-                          <span>Account: {connection.accountName}</span>
+                          <span>{t("tenant.settings.integrations.account")}: {connection.accountName}</span>
                           <span className="mx-2">-</span>
-                          <span>Last sync: {connection.lastSync}</span>
+                          <span>{t("tenant.settings.integrations.lastSync")}: {connection.lastSync}</span>
                         </div>
                       </div>
                     </div>
@@ -734,7 +736,7 @@ export default function IntegrationsPage() {
                           type="submit"
                           className="px-3 py-1.5 text-sm text-danger border border-danger rounded-lg hover:bg-danger-muted"
                         >
-                          Disconnect
+                          {t("tenant.settings.integrations.disconnect")}
                         </button>
                       </fetcher.Form>
                     </div>
@@ -797,21 +799,21 @@ export default function IntegrationsPage() {
                         onClick={() => setOpenModalFor(integration.id)}
                         className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
                       >
-                        Connect
+                        {t("tenant.settings.integrations.connect")}
                       </button>
                     ) : (
                       <div className="text-center">
                         <p className="text-xs text-foreground-muted mb-2">
                           {requiredPlanName
-                            ? `Requires ${requiredPlanName} plan`
-                            : "Not available on your plan"
+                            ? t("tenant.settings.integrations.requiresPlan", { plan: requiredPlanName })
+                            : t("tenant.settings.integrations.notAvailableOnPlan")
                           }
                         </p>
                         <Link
                           to="/tenant/settings/billing"
                           className="text-sm text-brand hover:underline"
                         >
-                          Upgrade to unlock
+                          {t("tenant.settings.integrations.upgradeToUnlock")}
                         </Link>
                       </div>
                     )}

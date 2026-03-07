@@ -5,6 +5,7 @@ import { db } from "../../../../lib/db";
 import { organization, organizationSettings } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Shop Profile - DiveStreams" }];
 
@@ -261,15 +262,16 @@ export default function ProfileSettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          ← Back to Settings
+          {t("tenant.settings.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Shop Profile</h1>
-        <p className="text-foreground-muted">Manage your dive shop information</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.shopProfile")}</h1>
+        <p className="text-foreground-muted">{t("tenant.settings.profile.subtitle")}</p>
       </div>
 
       {actionData?.success && (
@@ -290,12 +292,12 @@ export default function ProfileSettingsPage() {
         <input type="hidden" name="intent" value="update-profile" />
 
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-1">
-                  Business Name *
+                  {t("tenant.settings.profile.businessName")}
                 </label>
                 <input
                   type="text"
@@ -307,7 +309,7 @@ export default function ProfileSettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">URL Slug</label>
+                <label className="block text-sm font-medium mb-1">{t("tenant.settings.profile.urlSlug")}</label>
                 <div className="flex items-center">
                   <input
                     type="text"
@@ -319,14 +321,14 @@ export default function ProfileSettingsPage() {
                     .divestreams.com
                   </span>
                 </div>
-                <p className="text-xs text-foreground-muted mt-1">Contact support to change URL slug</p>
+                <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.profile.contactSupportSlug")}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-1">
-                  Email *
+                  {t("common.email")} *
                 </label>
                 <input
                   type="email"
@@ -339,7 +341,7 @@ export default function ProfileSettingsPage() {
               </div>
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium mb-1">
-                  Phone
+                  {t("common.phone")}
                 </label>
                 <input
                   type="tel"
@@ -353,7 +355,7 @@ export default function ProfileSettingsPage() {
 
             <div>
               <label htmlFor="website" className="block text-sm font-medium mb-1">
-                Website
+                {t("tenant.settings.profile.website")}
               </label>
               <input
                 type="url"
@@ -368,11 +370,11 @@ export default function ProfileSettingsPage() {
 
         {/* Location */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Location</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.profile.location")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="street" className="block text-sm font-medium mb-1">
-                Street Address
+                {t("common.streetAddress")}
               </label>
               <input
                 type="text"
@@ -386,7 +388,7 @@ export default function ProfileSettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="city" className="block text-sm font-medium mb-1">
-                  City
+                  {t("common.city")}
                 </label>
                 <input
                   type="text"
@@ -398,7 +400,7 @@ export default function ProfileSettingsPage() {
               </div>
               <div>
                 <label htmlFor="state" className="block text-sm font-medium mb-1">
-                  State/Province
+                  {t("common.stateProvince")}
                 </label>
                 <input
                   type="text"
@@ -413,7 +415,7 @@ export default function ProfileSettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="country" className="block text-sm font-medium mb-1">
-                  Country
+                  {t("common.country")}
                 </label>
                 <input
                   type="text"
@@ -425,7 +427,7 @@ export default function ProfileSettingsPage() {
               </div>
               <div>
                 <label htmlFor="postalCode" className="block text-sm font-medium mb-1">
-                  Postal Code
+                  {t("common.postalCode")}
                 </label>
                 <input
                   type="text"
@@ -441,11 +443,11 @@ export default function ProfileSettingsPage() {
 
         {/* Regional Settings */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Regional Settings</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.profile.regionalSettings")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="timezone" className="block text-sm font-medium mb-1">
-                Timezone
+                {t("tenant.settings.profile.timezone")}
               </label>
               <select
                 id="timezone"
@@ -462,7 +464,7 @@ export default function ProfileSettingsPage() {
             </div>
             <div>
               <label htmlFor="currency" className="block text-sm font-medium mb-1">
-                Currency
+                {t("common.currency")}
               </label>
               <select
                 id="currency"
@@ -479,7 +481,7 @@ export default function ProfileSettingsPage() {
             </div>
             <div>
               <label htmlFor="depthUnit" className="block text-sm font-medium mb-1">
-                Depth Unit
+                {t("tenant.settings.profile.depthUnit")}
               </label>
               <select
                 id="depthUnit"
@@ -487,8 +489,8 @@ export default function ProfileSettingsPage() {
                 defaultValue={profile.depthUnit}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="meters">Meters (m)</option>
-                <option value="feet">Feet (ft)</option>
+                <option value="meters">{t("tenant.settings.profile.meters")}</option>
+                <option value="feet">{t("tenant.settings.profile.feet")}</option>
               </select>
             </div>
           </div>
@@ -500,7 +502,7 @@ export default function ProfileSettingsPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
         </div>
       </form>
@@ -511,12 +513,12 @@ export default function ProfileSettingsPage() {
         <input type="hidden" name="intent" value="update-booking-settings" />
 
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Booking Settings</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.profile.bookingSettings")}</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="minAdvance" className="block text-sm font-medium mb-1">
-                  Minimum Advance Booking (hours)
+                  {t("tenant.settings.profile.minAdvanceBooking")}
                 </label>
                 <input
                   type="number"
@@ -527,12 +529,12 @@ export default function ProfileSettingsPage() {
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  How far in advance customers must book
+                  {t("tenant.settings.profile.minAdvanceBookingHelp")}
                 </p>
               </div>
               <div>
                 <label htmlFor="maxAdvance" className="block text-sm font-medium mb-1">
-                  Max Advance Booking (days)
+                  {t("tenant.settings.profile.maxAdvanceBooking")}
                 </label>
                 <input
                   type="number"
@@ -543,14 +545,14 @@ export default function ProfileSettingsPage() {
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  How far in future customers can book
+                  {t("tenant.settings.profile.maxAdvanceBookingHelp")}
                 </p>
               </div>
             </div>
 
             <div>
               <label htmlFor="cancellation" className="block text-sm font-medium mb-1">
-                Cancellation Policy
+                {t("tenant.settings.profile.cancellationPolicy")}
               </label>
               <select
                 id="cancellation"
@@ -558,11 +560,11 @@ export default function ProfileSettingsPage() {
                 defaultValue={profile.bookingSettings.cancellationPolicy}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="24h">Free cancellation up to 24 hours before</option>
-                <option value="48h">Free cancellation up to 48 hours before</option>
-                <option value="72h">Free cancellation up to 72 hours before</option>
-                <option value="7d">Free cancellation up to 7 days before</option>
-                <option value="none">No free cancellation</option>
+                <option value="24h">{t("tenant.settings.profile.cancel24h")}</option>
+                <option value="48h">{t("tenant.settings.profile.cancel48h")}</option>
+                <option value="72h">{t("tenant.settings.profile.cancel72h")}</option>
+                <option value="7d">{t("tenant.settings.profile.cancel7d")}</option>
+                <option value="none">{t("tenant.settings.profile.cancelNone")}</option>
               </select>
             </div>
 
@@ -576,16 +578,16 @@ export default function ProfileSettingsPage() {
                   className="rounded"
                 />
                 <div>
-                  <span className="font-medium">Require deposit for bookings</span>
+                  <span className="font-medium">{t("tenant.settings.profile.requireDeposit")}</span>
                   <p className="text-sm text-foreground-muted">
-                    Collect a percentage upfront when booking
+                    {t("tenant.settings.profile.requireDepositHelp")}
                   </p>
                 </div>
               </label>
 
               <div className="mt-4 ml-6">
                 <label htmlFor="depositPercent" className="block text-sm font-medium mb-1">
-                  Deposit Percentage
+                  {t("tenant.settings.profile.depositPercentage")}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -609,7 +611,7 @@ export default function ProfileSettingsPage() {
               disabled={isSubmitting}
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
             >
-              {isSubmitting ? "Saving..." : "Save Booking Settings"}
+              {isSubmitting ? t("common.saving") : t("tenant.settings.profile.saveBookingSettings")}
             </button>
           </div>
         </div>
@@ -621,15 +623,15 @@ export default function ProfileSettingsPage() {
         <input type="hidden" name="intent" value="update-tax-settings" />
 
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Tax Settings</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.profile.taxSettings")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Configure the default tax rate applied to POS transactions. Individual products can override this rate.
+            {t("tenant.settings.profile.taxSettingsDesc")}
           </p>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="taxRate" className="block text-sm font-medium mb-1">
-                  Tax Rate (%)
+                  {t("tenant.settings.profile.taxRate")}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -645,12 +647,12 @@ export default function ProfileSettingsPage() {
                   <span className="text-foreground-muted">%</span>
                 </div>
                 <p className="text-xs text-foreground-muted mt-1">
-                  e.g., 8.25 for 8.25% sales tax
+                  {t("tenant.settings.profile.taxRateHelp")}
                 </p>
               </div>
               <div>
                 <label htmlFor="taxName" className="block text-sm font-medium mb-1">
-                  Tax Label
+                  {t("tenant.settings.profile.taxLabel")}
                 </label>
                 <input
                   type="text"
@@ -661,7 +663,7 @@ export default function ProfileSettingsPage() {
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  e.g., Sales Tax, VAT, GST
+                  {t("tenant.settings.profile.taxLabelHelp")}
                 </p>
               </div>
             </div>
@@ -675,9 +677,9 @@ export default function ProfileSettingsPage() {
                 className="rounded"
               />
               <div>
-                <span className="font-medium">Tax included in price</span>
+                <span className="font-medium">{t("tenant.settings.profile.taxIncluded")}</span>
                 <p className="text-sm text-foreground-muted">
-                  Prices already include tax (common outside the US)
+                  {t("tenant.settings.profile.taxIncludedHelp")}
                 </p>
               </div>
             </label>
@@ -689,7 +691,7 @@ export default function ProfileSettingsPage() {
               disabled={isSubmitting}
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
             >
-              {isSubmitting ? "Saving..." : "Save Tax Settings"}
+              {isSubmitting ? t("common.saving") : t("tenant.settings.profile.saveTaxSettings")}
             </button>
           </div>
         </div>

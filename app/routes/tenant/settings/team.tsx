@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -487,6 +488,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function TeamPage() {
   const { team, pendingInvites, roles, planLimit, limitRemaining, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const t = useT();
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();
@@ -534,26 +536,26 @@ export default function TeamPage() {
     <div className="max-w-3xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          ← Back to Settings
+          {t("tenant.settings.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Team Members</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.teamMembers")}</h1>
         <p className="text-foreground-muted">
           {planLimit === -1
-            ? `${activeMembers} team members (Unlimited)`
-            : `${activeMembers} of ${planLimit} team members used`}
+            ? t("tenant.settings.team.membersUnlimited", { count: activeMembers })
+            : t("tenant.settings.team.membersUsed", { count: activeMembers, limit: planLimit })}
         </p>
       </div>
 
       {/* Premium required warning for team invites */}
       {!canInviteTeamMembers && (
         <div className="bg-brand-muted border border-brand-muted text-brand px-4 py-3 rounded-lg mb-6">
-          <p className="font-medium">Upgrade to invite team members</p>
+          <p className="font-medium">{t("tenant.settings.team.upgradeToInvite")}</p>
           <p className="text-sm">
-            Team member invitations are a premium feature.{" "}
+            {t("tenant.settings.team.invitePremiumFeature")}{" "}
             <Link to="/tenant/settings/billing" className="underline">
-              Upgrade your plan
+              {t("tenant.settings.team.upgradePlan")}
             </Link>{" "}
-            to invite additional team members.
+            {t("tenant.settings.team.toInviteMore")}
           </p>
         </div>
       )}
@@ -561,13 +563,13 @@ export default function TeamPage() {
       {/* Plan limit warning */}
       {canInviteTeamMembers && atLimit && (
         <div className="bg-warning-muted border border-warning-muted text-warning px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
-          <p className="font-medium">Team limit reached</p>
+          <p className="font-medium">{t("tenant.settings.team.limitReached")}</p>
           <p className="text-sm">
-            Your current plan allows {planLimit} team members.{" "}
+            {t("tenant.settings.team.planAllows", { limit: planLimit })}{" "}
             <Link to="/tenant/settings/billing" className="underline">
-              Upgrade your plan
+              {t("tenant.settings.team.upgradePlan")}
             </Link>{" "}
-            to add more team members.
+            {t("tenant.settings.team.toAddMore")}
           </p>
         </div>
       )}
@@ -576,9 +578,9 @@ export default function TeamPage() {
       {canInviteTeamMembers && isNearLimit && !atLimit && (
         <div className="mb-4 p-3 bg-warning-muted border border-warning-muted rounded-lg">
           <p className="text-warning text-sm">
-            {limitRemaining} of {planLimit} team member slots remaining.{" "}
+            {t("tenant.settings.team.slotsRemaining", { remaining: limitRemaining, limit: planLimit })}{" "}
             <Link to="/tenant/settings/billing" className="underline font-medium">
-              Upgrade for more
+              {t("tenant.settings.team.upgradeForMore")}
             </Link>
           </p>
         </div>
@@ -595,7 +597,7 @@ export default function TeamPage() {
               : "bg-brand text-white hover:bg-brand-hover"
           }`}
         >
-          Invite Team Member
+          {t("tenant.settings.team.inviteTeamMember")}
         </button>
       </div>
 
@@ -651,7 +653,7 @@ export default function TeamPage() {
                           <input type="hidden" name="intent" value="update-role" />
                           <input type="hidden" name="userId" value={member.userId} />
                           <div className="px-3 py-2 text-xs text-foreground-muted font-medium">
-                            Change Role
+                            {t("tenant.settings.team.changeRole")}
                           </div>
                           {roles
                             .filter((r) => r.id !== "owner")
@@ -679,7 +681,7 @@ export default function TeamPage() {
                           })}
                           className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
                         >
-                          Reset Password
+                          {t("tenant.settings.team.resetPassword")}
                         </button>
                         <hr className="my-1" />
                         <fetcher.Form
@@ -701,7 +703,7 @@ export default function TeamPage() {
                             type="submit"
                             className="w-full text-left px-3 py-2 text-sm text-danger hover:bg-danger-muted"
                           >
-                            Remove from team
+                            {t("tenant.settings.team.removeFromTeam")}
                           </button>
                         </fetcher.Form>
                       </div>
@@ -719,7 +721,7 @@ export default function TeamPage() {
       {pendingInvites.length > 0 && (
         <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden mb-6">
           <div className="px-4 py-3 border-b bg-surface-inset">
-            <h3 className="font-medium">Pending Invitations</h3>
+            <h3 className="font-medium">{t("tenant.settings.team.pendingInvitations")}</h3>
           </div>
           <div className="divide-y">
             {pendingInvites.map((invite) => (
@@ -740,7 +742,7 @@ export default function TeamPage() {
                       type="submit"
                       className="text-sm text-brand hover:underline"
                     >
-                      Resend
+                      {t("tenant.settings.team.resend")}
                     </button>
                   </fetcher.Form>
                   <fetcher.Form method="post">
@@ -751,7 +753,7 @@ export default function TeamPage() {
                       type="submit"
                       className="text-sm text-danger hover:underline"
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </button>
                   </fetcher.Form>
                 </div>
@@ -763,7 +765,7 @@ export default function TeamPage() {
 
       {/* Role Descriptions */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-        <h3 className="font-semibold mb-4">Role Permissions</h3>
+        <h3 className="font-semibold mb-4">{t("tenant.settings.team.rolePermissions")}</h3>
         <div className="space-y-4">
           {roles.map((role) => (
             <div key={role.id} className="border-b pb-4 last:border-0 last:pb-0">
@@ -819,7 +821,7 @@ export default function TeamPage() {
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("tenant.settings.team.inviteTeamMember")}</h2>
             <fetcher.Form
               method="post"
             >
@@ -835,7 +837,7 @@ export default function TeamPage() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium mb-1">
-                    Email Address
+                    {t("tenant.settings.team.emailAddress")}
                   </label>
                   <input
                     type="email"
@@ -849,7 +851,7 @@ export default function TeamPage() {
 
                 <div>
                   <label htmlFor="role" className="block text-sm font-medium mb-1">
-                    Role
+                    {t("tenant.settings.team.role")}
                   </label>
                   <select
                     id="role"
@@ -877,14 +879,14 @@ export default function TeamPage() {
                   type="submit"
                   className="flex-1 bg-brand text-white py-2 rounded-lg hover:bg-brand-hover"
                 >
-                  Send Invitation
+                  {t("tenant.settings.team.sendInvitation")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
                   className="flex-1 border py-2 rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </div>
             </fetcher.Form>

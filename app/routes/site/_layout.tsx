@@ -480,6 +480,7 @@ export default function SiteLayout() {
 }
 
 export function ErrorBoundary() {
+  const t = useT();
   const error = useRouteError();
   const isRouteError = isRouteErrorResponse(error);
 
@@ -492,16 +493,16 @@ export function ErrorBoundary() {
         <h2 className="text-2xl font-semibold mb-2">
           {isRouteError
             ? error.status === 404
-              ? "Page Not Found"
-              : "Something Went Wrong"
-            : "Unexpected Error"}
+              ? t("error.notFound")
+              : t("error.somethingWentWrong")
+            : t("error.unexpected")}
         </h2>
         <p className="mb-8" style={{ color: "var(--foreground-muted)" }}>
           {isRouteError
             ? error.status === 404
-              ? "The page you're looking for doesn't exist or has been moved."
-              : error.statusText || "We encountered an issue processing your request."
-            : "An unexpected error occurred. Please try again later."}
+              ? t("error.notFoundMessage")
+              : error.statusText || t("error.unexpectedMessage")
+            : t("error.unexpectedMessage")}
         </p>
         <div className="flex gap-4 justify-center">
           <Link
@@ -509,14 +510,14 @@ export function ErrorBoundary() {
             className="px-6 py-3 text-white rounded-lg font-medium transition-colors"
             style={{ backgroundColor: "var(--info)" }}
           >
-            Back to Home
+            {t("common.backToHome")}
           </Link>
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-3 rounded-lg font-medium border transition-colors"
             style={{ backgroundColor: "var(--surface-inset)", color: "var(--foreground-muted)", borderColor: "var(--border)" }}
           >
-            Try Again
+            {t("common.tryAgain")}
           </button>
         </div>
       </div>

@@ -21,6 +21,7 @@ import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatRecurrencePattern, formatCapacity, formatTime } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
@@ -245,6 +246,7 @@ export default function TripDetailPage() {
 
   const { trip, bookings, revenue, recurringInfo } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; seriesCancelled?: boolean }>();
+  const t = useT();
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSeriesModal, setShowSeriesModal] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
@@ -294,7 +296,7 @@ export default function TripDetailPage() {
   };
 
   const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel this trip? All bookings will be affected.")) {
+    if (confirm(t("tenant.trips.confirmCancel"))) {
       fetcher.submit({ intent: "cancel" }, { method: "post" });
     }
   };
@@ -414,7 +416,7 @@ export default function TripDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/trips" className="text-brand hover:underline text-sm">
-          ← Back to Trips
+          {t("tenant.trips.backToTrips")}
         </Link>
       </div>
 
@@ -453,7 +455,7 @@ export default function TripDetailPage() {
               to={`/tenant/bookings/new?tripId=${trip.id}`}
               className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
-              Add Booking
+              {t("tenant.trips.addBooking")}
             </Link>
           )}
           {trip.status === "confirmed" && (
@@ -464,7 +466,7 @@ export default function TripDetailPage() {
                 type="submit"
                 className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover"
               >
-                Mark Complete
+                {t("tenant.trips.markComplete")}
               </button>
             </fetcher.Form>
           )}
@@ -472,7 +474,7 @@ export default function TripDetailPage() {
             to={`/tenant/trips/${trip.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           {trip.status !== "cancelled" && trip.status !== "completed" && (
             <>
@@ -480,12 +482,12 @@ export default function TripDetailPage() {
                 onClick={handleCancel}
                 className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
               >
-                Cancel Trip
+                {t("tenant.trips.cancelTrip")}
               </button>
               {recurringInfo?.isRecurring && (
                 <fetcher.Form method="post" onSubmit={(e) =>
                   {
-                  if (!confirm("Are you sure you want to cancel ALL future trips in this series?")) {
+                  if (!confirm(t("tenant.trips.confirmCancelSeries"))) {
                     e.preventDefault();
                   }
                 }}>
@@ -496,7 +498,7 @@ export default function TripDetailPage() {
                     type="submit"
                     className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
                   >
-                    Cancel Series
+                    {t("tenant.trips.cancelSeries")}
                   </button>
                 </fetcher.Form>
               )}
@@ -526,50 +528,50 @@ export default function TripDetailPage() {
               <p className="text-2xl font-bold">
                 {formatCapacity(trip.bookedParticipants, trip.maxParticipants)}
               </p>
-              <p className="text-foreground-muted text-sm">Booked</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.trips.booked")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold text-success">{spotsAvailable ?? "∞"}</p>
-              <p className="text-foreground-muted text-sm">Spots Left</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.trips.spotsLeft")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${revenue.bookingsTotal}</p>
-              <p className="text-foreground-muted text-sm">Total Revenue</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.trips.totalRevenue")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold text-warning">${revenue.pendingTotal}</p>
-              <p className="text-foreground-muted text-sm">Pending Payment</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.trips.pendingPayment")}</p>
             </div>
           </div>
 
           {/* Trip Details */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Trip Details</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.trips.tripDetails")}</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-foreground-muted">Time</p>
+                <p className="text-foreground-muted">{t("common.time")}</p>
                 <p>
                   {formatTime(trip.startTime)} - {formatTime(trip.endTime)}
                 </p>
               </div>
               <div>
-                <p className="text-foreground-muted">Boat</p>
+                <p className="text-foreground-muted">{t("common.boat")}</p>
                 {trip.boat.id ? (
                   <Link to={`/tenant/boats/${trip.boat.id}`} className="text-brand hover:underline">
                     {trip.boat.name}
                   </Link>
                 ) : (
                   <Link to={`/tenant/trips/${trip.id}/edit`} className="text-foreground-muted hover:text-brand">
-                    No boat assigned
+                    {t("tenant.trips.noBoatAssigned")}
                   </Link>
                 )}
               </div>
               <div>
-                <p className="text-foreground-muted">Price</p>
-                <p>${trip.price} per person</p>
+                <p className="text-foreground-muted">{t("common.price")}</p>
+                <p>${trip.price} {t("tenant.trips.perPerson")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Tour</p>
+                <p className="text-foreground-muted">{t("common.tour")}</p>
                 <Link to={`/tenant/tours/${trip.tour.id}`} className="text-brand hover:underline">
                   {trip.tour.name}
                 </Link>
@@ -577,7 +579,7 @@ export default function TripDetailPage() {
             </div>
             {trip.diveSites && trip.diveSites.length > 0 && (
               <div className="mt-4 pt-4 border-t">
-                <p className="text-foreground-muted text-sm mb-2">Dive Sites</p>
+                <p className="text-foreground-muted text-sm mb-2">{t("tenant.trips.diveSites")}</p>
                 <div className="space-y-1">
                   {trip.diveSites.map((site) => (
                     <Link
@@ -597,17 +599,17 @@ export default function TripDetailPage() {
           {/* Weather & Notes */}
           {(trip.weatherNotes || trip.notes) && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Notes</h2>
+              <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
               <div className="space-y-4 text-sm">
                 {trip.weatherNotes && (
                   <div>
-                    <p className="text-foreground-muted mb-1">Weather:</p>
+                    <p className="text-foreground-muted mb-1">{t("tenant.trips.weatherLabel")}:</p>
                     <p>{trip.weatherNotes}</p>
                   </div>
                 )}
                 {trip.notes && (
                   <div>
-                    <p className="text-foreground-muted mb-1">Internal Notes:</p>
+                    <p className="text-foreground-muted mb-1">{t("tenant.trips.internalNotes")}:</p>
                     <p>{trip.notes}</p>
                   </div>
                 )}
@@ -618,18 +620,18 @@ export default function TripDetailPage() {
           {/* Bookings */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Bookings ({bookings.length})</h2>
+              <h2 className="font-semibold">{t("tenant.trips.bookingsCount", { count: bookings.length })}</h2>
               {(spotsAvailable === null || spotsAvailable > 0) && (
                 <Link
                   to={`/tenant/bookings/new?tripId=${trip.id}`}
                   className="text-brand text-sm hover:underline"
                 >
-                  + Add Booking
+                  + {t("tenant.trips.addBooking")}
                 </Link>
               )}
             </div>
             {bookings.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No bookings yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.trips.noBookingsYet")}</p>
             ) : (
               <div className="space-y-3">
                 {bookings.map((booking) => (
@@ -649,10 +651,10 @@ export default function TripDetailPage() {
                     <div className="text-right">
                       <p className="font-medium">${booking.total}</p>
                       {!booking.paidInFull && (
-                        <span className="text-xs text-warning">Payment pending</span>
+                        <span className="text-xs text-warning">{t("tenant.trips.paymentPending")}</span>
                       )}
                       {booking.paidInFull && (
-                        <span className="text-xs text-success">Paid</span>
+                        <span className="text-xs text-success">{t("tenant.trips.paid")}</span>
                       )}
                     </div>
                   </Link>
@@ -666,9 +668,9 @@ export default function TripDetailPage() {
         <div className="space-y-6">
           {/* Staff */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Staff</h2>
+            <h2 className="font-semibold mb-4">{t("common.staff")}</h2>
             {trip.staff.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No staff assigned.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.trips.noStaffAssigned")}</p>
             ) : (
               <div className="space-y-2">
                 {trip.staff.map((member) => (
@@ -688,58 +690,58 @@ export default function TripDetailPage() {
               to={`/tenant/trips/${trip.id}/edit`}
               className="block text-center mt-4 text-brand text-sm hover:underline"
             >
-              Manage Staff
+              {t("tenant.trips.manageStaff")}
             </Link>
           </div>
 
           {/* Quick Actions */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Actions</h2>
+            <h2 className="font-semibold mb-4">{t("common.quickActions")}</h2>
             <div className="space-y-2">
               <button
                 onClick={handlePrintManifest}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                📋 Print Manifest
+                📋 {t("tenant.trips.printManifest")}
               </button>
               <button
                 onClick={() => setShowEmailModal(true)}
                 disabled={bookings.length === 0}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                📧 Email Passengers {bookings.length > 0 && `(${bookings.length})`}
+                📧 {t("tenant.trips.emailPassengers")} {bookings.length > 0 && `(${bookings.length})`}
               </button>
               <button
                 onClick={handleExportPDF}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                📤 Export to PDF
+                📤 {t("tenant.trips.exportPdf")}
               </button>
               <Link
                 to={`/tenant/trips/new?tourId=${trip.tour.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                📅 Schedule Similar Trip
+                📅 {t("tenant.trips.scheduleSimilar")}
               </Link>
             </div>
           </div>
 
           {/* Participant Summary */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Capacity</h2>
+            <h2 className="font-semibold mb-4">{t("common.capacity")}</h2>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Max Capacity</span>
-                <span>{hasCapacityLimit ? trip.maxParticipants : "Unlimited"}</span>
+                <span>{t("tenant.trips.maxCapacity")}</span>
+                <span>{hasCapacityLimit ? trip.maxParticipants : t("tenant.trips.unlimited")}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Booked</span>
+                <span>{t("tenant.trips.booked")}</span>
                 <span>{trip.bookedParticipants}</span>
               </div>
               <div className="flex justify-between text-sm font-medium">
-                <span>Available</span>
+                <span>{t("tenant.trips.available")}</span>
                 <span className={spotsAvailable !== null && spotsAvailable === 0 ? "text-danger" : "text-success"}>
-                  {spotsAvailable ?? "Unlimited"}
+                  {spotsAvailable ?? t("tenant.trips.unlimited")}
                 </span>
               </div>
               {hasCapacityLimit && (
@@ -757,8 +759,8 @@ export default function TripDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Created {trip.createdAt}</p>
-            <p>Trip ID: {trip.id}</p>
+            <p>{t("tenant.trips.created")} {trip.createdAt}</p>
+            <p>{t("tenant.trips.tripId")}: {trip.id}</p>
           </div>
         </div>
       </div>
@@ -770,10 +772,10 @@ export default function TripDetailPage() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-lg font-bold">Recurring Trip Series</h2>
+                  <h2 className="text-lg font-bold">{t("tenant.trips.recurringTripSeries")}</h2>
                   <p className="text-sm text-foreground-muted">
-                    {formatRecurrencePattern(recurringInfo.recurrencePattern)} recurrence
-                    {recurringInfo.isTemplate && " - This is the template trip"}
+                    {formatRecurrencePattern(recurringInfo.recurrencePattern)} {t("tenant.trips.recurrence")}
+                    {recurringInfo.isTemplate && ` - ${t("tenant.trips.templateTrip")}`}
                   </p>
                 </div>
                 <button
@@ -786,10 +788,10 @@ export default function TripDetailPage() {
 
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground mb-3">
-                  Upcoming trips in this series:
+                  {t("tenant.trips.upcomingInSeries")}:
                 </p>
                 {recurringInfo.seriesInstances.length === 0 ? (
-                  <p className="text-sm text-foreground-muted">No upcoming trips in this series.</p>
+                  <p className="text-sm text-foreground-muted">{t("tenant.trips.noUpcomingInSeries")}</p>
                 ) : (
                   recurringInfo.seriesInstances.map((instance) => (
                     <Link
@@ -813,7 +815,7 @@ export default function TripDetailPage() {
                       <div className="flex items-center gap-2">
                         <StatusBadge status={mapTripStatusToBadgeStatus(instance.status)} />
                         {instance.id === trip.id && (
-                          <span className="text-xs text-foreground-muted">(current)</span>
+                          <span className="text-xs text-foreground-muted">({t("tenant.trips.current")})</span>
                         )}
                       </div>
                     </Link>
@@ -821,7 +823,7 @@ export default function TripDetailPage() {
                 )}
                 {recurringInfo.seriesInstances.length === 10 && (
                   <p className="text-xs text-foreground-muted text-center pt-2">
-                    Showing next 10 trips. More trips may exist.
+                    {t("tenant.trips.showingNext10")}
                   </p>
                 )}
               </div>
@@ -831,7 +833,7 @@ export default function TripDetailPage() {
                   onClick={() => setShowSeriesModal(false)}
                   className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                 >
-                  Close
+                  {t("tenant.trips.close")}
                 </button>
               </div>
             </div>
@@ -846,9 +848,9 @@ export default function TripDetailPage() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-lg font-bold">Email All Passengers</h2>
+                  <h2 className="text-lg font-bold">{t("tenant.trips.emailAllPassengers")}</h2>
                   <p className="text-sm text-foreground-muted">
-                    Send a message to {bookings.length} passenger{bookings.length !== 1 ? "s" : ""} on this trip
+                    {t("tenant.trips.sendToPassengers", { count: bookings.length })}
                   </p>
                 </div>
                 <button
@@ -861,7 +863,7 @@ export default function TripDetailPage() {
 
               {/* Quick Templates */}
               <div className="mb-4">
-                <p className="text-sm font-medium mb-2">Quick Templates:</p>
+                <p className="text-sm font-medium mb-2">{t("tenant.trips.quickTemplates")}:</p>
                 <div className="flex flex-wrap gap-2">
                   {messageTemplates.map((template) => (
                     <button
@@ -878,7 +880,7 @@ export default function TripDetailPage() {
 
               {/* Recipients List */}
               <div className="mb-4 p-3 bg-surface-inset rounded-lg">
-                <p className="text-sm font-medium mb-2">Recipients:</p>
+                <p className="text-sm font-medium mb-2">{t("tenant.trips.recipients")}:</p>
                 <div className="flex flex-wrap gap-2">
                   {customers.map((customer) => (
                     <span
@@ -893,7 +895,7 @@ export default function TripDetailPage() {
 
               <form onSubmit={handleSendEmail} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Subject *</label>
+                  <label className="block text-sm font-medium mb-1">{t("tenant.trips.subject")} *</label>
                   <input
                     type="text"
                     value={emailSubject}
@@ -905,7 +907,7 @@ export default function TripDetailPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Message *</label>
+                  <label className="block text-sm font-medium mb-1">{t("tenant.trips.message")} *</label>
                   <textarea
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
@@ -915,14 +917,13 @@ export default function TripDetailPage() {
                     placeholder="Write your message here..."
                   />
                   <p className="text-xs text-foreground-muted mt-1">
-                    Use {"{firstName}"} to personalize with each passenger's name
+                    {t("tenant.trips.personalizeHint")}
                   </p>
                 </div>
 
                 <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                   <p className="text-sm text-warning">
-                    Note: Email delivery requires SMTP configuration in settings.
-                    Messages will be logged to each customer's communication history.
+                    {t("tenant.trips.smtpNote")}
                   </p>
                 </div>
 
@@ -936,14 +937,14 @@ export default function TripDetailPage() {
                     }}
                     className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={fetcher.state === "submitting" || !emailSubject || !emailBody}
                     className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
-                    {fetcher.state === "submitting" ? "Sending..." : `Send to ${bookings.length} Passenger${bookings.length !== 1 ? "s" : ""}`}
+                    {fetcher.state === "submitting" ? t("common.sending") : t("tenant.trips.sendToCount", { count: bookings.length })}
                   </button>
                 </div>
               </form>

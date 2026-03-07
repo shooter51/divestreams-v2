@@ -7,6 +7,7 @@ import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getAppUrl } from "../../../../lib/utils/url";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Booking Widget - DiveStreams" }];
 
@@ -107,6 +108,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function BookingWidgetPage() {
+  const t = useT();
   const { settings, embedUrl, orgName } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean }>();
   const isSubmitting = fetcher.state === "submitting";
@@ -131,15 +133,15 @@ export default function BookingWidgetPage() {
     <div className="max-w-4xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          &larr; {t("common.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Booking Widget</h1>
-        <p className="text-foreground-muted">Customize and embed your booking widget on any website</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.bookingWidget.title")}</h1>
+        <p className="text-foreground-muted">{t("tenant.settings.bookingWidget.subtitle")}</p>
       </div>
 
       {fetcher.data?.success && (
         <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
-          Settings saved successfully!
+          {t("tenant.settings.bookingWidget.settingsSaved")}
         </div>
       )}
 
@@ -150,11 +152,11 @@ export default function BookingWidgetPage() {
             <CsrfInput />
             {/* Appearance */}
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Appearance</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.settings.bookingWidget.appearance")}</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Primary Color
+                    {t("tenant.settings.bookingWidget.primaryColor")}
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -174,7 +176,7 @@ export default function BookingWidgetPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Button Text
+                    {t("tenant.settings.bookingWidget.buttonText")}
                   </label>
                   <input
                     type="text"
@@ -186,31 +188,31 @@ export default function BookingWidgetPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Layout
+                    {t("tenant.settings.bookingWidget.layout")}
                   </label>
                   <select
                     name="layout"
                     defaultValue={settings.layout}
                     className="w-full px-3 py-2 border rounded-lg"
                   >
-                    <option value="grid">Grid View</option>
-                    <option value="list">List View</option>
+                    <option value="grid">{t("tenant.settings.bookingWidget.gridView")}</option>
+                    <option value="list">{t("tenant.settings.bookingWidget.listView")}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Max Trips Shown
+                    {t("tenant.settings.bookingWidget.maxTripsShown")}
                   </label>
                   <select
                     name="maxTripsShown"
                     defaultValue={settings.maxTripsShown}
                     className="w-full px-3 py-2 border rounded-lg"
                   >
-                    <option value="3">3 trips</option>
-                    <option value="6">6 trips</option>
-                    <option value="9">9 trips</option>
-                    <option value="12">12 trips</option>
+                    <option value="3">{t("tenant.settings.bookingWidget.nTrips", { count: "3" })}</option>
+                    <option value="6">{t("tenant.settings.bookingWidget.nTrips", { count: "6" })}</option>
+                    <option value="9">{t("tenant.settings.bookingWidget.nTrips", { count: "9" })}</option>
+                    <option value="12">{t("tenant.settings.bookingWidget.nTrips", { count: "12" })}</option>
                   </select>
                 </div>
               </div>
@@ -218,7 +220,7 @@ export default function BookingWidgetPage() {
 
             {/* Display Options */}
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Display Options</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.settings.bookingWidget.displayOptions")}</h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3">
                   <input
@@ -228,7 +230,7 @@ export default function BookingWidgetPage() {
                     defaultChecked={settings.showPrices}
                     className="rounded"
                   />
-                  <span>Show prices</span>
+                  <span>{t("tenant.settings.bookingWidget.showPrices")}</span>
                 </label>
 
                 <label className="flex items-center gap-3">
@@ -239,7 +241,7 @@ export default function BookingWidgetPage() {
                     defaultChecked={settings.showAvailability}
                     className="rounded"
                   />
-                  <span>Show availability</span>
+                  <span>{t("tenant.settings.bookingWidget.showAvailability")}</span>
                 </label>
 
                 <label className="flex items-center gap-3">
@@ -250,7 +252,7 @@ export default function BookingWidgetPage() {
                     defaultChecked={settings.showDescription}
                     className="rounded"
                   />
-                  <span>Show trip descriptions</span>
+                  <span>{t("tenant.settings.bookingWidget.showDescriptions")}</span>
                 </label>
               </div>
             </div>
@@ -261,7 +263,7 @@ export default function BookingWidgetPage() {
                 disabled={isSubmitting}
                 className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
               >
-                {isSubmitting ? "Saving..." : "Save Settings"}
+                {isSubmitting ? t("common.saving") : t("tenant.settings.bookingWidget.saveSettings")}
               </button>
             </div>
           </fetcher.Form>
@@ -271,9 +273,9 @@ export default function BookingWidgetPage() {
         <div className="space-y-6">
           {/* Embed URL */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Direct Link</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.settings.bookingWidget.directLink")}</h2>
             <p className="text-sm text-foreground-muted mb-3">
-              Share this link directly with customers:
+              {t("tenant.settings.bookingWidget.shareLink")}
             </p>
             <div className="flex gap-2">
               <input
@@ -286,7 +288,7 @@ export default function BookingWidgetPage() {
                 onClick={() => copyToClipboard(embedUrl)}
                 className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm"
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? t("tenant.settings.bookingWidget.copied") : t("tenant.settings.bookingWidget.copy")}
               </button>
             </div>
             <a
@@ -295,15 +297,15 @@ export default function BookingWidgetPage() {
               rel="noopener noreferrer"
               className="inline-block mt-3 text-sm text-brand hover:underline"
             >
-              Preview in new tab &rarr;
+              {t("tenant.settings.bookingWidget.previewInNewTab")} &rarr;
             </a>
           </div>
 
           {/* Embed Code */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Embed Code</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.settings.bookingWidget.embedCode")}</h2>
             <p className="text-sm text-foreground-muted mb-3">
-              Copy this code to embed the booking widget on your website:
+              {t("tenant.settings.bookingWidget.embedCodeDescription")}
             </p>
             <div className="relative">
               <pre className="bg-surface text-foreground p-4 rounded-lg text-sm overflow-x-auto border border-border">
@@ -313,19 +315,19 @@ export default function BookingWidgetPage() {
                 onClick={() => copyToClipboard(iframeCode)}
                 className="absolute top-2 right-2 px-3 py-1 bg-surface-raised text-foreground rounded text-xs hover:bg-surface-overlay border border-border"
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? t("tenant.settings.bookingWidget.copied") : t("tenant.settings.bookingWidget.copy")}
               </button>
             </div>
           </div>
 
           {/* Preview */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Preview</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.settings.bookingWidget.preview")}</h2>
             <p className="text-sm text-foreground-muted mb-3">
-              Use the link above to preview your widget in a new tab. The embed code shown above is ready to paste into your website.
+              {t("tenant.settings.bookingWidget.previewDescription")}
             </p>
             <div className="border rounded-lg p-4 bg-surface text-center text-foreground-muted text-sm">
-              <p className="mb-2">Your widget is available at:</p>
+              <p className="mb-2">{t("tenant.settings.bookingWidget.widgetAvailableAt")}:</p>
               <a href={embedUrl} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline break-all">
                 {embedUrl}
               </a>

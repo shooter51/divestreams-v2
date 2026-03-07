@@ -8,6 +8,7 @@ import { diveSiteSchema, validateFormData, getFormValues } from "../../../../../
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Dive Site - DiveStreams" }];
 
@@ -136,6 +137,7 @@ export default function EditDiveSitePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -144,20 +146,20 @@ export default function EditDiveSitePage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/dive-sites/${site.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Dive Site
+          ← {t("tenant.diveSites.backToSite")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Dive Site</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.diveSites.editSite")}</h1>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Site Name *
+                {t("tenant.diveSites.siteName")} *
               </label>
               <input
                 type="text"
@@ -174,7 +176,7 @@ export default function EditDiveSitePage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
@@ -189,11 +191,11 @@ export default function EditDiveSitePage() {
 
         {/* Dive Details */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Dive Details</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.diveSites.diveDetails")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="maxDepth" className="block text-sm font-medium mb-1">
-                Maximum Depth (meters) *
+                {t("tenant.diveSites.maxDepthMeters")} *
               </label>
               <input
                 type="number"
@@ -209,7 +211,7 @@ export default function EditDiveSitePage() {
 
             <div>
               <label htmlFor="difficulty" className="block text-sm font-medium mb-1">
-                Difficulty Level *
+                {t("tenant.diveSites.difficultyLevel")} *
               </label>
               <select
                 id="difficulty"
@@ -227,7 +229,7 @@ export default function EditDiveSitePage() {
 
             <div>
               <label htmlFor="visibility" className="block text-sm font-medium mb-1">
-                Typical Visibility
+                {t("tenant.diveSites.typicalVisibility")}
               </label>
               <input
                 type="text"
@@ -241,7 +243,7 @@ export default function EditDiveSitePage() {
 
             <div>
               <label htmlFor="currentStrength" className="block text-sm font-medium mb-1">
-                Current Strength
+                {t("tenant.diveSites.currentStrength")}
               </label>
               <select
                 id="currentStrength"
@@ -261,11 +263,11 @@ export default function EditDiveSitePage() {
 
         {/* Coordinates */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">GPS Coordinates</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.diveSites.gpsCoordinates")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="latitude" className="block text-sm font-medium mb-1">
-                Latitude
+                {t("tenant.diveSites.latitude")}
               </label>
               <input
                 type="number"
@@ -280,7 +282,7 @@ export default function EditDiveSitePage() {
             </div>
             <div>
               <label htmlFor="longitude" className="block text-sm font-medium mb-1">
-                Longitude
+                {t("tenant.diveSites.longitude")}
               </label>
               <input
                 type="number"
@@ -298,7 +300,7 @@ export default function EditDiveSitePage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Site Images</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.diveSites.siteImages")}</h2>
           <ImageManager
             entityType="dive-site"
             entityId={site.id}
@@ -309,10 +311,10 @@ export default function EditDiveSitePage() {
 
         {/* Highlights */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Highlights & Features</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.diveSites.highlightsFeatures")}</h2>
           <div>
             <label htmlFor="highlights" className="block text-sm font-medium mb-1">
-              Key Attractions
+              {t("tenant.diveSites.keyAttractions")}
             </label>
             <input
               type="text"
@@ -335,7 +337,7 @@ export default function EditDiveSitePage() {
               defaultChecked={actionData?.values?.isActive !== "false" && site.isActive}
               className="rounded"
             />
-            <span className="font-medium">Active</span>
+            <span className="font-medium">{t("common.active")}</span>
           </label>
         </div>
 
@@ -346,13 +348,13 @@ export default function EditDiveSitePage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/dive-sites/${site.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

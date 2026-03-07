@@ -11,6 +11,7 @@ import {
   deleteAgency,
 } from "../../../../../lib/db/training.server";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Certification Agencies - DiveStreams" }];
 
@@ -123,6 +124,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AgenciesPage() {
+  const t = useT();
   const { agencies, commonAgencies } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -152,11 +154,11 @@ export default function AgenciesPage() {
     <div className="max-w-3xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          &larr; {t("common.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Certification Agencies</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.training.agencies.title")}</h1>
         <p className="text-foreground-muted">
-          Manage diving certification agencies (PADI, SSI, NAUI, etc.)
+          {t("tenant.settings.training.agencies.subtitle")}
         </p>
       </div>
 
@@ -175,7 +177,7 @@ export default function AgenciesPage() {
       {/* Quick Add Common Agencies */}
       {availableCommonAgencies.length > 0 && (
         <div className="bg-brand-muted border border-brand rounded-xl p-4 mb-6">
-          <h3 className="font-medium text-brand mb-2">Quick Add Common Agencies</h3>
+          <h3 className="font-medium text-brand mb-2">{t("tenant.settings.training.agencies.quickAdd")}</h3>
           <div className="flex flex-wrap gap-2">
             {availableCommonAgencies.map((agency) => (
               <fetcher.Form key={agency.code} method="post" className="inline">
@@ -197,7 +199,7 @@ export default function AgenciesPage() {
       {showForm && (
         <div className="bg-surface-raised rounded-xl shadow-sm p-6 mb-6">
           <h2 className="font-semibold mb-4">
-            {editingAgency ? "Edit Agency" : "Add New Agency"}
+            {editingAgency ? t("tenant.settings.training.agencies.editAgency") : t("tenant.settings.training.agencies.addNewAgency")}
           </h2>
           <form method="post" onSubmit={() =>
             handleCancel()}>
@@ -211,7 +213,7 @@ export default function AgenciesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium mb-1">
-                    Agency Name *
+                    {t("tenant.settings.training.agencies.agencyName")} *
                   </label>
                   <input
                     type="text"
@@ -225,7 +227,7 @@ export default function AgenciesPage() {
                 </div>
                 <div>
                   <label htmlFor="code" className="block text-sm font-medium mb-1">
-                    Code *
+                    {t("tenant.settings.training.code")} *
                   </label>
                   <input
                     type="text"
@@ -236,27 +238,27 @@ export default function AgenciesPage() {
                     placeholder="e.g., PADI"
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
-                  <p className="text-xs text-foreground-muted mt-1">Short identifier for the agency</p>
+                  <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.training.agencies.codeHint")}</p>
                 </div>
               </div>
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">
-                  Description
+                  {t("common.description")}
                 </label>
                 <textarea
                   id="description"
                   name="description"
                   rows={2}
                   defaultValue={editingAgency?.description || ""}
-                  placeholder="Full name or description of the agency"
+                  placeholder={t("tenant.settings.training.agencies.descriptionPlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
               <div>
                 <label htmlFor="website" className="block text-sm font-medium mb-1">
-                  Website
+                  {t("tenant.settings.training.agencies.website")}
                 </label>
                 <input
                   type="url"
@@ -277,10 +279,10 @@ export default function AgenciesPage() {
                     defaultChecked={editingAgency?.isActive ?? true}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium">Active</span>
+                  <span className="text-sm font-medium">{t("common.active")}</span>
                 </label>
                 <p className="text-xs text-foreground-muted ml-6">
-                  Inactive agencies won&apos;t appear in dropdowns
+                  {t("tenant.settings.training.agencies.inactiveHint")}
                 </p>
               </div>
             </div>
@@ -291,14 +293,14 @@ export default function AgenciesPage() {
                 disabled={isSubmitting}
                 className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
               >
-                {isSubmitting ? "Saving..." : editingAgency ? "Update Agency" : "Add Agency"}
+                {isSubmitting ? t("common.saving") : editingAgency ? t("tenant.settings.training.agencies.updateAgency") : t("tenant.settings.training.agencies.addAgency")}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="border px-4 py-2 rounded-lg hover:bg-surface-inset"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -312,7 +314,7 @@ export default function AgenciesPage() {
             onClick={() => setShowForm(true)}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Add Agency
+            {t("tenant.settings.training.agencies.addAgency")}
           </button>
         </div>
       )}
@@ -321,9 +323,9 @@ export default function AgenciesPage() {
       <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         {agencies.length === 0 ? (
           <div className="p-8 text-center text-foreground-muted">
-            <p className="mb-2">No certification agencies configured yet.</p>
+            <p className="mb-2">{t("tenant.settings.training.agencies.noAgencies")}</p>
             <p className="text-sm">
-              Add agencies like PADI, SSI, or NAUI to organize your courses.
+              {t("tenant.settings.training.agencies.noAgenciesHint")}
             </p>
           </div>
         ) : (
@@ -345,7 +347,7 @@ export default function AgenciesPage() {
                       <p className="font-medium">{agency.name}</p>
                       {!agency.isActive && (
                         <span className="text-xs px-2 py-0.5 bg-surface-inset text-foreground-muted rounded">
-                          Inactive
+                          {t("common.inactive")}
                         </span>
                       )}
                     </div>
@@ -370,7 +372,7 @@ export default function AgenciesPage() {
                     onClick={() => handleEdit(agency)}
                     className="px-3 py-1.5 text-sm text-foreground-muted hover:bg-surface-overlay rounded-lg"
                   >
-                    Edit
+                    {t("common.edit")}
                   </button>
                   <fetcher.Form
                     method="post"
@@ -391,7 +393,7 @@ export default function AgenciesPage() {
                       type="submit"
                       className="px-3 py-1.5 text-sm text-danger hover:bg-danger-muted rounded-lg"
                     >
-                      Delete
+                      {t("common.delete")}
                     </button>
                   </fetcher.Form>
                 </div>

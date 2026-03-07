@@ -14,6 +14,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { useNotification } from "../../../../lib/use-notification";
 import { formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Manage Rentals - DiveStreams" }];
 
@@ -176,6 +177,7 @@ const rentalStatusLabels: Record<string, string> = {
 
 export default function RentalsPage() {
   useNotification();
+  const t = useT();
 
   const { rentals, stats, status: activeStatus } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -212,14 +214,14 @@ export default function RentalsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Rental Management</h1>
-          <p className="text-foreground-muted">{stats.total} total rentals</p>
+          <h1 className="text-2xl font-bold">{t("tenant.equipment.rentals.title")}</h1>
+          <p className="text-foreground-muted">{stats.total} {t("tenant.equipment.rentals.totalRentals")}</p>
         </div>
         <Link
           to="/tenant/equipment"
           className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
         >
-          Back to Equipment
+          {t("tenant.equipment.rentals.backToEquipment")}
         </Link>
       </div>
 
@@ -232,7 +234,7 @@ export default function RentalsPage() {
           onClick={() => setFilter("")}
         >
           <p className="text-2xl font-bold">{stats.total}</p>
-          <p className="text-foreground-muted text-sm">All Rentals</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.equipment.rentals.allRentals")}</p>
         </div>
         <div
           className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-success ${
@@ -241,7 +243,7 @@ export default function RentalsPage() {
           onClick={() => setFilter("active")}
         >
           <p className="text-2xl font-bold text-success">{stats.active}</p>
-          <p className="text-foreground-muted text-sm">Active</p>
+          <p className="text-foreground-muted text-sm">{t("common.active")}</p>
         </div>
         <div
           className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-danger ${
@@ -250,7 +252,7 @@ export default function RentalsPage() {
           onClick={() => setFilter("overdue")}
         >
           <p className="text-2xl font-bold text-danger">{stats.overdue}</p>
-          <p className="text-foreground-muted text-sm">Overdue</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.equipment.rentals.overdue")}</p>
         </div>
         <div
           className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-foreground-subtle ${
@@ -259,7 +261,7 @@ export default function RentalsPage() {
           onClick={() => setFilter("returned")}
         >
           <p className="text-2xl font-bold text-foreground-muted">{stats.returned}</p>
-          <p className="text-foreground-muted text-sm">Returned</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.equipment.returned")}</p>
         </div>
       </div>
 
@@ -268,18 +270,18 @@ export default function RentalsPage() {
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
           <p className="text-foreground-muted">
             {activeStatus === "active"
-              ? "No active rentals"
+              ? t("tenant.equipment.rentals.noActiveRentals")
               : activeStatus === "overdue"
-              ? "No overdue rentals"
+              ? t("tenant.equipment.rentals.noOverdueRentals")
               : activeStatus === "returned"
-              ? "No rental history"
-              : "No rentals found"}
+              ? t("tenant.equipment.rentals.noRentalHistory")
+              : t("tenant.equipment.rentals.noRentalsFound")}
           </p>
           <Link
             to="/tenant/pos"
             className="inline-block mt-4 text-brand hover:underline"
           >
-            Create rental via POS
+            {t("tenant.equipment.rentals.createViaPOS")}
           </Link>
         </div>
       ) : (
@@ -287,14 +289,14 @@ export default function RentalsPage() {
           <table className="w-full">
             <thead className="bg-surface-inset border-b">
               <tr>
-                <th className="text-left py-3 px-4 font-medium text-sm">Equipment</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Customer</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Rented</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Due</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Duration</th>
-                <th className="text-right py-3 px-4 font-medium text-sm">Charge</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Status</th>
-                <th className="text-right py-3 px-4 font-medium text-sm">Actions</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.equipmentCol")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.customerCol")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.rentedCol")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.dueCol")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.durationCol")}</th>
+                <th className="text-right py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.chargeCol")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.statusCol")}</th>
+                <th className="text-right py-3 px-4 font-medium text-sm">{t("tenant.equipment.rentals.actionsCol")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -309,7 +311,7 @@ export default function RentalsPage() {
                         {equipment.name}
                       </Link>
                     ) : (
-                      <span className="text-foreground-subtle">Unknown Equipment</span>
+                      <span className="text-foreground-subtle">{t("tenant.equipment.rentals.unknownEquipment")}</span>
                     )}
                     {equipment && (
                       <p className="text-sm text-foreground-muted">
@@ -324,7 +326,7 @@ export default function RentalsPage() {
                         <p className="text-sm text-foreground-muted">{customer.email}</p>
                       </div>
                     ) : (
-                      <span className="text-foreground-subtle">Unknown Customer</span>
+                      <span className="text-foreground-subtle">{t("tenant.equipment.rentals.unknownCustomer")}</span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-sm">{formatDate(rental.rentedAt)}</td>
@@ -338,12 +340,12 @@ export default function RentalsPage() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm">
-                    {getDaysRented(rental.rentedAt, rental.returnedAt)} days
+                    {getDaysRented(rental.rentedAt, rental.returnedAt)} {t("tenant.equipment.rentals.days")}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <p className="font-medium">${Number(rental.totalCharge).toFixed(2)}</p>
                     <p className="text-xs text-foreground-muted">
-                      ${Number(rental.dailyRate).toFixed(2)}/day
+                      ${Number(rental.dailyRate).toFixed(2)}/{t("tenant.equipment.rentals.perDay")}
                     </p>
                   </td>
                   <td className="py-3 px-4">
@@ -370,7 +372,7 @@ export default function RentalsPage() {
                           value="mark-returned"
                           className="text-sm text-brand hover:underline"
                         >
-                          Mark Returned
+                          {t("tenant.equipment.rentals.markReturned")}
                         </button>
                       </form>
                     )}

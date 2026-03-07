@@ -7,6 +7,7 @@ import { db } from "../../../../lib/db";
 import { organization, member, user } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Notifications - DiveStreams" }];
 
@@ -119,6 +120,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function NotificationsPage() {
   const { settings, isPremium } = useLoaderData<typeof loader>();
+  const t = useT();
   const fetcher = useFetcher<{ success?: boolean }>();
   const isSubmitting = fetcher.state === "submitting";
 
@@ -126,15 +128,15 @@ export default function NotificationsPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          {t("tenant.settings.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Notification Settings</h1>
-        <p className="text-foreground-muted">Configure how you receive notifications</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.notifications.title")}</h1>
+        <p className="text-foreground-muted">{t("tenant.settings.notifications.subtitle")}</p>
       </div>
 
       {fetcher.data?.success && (
         <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
-          Settings saved successfully!
+          {t("tenant.settings.notifications.savedSuccess")}
         </div>
       )}
 
@@ -142,7 +144,7 @@ export default function NotificationsPage() {
         <CsrfInput />
         {/* Customer Notifications */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Customer Notifications</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.notifications.customerNotifications")}</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3">
               <input
@@ -153,9 +155,9 @@ export default function NotificationsPage() {
                 className="mt-1 rounded"
               />
               <div>
-                <p className="font-medium">Booking Confirmations</p>
+                <p className="font-medium">{t("tenant.settings.notifications.bookingConfirmations")}</p>
                 <p className="text-sm text-foreground-muted">
-                  Send confirmation emails when bookings are made
+                  {t("tenant.settings.notifications.bookingConfirmationsDesc")}
                 </p>
               </div>
             </label>
@@ -169,25 +171,25 @@ export default function NotificationsPage() {
                 className="mt-1 rounded"
               />
               <div>
-                <p className="font-medium">Booking Reminders</p>
+                <p className="font-medium">{t("tenant.settings.notifications.bookingReminders")}</p>
                 <p className="text-sm text-foreground-muted">
-                  Send reminder emails before trips
+                  {t("tenant.settings.notifications.bookingRemindersDesc")}
                 </p>
               </div>
             </label>
 
             <div className="ml-6">
               <label className="block text-sm">
-                <span className="text-foreground-muted">Days before trip:</span>
+                <span className="text-foreground-muted">{t("tenant.settings.notifications.daysBeforeTrip")}</span>
                 <select
                   name="reminderDaysBefore"
                   defaultValue={settings.reminderDaysBefore}
                   className="ml-2 px-2 py-1 border border-border-strong rounded bg-surface-raised text-foreground"
                 >
-                  <option value="1">1 day</option>
-                  <option value="2">2 days</option>
-                  <option value="3">3 days</option>
-                  <option value="7">1 week</option>
+                  <option value="1">{t("tenant.settings.notifications.1day")}</option>
+                  <option value="2">{t("tenant.settings.notifications.2days")}</option>
+                  <option value="3">{t("tenant.settings.notifications.3days")}</option>
+                  <option value="7">{t("tenant.settings.notifications.1week")}</option>
                 </select>
               </label>
             </div>
@@ -196,7 +198,7 @@ export default function NotificationsPage() {
 
         {/* Staff Notifications */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Staff Notifications</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.notifications.staffNotifications")}</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3">
               <input
@@ -207,9 +209,9 @@ export default function NotificationsPage() {
                 className="mt-1 rounded"
               />
               <div>
-                <p className="font-medium">New Booking Alerts</p>
+                <p className="font-medium">{t("tenant.settings.notifications.newBookingAlerts")}</p>
                 <p className="text-sm text-foreground-muted">
-                  Get notified when new bookings are made
+                  {t("tenant.settings.notifications.newBookingAlertsDesc")}
                 </p>
               </div>
             </label>
@@ -223,9 +225,9 @@ export default function NotificationsPage() {
                 className="mt-1 rounded"
               />
               <div>
-                <p className="font-medium">Cancellation Alerts</p>
+                <p className="font-medium">{t("tenant.settings.notifications.cancellationAlerts")}</p>
                 <p className="text-sm text-foreground-muted">
-                  Get notified when bookings are cancelled
+                  {t("tenant.settings.notifications.cancellationAlertsDesc")}
                 </p>
               </div>
             </label>
@@ -239,25 +241,25 @@ export default function NotificationsPage() {
                 className="mt-1 rounded"
               />
               <div>
-                <p className="font-medium">Low Capacity Alerts</p>
+                <p className="font-medium">{t("tenant.settings.notifications.lowCapacityAlerts")}</p>
                 <p className="text-sm text-foreground-muted">
-                  Get notified when trips are below minimum capacity
+                  {t("tenant.settings.notifications.lowCapacityAlertsDesc")}
                 </p>
               </div>
             </label>
 
             <div className="ml-6">
               <label className="block text-sm">
-                <span className="text-foreground-muted">Alert when spots remaining:</span>
+                <span className="text-foreground-muted">{t("tenant.settings.notifications.alertWhenSpotsRemaining")}</span>
                 <select
                   name="lowCapacityThreshold"
                   defaultValue={settings.lowCapacityThreshold}
                   className="ml-2 px-2 py-1 border border-border-strong rounded bg-surface-raised text-foreground"
                 >
-                  <option value="1">1 spot</option>
-                  <option value="2">2 spots</option>
-                  <option value="3">3 spots</option>
-                  <option value="5">5 spots</option>
+                  <option value="1">{t("tenant.settings.notifications.1spot")}</option>
+                  <option value="2">{t("tenant.settings.notifications.2spots")}</option>
+                  <option value="3">{t("tenant.settings.notifications.3spots")}</option>
+                  <option value="5">{t("tenant.settings.notifications.5spots")}</option>
                 </select>
               </label>
             </div>
@@ -266,7 +268,7 @@ export default function NotificationsPage() {
 
         {/* Reports */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Reports</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.notifications.reports")}</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3">
               <input
@@ -278,10 +280,10 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">
-                  Daily Digest
+                  {t("tenant.settings.notifications.dailyDigest")}
                 </p>
                 <p className="text-sm text-foreground-muted">
-                  Receive a daily summary of bookings and activity
+                  {t("tenant.settings.notifications.dailyDigestDesc")}
                 </p>
               </div>
             </label>
@@ -296,10 +298,10 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">
-                  Weekly Report
+                  {t("tenant.settings.notifications.weeklyReport")}
                 </p>
                 <p className="text-sm text-foreground-muted">
-                  Receive weekly analytics and performance reports
+                  {t("tenant.settings.notifications.weeklyReportDesc")}
                 </p>
               </div>
             </label>
@@ -312,13 +314,13 @@ export default function NotificationsPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
           >
-            {isSubmitting ? "Saving..." : "Save Settings"}
+            {isSubmitting ? t("common.saving") : t("tenant.settings.notifications.saveSettings")}
           </button>
           <Link
             to="/tenant/settings"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </fetcher.Form>

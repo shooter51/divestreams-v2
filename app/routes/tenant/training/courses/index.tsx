@@ -3,6 +3,7 @@ import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getCourses, getAgencies, getCourseById, updateCourse } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
+import { useT } from "../../../../i18n/use-t";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Training Courses - DiveStreams" }];
@@ -91,6 +92,8 @@ export default function CoursesIndexPage() {
   const [, setSearchParams] = useSearchParams();
   const fetcher = useFetcher();
 
+  const t = useT();
+
   // Show notifications from URL params
   useNotification();
 
@@ -114,18 +117,18 @@ export default function CoursesIndexPage() {
           to="/tenant/training"
           className="text-brand hover:underline text-sm inline-flex items-center gap-1 mb-3"
         >
-          ← Back to Training Dashboard
+          {t("tenant.training.backToDashboard")}
         </Link>
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Training Courses</h1>
-            <p className="text-foreground-muted">{total} courses</p>
+            <h1 className="text-2xl font-bold">{t("tenant.training.courses.title")}</h1>
+            <p className="text-foreground-muted">{total} {t("tenant.training.courses.coursesCount")}</p>
           </div>
           <Link
             to="/tenant/training/courses/new"
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Create Course
+            {t("tenant.training.courses.createCourse")}
           </Link>
         </div>
       </div>
@@ -136,7 +139,7 @@ export default function CoursesIndexPage() {
           type="text"
           name="search"
           defaultValue={search}
-          placeholder="Search courses..."
+          placeholder={t("tenant.training.courses.searchPlaceholder")}
           className="flex-1 min-w-[200px] px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
         <select
@@ -144,7 +147,7 @@ export default function CoursesIndexPage() {
           defaultValue={agencyFilter}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
-          <option value="">All Agencies</option>
+          <option value="">{t("tenant.training.courses.allAgencies")}</option>
           {agencies.map((agency) => (
             <option key={agency.id} value={agency.id}>
               {agency.name}
@@ -156,15 +159,15 @@ export default function CoursesIndexPage() {
           defaultValue={statusFilter}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="">{t("tenant.training.allStatuses")}</option>
+          <option value="active">{t("common.active")}</option>
+          <option value="inactive">{t("common.inactive")}</option>
         </select>
         <button
           type="submit"
           className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
-          Filter
+          {t("tenant.training.filter")}
         </button>
       </form>
 
@@ -173,8 +176,8 @@ export default function CoursesIndexPage() {
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
           <p className="text-foreground-muted">
             {search || agencyFilter || statusFilter
-              ? "No courses found matching your filters."
-              : "No courses yet. Create your first training course to get started."}
+              ? t("tenant.training.courses.noCoursesFiltered")
+              : t("tenant.training.courses.noCoursesYet")}
           </p>
         </div>
       ) : (
@@ -183,25 +186,25 @@ export default function CoursesIndexPage() {
             <thead className="bg-surface-inset border-b">
               <tr>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted w-20">
-                  Image
+                  {t("tenant.training.courses.image")}
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                  Course
+                  {t("tenant.training.courses.course")}
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                  Agency / Level
+                  {t("tenant.training.courses.agencyLevel")}
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                  Duration
+                  {t("common.duration")}
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                  Price
+                  {t("common.price")}
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                  Status
+                  {t("common.status")}
                 </th>
                 <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">
-                  Actions
+                  {t("tenant.training.actions")}
                 </th>
               </tr>
             </thead>
@@ -224,7 +227,7 @@ export default function CoursesIndexPage() {
                       className="w-16 h-16 bg-surface-inset rounded flex items-center justify-center text-foreground-muted text-xs"
                       style={course.imageUrl ? { display: "none" } : undefined}
                     >
-                      No image
+                      {t("tenant.training.courses.noImage")}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -255,7 +258,7 @@ export default function CoursesIndexPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm">
-                      {course.durationDays} {course.durationDays === 1 ? "day" : "days"}
+                      {course.durationDays} {course.durationDays === 1 ? t("tenant.training.day") : t("tenant.training.days")}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -271,11 +274,11 @@ export default function CoursesIndexPage() {
                           : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
-                      {course.isActive ? "Active" : "Inactive"}
+                      {course.isActive ? t("common.active") : t("common.inactive")}
                     </span>
                     {course.isPublic && (
                       <span className="ml-1 text-xs px-2 py-1 rounded-full bg-brand-muted text-brand">
-                        Public
+                        {t("tenant.training.courses.public")}
                       </span>
                     )}
                   </td>
@@ -293,14 +296,14 @@ export default function CoursesIndexPage() {
                               : "border-foreground-muted text-foreground-muted hover:bg-surface-inset"
                           }`}
                         >
-                          {course.isPublic ? "Public" : "Make Public"}
+                          {course.isPublic ? t("tenant.training.courses.public") : t("tenant.training.courses.makePublic")}
                         </button>
                       </fetcher.Form>
                       <Link
                         to={`/tenant/training/courses/${course.id}`}
                         className="text-brand hover:underline text-sm"
                       >
-                        View
+                        {t("tenant.training.view")}
                       </Link>
                     </div>
                   </td>

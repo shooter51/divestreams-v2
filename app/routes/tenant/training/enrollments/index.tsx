@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getEnrollments, getSessions } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
 import { formatCurrency } from "../../../../lib/format";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Enrollments - DiveStreams" }];
 
@@ -85,30 +86,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const enrollmentStatusLabels: Record<string, string> = {
-  enrolled: "Enrolled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  dropped: "Dropped",
-  failed: "Failed",
-};
-
 const statusColors: Record<string, string> = {
   enrolled: "bg-brand-muted text-brand",
   in_progress: "bg-warning-muted text-warning",
   completed: "bg-success-muted text-success",
   dropped: "bg-surface-inset text-foreground-muted",
   failed: "bg-danger-muted text-danger",
-};
-
-const statusLabels: Record<string, string> = {
-  enrolled: "Enrolled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  withdrawn: "Withdrawn",
-  dropped: "Dropped",
-  failed: "Failed",
 };
 
 const paymentStatusColors: Record<string, string> = {
@@ -118,16 +101,37 @@ const paymentStatusColors: Record<string, string> = {
   refunded: "bg-surface-inset text-foreground-muted",
 };
 
-const paymentStatusLabels: Record<string, string> = {
-  paid: "Paid",
-  partial: "Partial",
-  pending: "Pending",
-  waived: "Waived",
-  refunded: "Refunded",
-};
-
 export default function EnrollmentsPage() {
   useNotification();
+  const t = useT();
+
+  const statusKeyMap: Record<string, string> = {
+    enrolled: "enrolled",
+    in_progress: "inProgress",
+    completed: "completed",
+    cancelled: "cancelled",
+    withdrawn: "withdrawn",
+    dropped: "dropped",
+    failed: "failed",
+  };
+
+  const paymentKeyMap: Record<string, string> = {
+    paid: "paid",
+    partial: "partial",
+    pending: "pending",
+    waived: "waived",
+    refunded: "refunded",
+  };
+
+  const getStatusLabel = (s: string) => {
+    const key = statusKeyMap[s];
+    return key ? t(`tenant.training.enrollments.status.${key}`) : s;
+  };
+
+  const getPaymentLabel = (s: string) => {
+    const key = paymentKeyMap[s];
+    return key ? t(`tenant.training.enrollments.paymentStatus.${key}`) : s;
+  };
 
   const { enrollments, sessions, total, status, sessionId, stats } =
     useLoaderData<typeof loader>();
@@ -152,14 +156,14 @@ export default function EnrollmentsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Training Enrollments</h1>
-          <p className="text-foreground-muted">{total} total enrollments</p>
+          <h1 className="text-2xl font-bold">{t("tenant.training.enrollments.title")}</h1>
+          <p className="text-foreground-muted">{t("tenant.training.enrollments.totalEnrollments", { count: total })}</p>
         </div>
         <Link
           to="/tenant/training/enrollments/new"
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
         >
-          New Enrollment
+          {t("tenant.training.enrollments.newEnrollment")}
         </Link>
       </div>
 
@@ -167,21 +171,21 @@ export default function EnrollmentsPage() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold text-brand">{stats.enrolled}</p>
-          <p className="text-foreground-muted text-sm">Enrolled</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.training.enrollments.status.enrolled")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold text-warning">
             {stats.inProgress}
           </p>
-          <p className="text-foreground-muted text-sm">In Progress</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.training.enrollments.status.inProgress")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold text-success">{stats.completed}</p>
-          <p className="text-foreground-muted text-sm">Completed</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.training.enrollments.status.completed")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{stats.certified}</p>
-          <p className="text-foreground-muted text-sm">Certified</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.training.enrollments.certified")}</p>
         </div>
       </div>
 
@@ -189,31 +193,31 @@ export default function EnrollmentsPage() {
       <form onSubmit={handleFilter} className="mb-6 flex gap-4 items-end">
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Status
+            {t("common.status")}
           </label>
           <select
             name="status"
             defaultValue={status}
             className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           >
-            <option value="">All Statuses</option>
-            <option value="enrolled">Enrolled</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="dropped">Dropped</option>
-            <option value="failed">Failed</option>
+            <option value="">{t("tenant.training.enrollments.allStatuses")}</option>
+            <option value="enrolled">{t("tenant.training.enrollments.status.enrolled")}</option>
+            <option value="in_progress">{t("tenant.training.enrollments.status.inProgress")}</option>
+            <option value="completed">{t("tenant.training.enrollments.status.completed")}</option>
+            <option value="dropped">{t("tenant.training.enrollments.status.dropped")}</option>
+            <option value="failed">{t("tenant.training.enrollments.status.failed")}</option>
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Session
+            {t("tenant.training.enrollments.session")}
           </label>
           <select
             name="sessionId"
             defaultValue={sessionId}
             className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           >
-            <option value="">All Sessions</option>
+            <option value="">{t("tenant.training.enrollments.allSessions")}</option>
             {sessions.map((session) => (
               <option key={session.id} value={session.id}>
                 {session.courseName} - {formatDate(session.startDate)}{session.startTime ? ` at ${formatTime(session.startTime)}` : ""}
@@ -225,7 +229,7 @@ export default function EnrollmentsPage() {
           type="submit"
           className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
-          Filter
+          {t("common.filter")}
         </button>
         {(status || sessionId) && (
           <button
@@ -233,7 +237,7 @@ export default function EnrollmentsPage() {
             onClick={clearFilters}
             className="px-4 py-2 text-foreground-muted hover:text-foreground"
           >
-            Clear
+            {t("tenant.training.enrollments.clear")}
           </button>
         )}
       </form>
@@ -244,22 +248,22 @@ export default function EnrollmentsPage() {
           <thead className="bg-surface-inset border-b">
             <tr>
               <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                Student
+                {t("tenant.training.enrollments.col.student")}
               </th>
               <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                Course
+                {t("tenant.training.enrollments.col.course")}
               </th>
               <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                Session Date
+                {t("tenant.training.enrollments.col.sessionDate")}
               </th>
               <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                Status
+                {t("common.status")}
               </th>
               <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                Payment
+                {t("tenant.training.enrollments.col.payment")}
               </th>
               <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
-                Certification
+                {t("tenant.training.enrollments.col.certification")}
               </th>
               <th className="px-6 py-3"></th>
             </tr>
@@ -269,8 +273,8 @@ export default function EnrollmentsPage() {
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-foreground-muted">
                   {status || sessionId
-                    ? "No enrollments found matching your filters."
-                    : "No enrollments yet. Create your first enrollment to get started."}
+                    ? t("tenant.training.enrollments.noEnrollmentsFiltered")
+                    : t("tenant.training.enrollments.noEnrollments")}
                 </td>
               </tr>
             ) : (
@@ -298,7 +302,7 @@ export default function EnrollmentsPage() {
                   <td className="px-6 py-4">
                     <p>{enrollment.sessionDate}</p>
                     <p className="text-xs text-foreground-subtle">
-                      Enrolled: {enrollment.enrolledAt}
+                      {t("tenant.training.enrollments.enrolledOn", { date: enrollment.enrolledAt })}
                     </p>
                   </td>
                   <td className="px-6 py-4">
@@ -308,7 +312,7 @@ export default function EnrollmentsPage() {
                         "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {statusLabels[enrollment.status] || enrollment.status}
+                      {getStatusLabel(enrollment.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -318,7 +322,7 @@ export default function EnrollmentsPage() {
                         "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {paymentStatusLabels[enrollment.paymentStatus || "pending"] || enrollment.paymentStatus || "Pending"}
+                      {getPaymentLabel(enrollment.paymentStatus || "pending")}
                     </span>
                     <p className="text-xs text-foreground-muted mt-1">
                       {formatCurrency(enrollment.amountPaid)}
@@ -335,7 +339,7 @@ export default function EnrollmentsPage() {
                         </p>
                       </div>
                     ) : (
-                      <span className="text-xs text-foreground-subtle">Not certified</span>
+                      <span className="text-xs text-foreground-subtle">{t("tenant.training.enrollments.notCertified")}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -343,7 +347,7 @@ export default function EnrollmentsPage() {
                       to={`/tenant/training/enrollments/${enrollment.id}`}
                       className="text-brand hover:underline text-sm"
                     >
-                      View
+                      {t("common.view")}
                     </Link>
                   </td>
                 </tr>
