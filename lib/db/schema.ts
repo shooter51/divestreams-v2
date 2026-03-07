@@ -620,6 +620,32 @@ export const discountCodes = pgTable("discount_codes", {
   index("discount_codes_org_active_idx").on(table.organizationId, table.isActive),
 ]);
 
+// Subscription coupon codes (platform-level, managed by admin)
+export const subscriptionCoupons = pgTable("subscription_coupons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull(),
+  stripeCouponId: text("stripe_coupon_id"),
+  stripePromotionCodeId: text("stripe_promotion_code_id"),
+  name: text("name").notNull(),
+  discountType: text("discount_type").notNull(), // 'percentage' | 'fixed'
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+  duration: text("duration").notNull().default("once"), // 'once' | 'repeating' | 'forever'
+  durationInMonths: integer("duration_in_months"),
+  maxRedemptions: integer("max_redemptions"),
+  redemptionCount: integer("redemption_count").notNull().default(0),
+  expiresAt: timestamp("expires_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: text("created_by"), // admin user ID
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("subscription_coupons_code_idx").on(table.code),
+  index("subscription_coupons_active_idx").on(table.isActive),
+]);
+
+export type SubscriptionCoupon = typeof subscriptionCoupons.$inferSelect;
+export type NewSubscriptionCoupon = typeof subscriptionCoupons.$inferInsert;
+
 // Customer Communications (email logs)
 export const customerCommunications = pgTable("customer_communications", {
   id: uuid("id").primaryKey().defaultRandom(),
