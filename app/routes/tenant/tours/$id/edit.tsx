@@ -8,6 +8,8 @@ import { tourSchema, validateFormData, getFormValues } from "../../../../../lib/
 import { ImageManager, type Image } from "../../../../components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
 
 export const meta: MetaFunction = () => [{ title: "Edit Tour - DiveStreams" }];
 
@@ -146,6 +148,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(and(eq(schema.tours.organizationId, organizationId), eq(schema.tours.id, tourId)));
+
+  // Enqueue auto-translation for non-default locales
+  const fieldsToTranslate = [
+    { field: "name", text: validation.data.name },
+    { field: "description", text: validation.data.description ?? "" },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "tour",
+      entityId: tourId,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   return redirect(redirectWithNotification(`/tenant/tours/${tourId}`, `Tour "${validation.data.name}" has been successfully updated`, "success"));
 }

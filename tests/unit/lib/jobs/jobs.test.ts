@@ -53,9 +53,14 @@ describe("Jobs Module", () => {
       expect(QUEUES.MAINTENANCE).toBe("maintenance");
     });
 
-    it("has exactly 4 queue types", async () => {
+    it("defines TRANSLATION queue name", async () => {
       const { QUEUES } = await import("../../../../lib/jobs/index");
-      expect(Object.keys(QUEUES)).toHaveLength(4);
+      expect(QUEUES.TRANSLATION).toBe("translation");
+    });
+
+    it("has exactly 5 queue types", async () => {
+      const { QUEUES } = await import("../../../../lib/jobs/index");
+      expect(Object.keys(QUEUES)).toHaveLength(5);
     });
 
     it("all queue names are lowercase strings", async () => {

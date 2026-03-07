@@ -10,6 +10,7 @@
 
 import { Form, useLoaderData, useActionData, useNavigation } from "react-router";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { db } from "../../../../lib/db";
 import { customers, customerCredentials } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -219,6 +220,7 @@ export default function AccountProfile() {
   const { customer, csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
 
   const isSubmitting = navigation.state === "submitting";
 
@@ -227,10 +229,10 @@ export default function AccountProfile() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold" style={{ color: "var(--text-color)" }}>
-          Profile Settings
+          {t("site.account.profile.title")}
         </h2>
         <p className="mt-1 opacity-75">
-          Manage your personal information and account settings
+          {t("site.account.profile.subtitle")}
         </p>
       </div>
 
@@ -240,12 +242,12 @@ export default function AccountProfile() {
         style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h3 className="text-lg font-semibold mb-6" style={{ color: "var(--text-color)" }}>
-          Personal Information
+          {t("site.account.profile.personalInfo")}
         </h3>
 
         {actionData?.type === "profile" && actionData?.success && (
           <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
-            Profile updated successfully!
+            {t("site.account.profile.updateSuccess")}
           </div>
         )}
 
@@ -266,7 +268,7 @@ export default function AccountProfile() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                First Name
+                {t("site.account.profile.firstName")}
               </label>
               <input
                 type="text"
@@ -291,7 +293,7 @@ export default function AccountProfile() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Last Name
+                {t("site.account.profile.lastName")}
               </label>
               <input
                 type="text"
@@ -317,7 +319,7 @@ export default function AccountProfile() {
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-color)" }}
             >
-              Email Address
+              {t("site.account.profile.emailAddress")}
             </label>
             <input
               type="email"
@@ -341,7 +343,7 @@ export default function AccountProfile() {
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-color)" }}
             >
-              Phone Number
+              {t("site.account.profile.phone")}
             </label>
             <input
               type="tel"
@@ -362,8 +364,8 @@ export default function AccountProfile() {
               style={{ backgroundColor: "var(--primary-color)" }}
             >
               {isSubmitting && navigation.formData?.get("intent") === "update-profile"
-                ? "Saving..."
-                : "Save Changes"}
+                ? t("common.loading")
+                : t("site.account.profile.saveChanges")}
             </button>
           </div>
         </Form>
@@ -375,12 +377,12 @@ export default function AccountProfile() {
         style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h3 className="text-lg font-semibold mb-6" style={{ color: "var(--text-color)" }}>
-          Change Password
+          {t("site.account.profile.changePassword")}
         </h3>
 
         {actionData?.type === "password" && actionData?.success && (
           <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
-            Password changed successfully!
+            {t("site.account.profile.passwordSuccess")}
           </div>
         )}
 
@@ -400,7 +402,7 @@ export default function AccountProfile() {
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-color)" }}
             >
-              Current Password
+              {t("site.account.profile.currentPassword")}
             </label>
             <input
               type="password"
@@ -424,7 +426,7 @@ export default function AccountProfile() {
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-color)" }}
             >
-              New Password
+              {t("site.account.profile.newPassword")}
             </label>
             <input
               type="password"
@@ -451,7 +453,7 @@ export default function AccountProfile() {
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-color)" }}
             >
-              Confirm New Password
+              {t("site.account.profile.confirmNewPassword")}
             </label>
             <input
               type="password"
@@ -477,8 +479,8 @@ export default function AccountProfile() {
               style={{ backgroundColor: "var(--primary-color)" }}
             >
               {isSubmitting && navigation.formData?.get("intent") === "change-password"
-                ? "Changing..."
-                : "Change Password"}
+                ? t("common.loading")
+                : t("site.account.profile.changePasswordButton")}
             </button>
           </div>
         </Form>
@@ -490,7 +492,7 @@ export default function AccountProfile() {
         style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-color)" }}>
-          Sign Out
+          {t("site.account.profile.signOut")}
         </h3>
         <p className="text-sm opacity-75 mb-4">
           Sign out of your account on this device
@@ -504,8 +506,8 @@ export default function AccountProfile() {
             className="px-6 py-2.5 rounded-lg border font-medium transition-colors hover:bg-danger-muted text-danger border-danger disabled:opacity-50"
           >
             {isSubmitting && navigation.formData?.get("intent") === "logout"
-              ? "Signing out..."
-              : "Sign Out"}
+              ? t("site.account.profile.signingOut")
+              : t("site.account.profile.signOut")}
           </button>
         </Form>
       </div>

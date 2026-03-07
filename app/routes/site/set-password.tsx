@@ -21,6 +21,7 @@ import {
   Form,
 } from "react-router";
 import { useState } from "react";
+import { useT } from "../../i18n/use-t";
 import { eq, and } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
@@ -198,6 +199,7 @@ export default function SetPasswordPage() {
 
   const token = searchParams.get("token");
   const error = actionData?.error || loaderData.error;
+  const t = useT();
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-surface">
@@ -205,7 +207,7 @@ export default function SetPasswordPage() {
         <div className="bg-surface-raised rounded-xl shadow-lg p-8">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold mb-2">Set Your Password</h1>
+            <h1 className="text-2xl font-bold mb-2">{t("site.setPassword.title")}</h1>
             <p className="text-foreground-muted text-sm">
               Welcome to {loaderData.org.name}! Please set your password to access your account.
             </p>
@@ -215,7 +217,7 @@ export default function SetPasswordPage() {
           {!loaderData.tokenValid && (
             <div className="space-y-4">
               <div className="bg-danger-muted border border-danger text-danger p-4 rounded-lg max-w-4xl break-words">
-                <p className="font-semibold mb-2">Invalid or Expired Link</p>
+                <p className="font-semibold mb-2">{t("site.setPassword.invalidLink")}</p>
                 <p className="text-sm">{error}</p>
               </div>
               <div className="text-center">
@@ -226,7 +228,7 @@ export default function SetPasswordPage() {
                   to="/site/contact"
                   className="text-brand hover:underline text-sm"
                 >
-                  Contact Us
+                  {t("site.setPassword.contactUs")}
                 </Link>
               </div>
             </div>
@@ -240,7 +242,7 @@ export default function SetPasswordPage() {
               {/* Email (Display Only) */}
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Email Address
+                  {t("site.setPassword.emailAddress")}
                 </label>
                 <div className="px-4 py-2 bg-surface-inset border border-border-strong rounded-lg text-foreground-muted">
                   {loaderData.email}
@@ -250,7 +252,7 @@ export default function SetPasswordPage() {
               {/* Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium mb-1">
-                  Password *
+                  {t("site.setPassword.password")} *
                 </label>
                 <div className="relative">
                   <input
@@ -288,7 +290,7 @@ export default function SetPasswordPage() {
               {/* Confirm Password */}
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-                  Confirm Password *
+                  {t("site.setPassword.confirmPassword")} *
                 </label>
                 <div className="relative">
                   <input
@@ -333,7 +335,7 @@ export default function SetPasswordPage() {
                 disabled={isSubmitting}
                 className="w-full bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled font-medium"
               >
-                {isSubmitting ? "Setting Password..." : "Set Password & Continue"}
+                {isSubmitting ? t("site.setPassword.settingPassword") : t("site.setPassword.setPasswordButton")}
               </button>
 
               {/* Help Text */}

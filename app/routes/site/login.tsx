@@ -23,6 +23,7 @@ import {
   Form,
 } from "react-router";
 import { useState } from "react";
+import { useT } from "../../i18n/use-t";
 import { eq } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
@@ -277,15 +278,18 @@ export default function SiteLoginPage() {
   const organization = layoutData?.organization;
   const redirectTo = searchParams.get("redirect");
   const message = searchParams.get("message");
+  const t = useT();
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome Back</h1>
+          <h1 className="text-3xl font-bold">{t("site.login.welcomeBack")}</h1>
           <p className="mt-2 opacity-75">
-            Sign in to your {organization?.name ? `${organization.name} account` : "account"}
+            {organization?.name
+              ? t("site.login.signInTo", { name: organization.name })
+              : t("site.login.signInToAccount")}
           </p>
         </div>
 
@@ -312,7 +316,7 @@ export default function SiteLoginPage() {
                 />
               </svg>
               <span className="font-medium">
-                Password set successfully! You can now sign in with your new password.
+                {t("site.login.passwordSetSuccess")}
               </span>
             </div>
           </div>
@@ -361,7 +365,7 @@ export default function SiteLoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium mb-2"
               >
-                Email Address
+                {t("site.login.emailAddress")}
               </label>
               <input
                 type="email"
@@ -395,14 +399,14 @@ export default function SiteLoginPage() {
                   htmlFor="password"
                   className="block text-sm font-medium"
                 >
-                  Password
+                  {t("site.login.password")}
                 </label>
                 <Link
                   to="/auth/forgot-password"
                   className="text-sm font-medium hover:opacity-80 transition-opacity"
                   style={{ color: "var(--primary-color)" }}
                 >
-                  Forgot password?
+                  {t("site.login.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -466,7 +470,7 @@ export default function SiteLoginPage() {
                 htmlFor="rememberMe"
                 className="text-sm cursor-pointer select-none"
               >
-                Remember me for 30 days
+                {t("site.login.rememberMe")}
               </label>
             </div>
 
@@ -501,10 +505,10 @@ export default function SiteLoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Signing in...
+                  {t("site.login.signingIn")}
                 </span>
               ) : (
-                "Sign In"
+                t("site.login.signIn")
               )}
             </button>
 
@@ -527,7 +531,9 @@ export default function SiteLoginPage() {
                 className="px-4"
                 style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
               >
-                New to {organization?.name || "our site"}?
+                {organization?.name
+                  ? t("site.login.newToOrg", { name: organization.name })
+                  : t("site.login.newToSite")}
               </span>
             </div>
           </div>
@@ -541,19 +547,19 @@ export default function SiteLoginPage() {
               color: "var(--primary-color)",
             }}
           >
-            Create an Account
+            {t("site.login.createAccount")}
           </Link>
         </div>
 
         {/* Help Text */}
         <p className="mt-8 text-center text-sm opacity-75">
-          Having trouble signing in?{" "}
+          {t("site.login.troubleSigningIn")}{" "}
           <Link
             to="/site/contact"
             className="font-medium hover:opacity-80"
             style={{ color: "var(--primary-color)" }}
           >
-            Contact us
+            {t("site.login.contactUs")}
           </Link>
         </p>
       </div>

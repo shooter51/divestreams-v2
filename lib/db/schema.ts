@@ -57,6 +57,7 @@ export {
 export * from "./schema/stripe";
 export * from "./schema/zapier";
 export * from "./schema/onboarding";
+export * from "./schema/translations";
 
 // Import organization for foreign key references
 import { organization, user } from "./schema/auth";
