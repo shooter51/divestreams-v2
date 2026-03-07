@@ -58,39 +58,48 @@ export function ZapierIntegration({
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;
 
-  if (fetcherData && "showZapierModal" in fetcherData && fetcherData.showZapierModal) {
-    if (!showConnectModal) setShowConnectModal(true);
-  }
+  useEffect(() => {
+    if (!fetcherData) return;
 
-  if (fetcherData && "zapierConnected" in fetcherData && fetcherData.zapierConnected) {
-    if (!showSecretModal && fetcherData.zapierSecret) {
-      setSecret(fetcherData.zapierSecret as string);
-      setShowSecretModal(true);
-      setShowConnectModal(false);
+    if ("showZapierModal" in fetcherData && fetcherData.showZapierModal) {
+      setShowConnectModal(true);
+      return;
     }
-  }
 
-  if (fetcherData && "zapierSecretRegenerated" in fetcherData && fetcherData.zapierSecretRegenerated) {
-    if (!showSecretModal && fetcherData.newZapierSecret) {
-      setSecret(fetcherData.newZapierSecret as string);
-      setShowSecretModal(true);
+    if ("zapierConnected" in fetcherData && fetcherData.zapierConnected) {
+      if (fetcherData.zapierSecret) {
+        setSecret(fetcherData.zapierSecret as string);
+        setShowSecretModal(true);
+        setShowConnectModal(false);
+      }
+      return;
     }
-  }
 
-  if (fetcherData && "zapierTestSuccess" in fetcherData && fetcherData.zapierTestSuccess) {
-    onNotification({ type: "success", message: "Test webhook sent successfully!" });
-  }
-
-  if (fetcherData && "success" in fetcherData && fetcherData.success && "message" in fetcherData) {
-    if (showConfigModal && !("zapierConnected" in fetcherData) && !("zapierTestSuccess" in fetcherData)) {
-      onNotification({ type: "success", message: fetcherData.message as string });
-      setShowConfigModal(false);
+    if ("zapierSecretRegenerated" in fetcherData && fetcherData.zapierSecretRegenerated) {
+      if (fetcherData.newZapierSecret) {
+        setSecret(fetcherData.newZapierSecret as string);
+        setShowSecretModal(true);
+      }
+      return;
     }
-  }
 
-  if (fetcherData && "error" in fetcherData && !("success" in fetcherData)) {
-    onNotification({ type: "error", message: fetcherData.error as string });
-  }
+    if ("zapierTestSuccess" in fetcherData && fetcherData.zapierTestSuccess) {
+      onNotification({ type: "success", message: "Test webhook sent successfully!" });
+      return;
+    }
+
+    if ("success" in fetcherData && fetcherData.success && "message" in fetcherData) {
+      if (!("zapierConnected" in fetcherData) && !("zapierTestSuccess" in fetcherData)) {
+        onNotification({ type: "success", message: fetcherData.message as string });
+        setShowConfigModal(false);
+      }
+      return;
+    }
+
+    if ("error" in fetcherData && !("success" in fetcherData)) {
+      onNotification({ type: "error", message: fetcherData.error as string });
+    }
+  }, [fetcherData, onNotification]);
 
   // Trigger checkbox renderer (shared between connect and config modals)
   const renderTriggerCheckboxes = () => (

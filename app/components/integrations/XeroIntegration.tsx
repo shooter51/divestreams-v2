@@ -37,27 +37,32 @@ export function XeroIntegration({
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;
 
-  if (fetcherData && "showXeroOAuthModal" in fetcherData && fetcherData.showXeroOAuthModal) {
-    if (!showOAuthModal) setShowOAuthModal(true);
-  }
+  useEffect(() => {
+    if (!fetcherData) return;
 
-  if (fetcherData && "showXeroConfigModal" in fetcherData && fetcherData.showXeroConfigModal) {
-    if (!showConfigModal) setShowConfigModal(true);
-  }
+    if ("showXeroOAuthModal" in fetcherData && fetcherData.showXeroOAuthModal) {
+      setShowOAuthModal(true);
+      return;
+    }
 
-  if (fetcherData && "success" in fetcherData && fetcherData.success && "message" in fetcherData) {
-    if (showOAuthModal || showConfigModal) {
+    if ("showXeroConfigModal" in fetcherData && fetcherData.showXeroConfigModal) {
+      setShowConfigModal(true);
+      return;
+    }
+
+    if ("success" in fetcherData && fetcherData.success && "message" in fetcherData) {
       onNotification({ type: "success", message: fetcherData.message as string });
       setShowOAuthModal(false);
       setShowConfigModal(false);
       setClientId("");
       setClientSecret("");
+      return;
     }
-  }
 
-  if (fetcherData && "error" in fetcherData && !("success" in fetcherData)) {
-    onNotification({ type: "error", message: fetcherData.error as string });
-  }
+    if ("error" in fetcherData && !("success" in fetcherData)) {
+      onNotification({ type: "error", message: fetcherData.error as string });
+    }
+  }, [fetcherData, onNotification]);
 
   return (
     <>
