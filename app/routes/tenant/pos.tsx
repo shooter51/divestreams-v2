@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
+import { useKeyboardScanner } from "../../hooks/useKeyboardScanner";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { z } from "zod";
@@ -581,6 +582,9 @@ export default function POSPage() {
     if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
   }, [fetcher, csrfToken]);
+
+  // USB HID barcode scanner (keyboard emulation)
+  useKeyboardScanner({ onScan: handleBarcodeScan });
 
   // Refund handling
   const handleTransactionFound = useCallback((transaction: typeof selectedTransaction) => {
