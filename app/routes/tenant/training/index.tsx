@@ -82,6 +82,12 @@ export default function TrainingDashboardPage() {
           >
             View Sessions
           </Link>
+          <Link
+            to="/tenant/training/series"
+            className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
+          >
+            View Series
+          </Link>
         </div>
       </div>
 
@@ -111,6 +117,14 @@ export default function TrainingDashboardPage() {
           icon="🏅"
           linkTo="/tenant/training/enrollments?status=completed"
         />
+        {stats.activeSeries !== undefined && (
+          <StatCard
+            title="Active Series"
+            value={stats.activeSeries}
+            icon="📋"
+            linkTo="/tenant/training/series"
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-6">
@@ -240,6 +254,13 @@ export default function TrainingDashboardPage() {
           >
             <span className="text-xl">+</span>
             <span>New Enrollment</span>
+          </Link>
+          <Link
+            to="/tenant/training/series/new"
+            className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
+          >
+            <span className="text-xl">+</span>
+            <span>Create Series</span>
           </Link>
         </div>
       </div>

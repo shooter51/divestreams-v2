@@ -40,6 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const maxStudents = formData.get("maxStudents") as string;
   const priceOverride = formData.get("priceOverride") as string;
   const notes = formData.get("notes") as string;
+  const sessionType = formData.get("sessionType") as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -69,6 +70,7 @@ export async function action({ request }: ActionFunctionArgs) {
     maxStudents: maxStudents ? parseInt(maxStudents) : undefined,
     priceOverride: priceOverride || undefined,
     notes: notes || undefined,
+    sessionType: sessionType || undefined,
     status: "scheduled",
   });
 
@@ -281,6 +283,29 @@ export default function NewSessionPage() {
               Leave blank to use course price
               {selectedCourse && ` ($${Number(selectedCourse.price).toFixed(2)})`}
             </p>
+          </div>
+        </div>
+
+        {/* Session Type */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Session Type</h2>
+          <div>
+            <label htmlFor="sessionType" className="block text-sm font-medium mb-1">
+              Session Type
+            </label>
+            <select
+              id="sessionType"
+              name="sessionType"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+            >
+              <option value="">Not specified</option>
+              <option value="classroom">Classroom</option>
+              <option value="pool">Pool</option>
+              <option value="confined_water">Confined Water</option>
+              <option value="open_water">Open Water</option>
+              <option value="exam">Exam</option>
+              <option value="other">Other</option>
+            </select>
           </div>
         </div>
 
