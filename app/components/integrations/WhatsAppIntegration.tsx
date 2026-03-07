@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 
@@ -30,12 +30,15 @@ export function WhatsAppIntegration({
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;
 
-  if (fetcherData && "showWhatsAppModal" in fetcherData && fetcherData.showWhatsAppModal) {
-    if (!showConnectModal) setShowConnectModal(true);
-  }
+  useEffect(() => {
+    if (!fetcherData) return;
 
-  if (fetcherData && "success" in fetcherData && fetcherData.success && "message" in fetcherData) {
-    if (showConnectModal || showTestModal) {
+    if ("showWhatsAppModal" in fetcherData && fetcherData.showWhatsAppModal) {
+      setShowConnectModal(true);
+      return;
+    }
+
+    if ("success" in fetcherData && fetcherData.success && "message" in fetcherData) {
       onNotification({ type: "success", message: fetcherData.message as string });
       setShowConnectModal(false);
       setShowTestModal(false);
@@ -47,12 +50,13 @@ export function WhatsAppIntegration({
       setTwilioAuthToken("");
       setTwilioNumber("");
       setTestNumber("");
+      return;
     }
-  }
 
-  if (fetcherData && "error" in fetcherData && !("success" in fetcherData)) {
-    onNotification({ type: "error", message: fetcherData.error as string });
-  }
+    if ("error" in fetcherData && !("success" in fetcherData)) {
+      onNotification({ type: "error", message: fetcherData.error as string });
+    }
+  }, [fetcherData, onNotification]);
 
   return (
     <>
