@@ -293,12 +293,24 @@ export async function getOrgContext(
     planDetails.monthlyPrice > 0 &&
     (sub?.status === "active" || sub?.status === "trialing");
 
+  // Apply per-tenant feature overrides (admin-set)
+  const planFeatures = (planDetails?.features as PlanFeaturesObject) || DEFAULT_PLAN_FEATURES.standard;
+  const overrides = sub?.featureOverrides as Record<string, boolean | null> | null;
+  const effectiveFeatures: PlanFeaturesObject = overrides
+    ? Object.entries(overrides).reduce((acc, [key, value]) => {
+        if (value !== null) {
+          (acc as Record<string, boolean>)[key] = value;
+        }
+        return acc;
+      }, { ...planFeatures })
+    : planFeatures;
+
   // Build TierLimits from the DB plan data (single source of truth).
   // Falls back to FREE_TIER_LIMITS when no plan is found.
   const limits: TierLimits = planDetails
     ? buildTierLimits(
         planDetails.limits as PlanLimits,
-        planDetails.features as PlanFeaturesObject
+        effectiveFeatures
       )
     : FREE_TIER_LIMITS;
 
@@ -369,7 +381,7 @@ export async function getOrgContext(
               id: planDetails.id,
               name: planDetails.name,
               displayName: planDetails.displayName,
-              features: planDetails.features as PlanFeaturesObject,
+              features: effectiveFeatures,
               limits: planDetails.limits as PlanLimits,
             }
           : undefined,
