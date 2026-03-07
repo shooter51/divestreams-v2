@@ -8,6 +8,8 @@
 import { Outlet, Link, useLoaderData, useLocation, Form, isRouteErrorResponse, useRouteError } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
+import { useT } from "../../i18n/use-t";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import { eq } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization, type PublicSiteSettings } from "../../../lib/db/schema/auth";
@@ -193,30 +195,31 @@ export default function SiteLayout() {
   const { organization, themeVars, enabledPages, contactInfo, darkCSS, customer } =
     useLoaderData<typeof loader>();
   const location = useLocation();
+  const t = useT();
 
   // Build navigation items based on enabled pages
   const navItems: { href: string; label: string }[] = [];
 
   if (enabledPages.home) {
-    navItems.push({ href: "/site", label: "Home" });
+    navItems.push({ href: "/site", label: t("nav.home") });
   }
   if (enabledPages.about) {
-    navItems.push({ href: "/site/about", label: "About" });
+    navItems.push({ href: "/site/about", label: t("nav.about") });
   }
   if (enabledPages.trips) {
-    navItems.push({ href: "/site/trips", label: "Trips" });
+    navItems.push({ href: "/site/trips", label: t("nav.trips") });
   }
   if (enabledPages.courses) {
-    navItems.push({ href: "/site/courses", label: "Courses" });
+    navItems.push({ href: "/site/courses", label: t("nav.courses") });
   }
   if (enabledPages.equipment) {
-    navItems.push({ href: "/site/equipment", label: "Equipment" });
+    navItems.push({ href: "/site/equipment", label: t("nav.equipment") });
   }
   if (enabledPages.gallery) {
-    navItems.push({ href: "/site/gallery", label: "Gallery" });
+    navItems.push({ href: "/site/gallery", label: t("nav.gallery") });
   }
   if (enabledPages.contact) {
-    navItems.push({ href: "/site/contact", label: "Contact" });
+    navItems.push({ href: "/site/contact", label: t("nav.contact") });
   }
 
   // Check if a nav item is active
@@ -295,6 +298,7 @@ export default function SiteLayout() {
 
             {/* Auth Actions */}
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               {customer ? (
                 <>
                   <Link
@@ -304,7 +308,7 @@ export default function SiteLayout() {
                       color: "var(--primary-color)",
                     }}
                   >
-                    My Account
+                    {t("auth.myAccount")}
                   </Link>
                   <Form method="post" action="/site/account/logout">
                     <button
@@ -314,7 +318,7 @@ export default function SiteLayout() {
                         color: "var(--text-color)",
                       }}
                     >
-                      Log Out
+                      {t("auth.logout")}
                     </button>
                   </Form>
                 </>
@@ -327,7 +331,7 @@ export default function SiteLayout() {
                       color: "var(--primary-color)",
                     }}
                   >
-                    Log In
+                    {t("auth.login")}
                   </Link>
                   <Link
                     to="/site/register"
@@ -336,7 +340,7 @@ export default function SiteLayout() {
                       backgroundColor: "var(--primary-color)",
                     }}
                   >
-                    Sign Up
+                    {t("auth.signup")}
                   </Link>
                 </>
               )}
@@ -412,7 +416,7 @@ export default function SiteLayout() {
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <h4 className="font-semibold mb-4">{t("site.footer.quickLinks")}</h4>
               <ul className="space-y-2 text-sm">
                 {navItems.slice(0, 5).map((item) => (
                   <li key={item.href}>
@@ -429,7 +433,7 @@ export default function SiteLayout() {
 
             {/* Contact Info */}
             <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
+              <h4 className="font-semibold mb-4">{t("site.footer.contact")}</h4>
               <ul className="space-y-2 text-sm">
                 {contactInfo?.phone && (
                   <li className="opacity-75">
@@ -453,11 +457,11 @@ export default function SiteLayout() {
             style={{ borderColor: "var(--color-border)" }}
           >
             <p suppressHydrationWarning>
-              &copy; {new Date().getFullYear()} {organization.name}. All rights reserved.
+              &copy; {new Date().getFullYear()} {organization.name}. {t("site.footer.allRightsReserved")}
             </p>
             <div className="flex gap-4">
               <Link to="/site/account" className="hover:opacity-100">
-                My Account
+                {t("auth.myAccount")}
               </Link>
               <a
                 href="https://divestreams.com"
@@ -465,7 +469,7 @@ export default function SiteLayout() {
                 rel="noopener noreferrer"
                 className="hover:opacity-100"
               >
-                Powered by DiveStreams
+                {t("site.footer.poweredBy")}
               </a>
             </div>
           </div>

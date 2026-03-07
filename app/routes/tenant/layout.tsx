@@ -9,6 +9,8 @@ import type { PlanFeatureKey, PlanFeaturesObject, PlanLimits } from "../../../li
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
 import { ToastProvider } from "../../../lib/toast-context";
 import { generateCsrfToken } from "../../../lib/security/csrf.server";
+import { useT } from "../../i18n/use-t";
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -71,6 +73,7 @@ export default function TenantLayout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
+  const t = useT();
 
   const isTrialing = tenant.subscriptionStatus === "trialing";
   // Use server-calculated trialDaysLeft for accurate countdown
@@ -82,22 +85,22 @@ export default function TenantLayout() {
     icon: string;
     feature?: PlanFeatureKey;
   }> = [
-    { href: "/tenant", label: "Dashboard", icon: "📊" },
-    { href: "/tenant/bookings", label: "Bookings", icon: "📅", feature: "has_tours_bookings" },
-    { href: "/tenant/calendar", label: "Calendar", icon: "🗓️" },
-    { href: "/tenant/customers", label: "Customers", icon: "👥" },
-    { href: "/tenant/tours", label: "Tours", icon: "🏝️", feature: "has_tours_bookings" },
-    { href: "/tenant/trips", label: "Trips", icon: "🚤", feature: "has_tours_bookings" },
-    { href: "/tenant/dive-sites", label: "Dive Sites", icon: "🌊" },
-    { href: "/tenant/boats", label: "Boats", icon: "⛵", feature: "has_equipment_boats" },
-    { href: "/tenant/equipment", label: "Equipment", icon: "🤿", feature: "has_equipment_boats" },
-    { href: "/tenant/pos/products", label: "Products", icon: "📦", feature: "has_pos" },
-    { href: "/tenant/discounts", label: "Discounts", icon: "🏷️", feature: "has_pos" },
-    { href: "/tenant/training", label: "Training", icon: "🎓", feature: "has_training" },
-    { href: "/tenant/gallery", label: "Gallery", icon: "📸" },
-    { href: "/tenant/pos", label: "POS", icon: "💳", feature: "has_pos" },
-    { href: "/tenant/reports", label: "Reports", icon: "📈" },
-    { href: "/tenant/settings", label: "Settings", icon: "⚙️" },
+    { href: "/tenant", label: t("nav.dashboard"), icon: "📊" },
+    { href: "/tenant/bookings", label: t("nav.bookings"), icon: "📅", feature: "has_tours_bookings" },
+    { href: "/tenant/calendar", label: t("nav.calendar"), icon: "🗓️" },
+    { href: "/tenant/customers", label: t("nav.customers"), icon: "👥" },
+    { href: "/tenant/tours", label: t("nav.tours"), icon: "🏝️", feature: "has_tours_bookings" },
+    { href: "/tenant/trips", label: t("nav.trips"), icon: "🚤", feature: "has_tours_bookings" },
+    { href: "/tenant/dive-sites", label: t("nav.diveSites"), icon: "🌊" },
+    { href: "/tenant/boats", label: t("nav.boats"), icon: "⛵", feature: "has_equipment_boats" },
+    { href: "/tenant/equipment", label: t("nav.equipment"), icon: "🤿", feature: "has_equipment_boats" },
+    { href: "/tenant/pos/products", label: t("nav.products"), icon: "📦", feature: "has_pos" },
+    { href: "/tenant/discounts", label: t("nav.discounts"), icon: "🏷️", feature: "has_pos" },
+    { href: "/tenant/training", label: t("nav.training"), icon: "🎓", feature: "has_training" },
+    { href: "/tenant/gallery", label: t("nav.gallery"), icon: "📸" },
+    { href: "/tenant/pos", label: t("nav.pos"), icon: "💳", feature: "has_pos" },
+    { href: "/tenant/reports", label: t("nav.reports"), icon: "📈" },
+    { href: "/tenant/settings", label: t("nav.settings"), icon: "⚙️" },
   ];
 
   return (
@@ -106,9 +109,9 @@ export default function TenantLayout() {
         {/* Trial Banner */}
         {isTrialing && trialDaysLeft > 0 && (
           <div className="bg-brand text-white text-center py-2 text-sm">
-            You have {trialDaysLeft} days left in your free trial.{" "}
+            {t("tenant.trial.daysLeft", { days: trialDaysLeft })}{" "}
             <Link to="/tenant/settings/billing" className="underline font-medium">
-              Upgrade now
+              {t("tenant.trial.upgradeNow")}
             </Link>
           </div>
         )}
@@ -120,7 +123,7 @@ export default function TenantLayout() {
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 text-foreground-muted hover:text-foreground"
-              aria-label="Toggle navigation menu"
+              aria-label={t("tenant.nav.toggleMenu")}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {sidebarOpen ? (
@@ -191,6 +194,9 @@ export default function TenantLayout() {
             </nav>
 
             <div className="p-4 border-t border-border bg-surface flex-shrink-0">
+              <div className="mb-3">
+                <LanguageSwitcher />
+              </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-surface-overlay rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -200,18 +206,18 @@ export default function TenantLayout() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{user?.name || "User"}</p>
                   <p className="text-xs text-foreground-muted truncate">{user?.email}</p>
-                  <p className="text-xs text-foreground-muted capitalize">{membership?.role || "Member"}</p>
+                  <p className="text-xs text-foreground-muted capitalize">{membership?.role || t("tenant.user.role.member")}</p>
                 </div>
                 <form method="post" action="/auth/logout">
                   <button
                     type="submit"
                     className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded transition-colors"
-                    title="Sign out"
+                    title={t("auth.signout")}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    <span>Sign Out</span>
+                    <span>{t("auth.signout")}</span>
                   </button>
                 </form>
               </div>

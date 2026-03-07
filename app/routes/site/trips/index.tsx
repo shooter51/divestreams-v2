@@ -7,6 +7,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
@@ -230,7 +231,7 @@ function formatDate(dateString: string): string {
 }
 
 function formatTime(timeString: string | null): string {
-  if (!timeString) return "Time TBA";
+  if (!timeString) return "";
   const [hours, minutes] = timeString.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -260,6 +261,7 @@ function formatPrice(price: string, currency: string): string {
 export default function SiteTripsPage() {
   const { trips, total, page, totalPages, fromDate, toDate } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const t = useT();
 
   const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -294,11 +296,10 @@ export default function SiteTripsPage() {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ color: "var(--primary-color)" }}
           >
-            Upcoming Dive Trips
+            {t("site.trips.upcomingTitle")}
           </h1>
           <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-            Explore our scheduled dive adventures. Book your spot today and dive into an
-            unforgettable experience.
+            {t("site.trips.upcomingDescription")}
           </p>
         </div>
       </section>
@@ -308,7 +309,7 @@ export default function SiteTripsPage() {
         <div className="max-w-7xl mx-auto">
           <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>From Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>{t("site.trips.fromDate")}</label>
               <input
                 type="date"
                 name="from"
@@ -324,7 +325,7 @@ export default function SiteTripsPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>To Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>{t("site.trips.toDate")}</label>
               <input
                 type="date"
                 name="to"
@@ -345,7 +346,7 @@ export default function SiteTripsPage() {
                 className="px-6 py-2 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "var(--primary-color)" }}
               >
-                Filter
+                {t("site.trips.filter")}
               </button>
               {(searchParams.get("from") || searchParams.get("to")) && (
                 <button
@@ -358,13 +359,13 @@ export default function SiteTripsPage() {
                     backgroundColor: "var(--color-card-bg)"
                   }}
                 >
-                  Clear
+                  {t("site.trips.clear")}
                 </button>
               )}
             </div>
           </form>
           <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
-            Showing {trips.length} of {total} trips
+            {t("site.trips.showingXofY", { count: trips.length, total })}
           </p>
         </div>
       </section>
@@ -393,11 +394,11 @@ export default function SiteTripsPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Trips Found</h2>
+              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>{t("site.trips.noTripsFound")}</h2>
               <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                 {searchParams.get("from") || searchParams.get("to")
-                  ? "Try adjusting your date filters to see more trips."
-                  : "Check back soon for upcoming dive adventures!"}
+                  ? t("site.trips.adjustDateFilters")
+                  : t("site.trips.checkBackSoon")}
               </p>
               {(searchParams.get("from") || searchParams.get("to")) && (
                 <button
@@ -405,7 +406,7 @@ export default function SiteTripsPage() {
                   className="px-6 py-2 rounded-lg text-white font-medium"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
-                  Clear Filters
+                  {t("site.trips.clearFilters")}
                 </button>
               )}
             </div>
@@ -430,7 +431,7 @@ export default function SiteTripsPage() {
                       backgroundColor: "var(--color-card-bg)"
                     }}
                   >
-                    Previous
+                    {t("common.previous")}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -457,7 +458,7 @@ export default function SiteTripsPage() {
                       backgroundColor: "var(--color-card-bg)"
                     }}
                   >
-                    Next
+                    {t("common.next")}
                   </button>
                 </div>
               )}
@@ -474,6 +475,7 @@ export default function SiteTripsPage() {
 // ============================================================================
 
 function TripCard({ trip }: { trip: TripCard }) {
+  const t = useT();
   const typeInfo = tourTypes[trip.tourType] || tourTypes.other;
   const isFull = trip.availableSpots === 0;
 
@@ -530,7 +532,7 @@ function TripCard({ trip }: { trip: TripCard }) {
               : "var(--success)",
           }}
         >
-          {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
+          {isFull ? t("site.trips.soldOut") : t("site.trips.spotsLeft", { count: trip.availableSpots })}
         </div>
       </div>
 
@@ -569,7 +571,7 @@ function TripCard({ trip }: { trip: TripCard }) {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            {formatTime(trip.startTime)}
+            {trip.startTime ? formatTime(trip.startTime) : t("site.trips.timeTba")}
           </span>
           {trip.duration && (
             <span className="flex items-center gap-1">
@@ -603,17 +605,17 @@ function TripCard({ trip }: { trip: TripCard }) {
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>
-              Equipment
+              {t("site.trips.includesEquipment")}
             </span>
           )}
           {trip.includesMeals && (
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>
-              Meals
+              {t("site.trips.includesMeals")}
             </span>
           )}
           {trip.includesTransport && (
             <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">
-              Transport
+              {t("site.trips.includesTransport")}
             </span>
           )}
         </div>
@@ -627,13 +629,13 @@ function TripCard({ trip }: { trip: TripCard }) {
             >
               {formatPrice(trip.price, trip.currency)}
             </p>
-            <p className="text-xs opacity-50">per person</p>
+            <p className="text-xs opacity-50">{t("site.trips.perPerson")}</p>
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
             style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
           >
-            {isFull ? "Join Waitlist" : "View Details"}
+            {isFull ? t("site.trips.joinWaitlist") : t("site.trips.viewDetails")}
           </span>
         </div>
       </div>

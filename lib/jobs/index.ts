@@ -31,6 +31,7 @@ export const QUEUES = {
   BOOKING: "booking",
   REPORT: "report",
   MAINTENANCE: "maintenance",
+  TRANSLATION: "translation",
 } as const;
 
 // Lazy queue getters
@@ -38,6 +39,7 @@ let _emailQueue: Queue | null = null;
 let _bookingQueue: Queue | null = null;
 let _reportQueue: Queue | null = null;
 let _maintenanceQueue: Queue | null = null;
+let _translationQueue: Queue | null = null;
 
 export function getEmailQueue() {
   if (!_emailQueue) {
@@ -65,6 +67,13 @@ export function getMaintenanceQueue() {
     _maintenanceQueue = new Queue(QUEUES.MAINTENANCE, { connection: getConnection() });
   }
   return _maintenanceQueue;
+}
+
+export function getTranslationQueue() {
+  if (!_translationQueue) {
+    _translationQueue = new Queue(QUEUES.TRANSLATION, { connection: getConnection() });
+  }
+  return _translationQueue;
 }
 
 // Helper functions to add jobs
@@ -147,4 +156,23 @@ export async function scheduleMaintenanceChecks() {
       },
     }
   );
+}
+
+export interface TranslationJobData {
+  orgId: string;
+  entityType: string;
+  entityId: string;
+  fields: Array<{ field: string; text: string }>;
+  targetLocale: string;
+}
+
+export async function enqueueTranslation(data: TranslationJobData) {
+  const queue = getTranslationQueue();
+  await queue.add("translate-entity", data, {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 2000,
+    },
+  });
 }
