@@ -25,22 +25,26 @@ export function QuickBooksIntegration({
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;
 
-  if (fetcherData && "showQuickBooksOAuthModal" in fetcherData && fetcherData.showQuickBooksOAuthModal) {
-    if (!showOAuthModal) setShowOAuthModal(true);
-  }
+  useEffect(() => {
+    if (!fetcherData) return;
 
-  if (fetcherData && "success" in fetcherData && fetcherData.success && "message" in fetcherData) {
-    if (showOAuthModal) {
+    if ("showQuickBooksOAuthModal" in fetcherData && fetcherData.showQuickBooksOAuthModal) {
+      setShowOAuthModal(true);
+      return;
+    }
+
+    if ("success" in fetcherData && fetcherData.success && "message" in fetcherData) {
       onNotification({ type: "success", message: fetcherData.message as string });
       setShowOAuthModal(false);
       setClientId("");
       setClientSecret("");
+      return;
     }
-  }
 
-  if (fetcherData && "error" in fetcherData && !("success" in fetcherData)) {
-    onNotification({ type: "error", message: fetcherData.error as string });
-  }
+    if ("error" in fetcherData && !("success" in fetcherData)) {
+      onNotification({ type: "error", message: fetcherData.error as string });
+    }
+  }, [fetcherData, onNotification]);
 
   return (
     <>
