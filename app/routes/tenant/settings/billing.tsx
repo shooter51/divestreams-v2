@@ -321,6 +321,21 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
+  if (intent === "apply-coupon") {
+    const code = formData.get("couponCode") as string;
+    if (!code?.trim()) {
+      return { error: "Please enter a coupon code" };
+    }
+    try {
+      const { applySubscriptionCoupon } = await import("../../../../lib/stripe/coupons.server");
+      await applySubscriptionCoupon(ctx.org.id, code.trim());
+      const { redirectWithNotification } = await import("../../../../lib/use-notification");
+      return redirect(redirectWithNotification("/tenant/settings/billing", "Coupon applied successfully!", "success"));
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  }
+
   return null;
 }
 
@@ -335,6 +350,7 @@ const subscriptionStatusLabels: Record<string, string> = {
 export default function BillingPage() {
   const { billing, plans } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string; cancelled?: boolean; message?: string }>();
+  const couponFetcher = useFetcher<{ error?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [notification, setNotification] = useState<{
     type: "success" | "error" | "info";
@@ -528,6 +544,37 @@ export default function BillingPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Apply Coupon */}
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
+        <h2 className="text-lg font-semibold mb-4">Apply Coupon</h2>
+        <couponFetcher.Form method="post" className="flex gap-3 items-end">
+          <CsrfInput />
+          <input type="hidden" name="intent" value="apply-coupon" />
+          <div className="flex-1">
+            <label htmlFor="couponCode" className="block text-sm font-medium mb-1">
+              Coupon Code
+            </label>
+            <input
+              type="text"
+              id="couponCode"
+              name="couponCode"
+              placeholder="Enter coupon code"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand uppercase"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={couponFetcher.state === "submitting"}
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {couponFetcher.state === "submitting" ? "Applying..." : "Apply"}
+          </button>
+        </couponFetcher.Form>
+        {couponFetcher.data?.error && (
+          <p className="mt-2 text-sm text-danger">{couponFetcher.data.error}</p>
+        )}
       </div>
 
       {/* Available Plans */}
