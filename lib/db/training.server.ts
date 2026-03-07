@@ -440,6 +440,10 @@ export async function getSessions(
       coursePrice: schema.trainingCourses.price,
       agencyName: schema.certificationAgencies.name,
       levelName: schema.certificationLevels.name,
+      seriesId: schema.trainingSessions.seriesId,
+      seriesIndex: schema.trainingSessions.seriesIndex,
+      sessionType: schema.trainingSessions.sessionType,
+      seriesName: schema.trainingSessionSeries.name,
       createdAt: schema.trainingSessions.createdAt,
     })
     .from(schema.trainingSessions)
@@ -454,6 +458,10 @@ export async function getSessions(
     .leftJoin(
       schema.certificationLevels,
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .leftJoin(
+      schema.trainingSessionSeries,
+      eq(schema.trainingSessions.seriesId, schema.trainingSessionSeries.id)
     )
     .where(and(...conditions))
     .orderBy(asc(schema.trainingSessions.startDate));
@@ -482,6 +490,10 @@ export async function getSessionById(organizationId: string, sessionId: string) 
       courseDurationDays: schema.trainingCourses.durationDays,
       agencyName: schema.certificationAgencies.name,
       levelName: schema.certificationLevels.name,
+      seriesId: schema.trainingSessions.seriesId,
+      seriesIndex: schema.trainingSessions.seriesIndex,
+      sessionType: schema.trainingSessions.sessionType,
+      seriesName: schema.trainingSessionSeries.name,
       createdAt: schema.trainingSessions.createdAt,
       updatedAt: schema.trainingSessions.updatedAt,
     })
@@ -497,6 +509,10 @@ export async function getSessionById(organizationId: string, sessionId: string) 
     .leftJoin(
       schema.certificationLevels,
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .leftJoin(
+      schema.trainingSessionSeries,
+      eq(schema.trainingSessions.seriesId, schema.trainingSessionSeries.id)
     )
     .where(
       and(
@@ -521,6 +537,9 @@ export async function createSession(data: {
   priceOverride?: string;
   status?: string;
   notes?: string;
+  seriesId?: string;
+  seriesIndex?: number;
+  sessionType?: string;
 }) {
   const [session] = await db
     .insert(schema.trainingSessions)
@@ -572,6 +591,367 @@ export async function deleteSession(organizationId: string, sessionId: string) {
 }
 
 // ============================================================================
+// Series Queries
+// ============================================================================
+
+export async function getSeriesList(
+  organizationId: string,
+  options?: { courseId?: string; status?: string }
+) {
+  const conditions = [eq(schema.trainingSessionSeries.organizationId, organizationId)];
+
+  if (options?.courseId) {
+    conditions.push(eq(schema.trainingSessionSeries.courseId, options.courseId));
+  }
+  if (options?.status) {
+    conditions.push(eq(schema.trainingSessionSeries.status, options.status));
+  }
+
+  return db
+    .select({
+      id: schema.trainingSessionSeries.id,
+      name: schema.trainingSessionSeries.name,
+      maxStudents: schema.trainingSessionSeries.maxStudents,
+      priceOverride: schema.trainingSessionSeries.priceOverride,
+      status: schema.trainingSessionSeries.status,
+      notes: schema.trainingSessionSeries.notes,
+      instructorName: schema.trainingSessionSeries.instructorName,
+      enrolledCount: schema.trainingSessionSeries.enrolledCount,
+      completedCount: schema.trainingSessionSeries.completedCount,
+      courseId: schema.trainingSessionSeries.courseId,
+      courseName: schema.trainingCourses.name,
+      agencyName: schema.certificationAgencies.name,
+      levelName: schema.certificationLevels.name,
+      sessionCount: sql<number>`(SELECT COUNT(*)::integer FROM training_sessions WHERE series_id = ${schema.trainingSessionSeries.id})`,
+      createdAt: schema.trainingSessionSeries.createdAt,
+    })
+    .from(schema.trainingSessionSeries)
+    .innerJoin(
+      schema.trainingCourses,
+      eq(schema.trainingSessionSeries.courseId, schema.trainingCourses.id)
+    )
+    .leftJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .leftJoin(
+      schema.certificationLevels,
+      eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .where(and(...conditions))
+    .orderBy(desc(schema.trainingSessionSeries.createdAt));
+}
+
+export async function getSeriesById(organizationId: string, seriesId: string) {
+  const [series] = await db
+    .select({
+      id: schema.trainingSessionSeries.id,
+      name: schema.trainingSessionSeries.name,
+      maxStudents: schema.trainingSessionSeries.maxStudents,
+      priceOverride: schema.trainingSessionSeries.priceOverride,
+      status: schema.trainingSessionSeries.status,
+      notes: schema.trainingSessionSeries.notes,
+      instructorId: schema.trainingSessionSeries.instructorId,
+      instructorName: schema.trainingSessionSeries.instructorName,
+      enrolledCount: schema.trainingSessionSeries.enrolledCount,
+      completedCount: schema.trainingSessionSeries.completedCount,
+      courseId: schema.trainingSessionSeries.courseId,
+      courseName: schema.trainingCourses.name,
+      coursePrice: schema.trainingCourses.price,
+      agencyName: schema.certificationAgencies.name,
+      levelName: schema.certificationLevels.name,
+      createdAt: schema.trainingSessionSeries.createdAt,
+      updatedAt: schema.trainingSessionSeries.updatedAt,
+    })
+    .from(schema.trainingSessionSeries)
+    .innerJoin(
+      schema.trainingCourses,
+      eq(schema.trainingSessionSeries.courseId, schema.trainingCourses.id)
+    )
+    .leftJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .leftJoin(
+      schema.certificationLevels,
+      eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    );
+
+  if (!series) return undefined;
+
+  const sessions = await db
+    .select()
+    .from(schema.trainingSessions)
+    .where(eq(schema.trainingSessions.seriesId, seriesId))
+    .orderBy(asc(schema.trainingSessions.seriesIndex));
+
+  return { ...series, sessions };
+}
+
+export async function createSeries(data: {
+  organizationId: string;
+  courseId: string;
+  name: string;
+  maxStudents?: number;
+  priceOverride?: string;
+  status?: string;
+  notes?: string;
+  instructorId?: string;
+  instructorName?: string;
+  sessions?: Array<{
+    startDate: string;
+    endDate?: string;
+    startTime?: string;
+    location?: string;
+    meetingPoint?: string;
+    sessionType?: string;
+  }>;
+}) {
+  return await db.transaction(async (tx) => {
+    const { sessions: sessionData, ...seriesData } = data;
+
+    const [series] = await tx
+      .insert(schema.trainingSessionSeries)
+      .values(seriesData)
+      .returning();
+
+    if (sessionData && sessionData.length > 0) {
+      for (let i = 0; i < sessionData.length; i++) {
+        await tx
+          .insert(schema.trainingSessions)
+          .values({
+            organizationId: data.organizationId,
+            courseId: data.courseId,
+            seriesId: series.id,
+            seriesIndex: i + 1,
+            ...sessionData[i],
+          });
+      }
+    }
+
+    return series;
+  });
+}
+
+export async function updateSeries(
+  organizationId: string,
+  seriesId: string,
+  data: Partial<{
+    name: string;
+    maxStudents: number | null;
+    priceOverride: string | null;
+    status: string;
+    notes: string | null;
+    instructorId: string | null;
+    instructorName: string | null;
+  }>
+) {
+  const [series] = await db
+    .update(schema.trainingSessionSeries)
+    .set({ ...data, updatedAt: new Date() })
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    )
+    .returning();
+  return series;
+}
+
+export async function deleteSeries(organizationId: string, seriesId: string) {
+  const [{ enrollmentCount }] = await db
+    .select({ enrollmentCount: count() })
+    .from(schema.trainingEnrollments)
+    .where(eq(schema.trainingEnrollments.seriesId, seriesId));
+
+  if (enrollmentCount > 0) {
+    throw new Error("Cannot delete series with existing enrollments");
+  }
+
+  await db
+    .delete(schema.trainingSessionSeries)
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    );
+}
+
+export async function addSessionToSeries(
+  organizationId: string,
+  seriesId: string,
+  data: {
+    startDate: string;
+    endDate?: string;
+    startTime?: string;
+    location?: string;
+    meetingPoint?: string;
+    sessionType?: string;
+  }
+) {
+  const [series] = await db
+    .select({ courseId: schema.trainingSessionSeries.courseId })
+    .from(schema.trainingSessionSeries)
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    );
+
+  if (!series) {
+    throw new Error("Series not found");
+  }
+
+  const [result] = await db
+    .select({ maxIndex: sql<number>`MAX(${schema.trainingSessions.seriesIndex})` })
+    .from(schema.trainingSessions)
+    .where(eq(schema.trainingSessions.seriesId, seriesId));
+
+  const nextIndex = (result?.maxIndex ?? 0) + 1;
+
+  const [session] = await db
+    .insert(schema.trainingSessions)
+    .values({
+      organizationId,
+      courseId: series.courseId,
+      seriesId,
+      seriesIndex: nextIndex,
+      ...data,
+    })
+    .returning();
+
+  return session;
+}
+
+export async function removeSessionFromSeries(organizationId: string, sessionId: string) {
+  const [session] = await db
+    .select({
+      seriesId: schema.trainingSessions.seriesId,
+      seriesIndex: schema.trainingSessions.seriesIndex,
+    })
+    .from(schema.trainingSessions)
+    .where(
+      and(
+        eq(schema.trainingSessions.organizationId, organizationId),
+        eq(schema.trainingSessions.id, sessionId)
+      )
+    );
+
+  if (!session || !session.seriesId) {
+    throw new Error("Session not found or not part of a series");
+  }
+
+  await db
+    .delete(schema.trainingSessions)
+    .where(
+      and(
+        eq(schema.trainingSessions.organizationId, organizationId),
+        eq(schema.trainingSessions.id, sessionId)
+      )
+    );
+
+  if (session.seriesIndex !== null) {
+    await db
+      .update(schema.trainingSessions)
+      .set({
+        seriesIndex: sql`${schema.trainingSessions.seriesIndex} - 1`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.trainingSessions.seriesId, session.seriesId),
+          sql`${schema.trainingSessions.seriesIndex} > ${session.seriesIndex}`
+        )
+      );
+  }
+}
+
+export async function createSeriesEnrollment(data: {
+  organizationId: string;
+  seriesId: string;
+  sessionId: string;
+  customerId: string;
+  status?: string;
+  amountPaid?: string;
+  paymentStatus?: string;
+  notes?: string;
+}) {
+  return await db.transaction(async (tx) => {
+    const [series] = await tx
+      .select({
+        id: schema.trainingSessionSeries.id,
+        status: schema.trainingSessionSeries.status,
+        maxStudents: schema.trainingSessionSeries.maxStudents,
+        enrolledCount: schema.trainingSessionSeries.enrolledCount,
+      })
+      .from(schema.trainingSessionSeries)
+      .where(
+        and(
+          eq(schema.trainingSessionSeries.organizationId, data.organizationId),
+          eq(schema.trainingSessionSeries.id, data.seriesId)
+        )
+      )
+      .for("update");
+
+    if (!series) {
+      throw new Error("Series not found");
+    }
+
+    if (series.status === "cancelled") {
+      throw new Error("Cannot enroll in a cancelled series");
+    }
+
+    if (series.maxStudents && series.enrolledCount >= series.maxStudents) {
+      throw new Error(`Series is full (${series.enrolledCount}/${series.maxStudents} students enrolled)`);
+    }
+
+    const [existingEnrollment] = await tx
+      .select({ id: schema.trainingEnrollments.id })
+      .from(schema.trainingEnrollments)
+      .where(
+        and(
+          eq(schema.trainingEnrollments.organizationId, data.organizationId),
+          eq(schema.trainingEnrollments.seriesId, data.seriesId),
+          eq(schema.trainingEnrollments.customerId, data.customerId)
+        )
+      );
+
+    if (existingEnrollment) {
+      throw new Error("Customer is already enrolled in this series");
+    }
+
+    const [enrollment] = await tx
+      .insert(schema.trainingEnrollments)
+      .values(data)
+      .returning();
+
+    await tx
+      .update(schema.trainingSessionSeries)
+      .set({
+        enrolledCount: sql`${schema.trainingSessionSeries.enrolledCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.trainingSessionSeries.id, data.seriesId),
+          eq(schema.trainingSessionSeries.organizationId, data.organizationId)
+        )
+      );
+
+    return enrollment;
+  });
+}
+
+// ============================================================================
 // Enrollment Queries
 // ============================================================================
 
@@ -581,6 +961,7 @@ export async function getEnrollments(
     sessionId?: string;
     customerId?: string;
     status?: string;
+    seriesId?: string;
   }
 ) {
   const conditions = [eq(schema.trainingEnrollments.organizationId, organizationId)];
@@ -594,11 +975,15 @@ export async function getEnrollments(
   if (options?.status) {
     conditions.push(eq(schema.trainingEnrollments.status, options.status));
   }
+  if (options?.seriesId) {
+    conditions.push(eq(schema.trainingEnrollments.seriesId, options.seriesId));
+  }
 
   return db
     .select({
       id: schema.trainingEnrollments.id,
       status: schema.trainingEnrollments.status,
+      seriesId: schema.trainingEnrollments.seriesId,
       enrolledAt: schema.trainingEnrollments.enrolledAt,
       completedAt: schema.trainingEnrollments.completedAt,
       amountPaid: schema.trainingEnrollments.amountPaid,
@@ -956,11 +1341,22 @@ export async function getTrainingDashboardStats(organizationId: string) {
       )
     );
 
+  const [{ activeSeriesCount }] = await db
+    .select({ activeSeriesCount: count() })
+    .from(schema.trainingSessionSeries)
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        sql`${schema.trainingSessionSeries.status} IN ('scheduled', 'in_progress')`
+      )
+    );
+
   return {
     activeCourses: coursesCount,
     upcomingSessions: upcomingSessionsCount,
     activeEnrollments: activeEnrollmentsCount,
     certificationsThisMonth: certificationsThisMonth,
+    activeSeries: activeSeriesCount,
   };
 }
 
