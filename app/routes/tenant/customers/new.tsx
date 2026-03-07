@@ -9,6 +9,7 @@ import { user } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -157,6 +158,7 @@ export default function NewCustomerPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -165,9 +167,9 @@ export default function NewCustomerPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/customers" className="text-brand hover:underline text-sm">
-          ← Back to Customers
+          {t("tenant.customers.backToCustomers")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Add Customer</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.customers.addCustomerTitle")}</h1>
       </div>
 
       {/* Password Setup Info */}
@@ -177,9 +179,9 @@ export default function NewCustomerPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h3 className="font-semibold text-brand mb-1">Password Setup Email</h3>
+            <h3 className="font-semibold text-brand mb-1">{t("tenant.customers.passwordSetupTitle")}</h3>
             <p className="text-sm text-brand-hover">
-              After creating this customer, an email will be automatically sent to their email address with a secure link to set up their password. This allows them to log in to the customer portal, view bookings, and manage their profile.
+              {t("tenant.customers.passwordSetupDesc")}
             </p>
           </div>
         </div>
@@ -189,11 +191,11 @@ export default function NewCustomerPage() {
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.basicInfo")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-                First Name *
+                {t("common.firstName")} *
               </label>
               <input
                 type="text"
@@ -209,7 +211,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-                Last Name *
+                {t("common.lastName")} *
               </label>
               <input
                 type="text"
@@ -225,7 +227,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email *
+                {t("common.email")} *
               </label>
               <input
                 type="email"
@@ -241,7 +243,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="phone" className="block text-sm font-medium mb-1">
-                Phone
+                {t("common.phone")}
               </label>
               <input
                 type="tel"
@@ -253,7 +255,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="dateOfBirth" className="block text-sm font-medium mb-1">
-                Date of Birth
+                {t("common.dateOfBirth")}
               </label>
               <input
                 type="date"
@@ -268,11 +270,11 @@ export default function NewCustomerPage() {
 
         {/* Certification */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Certification</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.certificationSection")}</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="certAgency" className="block text-sm font-medium mb-1">
-                Agency
+                {t("tenant.customers.agency")}
               </label>
               <select
                 id="certAgency"
@@ -291,7 +293,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="certLevel" className="block text-sm font-medium mb-1">
-                Level
+                {t("tenant.customers.levelLabel")}
               </label>
               <select
                 id="certLevel"
@@ -309,7 +311,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="certNumber" className="block text-sm font-medium mb-1">
-                Cert Number
+                {t("tenant.customers.certNumber")}
               </label>
               <input
                 type="text"
@@ -324,11 +326,11 @@ export default function NewCustomerPage() {
 
         {/* Emergency Contact */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Emergency Contact</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.emergencyContact")}</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="emergencyContactName" className="block text-sm font-medium mb-1">
-                Name
+                {t("common.name")}
               </label>
               <input
                 type="text"
@@ -340,7 +342,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="emergencyContactPhone" className="block text-sm font-medium mb-1">
-                Phone
+                {t("common.phone")}
               </label>
               <input
                 type="tel"
@@ -352,7 +354,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="emergencyContactRelation" className="block text-sm font-medium mb-1">
-                Relationship
+                {t("tenant.customers.relationship")}
               </label>
               <input
                 type="text"
@@ -368,11 +370,11 @@ export default function NewCustomerPage() {
 
         {/* Medical */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Medical Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.medicalInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="medicalConditions" className="block text-sm font-medium mb-1">
-                Medical Conditions
+                {t("tenant.customers.medicalConditions")}
               </label>
               <textarea
                 id="medicalConditions"
@@ -385,7 +387,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="medications" className="block text-sm font-medium mb-1">
-                Current Medications
+                {t("tenant.customers.currentMedications")}
               </label>
               <textarea
                 id="medications"
@@ -400,11 +402,11 @@ export default function NewCustomerPage() {
 
         {/* Address */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Address</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.addressSection")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="address" className="block text-sm font-medium mb-1">
-                Street Address
+                {t("common.streetAddress")}
               </label>
               <input
                 type="text"
@@ -417,7 +419,7 @@ export default function NewCustomerPage() {
             <div className="grid grid-cols-4 gap-4">
               <div className="col-span-2">
                 <label htmlFor="city" className="block text-sm font-medium mb-1">
-                  City
+                  {t("common.city")}
                 </label>
                 <input
                   type="text"
@@ -429,7 +431,7 @@ export default function NewCustomerPage() {
               </div>
               <div>
                 <label htmlFor="state" className="block text-sm font-medium mb-1">
-                  State
+                  {t("common.state")}
                 </label>
                 <input
                   type="text"
@@ -441,7 +443,7 @@ export default function NewCustomerPage() {
               </div>
               <div>
                 <label htmlFor="postalCode" className="block text-sm font-medium mb-1">
-                  Postal Code
+                  {t("common.postalCode")}
                 </label>
                 <input
                   type="text"
@@ -454,7 +456,7 @@ export default function NewCustomerPage() {
             </div>
             <div>
               <label htmlFor="country" className="block text-sm font-medium mb-1">
-                Country
+                {t("common.country")}
               </label>
               <input
                 type="text"
@@ -469,11 +471,11 @@ export default function NewCustomerPage() {
 
         {/* Notes & Preferences */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Notes & Preferences</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.notesPreferences")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="notes" className="block text-sm font-medium mb-1">
-                Internal Notes
+                {t("tenant.customers.internalNotes")}
               </label>
               <textarea
                 id="notes"
@@ -493,7 +495,7 @@ export default function NewCustomerPage() {
                 className="rounded"
               />
               <label htmlFor="marketingOptIn" className="text-sm">
-                Customer has opted in to marketing emails
+                {t("tenant.customers.marketingOptIn")}
               </label>
             </div>
           </div>
@@ -503,9 +505,9 @@ export default function NewCustomerPage() {
         {isNearLimit && (
           <div className="mb-4 p-3 bg-warning-muted border border-warning rounded-lg">
             <p className="text-warning text-sm">
-              {limitRemaining} of {limitMax} customers remaining.{" "}
+              {t("tenant.customers.limitWarning", { remaining: limitRemaining, max: limitMax })}{" "}
               <Link to="/tenant/settings/billing" className="underline font-medium">
-                Upgrade for more
+                {t("tenant.customers.upgradeForMore")}
               </Link>
             </p>
           </div>
@@ -518,13 +520,13 @@ export default function NewCustomerPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Customer"}
+            {isSubmitting ? t("tenant.customers.saving") : t("tenant.customers.saveCustomer")}
           </button>
           <Link
             to="/tenant/customers"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

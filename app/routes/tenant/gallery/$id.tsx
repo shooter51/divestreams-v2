@@ -13,6 +13,7 @@ import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Clien
 import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
 
@@ -147,6 +148,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function AlbumDetailPage() {
   const { album, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -154,7 +156,7 @@ export default function AlbumDetailPage() {
   const handleDeleteAlbum = () => {
     if (
       confirm(
-        `Are you sure you want to delete "${album.name}"? This will also delete all ${images.length} images in this album.`
+        t("tenant.gallery.confirmDeleteAlbum", { name: album.name, count: images.length })
       )
     ) {
       fetcher.submit({ intent: "delete-album" }, { method: "post" });
@@ -162,7 +164,7 @@ export default function AlbumDetailPage() {
   };
 
   const handleDeleteImage = (imageId: string) => {
-    if (confirm("Delete this image?")) {
+    if (confirm(t("tenant.gallery.confirmDeleteImage"))) {
       fetcher.submit({ intent: "delete-image", imageId }, { method: "post" });
     }
   };
@@ -171,7 +173,7 @@ export default function AlbumDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/gallery" className="text-brand hover:underline text-sm">
-          ← Back to Gallery
+          {t("tenant.gallery.backToGallery")}
         </Link>
       </div>
 
@@ -192,7 +194,7 @@ export default function AlbumDetailPage() {
                   : "bg-surface-inset text-foreground-muted"
               }`}
             >
-              {album.isPublic ? "Public" : "Private"}
+              {album.isPublic ? t("tenant.gallery.public") : t("tenant.gallery.private")}
             </span>
           </div>
         </div>
@@ -205,7 +207,7 @@ export default function AlbumDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Album Name
+                {t("tenant.gallery.albumName")}
               </label>
               <input
                 type="text"
@@ -219,7 +221,7 @@ export default function AlbumDetailPage() {
 
             <div>
               <label htmlFor="sortOrder" className="block text-sm font-medium mb-1">
-                Sort Order
+                {t("tenant.gallery.sortOrder")}
               </label>
               <input
                 type="number"
@@ -234,7 +236,7 @@ export default function AlbumDetailPage() {
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium mb-1">
-              Description
+              {t("common.description")}
             </label>
             <textarea
               id="description"
@@ -247,7 +249,7 @@ export default function AlbumDetailPage() {
 
           {/* Cover Image */}
           <div>
-            <label className="block text-sm font-medium mb-2">Cover Image</label>
+            <label className="block text-sm font-medium mb-2">{t("tenant.gallery.coverImage")}</label>
             {album.coverImageUrl && (
               <div className="mb-3">
                 <div className="relative inline-block">
@@ -264,7 +266,7 @@ export default function AlbumDetailPage() {
                     value="true"
                     className="rounded"
                   />
-                  <span className="text-sm text-foreground-muted">Remove current cover image</span>
+                  <span className="text-sm text-foreground-muted">{t("tenant.gallery.removeCoverImage")}</span>
                 </label>
               </div>
             )}
@@ -282,7 +284,7 @@ export default function AlbumDetailPage() {
                 file:cursor-pointer cursor-pointer"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Upload a new cover image (JPEG, PNG, WebP, GIF). Max 10MB.
+              {t("tenant.gallery.coverImageHint")}
             </p>
             {fetcher.data?.error && (
               <p className="text-danger text-sm mt-1">{fetcher.data.error}</p>
@@ -298,7 +300,7 @@ export default function AlbumDetailPage() {
                 defaultChecked={album.isPublic}
                 className="rounded"
               />
-              <span className="text-sm font-medium">Show on public website</span>
+              <span className="text-sm font-medium">{t("tenant.gallery.showOnPublicWebsite")}</span>
             </label>
           </div>
 
@@ -307,14 +309,14 @@ export default function AlbumDetailPage() {
               type="submit"
               className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
-              Save Changes
+              {t("common.saveChanges")}
             </button>
             <button
               type="button"
               onClick={handleDeleteAlbum}
               className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
             >
-              Delete Album
+              {t("tenant.gallery.deleteAlbum")}
             </button>
           </div>
         </fetcher.Form>
@@ -324,28 +326,28 @@ export default function AlbumDetailPage() {
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
-            Images ({images.length})
+            {t("tenant.gallery.imagesCount", { count: images.length })}
           </h2>
           <Link
             to={`/tenant/gallery/upload-images?albumId=${album.id}`}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            + Upload Images
+            {t("tenant.gallery.uploadImages")}
           </Link>
         </div>
 
         {images.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📷</div>
-            <h3 className="text-lg font-semibold mb-2">No images yet</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("tenant.gallery.noImagesYet")}</h3>
             <p className="text-foreground-muted mb-4">
-              Upload your first images to this album
+              {t("tenant.gallery.noImagesDescription")}
             </p>
             <Link
               to={`/tenant/gallery/upload-images?albumId=${album.id}`}
               className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
             >
-              Upload Images
+              {t("tenant.gallery.uploadImages")}
             </Link>
           </div>
         ) : (
@@ -355,7 +357,7 @@ export default function AlbumDetailPage() {
                 <div className="aspect-square bg-surface-inset rounded-lg overflow-hidden">
                   <img
                     src={image.thumbnailUrl || image.imageUrl}
-                    alt={image.title || "Gallery image"}
+                    alt={image.title || t("tenant.gallery.galleryImage")}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -375,9 +377,9 @@ export default function AlbumDetailPage() {
                       }}
                       className="px-2 py-1 text-xs rounded bg-surface-raised text-foreground border border-border-strong"
                     >
-                      <option value="published">Published</option>
-                      <option value="draft">Draft</option>
-                      <option value="archived">Archived</option>
+                      <option value="published">{t("tenant.gallery.statusPublished")}</option>
+                      <option value="draft">{t("tenant.gallery.statusDraft")}</option>
+                      <option value="archived">{t("tenant.gallery.statusArchived")}</option>
                     </select>
                   </fetcher.Form>
 
@@ -385,7 +387,7 @@ export default function AlbumDetailPage() {
                     onClick={() => handleDeleteImage(image.id)}
                     className="px-2 py-1 text-xs bg-danger text-white rounded hover:bg-danger-hover"
                   >
-                    Delete
+                    {t("common.delete")}
                   </button>
                 </div>
 
@@ -393,7 +395,7 @@ export default function AlbumDetailPage() {
                 {image.isFeatured && (
                   <div className="absolute top-2 left-2">
                     <span className="text-xs px-2 py-1 bg-warning-muted text-warning rounded-full">
-                      ⭐ Featured
+                      {t("tenant.gallery.featured")}
                     </span>
                   </div>
                 )}

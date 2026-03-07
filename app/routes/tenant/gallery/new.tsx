@@ -5,6 +5,7 @@ import { createGalleryAlbum, getAllGalleryAlbums } from "../../../../lib/db/gall
 import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
 
@@ -90,32 +91,33 @@ export default function NewGalleryAlbumPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/gallery" className="text-brand hover:underline text-sm">
-          ← Back to Gallery
+          {t("tenant.gallery.backToGallery")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Create New Album</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.gallery.createNewAlbum")}</h1>
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Album Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.gallery.albumInformation")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Album Name *
+                {t("tenant.gallery.albumNameRequired")}
               </label>
               <input
                 type="text"
                 id="name"
                 name="name"
                 required
-                placeholder="e.g., Summer 2024 Dives"
+                placeholder={t("tenant.gallery.albumNamePlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.name && (
@@ -125,17 +127,17 @@ export default function NewGalleryAlbumPage() {
 
             <div>
               <label htmlFor="slug" className="block text-sm font-medium mb-1">
-                URL Slug
+                {t("tenant.gallery.urlSlug")}
               </label>
               <input
                 type="text"
                 id="slug"
                 name="slug"
-                placeholder="auto-generated from name"
+                placeholder={t("tenant.gallery.urlSlugPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Leave blank to auto-generate from album name
+                {t("tenant.gallery.urlSlugHint")}
               </p>
               {actionData?.errors?.slug && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.slug}</p>
@@ -144,20 +146,20 @@ export default function NewGalleryAlbumPage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
                 name="description"
                 rows={3}
-                placeholder="Brief description of this album..."
+                placeholder={t("tenant.gallery.descriptionPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
             <div>
               <label htmlFor="sortOrder" className="block text-sm font-medium mb-1">
-                Sort Order
+                {t("tenant.gallery.sortOrder")}
               </label>
               <input
                 type="number"
@@ -168,7 +170,7 @@ export default function NewGalleryAlbumPage() {
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Lower numbers appear first (0 = first, 10 = later)
+                {t("tenant.gallery.sortOrderHint")}
               </p>
             </div>
           </div>
@@ -176,10 +178,10 @@ export default function NewGalleryAlbumPage() {
 
         {/* Cover Image */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Cover Image</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.gallery.coverImage")}</h2>
           <div>
             <label htmlFor="coverImage" className="block text-sm font-medium mb-2">
-              Cover Image
+              {t("tenant.gallery.coverImage")}
             </label>
             <input
               type="file"
@@ -195,7 +197,7 @@ export default function NewGalleryAlbumPage() {
                 file:cursor-pointer cursor-pointer"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Optional. Upload a cover image for this album (JPEG, PNG, WebP, GIF). Max 10MB.
+              {t("tenant.gallery.coverImageHintOptional")}
             </p>
             {actionData?.errors?.coverImage && (
               <p className="text-danger text-sm mt-1">{actionData.errors.coverImage}</p>
@@ -205,7 +207,7 @@ export default function NewGalleryAlbumPage() {
 
         {/* Visibility */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Visibility</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.gallery.visibility")}</h2>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -214,10 +216,10 @@ export default function NewGalleryAlbumPage() {
               defaultChecked={true}
               className="rounded"
             />
-            <span className="text-sm font-medium">Show on public website</span>
+            <span className="text-sm font-medium">{t("tenant.gallery.showOnPublicWebsite")}</span>
           </label>
           <p className="text-xs text-foreground-muted mt-1">
-            Make this album visible on your public gallery page
+            {t("tenant.gallery.visibilityHint")}
           </p>
         </div>
 
@@ -228,13 +230,13 @@ export default function NewGalleryAlbumPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Creating..." : "Create Album"}
+            {isSubmitting ? t("common.creating") : t("tenant.gallery.createAlbum")}
           </button>
           <Link
             to="/tenant/gallery"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

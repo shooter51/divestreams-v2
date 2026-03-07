@@ -12,6 +12,7 @@ import {
   deleteLevel,
 } from "../../../../../lib/db/training.server";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Certification Levels - DiveStreams" }];
 
@@ -124,6 +125,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LevelsPage() {
+  const t = useT();
   const { levels, agencies, commonLevels } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -153,11 +155,11 @@ export default function LevelsPage() {
     <div className="max-w-3xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          &larr; {t("common.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Certification Levels</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.training.levels.title")}</h1>
         <p className="text-foreground-muted">
-          Manage certification levels (Open Water, Advanced, Rescue, Divemaster, etc.)
+          {t("tenant.settings.training.levels.subtitle")}
         </p>
       </div>
 
@@ -176,19 +178,19 @@ export default function LevelsPage() {
       {/* No Agencies Warning */}
       {agencies.length === 0 && (
         <div className="bg-warning-muted border border-warning text-warning px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
-          <p className="font-medium">No certification agencies configured</p>
+          <p className="font-medium">{t("tenant.settings.training.levels.noAgenciesWarning")}</p>
           <p className="text-sm">
             <Link to="/tenant/settings/training/agencies" className="underline">
-              Add certification agencies
+              {t("tenant.settings.training.levels.addAgenciesLink")}
             </Link>{" "}
-            first to associate levels with them.
+            {t("tenant.settings.training.levels.addAgenciesFirst")}
           </p>
         </div>
       )}
 
       {/* Common Levels Reference */}
       <div className="bg-surface-inset border border-border rounded-xl p-4 mb-6">
-        <h3 className="font-medium text-foreground mb-2">Common Certification Levels</h3>
+        <h3 className="font-medium text-foreground mb-2">{t("tenant.settings.training.levels.commonLevels")}</h3>
         <div className="grid grid-cols-5 gap-2 text-sm">
           {commonLevels.map((level) => (
             <div key={level.code} className="text-center p-2 bg-surface-raised rounded border">
@@ -198,7 +200,7 @@ export default function LevelsPage() {
           ))}
         </div>
         <p className="text-xs text-foreground-muted mt-2">
-          These are common levels across agencies. Add your own based on the agencies you work with.
+          {t("tenant.settings.training.levels.commonLevelsHint")}
         </p>
       </div>
 
@@ -206,7 +208,7 @@ export default function LevelsPage() {
       {showForm && (
         <div className="bg-surface-raised rounded-xl shadow-sm p-6 mb-6">
           <h2 className="font-semibold mb-4">
-            {editingLevel ? "Edit Level" : "Add New Level"}
+            {editingLevel ? t("tenant.settings.training.levels.editLevel") : t("tenant.settings.training.levels.addNewLevel")}
           </h2>
           <form method="post" onSubmit={() =>
             handleCancel()}>
@@ -220,7 +222,7 @@ export default function LevelsPage() {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium mb-1">
-                    Level Name *
+                    {t("tenant.settings.training.levels.levelName")} *
                   </label>
                   <input
                     type="text"
@@ -234,7 +236,7 @@ export default function LevelsPage() {
                 </div>
                 <div>
                   <label htmlFor="code" className="block text-sm font-medium mb-1">
-                    Code *
+                    {t("tenant.settings.training.code")} *
                   </label>
                   <input
                     type="text"
@@ -248,7 +250,7 @@ export default function LevelsPage() {
                 </div>
                 <div>
                   <label htmlFor="levelNumber" className="block text-sm font-medium mb-1">
-                    Level Order
+                    {t("tenant.settings.training.levels.levelOrder")}
                   </label>
                   <input
                     type="number"
@@ -259,13 +261,13 @@ export default function LevelsPage() {
                     placeholder="1"
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
-                  <p className="text-xs text-foreground-muted mt-1">For sorting (1=beginner)</p>
+                  <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.training.levels.levelOrderHint")}</p>
                 </div>
               </div>
 
               <div>
                 <label htmlFor="agencyId" className="block text-sm font-medium mb-1">
-                  Certification Agency
+                  {t("tenant.settings.training.levels.certificationAgency")}
                 </label>
                 <select
                   id="agencyId"
@@ -273,7 +275,7 @@ export default function LevelsPage() {
                   defaultValue={editingLevel?.agencyId || ""}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="">-- Select Agency (optional) --</option>
+                  <option value="">-- {t("tenant.settings.training.levels.selectAgency")} --</option>
                   {agencies.map((agency) => (
                     <option key={agency.id} value={agency.id}>
                       {agency.name} ({agency.code})
@@ -284,21 +286,21 @@ export default function LevelsPage() {
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">
-                  Description
+                  {t("common.description")}
                 </label>
                 <textarea
                   id="description"
                   name="description"
                   rows={2}
                   defaultValue={editingLevel?.description || ""}
-                  placeholder="Brief description of this certification level"
+                  placeholder={t("tenant.settings.training.levels.descriptionPlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
               <div>
                 <label htmlFor="prerequisites" className="block text-sm font-medium mb-1">
-                  Prerequisites
+                  {t("tenant.settings.training.levels.prerequisites")}
                 </label>
                 <textarea
                   id="prerequisites"
@@ -313,7 +315,7 @@ export default function LevelsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="minAge" className="block text-sm font-medium mb-1">
-                    Minimum Age
+                    {t("tenant.settings.training.levels.minimumAge")}
                   </label>
                   <input
                     type="number"
@@ -327,7 +329,7 @@ export default function LevelsPage() {
                 </div>
                 <div>
                   <label htmlFor="minDives" className="block text-sm font-medium mb-1">
-                    Minimum Logged Dives
+                    {t("tenant.settings.training.levels.minimumDives")}
                   </label>
                   <input
                     type="number"
@@ -350,10 +352,10 @@ export default function LevelsPage() {
                     defaultChecked={editingLevel?.isActive ?? true}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium">Active</span>
+                  <span className="text-sm font-medium">{t("common.active")}</span>
                 </label>
                 <p className="text-xs text-foreground-muted ml-6">
-                  Inactive levels won&apos;t appear in dropdowns
+                  {t("tenant.settings.training.levels.inactiveHint")}
                 </p>
               </div>
             </div>
@@ -364,14 +366,14 @@ export default function LevelsPage() {
                 disabled={isSubmitting}
                 className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
               >
-                {isSubmitting ? "Saving..." : editingLevel ? "Update Level" : "Add Level"}
+                {isSubmitting ? t("common.saving") : editingLevel ? t("tenant.settings.training.levels.updateLevel") : t("tenant.settings.training.levels.addLevel")}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="border px-4 py-2 rounded-lg hover:bg-surface-inset"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -382,7 +384,7 @@ export default function LevelsPage() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <label htmlFor="filterAgency" className="text-sm text-foreground-muted">
-            Filter by Agency:
+            {t("tenant.settings.training.levels.filterByAgency")}:
           </label>
           <select
             id="filterAgency"
@@ -390,7 +392,7 @@ export default function LevelsPage() {
             onChange={(e) => setFilterAgencyId(e.target.value)}
             className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-brand"
           >
-            <option value="">All Agencies</option>
+            <option value="">{t("tenant.settings.training.levels.allAgencies")}</option>
             {agencies.map((agency) => (
               <option key={agency.id} value={agency.id}>
                 {agency.name}
@@ -403,7 +405,7 @@ export default function LevelsPage() {
             onClick={() => setShowForm(true)}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Add Level
+            {t("tenant.settings.training.levels.addLevel")}
           </button>
         )}
       </div>
@@ -414,11 +416,11 @@ export default function LevelsPage() {
           <div className="p-8 text-center text-foreground-muted">
             <p className="mb-2">
               {filterAgencyId
-                ? "No certification levels found for this agency."
-                : "No certification levels configured yet."}
+                ? t("tenant.settings.training.levels.noLevelsForAgency")
+                : t("tenant.settings.training.levels.noLevels")}
             </p>
             <p className="text-sm">
-              Add levels like Open Water, Advanced, Rescue Diver, etc.
+              {t("tenant.settings.training.levels.noLevelsHint")}
             </p>
           </div>
         ) : (
@@ -443,7 +445,7 @@ export default function LevelsPage() {
                       </span>
                       {!level.isActive && (
                         <span className="text-xs px-2 py-0.5 bg-surface-inset text-foreground-muted rounded">
-                          Inactive
+                          {t("common.inactive")}
                         </span>
                       )}
                     </div>
@@ -451,15 +453,15 @@ export default function LevelsPage() {
                       {level.agencyName && (
                         <span className="text-brand">{level.agencyName}</span>
                       )}
-                      {level.minAge && <span>Min Age: {level.minAge}</span>}
-                      {level.minDives && <span>Min Dives: {level.minDives}</span>}
+                      {level.minAge && <span>{t("tenant.settings.training.levels.minAge")}: {level.minAge}</span>}
+                      {level.minDives && <span>{t("tenant.settings.training.levels.minDives")}: {level.minDives}</span>}
                     </div>
                     {level.description && (
                       <p className="text-sm text-foreground-muted mt-1">{level.description}</p>
                     )}
                     {level.prerequisites && (
                       <p className="text-xs text-foreground-subtle mt-1">
-                        Prerequisites: {level.prerequisites}
+                        {t("tenant.settings.training.levels.prerequisites")}: {level.prerequisites}
                       </p>
                     )}
                   </div>
@@ -470,7 +472,7 @@ export default function LevelsPage() {
                     onClick={() => handleEdit(level)}
                     className="px-3 py-1.5 text-sm text-foreground-muted hover:bg-surface-overlay rounded-lg"
                   >
-                    Edit
+                    {t("common.edit")}
                   </button>
                   <fetcher.Form
                     method="post"
@@ -491,7 +493,7 @@ export default function LevelsPage() {
                       type="submit"
                       className="px-3 py-1.5 text-sm text-danger hover:bg-danger-muted rounded-lg"
                     >
-                      Delete
+                      {t("common.delete")}
                     </button>
                   </fetcher.Form>
                 </div>
@@ -503,17 +505,16 @@ export default function LevelsPage() {
 
       {/* Level Descriptions */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6">
-        <h3 className="font-semibold mb-4">Level Order Explanation</h3>
+        <h3 className="font-semibold mb-4">{t("tenant.settings.training.levels.levelOrderExplanation")}</h3>
         <p className="text-sm text-foreground-muted mb-4">
-          The level order number helps organize certifications from beginner to advanced.
-          Lower numbers represent entry-level certifications.
+          {t("tenant.settings.training.levels.levelOrderDescription")}
         </p>
         <div className="text-sm text-foreground-muted space-y-1">
-          <p><strong>1</strong> - Entry Level (e.g., Open Water)</p>
-          <p><strong>2</strong> - Intermediate (e.g., Advanced Open Water)</p>
-          <p><strong>3</strong> - Advanced (e.g., Rescue Diver)</p>
-          <p><strong>4</strong> - Professional (e.g., Divemaster)</p>
-          <p><strong>5</strong> - Instructor Level</p>
+          <p><strong>1</strong> - {t("tenant.settings.training.levels.entryLevel")}</p>
+          <p><strong>2</strong> - {t("tenant.settings.training.levels.intermediate")}</p>
+          <p><strong>3</strong> - {t("tenant.settings.training.levels.advanced")}</p>
+          <p><strong>4</strong> - {t("tenant.settings.training.levels.professional")}</p>
+          <p><strong>5</strong> - {t("tenant.settings.training.levels.instructorLevel")}</p>
         </div>
       </div>
     </div>

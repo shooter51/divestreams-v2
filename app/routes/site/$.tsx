@@ -7,8 +7,10 @@
 
 import { Link, useRouteLoaderData } from "react-router";
 import type { SiteLoaderData } from "./_layout";
+import { useT } from "../../i18n/use-t";
 
 export default function SiteNotFound() {
+  const t = useT();
   const layoutData = useRouteLoaderData("routes/site/_layout") as
     | SiteLoaderData
     | undefined;
@@ -22,28 +24,28 @@ export default function SiteNotFound() {
   if (enabledPages?.home) {
     suggestions.push({
       href: "/site",
-      label: "Home",
+      label: t("nav.home"),
       icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
     });
   }
   if (enabledPages?.trips) {
     suggestions.push({
       href: "/site/trips",
-      label: "Trips",
+      label: t("nav.trips"),
       icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z",
     });
   }
   if (enabledPages?.courses) {
     suggestions.push({
       href: "/site/courses",
-      label: "Courses",
+      label: t("nav.courses"),
       icon: "M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z",
     });
   }
   if (enabledPages?.about) {
     suggestions.push({
       href: "/site/about",
-      label: "About",
+      label: t("nav.about"),
       icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     });
   }
@@ -78,10 +80,9 @@ export default function SiteNotFound() {
           >
             404
           </h1>
-          <h2 className="text-3xl font-bold mb-4">Page Not Found</h2>
+          <h2 className="text-3xl font-bold mb-4">{t("error.notFound")}</h2>
           <p className="text-lg opacity-75 max-w-md mx-auto">
-            Sorry, we couldn't find the page you're looking for. It may have
-            been moved or doesn't exist.
+            {t("error.404.description")}
           </p>
         </div>
 
@@ -89,7 +90,7 @@ export default function SiteNotFound() {
         {suggestions.length > 0 && (
           <div className="mb-8">
             <p className="text-sm font-semibold mb-4 opacity-75">
-              Try one of these pages instead:
+              {t("error.404.trySuggestions")}
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
               {suggestions.map((suggestion) => (
@@ -142,7 +143,7 @@ export default function SiteNotFound() {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Back to Home
+            {t("common.backToHome")}
           </Link>
 
           {enabledPages?.contact && (
@@ -151,7 +152,7 @@ export default function SiteNotFound() {
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors"
               style={{ color: "var(--primary-color)" }}
             >
-              Contact {organization?.name || "Us"}
+              {t("error.404.contactOrg", { name: organization?.name || "" })}
               <svg
                 className="w-5 h-5"
                 fill="none"

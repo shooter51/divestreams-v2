@@ -25,6 +25,7 @@ import {
   type ZapierTriggerType,
 } from "../../../../../lib/integrations/zapier.server";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -82,6 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ZapierIntegrationSettings() {
+  const t = useT();
   const data = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
@@ -92,19 +94,19 @@ export default function ZapierIntegrationSettings() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Zapier Integration</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("tenant.settings.integrations.zapier.title")}</h1>
         <p className="text-foreground-muted">
-          Connect DiveStreams to 5000+ apps using Zapier workflow automation.
+          {t("tenant.settings.integrations.zapier.subtitle")}
         </p>
       </div>
 
       {/* Setup Instructions */}
       <div className="bg-brand-muted border border-brand rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-3">Setup Instructions</h2>
+        <h2 className="text-lg font-semibold mb-3">{t("tenant.settings.integrations.zapier.setupInstructions")}</h2>
         <ol className="list-decimal list-inside space-y-2 text-sm">
-          <li>Generate an API key below (if you haven't already)</li>
+          <li>{t("tenant.settings.integrations.zapier.setupStep1")}</li>
           <li>
-            Visit{" "}
+            {t("tenant.settings.integrations.zapier.setupStep2Visit")}{" "}
             <a
               href="https://zapier.com"
               target="_blank"
@@ -113,18 +115,18 @@ export default function ZapierIntegrationSettings() {
             >
               Zapier.com
             </a>{" "}
-            and create a new Zap
+            {t("tenant.settings.integrations.zapier.setupStep2CreateZap")}
           </li>
-          <li>Search for "DiveStreams" or use "Webhooks by Zapier"</li>
-          <li>Use your API key to authenticate the connection</li>
-          <li>Choose a trigger or action and configure your workflow</li>
+          <li>{t("tenant.settings.integrations.zapier.setupStep3")}</li>
+          <li>{t("tenant.settings.integrations.zapier.setupStep4")}</li>
+          <li>{t("tenant.settings.integrations.zapier.setupStep5")}</li>
         </ol>
       </div>
 
       {/* API Keys Section */}
       <div className="bg-surface-raised rounded-lg shadow-sm border border-border p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">API Keys</h2>
+          <h2 className="text-xl font-semibold">{t("tenant.settings.integrations.zapier.apiKeys")}</h2>
           <Form method="post">
             <CsrfInput />
             <input type="hidden" name="intent" value="generate-key" />
@@ -134,14 +136,14 @@ export default function ZapierIntegrationSettings() {
               className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
               onClick={() => setShowKeyModal(true)}
             >
-              {isLoading ? "Generating..." : "Generate New Key"}
+              {isLoading ? t("tenant.settings.integrations.zapier.generating") : t("tenant.settings.integrations.zapier.generateNewKey")}
             </button>
           </Form>
         </div>
 
         {data.apiKeys.length === 0 ? (
           <p className="text-foreground-muted text-center py-8">
-            No API keys generated yet. Create one to get started with Zapier.
+            {t("tenant.settings.integrations.zapier.noApiKeys")}
           </p>
         ) : (
           <div className="space-y-3">
@@ -157,10 +159,10 @@ export default function ZapierIntegrationSettings() {
                     <div className="text-xs text-foreground-muted mt-1">{key.label}</div>
                   )}
                   <div className="text-xs text-foreground-subtle mt-1">
-                    Created: {new Date(key.createdAt).toLocaleDateString()}
+                    {t("tenant.settings.integrations.zapier.created")}: {new Date(key.createdAt).toLocaleDateString()}
                     {key.lastUsedAt && (
                       <span className="ml-3">
-                        Last used: {new Date(key.lastUsedAt).toLocaleDateString()}
+                        {t("tenant.settings.integrations.zapier.lastUsed")}: {new Date(key.lastUsedAt).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -174,7 +176,7 @@ export default function ZapierIntegrationSettings() {
                     disabled={!key.isActive || isLoading}
                     className="text-danger hover:text-danger text-sm disabled:opacity-50"
                   >
-                    {key.isActive ? "Revoke" : "Revoked"}
+                    {key.isActive ? t("tenant.settings.integrations.zapier.revoke") : t("tenant.settings.integrations.zapier.revoked")}
                   </button>
                 </Form>
               </div>
@@ -187,12 +189,12 @@ export default function ZapierIntegrationSettings() {
       {showKeyModal && newApiKey && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-surface-raised rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-3">New API Key Generated</h3>
+            <h3 className="text-lg font-semibold mb-3">{t("tenant.settings.integrations.zapier.newKeyGenerated")}</h3>
             <div className="bg-surface-inset p-3 rounded mb-4 break-all font-mono text-sm">
               {newApiKey}
             </div>
             <p className="text-sm text-danger mb-4">
-              ⚠️ Save this key now. You won't be able to see it again!
+              {t("tenant.settings.integrations.zapier.saveKeyWarning")}
             </p>
             <button
               onClick={() => {
@@ -202,7 +204,7 @@ export default function ZapierIntegrationSettings() {
               }}
               className="w-full bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
-              Copy and Close
+              {t("tenant.settings.integrations.zapier.copyAndClose")}
             </button>
           </div>
         </div>
@@ -210,7 +212,7 @@ export default function ZapierIntegrationSettings() {
 
       {/* Available Triggers */}
       <div className="bg-surface-raised rounded-lg shadow-sm border border-border p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Available Triggers</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("tenant.settings.integrations.zapier.availableTriggers")}</h2>
         <div className="space-y-2">
           {data.triggers.map((trigger: { key: string; description: string }) => (
             <div
@@ -228,38 +230,38 @@ export default function ZapierIntegrationSettings() {
 
       {/* Webhook Statistics */}
       <div className="bg-surface-raised rounded-lg shadow-sm border border-border p-6">
-        <h2 className="text-xl font-semibold mb-4">Webhook Statistics</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("tenant.settings.integrations.zapier.webhookStatistics")}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="text-center">
             <div className="text-2xl font-bold text-brand">
               {data.webhookStats.activeSubscriptions}
             </div>
-            <div className="text-xs text-foreground-muted">Active Subscriptions</div>
+            <div className="text-xs text-foreground-muted">{t("tenant.settings.integrations.zapier.activeSubscriptions")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-success">
               {data.webhookStats.successfulDeliveries}
             </div>
-            <div className="text-xs text-foreground-muted">Successful Deliveries</div>
+            <div className="text-xs text-foreground-muted">{t("tenant.settings.integrations.zapier.successfulDeliveries")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-danger">
               {data.webhookStats.failedDeliveries}
             </div>
-            <div className="text-xs text-foreground-muted">Failed Deliveries</div>
+            <div className="text-xs text-foreground-muted">{t("tenant.settings.integrations.zapier.failedDeliveries")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-foreground-muted">
               {data.webhookStats.totalDeliveries}
             </div>
-            <div className="text-xs text-foreground-muted">Total Deliveries</div>
+            <div className="text-xs text-foreground-muted">{t("tenant.settings.integrations.zapier.totalDeliveries")}</div>
           </div>
         </div>
 
         {/* Recent Deliveries */}
         {data.webhookStats.recentDeliveries.length > 0 && (
           <div>
-            <h3 className="font-semibold mb-3">Recent Deliveries</h3>
+            <h3 className="font-semibold mb-3">{t("tenant.settings.integrations.zapier.recentDeliveries")}</h3>
             <div className="space-y-2">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {data.webhookStats.recentDeliveries.map((delivery: any) => (
@@ -295,14 +297,14 @@ export default function ZapierIntegrationSettings() {
 
       {/* Documentation Link */}
       <div className="mt-6 text-center text-sm text-foreground-muted">
-        Need help?{" "}
+        {t("tenant.settings.integrations.zapier.needHelp")}{" "}
         <a
           href="https://docs.divestreams.com/integrations/zapier"
           target="_blank"
           rel="noopener noreferrer"
           className="text-brand hover:underline"
         >
-          View Zapier Integration Documentation
+          {t("tenant.settings.integrations.zapier.viewDocumentation")}
         </a>
       </div>
     </div>

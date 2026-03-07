@@ -49,7 +49,7 @@ describe("Product Detail Page - Image Display", () => {
   });
 
   it("renders Product Images heading", () => {
-    expect(detailSource).toContain("Product Images");
+    expect(detailSource).toContain("tenant.pos.products.productImages");
   });
 
   it("renders image thumbnails with alt text", () => {
@@ -59,21 +59,21 @@ describe("Product Detail Page - Image Display", () => {
 
   it("shows primary badge on primary image", () => {
     expect(detailSource).toContain("image.isPrimary");
-    expect(detailSource).toContain("Primary");
+    expect(detailSource).toContain("tenant.pos.products.primary");
   });
 
   it("shows a placeholder when no images exist", () => {
     expect(detailSource).toContain('data-testid="no-images-placeholder"');
-    expect(detailSource).toContain("No product images yet");
+    expect(detailSource).toContain("tenant.pos.products.noImages");
   });
 
   it("placeholder links to edit page for adding images", () => {
-    expect(detailSource).toContain("Add Images");
+    expect(detailSource).toContain("tenant.pos.products.addImages");
     expect(detailSource).toContain("/edit");
   });
 
   it("includes Manage Images link to edit page", () => {
-    expect(detailSource).toContain("Manage Images");
+    expect(detailSource).toContain("tenant.pos.products.manageImages");
   });
 
   it("includes lightbox functionality for image viewing", () => {
@@ -82,12 +82,12 @@ describe("Product Detail Page - Image Display", () => {
   });
 
   it("lightbox has close button with aria-label", () => {
-    expect(detailSource).toContain('aria-label="Close lightbox"');
+    expect(detailSource).toContain("tenant.pos.products.closeLightbox");
   });
 
   it("lightbox has navigation buttons", () => {
-    expect(detailSource).toContain('aria-label="Previous image"');
-    expect(detailSource).toContain('aria-label="Next image"');
+    expect(detailSource).toContain("tenant.pos.products.previousImage");
+    expect(detailSource).toContain("tenant.pos.products.nextImage");
   });
 });
 
@@ -428,9 +428,9 @@ describe("Product Image CRUD Integration", () => {
       "utf-8"
     );
 
-    // Should have "Manage Images" and "Add Images" links to edit page
-    expect(detailSource).toContain("Manage Images");
-    expect(detailSource).toContain("Add Images");
+    // Should have manage/add images links to edit page (via i18n keys)
+    expect(detailSource).toContain("tenant.pos.products.manageImages");
+    expect(detailSource).toContain("tenant.pos.products.addImages");
     expect(detailSource).toContain("/edit");
   });
 

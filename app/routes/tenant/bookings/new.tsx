@@ -7,6 +7,7 @@ import { triggerBookingConfirmation, getNotificationSettings } from "../../../..
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { formatDisplayDate as sharedFormatDisplayDate, formatTime as sharedFormatTime } from "../../../lib/format";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
@@ -180,20 +181,21 @@ export default function NewBookingPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/bookings" className="text-brand hover:underline text-sm">
-          ← Back to Bookings
+          {t("tenant.bookings.backToBookings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">New Booking</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.bookings.newBookingTitle")}</h1>
       </div>
 
       <form method="post" noValidate className="space-y-6">
         <CsrfInput />
         {/* Customer Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Customer</h2>
+          <h2 className="font-semibold mb-4">{t("common.customer")}</h2>
           {selectedCustomer ? (
             <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
               <div>
@@ -206,14 +208,14 @@ export default function NewBookingPage() {
                 to="/tenant/bookings/new"
                 className="text-sm text-brand hover:underline"
               >
-                Change
+                {t("tenant.bookings.change")}
               </Link>
               <input type="hidden" name="customerId" value={selectedCustomer.id} />
             </div>
           ) : (
             <div>
               <label htmlFor="customerId" className="block text-sm font-medium mb-1">
-                Select Customer *
+                {t("tenant.bookings.selectCustomer")} *
               </label>
               <select
                 id="customerId"
@@ -222,7 +224,7 @@ export default function NewBookingPage() {
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
-                <option value="">Choose a customer...</option>
+                <option value="">{t("tenant.bookings.chooseCustomer")}</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
                     {customer.firstName} {customer.lastName} ({customer.email})
@@ -234,7 +236,7 @@ export default function NewBookingPage() {
               )}
               <p className="text-sm text-foreground-muted mt-2">
                 <Link to="/tenant/customers/new" className="text-brand hover:underline">
-                  + Add new customer
+                  + {t("tenant.bookings.addNewCustomer")}
                 </Link>
               </p>
             </div>
@@ -243,7 +245,7 @@ export default function NewBookingPage() {
 
         {/* Trip Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Trip</h2>
+          <h2 className="font-semibold mb-4">{t("common.trip")}</h2>
           {selectedTrip ? (
             <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
               <div>
@@ -252,21 +254,21 @@ export default function NewBookingPage() {
                   {formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)} • ${selectedTrip.price}/person
                 </p>
                 <p className="text-sm text-success">
-                  {selectedTrip.spotsAvailable !== null ? `${selectedTrip.spotsAvailable} spots available` : "Unlimited spots"}
+                  {selectedTrip.spotsAvailable !== null ? t("tenant.bookings.spotsAvailable", { count: selectedTrip.spotsAvailable }) : t("tenant.bookings.unlimitedSpots")}
                 </p>
               </div>
               <Link
                 to={`/tenant/bookings/new${selectedCustomer ? `?customerId=${selectedCustomer.id}` : ""}`}
                 className="text-sm text-brand hover:underline"
               >
-                Change
+                {t("tenant.bookings.change")}
               </Link>
               <input type="hidden" name="tripId" value={selectedTrip.id} />
             </div>
           ) : (
             <div>
               <label htmlFor="tripId" className="block text-sm font-medium mb-1">
-                Select Trip *
+                {t("tenant.bookings.selectTrip")} *
               </label>
               <select
                 id="tripId"
@@ -275,7 +277,7 @@ export default function NewBookingPage() {
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
-                <option value="">Choose a trip...</option>
+                <option value="">{t("tenant.bookings.chooseTrip")}</option>
                 {upcomingTrips.map((trip) => (
                   <option key={trip.id} value={trip.id}>
                     {trip.tourName} - {formatDisplayDate(trip.date)} at {formatTime(trip.startTime)} (${trip.price}, {trip.spotsAvailable !== null ? `${trip.spotsAvailable} spots` : "unlimited spots"})
@@ -291,11 +293,11 @@ export default function NewBookingPage() {
 
         {/* Participants */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Participants</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.bookings.participantsTitle")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="participants" className="block text-sm font-medium mb-1">
-                Number of Participants *
+                {t("tenant.bookings.numParticipants")} *
               </label>
               <input
                 type="number"
@@ -309,7 +311,7 @@ export default function NewBookingPage() {
               />
               {selectedTrip && (
                 <p className="text-sm text-foreground-muted mt-1">
-                  {selectedTrip.spotsAvailable !== null ? `Max ${selectedTrip.spotsAvailable} available` : "Unlimited availability"}
+                  {selectedTrip.spotsAvailable !== null ? t("tenant.bookings.maxAvailable", { count: selectedTrip.spotsAvailable }) : t("tenant.bookings.unlimitedAvailability")}
                 </p>
               )}
             </div>
@@ -318,14 +320,14 @@ export default function NewBookingPage() {
           {/* Participant Details (optional expansion) */}
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-foreground-muted mb-2">
-              Add participant details (optional - can be added later)
+              {t("tenant.bookings.participantDetailsHint")}
             </p>
             <div className="space-y-3">
               <div className="p-3 bg-surface-inset rounded-lg">
                 <input
                   type="text"
                   name="participant1Name"
-                  placeholder="Participant 1 name"
+                  placeholder={t("tenant.bookings.participantName", { number: 1 })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-sm"
                 />
               </div>
@@ -335,8 +337,8 @@ export default function NewBookingPage() {
 
         {/* Equipment Rental */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Equipment Rental</h2>
-          <p className="text-sm text-foreground-muted mb-4">Select equipment to rent for this booking</p>
+          <h2 className="font-semibold mb-4">{t("tenant.bookings.equipmentRentalTitle")}</h2>
+          <p className="text-sm text-foreground-muted mb-4">{t("tenant.bookings.selectEquipment")}</p>
           <div className="grid grid-cols-2 gap-3">
             {rentalEquipment.map((item) => (
               <label
@@ -352,7 +354,7 @@ export default function NewBookingPage() {
                   />
                   <span className="text-sm font-medium">
                     {item.name}
-                    <span className="text-foreground-muted font-normal"> ({item.count} available)</span>
+                    <span className="text-foreground-muted font-normal"> ({t("tenant.bookings.availableCount", { count: item.count })})</span>
                   </span>
                 </div>
                 <span className="text-sm text-foreground-muted">${item.price}</span>
@@ -360,36 +362,36 @@ export default function NewBookingPage() {
             ))}
           </div>
           <p className="text-xs text-foreground-subtle mt-3">
-            Equipment prices are per person per day. Full Gear Package includes BCD, Regulator, Wetsuit, Mask, Snorkel, and Fins.
+            {t("tenant.bookings.equipmentNote")}
           </p>
         </div>
 
         {/* Notes */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Notes</h2>
+          <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="specialRequests" className="block text-sm font-medium mb-1">
-                Special Requests
+                {t("tenant.bookings.specialRequestsLabel")}
               </label>
               <textarea
                 id="specialRequests"
                 name="specialRequests"
                 rows={2}
-                placeholder="Any special requirements from the customer..."
+                placeholder={t("tenant.bookings.specialRequestsPlaceholder")}
                 defaultValue={actionData?.values?.specialRequests}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
               <label htmlFor="internalNotes" className="block text-sm font-medium mb-1">
-                Internal Notes
+                {t("tenant.bookings.internalNotesLabel")}
               </label>
               <textarea
                 id="internalNotes"
                 name="internalNotes"
                 rows={2}
-                placeholder="Notes visible only to staff..."
+                placeholder={t("tenant.bookings.internalNotesPlaceholder")}
                 defaultValue={actionData?.values?.internalNotes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -400,7 +402,7 @@ export default function NewBookingPage() {
         {/* Source */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label htmlFor="source" className="block text-sm font-medium mb-1">
-            Booking Source
+            {t("tenant.bookings.bookingSource")}
           </label>
           <select
             id="source"
@@ -408,24 +410,24 @@ export default function NewBookingPage() {
             defaultValue={actionData?.values?.source || "direct"}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           >
-            <option value="direct">Direct (Walk-in/Phone)</option>
-            <option value="website">Website</option>
-            <option value="partner">Partner/Agent</option>
-            <option value="repeat">Repeat Customer</option>
-            <option value="referral">Referral</option>
-            <option value="other">Other</option>
+            <option value="direct">{t("tenant.bookings.sourceDirect")}</option>
+            <option value="website">{t("tenant.bookings.sourceWebsite")}</option>
+            <option value="partner">{t("tenant.bookings.sourcePartner")}</option>
+            <option value="repeat">{t("tenant.bookings.sourceRepeat")}</option>
+            <option value="referral">{t("tenant.bookings.sourceReferral")}</option>
+            <option value="other">{t("tenant.bookings.sourceOther")}</option>
           </select>
         </div>
 
         {/* Summary & Actions */}
         {selectedTrip && (
           <div className="bg-brand-muted rounded-xl p-6">
-            <h3 className="font-semibold mb-2">Booking Summary</h3>
+            <h3 className="font-semibold mb-2">{t("tenant.bookings.summary")}</h3>
             <div className="text-sm space-y-1">
               <p>{selectedTrip.tourName}</p>
               <p>{formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)}</p>
               <p className="text-lg font-bold mt-2">
-                ${parseFloat(selectedTrip.price).toFixed(2)} per person
+                {t("tenant.bookings.perPerson", { price: `$${parseFloat(selectedTrip.price).toFixed(2)}` })}
               </p>
             </div>
           </div>
@@ -437,13 +439,13 @@ export default function NewBookingPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Creating..." : "Create Booking"}
+            {isSubmitting ? t("common.creating") : t("tenant.bookings.createBooking")}
           </button>
           <Link
             to="/tenant/bookings"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

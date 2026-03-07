@@ -10,6 +10,7 @@ import {
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { formatLabel, formatDisplayDate } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [
   { title: "Enrollment Details - DiveStreams" },
@@ -189,6 +190,7 @@ const statusColors: Record<string, string> = {
 
 export default function EnrollmentDetailPage() {
   useNotification();
+  const t = useT();
 
   const { enrollment } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{
@@ -200,7 +202,7 @@ export default function EnrollmentDetailPage() {
   const handleDelete = () => {
     if (
       confirm(
-        "Are you sure you want to delete this enrollment? This action cannot be undone."
+        t("tenant.training.enrollments.confirmDelete")
       )
     ) {
       fetcher.submit({ intent: "delete" }, { method: "post" });
@@ -233,7 +235,7 @@ export default function EnrollmentDetailPage() {
           to="/tenant/training/enrollments"
           className="text-brand hover:underline text-sm"
         >
-          &larr; Back to Enrollments
+          &larr; {t("tenant.training.enrollments.backToEnrollments")}
         </Link>
       </div>
 
@@ -252,7 +254,7 @@ export default function EnrollmentDetailPage() {
             </span>
           </div>
           <p className="text-foreground-muted">
-            {enrollment.courseName} - Enrolled {formatDisplayDate(enrollment.enrolledAt)}
+            {enrollment.courseName} - {t("tenant.training.enrollments.enrolledOn", { date: formatDisplayDate(enrollment.enrolledAt) || "" })}
           </p>
         </div>
         <div className="flex gap-2">
@@ -261,14 +263,14 @@ export default function EnrollmentDetailPage() {
               onClick={() => setShowCertModal(true)}
               className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success-hover"
             >
-              Issue Certification
+              {t("tenant.training.enrollments.issueCertification")}
             </button>
           )}
           <button
             onClick={handleDelete}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -285,10 +287,10 @@ export default function EnrollmentDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Student Info */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Student Information</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.enrollments.studentInformation")}</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-foreground-muted">Name</p>
+                <p className="text-sm text-foreground-muted">{t("common.name")}</p>
                 <Link
                   to={`/tenant/customers/${enrollment.customerId}`}
                   className="font-medium text-brand hover:underline"
@@ -297,22 +299,22 @@ export default function EnrollmentDetailPage() {
                 </Link>
               </div>
               <div>
-                <p className="text-sm text-foreground-muted">Email</p>
+                <p className="text-sm text-foreground-muted">{t("common.email")}</p>
                 <p>{enrollment.customerEmail}</p>
               </div>
               <div>
-                <p className="text-sm text-foreground-muted">Phone</p>
-                <p>{enrollment.customerPhone || "Not provided"}</p>
+                <p className="text-sm text-foreground-muted">{t("common.phone")}</p>
+                <p>{enrollment.customerPhone || t("tenant.training.enrollments.notProvided")}</p>
               </div>
             </div>
           </div>
 
           {/* Course & Session Info */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Course & Session</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.enrollments.courseAndSession")}</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-foreground-muted">Course</p>
+                <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.col.course")}</p>
                 <Link
                   to={`/tenant/training/courses/${enrollment.courseId}`}
                   className="font-medium text-brand hover:underline"
@@ -321,14 +323,14 @@ export default function EnrollmentDetailPage() {
                 </Link>
               </div>
               <div>
-                <p className="text-sm text-foreground-muted">Agency / Level</p>
+                <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.agencyLevel")}</p>
                 <p>
                   {enrollment.agencyName}{" "}
                   {enrollment.levelName && `- ${enrollment.levelName}`}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-foreground-muted">Session Dates</p>
+                <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.sessionDates")}</p>
                 <p>
                   {formatDisplayDate(enrollment.sessionStartDate)}
                   {enrollment.sessionEndDate &&
@@ -336,12 +338,12 @@ export default function EnrollmentDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-foreground-muted">Location</p>
-                <p>{enrollment.sessionLocation || "TBD"}</p>
+                <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.location")}</p>
+                <p>{enrollment.sessionLocation || t("tenant.training.enrollments.tbd")}</p>
               </div>
               <div>
-                <p className="text-sm text-foreground-muted">Instructor</p>
-                <p>{enrollment.sessionInstructor || "TBD"}</p>
+                <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.instructor")}</p>
+                <p>{enrollment.sessionInstructor || t("tenant.training.enrollments.tbd")}</p>
               </div>
             </div>
           </div>
@@ -349,7 +351,7 @@ export default function EnrollmentDetailPage() {
           {/* Progress Tracking */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Progress Tracking</h2>
+              <h2 className="font-semibold">{t("tenant.training.enrollments.progressTracking")}</h2>
             </div>
             <fetcher.Form method="post" className="space-y-4">
               <CsrfInput />
@@ -363,7 +365,7 @@ export default function EnrollmentDetailPage() {
                     defaultChecked={progress.classroomComplete}
                     className="rounded border-border-strong"
                   />
-                  <span>Classroom Training Complete</span>
+                  <span>{t("tenant.training.enrollments.classroomComplete")}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input
@@ -373,13 +375,13 @@ export default function EnrollmentDetailPage() {
                     defaultChecked={progress.poolComplete}
                     className="rounded border-border-strong"
                   />
-                  <span>Pool/Confined Water Complete</span>
+                  <span>{t("tenant.training.enrollments.poolComplete")}</span>
                 </label>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Open Water Dives Completed
+                    {t("tenant.training.enrollments.openWaterDivesCompleted")}
                   </label>
                   <input
                     type="number"
@@ -391,7 +393,7 @@ export default function EnrollmentDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Quiz Score (%)
+                    {t("tenant.training.enrollments.quizScore")}
                   </label>
                   <input
                     type="number"
@@ -404,7 +406,7 @@ export default function EnrollmentDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Final Exam Score (%)
+                    {t("tenant.training.enrollments.finalExamScore")}
                   </label>
                   <input
                     type="number"
@@ -422,8 +424,8 @@ export default function EnrollmentDetailPage() {
                 className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
               >
                 {fetcher.state === "submitting"
-                  ? "Saving..."
-                  : "Update Progress"}
+                  ? t("common.saving")
+                  : t("tenant.training.enrollments.updateProgress")}
               </button>
             </fetcher.Form>
           </div>
@@ -431,16 +433,16 @@ export default function EnrollmentDetailPage() {
           {/* Skill Checkoffs */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Skill Checkoffs</h2>
+              <h2 className="font-semibold">{t("tenant.training.enrollments.skillCheckoffs")}</h2>
               <button
                 onClick={() => setShowSkillModal(true)}
                 className="text-sm text-brand hover:underline"
               >
-                + Add Skill Checkoff
+                + {t("tenant.training.enrollments.addSkillCheckoff")}
               </button>
             </div>
             {skillCheckoffs.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No skill checkoffs recorded yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.enrollments.noSkillCheckoffs")}</p>
             ) : (
               <div className="space-y-2">
                 {skillCheckoffs.map((checkoff, index) => (
@@ -451,7 +453,7 @@ export default function EnrollmentDetailPage() {
                     <div>
                       <p className="font-medium">{checkoff.skill}</p>
                       <p className="text-sm text-foreground-muted">
-                        Signed off by: {checkoff.signedOffBy}
+                        {t("tenant.training.enrollments.signedOffBy", { name: checkoff.signedOffBy })}
                       </p>
                     </div>
                     <span className="text-sm text-foreground-subtle">
@@ -465,7 +467,7 @@ export default function EnrollmentDetailPage() {
 
           {/* Notes */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Notes</h2>
+            <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
             <fetcher.Form method="post">
               <CsrfInput />
               <input type="hidden" name="intent" value="update-notes" />
@@ -474,14 +476,14 @@ export default function EnrollmentDetailPage() {
                 rows={4}
                 defaultValue={enrollment.notes || ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand mb-3"
-                placeholder="Add notes about this enrollment..."
+                placeholder={t("tenant.training.enrollments.notesPlaceholder")}
               />
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
                 className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
               >
-                Save Notes
+                {t("tenant.training.enrollments.saveNotes")}
               </button>
             </fetcher.Form>
           </div>
@@ -491,7 +493,7 @@ export default function EnrollmentDetailPage() {
         <div className="space-y-6">
           {/* Status Update */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Update Status</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.enrollments.updateStatus")}</h2>
             <fetcher.Form method="post">
               <CsrfInput />
               <input type="hidden" name="intent" value="update-status" />
@@ -500,44 +502,44 @@ export default function EnrollmentDetailPage() {
                 defaultValue={enrollment.status}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand mb-3"
               >
-                <option value="enrolled">Enrolled</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="dropped">Dropped</option>
-                <option value="failed">Failed</option>
+                <option value="enrolled">{t("tenant.training.enrollments.status.enrolled")}</option>
+                <option value="in_progress">{t("tenant.training.enrollments.status.inProgress")}</option>
+                <option value="completed">{t("tenant.training.enrollments.status.completed")}</option>
+                <option value="dropped">{t("tenant.training.enrollments.status.dropped")}</option>
+                <option value="failed">{t("tenant.training.enrollments.status.failed")}</option>
               </select>
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
                 className="w-full px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
               >
-                Update Status
+                {t("tenant.training.enrollments.updateStatus")}
               </button>
             </fetcher.Form>
           </div>
 
           {/* Payment */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Payment</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.enrollments.col.payment")}</h2>
             <fetcher.Form method="post" className="space-y-3">
               <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
+                <label className="block text-sm font-medium mb-1">{t("common.status")}</label>
                 <select
                   name="paymentStatus"
                   defaultValue={enrollment.paymentStatus || "pending"}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="partial">Partial</option>
-                  <option value="paid">Paid</option>
-                  <option value="refunded">Refunded</option>
+                  <option value="pending">{t("tenant.training.enrollments.paymentStatus.pending")}</option>
+                  <option value="partial">{t("tenant.training.enrollments.paymentStatus.partial")}</option>
+                  <option value="paid">{t("tenant.training.enrollments.paymentStatus.paid")}</option>
+                  <option value="refunded">{t("tenant.training.enrollments.paymentStatus.refunded")}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Amount Paid
+                  {t("tenant.training.enrollments.amountPaid")}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -552,44 +554,44 @@ export default function EnrollmentDetailPage() {
                 </div>
               </div>
               <div className="text-sm text-foreground-muted">
-                Course Price: ${enrollment.coursePrice || "0.00"}
+                {t("tenant.training.enrollments.coursePrice", { price: enrollment.coursePrice || "0.00" })}
               </div>
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
                 className="w-full px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
               >
-                Update Payment
+                {t("tenant.training.enrollments.updatePayment")}
               </button>
             </fetcher.Form>
           </div>
 
           {/* Certification */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Certification</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.enrollments.col.certification")}</h2>
             {enrollment.certificationNumber ? (
               <div className="space-y-2">
                 <div className="p-4 bg-success-muted rounded-lg border border-success">
-                  <p className="text-sm text-foreground-muted">Certification Number</p>
+                  <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.certificationNumber")}</p>
                   <p className="font-bold text-success">
                     {enrollment.certificationNumber}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-foreground-muted">Issue Date</p>
+                  <p className="text-sm text-foreground-muted">{t("tenant.training.enrollments.issueDate")}</p>
                   <p>{formatDisplayDate(enrollment.certificationDate)}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-4">
                 <p className="text-foreground-muted text-sm mb-3">
-                  No certification issued yet
+                  {t("tenant.training.enrollments.noCertification")}
                 </p>
                 <button
                   onClick={() => setShowCertModal(true)}
                   className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover"
                 >
-                  Issue Certification
+                  {t("tenant.training.enrollments.issueCertification")}
                 </button>
               </div>
             )}
@@ -597,9 +599,9 @@ export default function EnrollmentDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Created: {formatDisplayDate(enrollment.createdAt)}</p>
-            <p>Updated: {formatDisplayDate(enrollment.updatedAt)}</p>
-            <p>ID: {enrollment.id}</p>
+            <p>{t("tenant.training.enrollments.created", { date: formatDisplayDate(enrollment.createdAt) || "" })}</p>
+            <p>{t("tenant.training.enrollments.updated", { date: formatDisplayDate(enrollment.updatedAt) || "" })}</p>
+            <p>{t("tenant.training.enrollments.id", { id: enrollment.id })}</p>
           </div>
         </div>
       </div>
@@ -609,7 +611,7 @@ export default function EnrollmentDetailPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-bold">Add Skill Checkoff</h2>
+              <h2 className="text-lg font-bold">{t("tenant.training.enrollments.addSkillCheckoff")}</h2>
               <button
                 onClick={() => setShowSkillModal(false)}
                 className="text-foreground-subtle hover:text-foreground-muted"
@@ -621,26 +623,26 @@ export default function EnrollmentDetailPage() {
             <form onSubmit={handleAddSkillCheckoff} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Skill Name *
+                  {t("tenant.training.enrollments.skillName")} *
                 </label>
                 <input
                   type="text"
                   name="skill"
                   required
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
-                  placeholder="e.g., Mask Clearing, Buoyancy Control"
+                  placeholder={t("tenant.training.enrollments.skillNamePlaceholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Signed Off By *
+                  {t("tenant.training.enrollments.signedOffByLabel")} *
                 </label>
                 <input
                   type="text"
                   name="signedOffBy"
                   required
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
-                  placeholder="Instructor name"
+                  placeholder={t("tenant.training.enrollments.instructorNamePlaceholder")}
                 />
               </div>
 
@@ -650,14 +652,14 @@ export default function EnrollmentDetailPage() {
                   onClick={() => setShowSkillModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
-                  Add Checkoff
+                  {t("tenant.training.enrollments.addCheckoff")}
                 </button>
               </div>
             </form>
@@ -671,7 +673,7 @@ export default function EnrollmentDetailPage() {
           <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Issue Certification</h2>
+                <h2 className="text-lg font-bold">{t("tenant.training.enrollments.issueCertification")}</h2>
                 <p className="text-sm text-foreground-muted">
                   {enrollment.customerFirstName} {enrollment.customerLastName} -{" "}
                   {enrollment.courseName}
@@ -688,19 +690,18 @@ export default function EnrollmentDetailPage() {
             <form onSubmit={handleIssueCertification} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Certification Number *
+                  {t("tenant.training.enrollments.certificationNumber")} *
                 </label>
                 <input
                   type="text"
                   name="certificationNumber"
                   required
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
-                  placeholder="e.g., PADI-123456"
+                  placeholder={t("tenant.training.enrollments.certificationNumberPlaceholder")}
                 />
               </div>
               <p className="text-sm text-foreground-muted">
-                The certification date will be set to today. This will also mark
-                the enrollment as completed.
+                {t("tenant.training.enrollments.certificationDateNote")}
               </p>
 
               <div className="flex gap-3 pt-2">
@@ -709,14 +710,14 @@ export default function EnrollmentDetailPage() {
                   onClick={() => setShowCertModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
                   className="flex-1 py-2 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-success-muted"
                 >
-                  Issue Certification
+                  {t("tenant.training.enrollments.issueCertification")}
                 </button>
               </div>
             </form>

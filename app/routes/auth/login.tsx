@@ -1,6 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
 import { useState } from "react";
+import { useT } from "../../i18n/use-t";
 import { eq, and } from "drizzle-orm";
 import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { auth } from "../../../lib/auth";
@@ -219,6 +220,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginPage() {
+  const t = useT();
   const loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -235,14 +237,14 @@ export default function LoginPage() {
         <div className="max-w-md w-full px-4">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-brand">DiveStreams</h1>
-            <p className="text-foreground-muted mt-2">Enter your email to find your account</p>
+            <p className="text-foreground-muted mt-2">{t("auth.login.enterEmailToFind")}</p>
           </div>
           <form method="post" noValidate className="bg-surface-raised rounded-xl p-8 shadow-sm border">
             <CsrfTokenInput token={csrfToken} />
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-1">
-                  Email Address
+                  {t("auth.login.emailAddress")}
                 </label>
                 <input
                   type="email"
@@ -263,7 +265,7 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
             >
-              {isSubmitting ? "Searching..." : "Find My Account"}
+              {isSubmitting ? t("auth.login.searching") : t("auth.login.findMyAccount")}
             </button>
           </form>
         </div>
@@ -278,25 +280,25 @@ export default function LoginPage() {
       <div className="max-w-md w-full px-4">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-brand">{tenantName}</h1>
-          <p className="text-foreground-muted mt-2">Sign in to your account</p>
+          <p className="text-foreground-muted mt-2">{t("auth.login.signInToAccount")}</p>
         </div>
 
         {noAccessError && (
           <div className="bg-warning-muted border border-warning text-warning p-4 rounded-xl max-w-4xl break-words mb-6">
-            <div className="font-semibold mb-2">🔒 Access Denied</div>
+            <div className="font-semibold mb-2">{t("auth.login.accessDenied")}</div>
             <p className="text-sm">{noAccessError}</p>
             <div className="mt-4 flex gap-2">
               <a
                 href="/auth/logout"
                 className="flex-1 px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover text-center text-sm"
               >
-                Log Out
+                {t("auth.logout")}
               </a>
               <a
                 href={mainSiteUrl}
                 className="flex-1 px-4 py-2 border-2 border-warning text-warning rounded-lg hover:bg-warning-muted text-center text-sm"
               >
-                Go to Main Site
+                {t("auth.login.goToMainSite")}
               </a>
             </div>
           </div>
@@ -313,7 +315,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email
+                {t("common.email")}
               </label>
               <input
                 type="email"
@@ -331,7 +333,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-1">
-                Password
+                {t("auth.login.password")}
               </label>
               <div className="relative">
                 <input
@@ -348,7 +350,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-foreground-muted hover:text-foreground transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("auth.login.hidePassword") : t("auth.login.showPassword")}
                 >
                   {showPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -373,14 +375,14 @@ export default function LoginPage() {
             disabled={isSubmitting}
             className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Signing in..." : "Sign In"}
+            {isSubmitting ? t("auth.login.signingIn") : t("auth.login.signIn")}
           </button>
 
           <a
             href="/auth/forgot-password"
             className="block text-center text-sm text-brand mt-4"
           >
-            Forgot your password?
+            {t("auth.login.forgotYourPassword")}
           </a>
         </form>
       </div>

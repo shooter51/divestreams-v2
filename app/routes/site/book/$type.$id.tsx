@@ -46,6 +46,7 @@ import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { getNextBookingNumber } from "../../../../lib/db/queries/bookings.server";
+import { useT } from "../../../i18n/use-t";
 
 // ============================================================================
 // TYPES
@@ -1074,6 +1075,7 @@ export default function BookingPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   const [participants, setParticipants] = useState(1);
   const [selectedSession, setSelectedSession] = useState<string>(
@@ -1149,14 +1151,13 @@ export default function BookingPage() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Back to{" "}
-            {data.type === "trip" ? data.trip?.tourName : data.course?.name}
+            {t("site.book.backTo", { name: (data.type === "trip" ? data.trip?.tourName : data.course?.name) || "" })}
           </Link>
           <h1
             className="text-2xl md:text-3xl font-bold"
             style={{ color: "var(--text-color)" }}
           >
-            Complete Your Booking
+            {t("site.book.completeYourBooking")}
           </h1>
         </div>
       </div>
@@ -1178,7 +1179,7 @@ export default function BookingPage() {
                 className="text-lg font-semibold mb-4"
                 style={{ color: "var(--text-color)" }}
               >
-                {data.type === "trip" ? "Trip Details" : "Course Details"}
+                {data.type === "trip" ? t("site.book.tripDetails") : t("site.book.courseDetails")}
               </h2>
 
               {data.type === "trip" && data.trip && (
@@ -1195,7 +1196,7 @@ export default function BookingPage() {
                     </span>
                     <span className="flex items-center gap-1.5">
                       <UsersIcon className="w-4 h-4" />
-                      {data.trip.availableSpots} spots left
+                      {data.trip.availableSpots} {t("site.book.spotsLeft")}
                     </span>
                   </div>
                   {data.trip.tourDescription && (
@@ -1218,7 +1219,7 @@ export default function BookingPage() {
                   {/* Session Selection */}
                   <div className="pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
                     <label className="block text-sm font-medium mb-2">
-                      Select a Session Date *
+                      {t("site.book.selectSessionDate")}
                     </label>
                     {data.course.sessions.length > 0 ? (
                       <div className="space-y-2">
@@ -1275,7 +1276,7 @@ export default function BookingPage() {
                                 )}
                               </p>
                               <p className="text-sm opacity-75">
-                                {session.availableSpots} spots left
+                                {session.availableSpots} {t("site.book.spotsLeft")}
                               </p>
                             </div>
                           </label>
@@ -1283,8 +1284,7 @@ export default function BookingPage() {
                       </div>
                     ) : (
                       <p className="text-sm opacity-75 p-4 rounded-lg" style={{ backgroundColor: "var(--accent-color)" }}>
-                        No sessions currently available. Please contact us to
-                        schedule.
+                        {t("site.book.noSessionsAvailable")}
                       </p>
                     )}
                     {actionData?.errors?.sessionId && (
@@ -1310,7 +1310,7 @@ export default function BookingPage() {
                 className="text-lg font-semibold mb-4"
                 style={{ color: "var(--text-color)" }}
               >
-                Number of Participants
+                {t("site.book.numberOfParticipants")}
               </h2>
 
               <div className="flex items-center gap-4">
@@ -1352,7 +1352,7 @@ export default function BookingPage() {
                   <PlusIcon className="w-5 h-5" />
                 </button>
                 <span className="text-sm opacity-75">
-                  Max {maxParticipants} available
+                  {t("site.book.maxAvailable", { count: String(maxParticipants) })}
                 </span>
               </div>
               {actionData?.errors?.participants && (
@@ -1376,10 +1376,10 @@ export default function BookingPage() {
                   className="text-lg font-semibold mb-4"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Equipment Rental (Optional)
+                  {t("site.book.equipmentRental")}
                 </h2>
                 <p className="text-sm opacity-75 mb-4">
-                  Add equipment rental to your booking. Prices are per person.
+                  {t("site.book.equipmentRentalNote")}
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1440,7 +1440,7 @@ export default function BookingPage() {
                 className="text-lg font-semibold mb-4"
                 style={{ color: "var(--text-color)" }}
               >
-                Your Information
+                {t("site.book.yourInformation")}
               </h2>
 
               {data.customer ? (
@@ -1470,14 +1470,14 @@ export default function BookingPage() {
                       className="text-sm font-medium"
                       style={{ color: "var(--primary-color)" }}
                     >
-                      Edit
+                      {t("common.edit")}
                     </Link>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm opacity-75 mb-4">
-                    Enter your details below or{" "}
+                    {t("site.book.enterDetailsOr")}{" "}
                     <Link
                       to={`/site/login?redirect=${encodeURIComponent(
                         `/site/book/${data.type}/${
@@ -1487,9 +1487,9 @@ export default function BookingPage() {
                       className="font-medium underline"
                       style={{ color: "var(--primary-color)" }}
                     >
-                      log in
+                      {t("site.book.logIn")}
                     </Link>{" "}
-                    to autofill.
+                    {t("site.book.toAutofill")}
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1498,7 +1498,7 @@ export default function BookingPage() {
                         htmlFor="firstName"
                         className="block text-sm font-medium mb-1"
                       >
-                        First Name *
+                        {t("site.book.firstName")}
                       </label>
                       <input
                         type="text"
@@ -1524,7 +1524,7 @@ export default function BookingPage() {
                         htmlFor="lastName"
                         className="block text-sm font-medium mb-1"
                       >
-                        Last Name *
+                        {t("site.book.lastName")}
                       </label>
                       <input
                         type="text"
@@ -1552,7 +1552,7 @@ export default function BookingPage() {
                       htmlFor="email"
                       className="block text-sm font-medium mb-1"
                     >
-                      Email Address *
+                      {t("site.book.emailAddress")}
                     </label>
                     <input
                       type="email"
@@ -1579,7 +1579,7 @@ export default function BookingPage() {
                       htmlFor="phone"
                       className="block text-sm font-medium mb-1"
                     >
-                      Phone Number
+                      {t("site.book.phoneNumber")}
                     </label>
                     <input
                       type="tel"
@@ -1607,12 +1607,12 @@ export default function BookingPage() {
                 className="text-lg font-semibold mb-4"
                 style={{ color: "var(--text-color)" }}
               >
-                Special Requests (Optional)
+                {t("site.book.specialRequests")}
               </h2>
               <textarea
                 name="specialRequests"
                 rows={3}
-                placeholder="Any dietary requirements, medical conditions, or special requests..."
+                placeholder={t("site.book.specialRequestsPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 resize-none"
                 style={{ borderColor: "var(--color-border)" }}
               />
@@ -1640,7 +1640,7 @@ export default function BookingPage() {
                 className="text-lg font-semibold mb-4"
                 style={{ color: "var(--text-color)" }}
               >
-                Booking Summary
+                {t("site.book.bookingSummary")}
               </h2>
 
               <div className="space-y-4">
@@ -1656,7 +1656,7 @@ export default function BookingPage() {
 
                 {/* Participants */}
                 <div className="flex justify-between text-sm opacity-75">
-                  <span>x {participants} participant(s)</span>
+                  <span>{t("site.book.participants", { count: String(participants) })}</span>
                   <span>
                     {formatCurrency(String(basePrice * participants), currency)}
                   </span>
@@ -1668,7 +1668,7 @@ export default function BookingPage() {
                     className="pt-3 border-t space-y-2"
                     style={{ borderColor: "var(--color-border)" }}
                   >
-                    <p className="text-sm font-medium">Equipment Rental:</p>
+                    <p className="text-sm font-medium">{t("site.book.equipmentRentalLabel")}</p>
                     {selectedEquipment.map((eqId) => {
                       const eq = data.equipment.find((e) => e.id === eqId);
                       if (!eq) return null;
@@ -1691,7 +1691,7 @@ export default function BookingPage() {
                   className="pt-4 border-t flex justify-between"
                   style={{ borderColor: "var(--color-border)" }}
                 >
-                  <span className="font-semibold">Total</span>
+                  <span className="font-semibold">{t("site.book.total")}</span>
                   <span
                     className="text-xl font-bold"
                     style={{ color: "var(--primary-color)" }}
@@ -1732,15 +1732,15 @@ export default function BookingPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Processing...
+                      {t("site.book.processing")}
                     </span>
                   ) : (
-                    "Proceed to Payment"
+                    t("site.book.proceedToPayment")
                   )}
                 </button>
 
                 <p className="text-xs text-center opacity-60">
-                  By clicking above, you agree to our terms and conditions.
+                  {t("site.book.termsNotice")}
                 </p>
               </div>
             </div>

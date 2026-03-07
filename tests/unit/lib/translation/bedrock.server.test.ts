@@ -11,14 +11,24 @@ vi.mock("@aws-sdk/client-bedrock-runtime", () => {
   class MockBedrockRuntimeClient {
     send = mockSend;
   }
-  class MockInvokeModelCommand {
+  class MockConverseCommand {
     constructor(public input: unknown) {}
   }
   return {
     BedrockRuntimeClient: MockBedrockRuntimeClient,
-    InvokeModelCommand: MockInvokeModelCommand,
+    ConverseCommand: MockConverseCommand,
   };
 });
+
+function makeConverseResponse(text: string) {
+  return {
+    output: {
+      message: {
+        content: [{ text }],
+      },
+    },
+  };
+}
 
 describe("translateText", () => {
   beforeEach(() => {
@@ -27,34 +37,25 @@ describe("translateText", () => {
   });
 
   it("returns translated text from Bedrock response", async () => {
-    const responseText = "Hola mundo";
-    const encodedBody = new TextEncoder().encode(
-      JSON.stringify({ content: [{ text: responseText }] })
-    );
-    mockSend.mockResolvedValueOnce({ body: encodedBody });
+    mockSend.mockResolvedValueOnce(makeConverseResponse("Hola mundo"));
 
     const { translateText } = await import(
       "../../../../lib/translation/bedrock.server"
     );
     const result = await translateText("Hello world", "en", "es");
 
-    expect(result).toBe(responseText);
+    expect(result).toBe("Hola mundo");
     expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
   it("retries on throttling error and succeeds on second attempt", async () => {
-    const responseText = "Traducción exitosa";
-    const encodedBody = new TextEncoder().encode(
-      JSON.stringify({ content: [{ text: responseText }] })
-    );
-
     const throttleError = Object.assign(new Error("Too Many Requests"), {
       name: "ThrottlingException",
     });
 
     mockSend
       .mockRejectedValueOnce(throttleError)
-      .mockResolvedValueOnce({ body: encodedBody });
+      .mockResolvedValueOnce(makeConverseResponse("Traduccion exitosa"));
 
     // Speed up backoff in tests
     vi.spyOn(global, "setTimeout").mockImplementation((fn) => {
@@ -67,7 +68,7 @@ describe("translateText", () => {
     );
     const result = await translateText("Success text", "en", "es");
 
-    expect(result).toBe(responseText);
+    expect(result).toBe("Traduccion exitosa");
     expect(mockSend).toHaveBeenCalledTimes(2);
 
     vi.restoreAllMocks();

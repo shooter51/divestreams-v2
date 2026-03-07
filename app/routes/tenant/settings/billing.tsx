@@ -17,6 +17,7 @@ import {
 } from "../../../../lib/stripe/stripe-billing.server";
 import { FEATURE_LABELS, type PlanFeaturesObject } from "../../../../lib/plan-features";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -349,6 +350,7 @@ const subscriptionStatusLabels: Record<string, string> = {
 
 export default function BillingPage() {
   const { billing, plans } = useLoaderData<typeof loader>();
+  const t = useT();
   const fetcher = useFetcher<{ error?: string; cancelled?: boolean; message?: string }>();
   const couponFetcher = useFetcher<{ error?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -414,9 +416,9 @@ export default function BillingPage() {
     <div className="max-w-4xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          {t("tenant.settings.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Billing & Subscription</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.billingSubscription")}</h1>
       </div>
 
       {/* Notification Banner */}
@@ -443,10 +445,9 @@ export default function BillingPage() {
       {/* Trial Banner */}
       {isTrialing && trialDaysLeft > 0 && (
         <div className="bg-brand-muted border border-brand-muted text-brand px-4 py-3 rounded-lg mb-6">
-          <p className="font-medium">Free Trial Active</p>
+          <p className="font-medium">{t("tenant.settings.billing.freeTrialActive")}</p>
           <p className="text-sm">
-            You have {trialDaysLeft} days left in your trial. Add a payment method to
-            continue after the trial ends.
+            {t("tenant.settings.billing.trialDaysLeft", { days: trialDaysLeft })}
           </p>
         </div>
       )}
@@ -455,7 +456,7 @@ export default function BillingPage() {
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="font-semibold mb-1">Current Plan</h2>
+            <h2 className="font-semibold mb-1">{t("tenant.settings.billing.currentPlan")}</h2>
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">{billing.currentPlanName}</span>
               <span
@@ -484,7 +485,7 @@ export default function BillingPage() {
                 disabled={isSubmitting}
                 className="px-4 py-2 border rounded-lg hover:bg-surface-inset disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Loading..." : "Manage Payment"}
+                {isSubmitting ? t("common.loading") : t("tenant.settings.billing.managePayment")}
               </button>
             </fetcher.Form>
           </div>
@@ -492,13 +493,13 @@ export default function BillingPage() {
 
         {/* Usage */}
         <div className="mt-6 pt-6 border-t">
-          <h3 className="font-medium mb-3">Usage This Month</h3>
+          <h3 className="font-medium mb-3">{t("tenant.settings.billing.usageThisMonth")}</h3>
           <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-foreground-muted">Bookings</span>
+                <span className="text-foreground-muted">{t("nav.bookings")}</span>
                 <span>
-                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit == null || billing.usage.bookingsLimit === Infinity || billing.usage.bookingsLimit === -1 ? "Unlimited" : billing.usage.bookingsLimit}
+                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit == null || billing.usage.bookingsLimit === Infinity || billing.usage.bookingsLimit === -1 ? t("common.unlimited") : billing.usage.bookingsLimit}
                 </span>
               </div>
               <div className="w-full bg-surface-overlay rounded-full h-2">
@@ -515,15 +516,15 @@ export default function BillingPage() {
               </div>
               {usagePercent > 80 && (
                 <p className="text-xs text-warning mt-1">
-                  Approaching limit - consider upgrading
+                  {t("tenant.settings.billing.approachingLimit")}
                 </p>
               )}
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-foreground-muted">Team Members</span>
+                <span className="text-foreground-muted">{t("tenant.settings.teamMembers")}</span>
                 <span>
-                  {billing.usage.teamMembers} / {billing.usage.teamLimit == null || billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1 ? "Unlimited" : billing.usage.teamLimit}
+                  {billing.usage.teamMembers} / {billing.usage.teamLimit == null || billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1 ? t("common.unlimited") : billing.usage.teamLimit}
                 </span>
               </div>
               <div className="w-full bg-surface-overlay rounded-full h-2">
@@ -539,7 +540,7 @@ export default function BillingPage() {
                 />
               </div>
               {(billing.usage.teamLimit == null || billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1) && (
-                <p className="text-xs text-success mt-1">Unlimited</p>
+                <p className="text-xs text-success mt-1">{t("common.unlimited")}</p>
               )}
             </div>
           </div>
@@ -548,19 +549,19 @@ export default function BillingPage() {
 
       {/* Apply Coupon */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-        <h2 className="text-lg font-semibold mb-4">Apply Coupon</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("tenant.settings.billing.applyCoupon")}</h2>
         <couponFetcher.Form method="post" className="flex gap-3 items-end">
           <CsrfInput />
           <input type="hidden" name="intent" value="apply-coupon" />
           <div className="flex-1">
             <label htmlFor="couponCode" className="block text-sm font-medium mb-1">
-              Coupon Code
+              {t("tenant.settings.billing.couponCode")}
             </label>
             <input
               type="text"
               id="couponCode"
               name="couponCode"
-              placeholder="Enter coupon code"
+              placeholder={t("tenant.settings.billing.enterCouponCode")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand uppercase"
             />
           </div>
@@ -569,7 +570,7 @@ export default function BillingPage() {
             disabled={couponFetcher.state === "submitting"}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {couponFetcher.state === "submitting" ? "Applying..." : "Apply"}
+            {couponFetcher.state === "submitting" ? t("tenant.settings.billing.applying") : t("tenant.settings.billing.apply")}
           </button>
         </couponFetcher.Form>
         {couponFetcher.data?.error && (
@@ -580,7 +581,7 @@ export default function BillingPage() {
       {/* Available Plans */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold">Available Plans</h2>
+          <h2 className="font-semibold">{t("tenant.settings.billing.availablePlans")}</h2>
 
           {/* Billing Period Toggle */}
           <div className="flex items-center gap-2 bg-surface-inset rounded-lg p-1">
@@ -593,7 +594,7 @@ export default function BillingPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Monthly
+              {t("tenant.settings.billing.monthly")}
             </button>
             <button
               type="button"
@@ -604,10 +605,10 @@ export default function BillingPage() {
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              Yearly
+              {t("tenant.settings.billing.yearly")}
               {" · "}
               <span className="text-xs text-success font-semibold">
-                Save {plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20}%
+                {t("tenant.settings.billing.savePercent", { percent: plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20 })}
               </span>
             </button>
           </div>
@@ -625,7 +626,7 @@ export default function BillingPage() {
               >
                 {plan.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white text-xs px-3 py-1 rounded-full">
-                    Most Popular
+                    {t("tenant.settings.billing.mostPopular")}
                   </span>
                 )}
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
@@ -668,7 +669,7 @@ export default function BillingPage() {
                       disabled
                       className="w-full py-2 border border-border rounded-lg text-foreground-muted cursor-not-allowed"
                     >
-                      Current Plan
+                      {t("tenant.settings.billing.currentPlan")}
                     </button>
                   ) : (
                     <fetcher.Form method="post">
@@ -686,11 +687,11 @@ export default function BillingPage() {
                         }`}
                       >
                         {isSubmitting
-                          ? "Processing..."
+                          ? t("tenant.settings.billing.processing")
                           : plans.findIndex((p) => p.id === plan.id) >
                             plans.findIndex((p) => p.id === billing.currentPlan)
-                          ? "Upgrade"
-                          : "Switch"}
+                          ? t("tenant.settings.billing.upgrade")
+                          : t("tenant.settings.billing.switch")}
                       </button>
                     </fetcher.Form>
                   )}
@@ -703,7 +704,7 @@ export default function BillingPage() {
 
       {/* Payment Method */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-        <h2 className="font-semibold mb-4">Payment Method</h2>
+        <h2 className="font-semibold mb-4">{t("tenant.settings.billing.paymentMethod")}</h2>
         {billing.paymentMethod ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -715,7 +716,7 @@ export default function BillingPage() {
                   •••• •••• •••• {billing.paymentMethod.last4}
                 </p>
                 <p className="text-sm text-foreground-muted">
-                  Expires {billing.paymentMethod.expiryMonth}/
+                  {t("tenant.settings.billing.expires")} {billing.paymentMethod.expiryMonth}/
                   {billing.paymentMethod.expiryYear}
                 </p>
               </div>
@@ -728,13 +729,13 @@ export default function BillingPage() {
                 disabled={isSubmitting}
                 className="text-brand hover:underline text-sm disabled:opacity-50"
               >
-                {isSubmitting ? "Loading..." : "Update"}
+                {isSubmitting ? t("common.loading") : t("tenant.settings.billing.update")}
               </button>
             </fetcher.Form>
           </div>
         ) : (
           <div className="text-center py-4">
-            <p className="text-foreground-muted mb-3">No payment method on file</p>
+            <p className="text-foreground-muted mb-3">{t("tenant.settings.billing.noPaymentMethod")}</p>
             <fetcher.Form method="post">
               <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
@@ -743,7 +744,7 @@ export default function BillingPage() {
                 disabled={isSubmitting}
                 className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Loading..." : "Add Payment Method"}
+                {isSubmitting ? t("common.loading") : t("tenant.settings.billing.addPaymentMethod")}
               </button>
             </fetcher.Form>
           </div>
@@ -752,19 +753,19 @@ export default function BillingPage() {
 
       {/* Billing History */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-        <h2 className="font-semibold mb-4">Billing History</h2>
+        <h2 className="font-semibold mb-4">{t("tenant.settings.billing.billingHistory")}</h2>
         {billing.billingHistory.length === 0 ? (
-          <p className="text-foreground-muted text-center py-4">No billing history yet</p>
+          <p className="text-foreground-muted text-center py-4">{t("tenant.settings.billing.noBillingHistory")}</p>
         ) : (
           <table className="w-full">
             <thead className="border-b">
               <tr>
-                <th className="text-left py-2 text-sm font-medium text-foreground-muted">Date</th>
+                <th className="text-left py-2 text-sm font-medium text-foreground-muted">{t("common.date")}</th>
                 <th className="text-left py-2 text-sm font-medium text-foreground-muted">
-                  Description
+                  {t("common.description")}
                 </th>
-                <th className="text-left py-2 text-sm font-medium text-foreground-muted">Status</th>
-                <th className="text-right py-2 text-sm font-medium text-foreground-muted">Amount</th>
+                <th className="text-left py-2 text-sm font-medium text-foreground-muted">{t("common.status")}</th>
+                <th className="text-right py-2 text-sm font-medium text-foreground-muted">{t("tenant.settings.billing.amount")}</th>
                 <th className="text-right py-2 text-sm font-medium text-foreground-muted"></th>
               </tr>
             </thead>
@@ -781,7 +782,7 @@ export default function BillingPage() {
                           : "bg-warning-muted text-warning"
                       }`}
                     >
-                      {invoice.status === "paid" ? "Paid" : invoice.status === "pending" ? "Pending" : invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                      {invoice.status === "paid" ? t("tenant.settings.billing.paid") : invoice.status === "pending" ? t("tenant.settings.billing.pending") : invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                     </span>
                   </td>
                   <td className="py-3 text-sm text-right">${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -790,7 +791,7 @@ export default function BillingPage() {
                       href={invoice.invoiceUrl}
                       className="text-brand hover:underline text-sm"
                     >
-                      Download
+                      {t("tenant.settings.billing.download")}
                     </a>
                   </td>
                 </tr>
@@ -803,10 +804,9 @@ export default function BillingPage() {
       {/* Cancel Subscription */}
       {billing.subscriptionStatus !== "canceled" && (
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm border border-danger-muted">
-          <h2 className="font-semibold mb-2">Cancel Subscription</h2>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.billing.cancelSubscription")}</h2>
           <p className="text-foreground-muted text-sm mb-4">
-            If you cancel, you will retain access until the end of your billing period.
-            Your data will be retained for 30 days after that.
+            {t("tenant.settings.billing.cancelDesc")}
           </p>
           <fetcher.Form
             method="post"
@@ -823,7 +823,7 @@ export default function BillingPage() {
               disabled={isSubmitting}
               className="text-danger border border-danger-muted px-4 py-2 rounded-lg hover:bg-danger-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Processing..." : "Cancel Subscription"}
+              {isSubmitting ? t("tenant.settings.billing.processing") : t("tenant.settings.billing.cancelSubscription")}
             </button>
           </fetcher.Form>
         </div>
@@ -832,13 +832,12 @@ export default function BillingPage() {
       {/* Canceled Notice */}
       {billing.subscriptionStatus === "canceled" && (
         <div className="bg-warning-muted border border-warning-muted rounded-xl max-w-4xl break-words p-6">
-          <h2 className="font-semibold mb-2 text-warning">Subscription Canceled</h2>
+          <h2 className="font-semibold mb-2 text-warning">{t("tenant.settings.billing.subscriptionCanceled")}</h2>
           <p className="text-warning text-sm mb-4">
-            Your subscription has been canceled. You will retain access until{" "}
-            {new Date(billing.nextBillingDate + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}. After that, your account will be deactivated.
+            {t("tenant.settings.billing.canceledRetainAccess", { date: new Date(billing.nextBillingDate + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) })}
           </p>
           <p className="text-warning text-sm">
-            To reactivate your subscription, please select a plan above.
+            {t("tenant.settings.billing.reactivateHint")}
           </p>
         </div>
       )}
