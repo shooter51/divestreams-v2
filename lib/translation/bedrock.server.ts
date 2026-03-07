@@ -1,9 +1,9 @@
 import {
   BedrockRuntimeClient,
-  InvokeModelCommand,
+  ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 
-const MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0";
+const MODEL_ID = process.env.TRANSLATION_MODEL_ID || "amazon.nova-micro-v1:0";
 
 let cachedClient: BedrockRuntimeClient | null = null;
 
@@ -20,7 +20,8 @@ function getClient(): BedrockRuntimeClient {
 }
 
 /**
- * Translate text from one locale to another using AWS Bedrock Claude Haiku.
+ * Translate text from one locale to another using AWS Bedrock.
+ * Uses the Converse API for model-agnostic compatibility (works with Claude, Nova, etc.).
  * Implements exponential backoff for throttling errors (3 retries).
  */
 export async function translateText(
@@ -30,34 +31,39 @@ export async function translateText(
 ): Promise<string> {
   const client = getClient();
 
-  const body = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 4096,
-    system:
-      "You are a professional translator. Translate the given text accurately and naturally. Preserve any HTML tags and formatting exactly as they appear. Return only the translated text with no additional commentary or explanation.",
-    messages: [
-      {
-        role: "user",
-        content: `Translate the following text from ${fromLocale} to ${toLocale}:\n\n${text}`,
-      },
-    ],
-  });
-
   const MAX_RETRIES = 3;
   let lastError: Error | undefined;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      const command = new InvokeModelCommand({
+      const command = new ConverseCommand({
         modelId: MODEL_ID,
-        contentType: "application/json",
-        accept: "application/json",
-        body,
+        system: [
+          {
+            text: "You are a professional translator. Translate the given text accurately and naturally. Preserve any HTML tags and formatting exactly as they appear. Return only the translated text with no additional commentary or explanation.",
+          },
+        ],
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                text: `Translate the following text from ${fromLocale} to ${toLocale}:\n\n${text}`,
+              },
+            ],
+          },
+        ],
+        inferenceConfig: {
+          maxTokens: 4096,
+        },
       });
 
       const response = await client.send(command);
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-      return responseBody.content[0].text as string;
+      const outputContent = response.output?.message?.content;
+      if (!outputContent || outputContent.length === 0) {
+        throw new Error("Empty response from Bedrock");
+      }
+      return outputContent[0].text as string;
     } catch (error) {
       const err = error as { name?: string; message?: string };
       const isThrottling =

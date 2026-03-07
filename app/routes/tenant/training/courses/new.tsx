@@ -7,7 +7,10 @@ import {
   createCourse,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { useT } from "../../../../i18n/use-t";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
 
 export const meta: MetaFunction = () => [{ title: "Create Course - DiveStreams" }];
 
@@ -75,7 +78,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Create course
-  await createCourse({
+  const newCourse = await createCourse({
     organizationId: ctx.org.id,
     name: name.trim(),
     code: code?.trim() || undefined,
@@ -95,6 +98,23 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic,
   });
 
+  // Enqueue auto-translation for non-default locales
+  const fieldsToTranslate = [
+    { field: "name", text: name.trim() },
+    { field: "description", text: description },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: ctx.org.id,
+      entityType: "course",
+      entityId: newCourse.id,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
+
   const courseName = name.trim();
   return redirect(redirectWithNotification("/tenant/training/courses", `Course "${courseName}" has been successfully created`, "success"));
 }
@@ -104,6 +124,7 @@ export default function NewCoursePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -112,11 +133,11 @@ export default function NewCoursePage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/training/courses" className="text-brand hover:underline text-sm">
-          &larr; Back to Courses
+          &larr; {t("tenant.training.courses.backToCourses")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Create Course</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.training.courses.createCourse")}</h1>
         <p className="text-foreground-muted">
-          Create a new training course that can be scheduled as sessions.
+          {t("tenant.training.courses.createCourseDesc")}
         </p>
       </div>
 
@@ -124,11 +145,11 @@ export default function NewCoursePage() {
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Course Name *
+                {t("tenant.training.courses.courseName")} *
               </label>
               <input
                 type="text"
@@ -146,7 +167,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="code" className="block text-sm font-medium mb-1">
-                Course Code
+                {t("tenant.training.courses.courseCode")}
               </label>
               <input
                 type="text"
@@ -160,14 +181,14 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description}
-                placeholder="Describe the course, what students will learn..."
+                placeholder={t("tenant.training.courses.descriptionPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -175,7 +196,7 @@ export default function NewCoursePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="agencyId" className="block text-sm font-medium mb-1">
-                  Certification Agency
+                  {t("tenant.training.courses.certificationAgency")}
                 </label>
                 <select
                   id="agencyId"
@@ -183,7 +204,7 @@ export default function NewCoursePage() {
                   defaultValue={actionData?.values?.agencyId || ""}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="">Select Agency</option>
+                  <option value="">{t("tenant.training.courses.selectAgency")}</option>
                   {agencies.map((agency) => (
                     <option key={agency.id} value={agency.id}>
                       {agency.name}
@@ -194,7 +215,7 @@ export default function NewCoursePage() {
 
               <div>
                 <label htmlFor="levelId" className="block text-sm font-medium mb-1">
-                  Certification Level
+                  {t("tenant.training.courses.certificationLevel")}
                 </label>
                 <select
                   id="levelId"
@@ -202,7 +223,7 @@ export default function NewCoursePage() {
                   defaultValue={actionData?.values?.levelId || ""}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="">Select Level</option>
+                  <option value="">{t("tenant.training.courses.selectLevel")}</option>
                   {levels.map((level) => (
                     <option key={level.id} value={level.id}>
                       {level.name} {level.agencyName ? `(${level.agencyName})` : ""}
@@ -216,11 +237,11 @@ export default function NewCoursePage() {
 
         {/* Duration & Structure */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Duration & Structure</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.durationStructure")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="durationDays" className="block text-sm font-medium mb-1">
-                Duration (days)
+                {t("tenant.training.courses.durationDays")}
               </label>
               <input
                 type="number"
@@ -234,7 +255,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="classroomHours" className="block text-sm font-medium mb-1">
-                Classroom Hours
+                {t("tenant.training.courses.classroomHours")}
               </label>
               <input
                 type="number"
@@ -249,7 +270,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="poolHours" className="block text-sm font-medium mb-1">
-                Pool/Confined Water Hours
+                {t("tenant.training.courses.poolHours")}
               </label>
               <input
                 type="number"
@@ -264,7 +285,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="openWaterDives" className="block text-sm font-medium mb-1">
-                Open Water Dives
+                {t("tenant.training.courses.openWaterDives")}
               </label>
               <input
                 type="number"
@@ -281,11 +302,11 @@ export default function NewCoursePage() {
 
         {/* Pricing & Capacity */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.pricingCapacity")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price *
+                {t("common.price")} *
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -307,7 +328,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="currency" className="block text-sm font-medium mb-1">
-                Currency
+                {t("tenant.training.courses.currency")}
               </label>
               <select
                 id="currency"
@@ -327,7 +348,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="maxStudents" className="block text-sm font-medium mb-1">
-                Max Students per Session
+                {t("tenant.training.courses.maxStudentsPerSession")}
               </label>
               <input
                 type="number"
@@ -341,7 +362,7 @@ export default function NewCoursePage() {
 
             <div>
               <label htmlFor="minAge" className="block text-sm font-medium mb-1">
-                Minimum Age
+                {t("tenant.training.courses.minimumAge")}
               </label>
               <input
                 type="number"
@@ -358,10 +379,10 @@ export default function NewCoursePage() {
 
         {/* Prerequisites */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Prerequisites</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.prerequisites")}</h2>
           <div>
             <label htmlFor="prerequisites" className="block text-sm font-medium mb-1">
-              Prerequisites
+              {t("tenant.training.courses.prerequisites")}
             </label>
             <textarea
               id="prerequisites"
@@ -376,7 +397,7 @@ export default function NewCoursePage() {
 
         {/* Status */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Status</h2>
+          <h2 className="font-semibold mb-4">{t("common.status")}</h2>
           <div className="space-y-3">
             <label className="flex items-center gap-2">
               <input
@@ -386,9 +407,9 @@ export default function NewCoursePage() {
                 defaultChecked={actionData?.values?.isActive !== "false"}
                 className="rounded"
               />
-              <span className="font-medium">Active</span>
+              <span className="font-medium">{t("common.active")}</span>
               <span className="text-foreground-muted text-sm">
-                (Inactive courses cannot be scheduled)
+                ({t("tenant.training.courses.inactiveCannotSchedule")})
               </span>
             </label>
             <label className="flex items-center gap-2">
@@ -399,9 +420,9 @@ export default function NewCoursePage() {
                 defaultChecked={actionData?.values?.isPublic === "true"}
                 className="rounded"
               />
-              <span className="font-medium">Public</span>
+              <span className="font-medium">{t("tenant.training.courses.public")}</span>
               <span className="text-foreground-muted text-sm">
-                (Visible on public booking pages)
+                ({t("tenant.training.courses.visibleOnPublicPages")})
               </span>
             </label>
           </div>
@@ -414,13 +435,13 @@ export default function NewCoursePage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Creating..." : "Create Course"}
+            {isSubmitting ? t("common.creating") : t("tenant.training.courses.createCourse")}
           </button>
           <Link
             to="/tenant/training/courses"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

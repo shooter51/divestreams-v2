@@ -16,6 +16,7 @@ import { sendEmail } from "../../../../../lib/email/email.server";
 import { getPOSReceiptEmail } from "../../../../../lib/email/templates";
 import { TransactionActions } from "../../../../../app/components/pos/TransactionActions";
 import { formatLabel } from "../../../../lib/format";
+import { useT } from "../../../../i18n/use-t";
 import {
   ReceiptModal,
   TransactionDetailsModal,
@@ -282,24 +283,25 @@ const typeColors: Record<string, string> = {
 };
 
 
-const transactionTypeLabels: Record<string, string> = {
-  sale: "Sale",
-  refund: "Refund",
-  deposit: "Deposit",
-  payment: "Payment",
-};
-
-const paymentMethodLabels: Record<string, string> = {
-  cash: "Cash",
-  card: "Card",
-  stripe: "Stripe",
-  bank_transfer: "Bank Transfer",
-};
-
 export default function TransactionsPage() {
   const { transactions, summary, organization } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
+  const t = useT();
+
+  const transactionTypeLabels: Record<string, string> = {
+    sale: t("tenant.pos.transactions.typeSale"),
+    refund: t("tenant.pos.transactions.typeRefund"),
+    deposit: t("tenant.pos.transactions.typeDeposit"),
+    payment: t("tenant.pos.transactions.typePayment"),
+  };
+
+  const paymentMethodLabels: Record<string, string> = {
+    cash: t("tenant.pos.transactions.paymentCash"),
+    card: t("tenant.pos.transactions.paymentCard"),
+    stripe: t("tenant.pos.transactions.paymentStripe"),
+    bank_transfer: t("tenant.pos.transactions.paymentBankTransfer"),
+  };
 
   const currentType = searchParams.get("type") || "";
 
@@ -390,29 +392,29 @@ export default function TransactionsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Transactions</h1>
-          <p className="text-sm text-foreground-muted">{transactions.length} transactions</p>
+          <h1 className="text-2xl font-bold">{t("tenant.pos.transactions.title")}</h1>
+          <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.count", { count: transactions.length })}</p>
         </div>
         <Link
           to="/tenant/pos"
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
         >
-          Back to POS
+          {t("tenant.pos.transactions.backToPOS")}
         </Link>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-6 mb-6">
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-foreground-muted">Today's Sales</p>
+          <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.todaysSales")}</p>
           <p className="text-2xl font-bold text-success">{formatCurrency(summary.totalSales)}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-foreground-muted">Transactions</p>
+          <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.transactions")}</p>
           <p className="text-2xl font-bold">{summary.transactionCount}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-foreground-muted">Avg Transaction</p>
+          <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.avgTransaction")}</p>
           <p className="text-2xl font-bold">{formatCurrency(summary.averageTransaction)}</p>
         </div>
       </div>
@@ -426,7 +428,7 @@ export default function TransactionsPage() {
               !currentType ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
             }`}
           >
-            All
+            {t("tenant.pos.transactions.all")}
           </Link>
           <Link
             to="/tenant/pos/transactions?type=sale"
@@ -434,7 +436,7 @@ export default function TransactionsPage() {
               currentType === "sale" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
             }`}
           >
-            Sales
+            {t("tenant.pos.transactions.sales")}
           </Link>
           <Link
             to="/tenant/pos/transactions?type=refund"
@@ -442,7 +444,7 @@ export default function TransactionsPage() {
               currentType === "refund" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
             }`}
           >
-            Refunds
+            {t("tenant.pos.transactions.refunds")}
           </Link>
         </div>
       </div>
@@ -453,13 +455,13 @@ export default function TransactionsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-surface-inset">
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Date/Time</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Type</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Items</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Customer</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Payment</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Amount</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Actions</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tableDateTime")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tableType")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tableItems")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tableCustomer")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tablePayment")}</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tableAmount")}</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.transactions.tableActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -479,7 +481,7 @@ export default function TransactionsPage() {
                       </span>
                       {tx.refundedTransactionId && (
                         <span className="text-xs px-2 py-1 rounded bg-warning-muted text-warning">
-                          Refunded
+                          {t("tenant.pos.transactions.refunded")}
                         </span>
                       )}
                     </div>
@@ -493,7 +495,7 @@ export default function TransactionsPage() {
                           </div>
                         ))}
                         {tx.items.length > 2 && (
-                          <div className="text-foreground-subtle">+{tx.items.length - 2} more</div>
+                          <div className="text-foreground-subtle">{t("tenant.pos.transactions.moreItems", { count: tx.items.length - 2 })}</div>
                         )}
                       </div>
                     ) : (
@@ -501,7 +503,7 @@ export default function TransactionsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    {tx.customerName || <span className="text-foreground-subtle">Walk-in</span>}
+                    {tx.customerName || <span className="text-foreground-subtle">{t("tenant.pos.transactions.walkIn")}</span>}
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm">{paymentMethodLabels[tx.paymentMethod || ""] || formatLabel(tx.paymentMethod) || "N/A"}</span>
@@ -531,7 +533,7 @@ export default function TransactionsPage() {
           </table>
         ) : (
           <div className="text-center py-12">
-            <p className="text-foreground-muted">No transactions found</p>
+            <p className="text-foreground-muted">{t("tenant.pos.transactions.noTransactions")}</p>
           </div>
         )}
       </div>

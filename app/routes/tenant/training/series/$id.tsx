@@ -12,6 +12,7 @@ import {
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Series Details - DiveStreams" }];
 
@@ -111,22 +112,6 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-danger-muted text-danger",
 };
 
-const statusLabels: Record<string, string> = {
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
-const sessionTypeLabels: Record<string, string> = {
-  classroom: "Classroom",
-  pool: "Pool",
-  confined_water: "Confined Water",
-  open_water: "Open Water",
-  exam: "Exam",
-  other: "Other",
-};
-
 const sessionTypeColors: Record<string, string> = {
   classroom: "bg-blue-100 text-blue-700",
   pool: "bg-cyan-100 text-cyan-700",
@@ -144,17 +129,34 @@ const enrollmentStatusColors: Record<string, string> = {
   failed: "bg-danger-muted text-danger",
 };
 
-const enrollmentStatusLabels: Record<string, string> = {
-  enrolled: "Enrolled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  withdrawn: "Withdrawn",
-  dropped: "Dropped",
-  failed: "Failed",
-};
-
 export default function SeriesDetailPage() {
   useNotification();
+  const t = useT();
+
+  const statusLabels: Record<string, string> = {
+    scheduled: t("tenant.training.series.statusScheduled"),
+    in_progress: t("tenant.training.series.statusInProgress"),
+    completed: t("tenant.training.series.statusCompleted"),
+    cancelled: t("tenant.training.series.statusCancelled"),
+  };
+
+  const sessionTypeLabels: Record<string, string> = {
+    classroom: t("tenant.training.series.sessionTypeClassroom"),
+    pool: t("tenant.training.series.sessionTypePool"),
+    confined_water: t("tenant.training.series.sessionTypeConfinedWater"),
+    open_water: t("tenant.training.series.sessionTypeOpenWater"),
+    exam: t("tenant.training.series.sessionTypeExam"),
+    other: t("tenant.training.series.sessionTypeOther"),
+  };
+
+  const enrollmentStatusLabels: Record<string, string> = {
+    enrolled: t("tenant.training.series.enrollmentEnrolled"),
+    in_progress: t("tenant.training.series.statusInProgress"),
+    completed: t("tenant.training.series.statusCompleted"),
+    withdrawn: t("tenant.training.series.enrollmentWithdrawn"),
+    dropped: t("tenant.training.series.enrollmentDropped"),
+    failed: t("tenant.training.series.enrollmentFailed"),
+  };
 
   const { series, enrollments } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string }>();
@@ -166,7 +168,7 @@ export default function SeriesDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/training/series" className="text-brand hover:underline text-sm">
-          &larr; Back to Series
+          &larr; {t("tenant.training.series.backToSeries")}
         </Link>
       </div>
 
@@ -187,7 +189,7 @@ export default function SeriesDetailPage() {
             {series.agencyName && ` · ${series.agencyName}`}
           </p>
           {series.instructorName && (
-            <p className="text-sm text-foreground-muted">Instructor: {series.instructorName}</p>
+            <p className="text-sm text-foreground-muted">{t("tenant.training.series.instructor")}: {series.instructorName}</p>
           )}
         </div>
         <div className="flex gap-2">
@@ -195,19 +197,19 @@ export default function SeriesDetailPage() {
             to={`/tenant/training/enrollments/new?seriesId=${series.id}`}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Enroll Student
+            {t("tenant.training.series.enrollStudent")}
           </Link>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            {isEditing ? "Cancel Edit" : "Edit"}
+            {isEditing ? t("tenant.training.series.cancelEdit") : t("common.edit")}
           </button>
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -226,20 +228,20 @@ export default function SeriesDetailPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{series.sessions?.length ?? 0}</p>
-              <p className="text-foreground-muted text-sm">Sessions</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.series.sessions")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 {enrollments.filter((e) => e.status !== "withdrawn").length}
                 {series.maxStudents ? `/${series.maxStudents}` : ""}
               </p>
-              <p className="text-foreground-muted text-sm">Enrolled</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.series.enrolled")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 {series.priceOverride ? `$${series.priceOverride}` : "—"}
               </p>
-              <p className="text-foreground-muted text-sm">Price</p>
+              <p className="text-foreground-muted text-sm">{t("common.price")}</p>
             </div>
           </div>
 
@@ -248,10 +250,10 @@ export default function SeriesDetailPage() {
             <fetcher.Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <CsrfInput />
               <input type="hidden" name="intent" value="update-series" />
-              <h2 className="font-semibold mb-4">Edit Series</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.training.series.editSeries")}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Series Name *</label>
+                  <label className="block text-sm font-medium mb-1">{t("tenant.training.series.seriesName")} *</label>
                   <input
                     type="text"
                     name="name"
@@ -262,7 +264,7 @@ export default function SeriesDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Max Students</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.training.series.maxStudents")}</label>
                     <input
                       type="number"
                       name="maxStudents"
@@ -272,7 +274,7 @@ export default function SeriesDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Price Override</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.training.series.priceOverride")}</label>
                     <input
                       type="text"
                       name="priceOverride"
@@ -281,7 +283,7 @@ export default function SeriesDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Instructor</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.training.series.instructor")}</label>
                     <input
                       type="text"
                       name="instructorName"
@@ -290,21 +292,21 @@ export default function SeriesDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Status</label>
+                    <label className="block text-sm font-medium mb-1">{t("common.status")}</label>
                     <select
                       name="status"
                       defaultValue={series.status}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     >
-                      <option value="scheduled">Scheduled</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="scheduled">{t("tenant.training.series.statusScheduled")}</option>
+                      <option value="in_progress">{t("tenant.training.series.statusInProgress")}</option>
+                      <option value="completed">{t("tenant.training.series.statusCompleted")}</option>
+                      <option value="cancelled">{t("tenant.training.series.statusCancelled")}</option>
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Notes</label>
+                  <label className="block text-sm font-medium mb-1">{t("common.notes")}</label>
                   <textarea
                     name="notes"
                     defaultValue={series.notes || ""}
@@ -319,21 +321,21 @@ export default function SeriesDetailPage() {
                   disabled={fetcher.state === "submitting"}
                   className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
-                  {fetcher.state === "submitting" ? "Saving..." : "Save Changes"}
+                  {fetcher.state === "submitting" ? t("common.saving") : t("common.saveChanges")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
                   className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </div>
             </fetcher.Form>
           ) : (
             series.notes && (
               <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-                <h2 className="font-semibold mb-2">Notes</h2>
+                <h2 className="font-semibold mb-2">{t("common.notes")}</h2>
                 <p className="text-sm whitespace-pre-wrap">{series.notes}</p>
               </div>
             )
@@ -342,13 +344,13 @@ export default function SeriesDetailPage() {
           {/* Sessions List */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Sessions ({series.sessions?.length ?? 0})</h2>
+              <h2 className="font-semibold">{t("tenant.training.series.sessions")} ({series.sessions?.length ?? 0})</h2>
               <button
                 type="button"
                 onClick={() => setShowAddSession(!showAddSession)}
                 className="px-3 py-1.5 text-sm border border-brand text-brand rounded-lg hover:bg-brand-muted"
               >
-                {showAddSession ? "Cancel" : "+ Add Session"}
+                {showAddSession ? t("common.cancel") : t("tenant.training.series.addSession")}
               </button>
             </div>
 
@@ -357,25 +359,25 @@ export default function SeriesDetailPage() {
               <fetcher.Form method="post" className="mb-4 p-4 border border-border-strong rounded-lg">
                 <CsrfInput />
                 <input type="hidden" name="intent" value="add-session" />
-                <h3 className="text-sm font-semibold mb-3">New Session</h3>
+                <h3 className="text-sm font-semibold mb-3">{t("tenant.training.series.newSession")}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium mb-1">Session Type</label>
+                    <label className="block text-xs font-medium mb-1">{t("tenant.training.series.sessionType")}</label>
                     <select
                       name="sessionType"
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                     >
-                      <option value="">Not specified</option>
-                      <option value="classroom">Classroom</option>
-                      <option value="pool">Pool</option>
-                      <option value="confined_water">Confined Water</option>
-                      <option value="open_water">Open Water</option>
-                      <option value="exam">Exam</option>
-                      <option value="other">Other</option>
+                      <option value="">{t("tenant.training.series.notSpecified")}</option>
+                      <option value="classroom">{t("tenant.training.series.sessionTypeClassroom")}</option>
+                      <option value="pool">{t("tenant.training.series.sessionTypePool")}</option>
+                      <option value="confined_water">{t("tenant.training.series.sessionTypeConfinedWater")}</option>
+                      <option value="open_water">{t("tenant.training.series.sessionTypeOpenWater")}</option>
+                      <option value="exam">{t("tenant.training.series.sessionTypeExam")}</option>
+                      <option value="other">{t("tenant.training.series.sessionTypeOther")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1">Start Date *</label>
+                    <label className="block text-xs font-medium mb-1">{t("tenant.training.series.startDate")} *</label>
                     <input
                       type="date"
                       name="startDate"
@@ -384,7 +386,7 @@ export default function SeriesDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1">Start Time</label>
+                    <label className="block text-xs font-medium mb-1">{t("tenant.training.series.startTime")}</label>
                     <input
                       type="time"
                       name="startTime"
@@ -392,7 +394,7 @@ export default function SeriesDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1">End Date</label>
+                    <label className="block text-xs font-medium mb-1">{t("tenant.training.series.endDate")}</label>
                     <input
                       type="date"
                       name="endDate"
@@ -400,20 +402,20 @@ export default function SeriesDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1">Location</label>
+                    <label className="block text-xs font-medium mb-1">{t("tenant.training.series.location")}</label>
                     <input
                       type="text"
                       name="location"
-                      placeholder="e.g., Dive Center"
+                      placeholder={t("tenant.training.series.locationPlaceholder")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1">Meeting Point</label>
+                    <label className="block text-xs font-medium mb-1">{t("tenant.training.series.meetingPoint")}</label>
                     <input
                       type="text"
                       name="meetingPoint"
-                      placeholder="e.g., Front desk"
+                      placeholder={t("tenant.training.series.meetingPointPlaceholder")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                     />
                   </div>
@@ -424,21 +426,21 @@ export default function SeriesDetailPage() {
                     disabled={fetcher.state === "submitting"}
                     className="px-3 py-1.5 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
-                    {fetcher.state === "submitting" ? "Adding..." : "Add Session"}
+                    {fetcher.state === "submitting" ? t("tenant.training.series.adding") : t("tenant.training.series.addSession")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowAddSession(false)}
                     className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                 </div>
               </fetcher.Form>
             )}
 
             {!series.sessions || series.sessions.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No sessions in this series yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.series.noSessionsYet")}</p>
             ) : (
               <div className="space-y-2">
                 {series.sessions
@@ -488,10 +490,10 @@ export default function SeriesDetailPage() {
                           type="submit"
                           className="text-xs text-danger hover:underline"
                           onClick={(e) => {
-                            if (!confirm("Remove this session from the series?")) e.preventDefault();
+                            if (!confirm(t("tenant.training.series.confirmRemoveSession"))) e.preventDefault();
                           }}
                         >
-                          Remove
+                          {t("tenant.training.series.remove")}
                         </button>
                       </fetcher.Form>
                     </div>
@@ -503,16 +505,16 @@ export default function SeriesDetailPage() {
           {/* Enrollments */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Enrollments ({enrollments.length})</h2>
+              <h2 className="font-semibold">{t("tenant.training.series.enrollments")} ({enrollments.length})</h2>
               <Link
                 to={`/tenant/training/enrollments/new?seriesId=${series.id}`}
                 className="text-sm text-brand hover:underline"
               >
-                + Enroll Student
+                + {t("tenant.training.series.enrollStudent")}
               </Link>
             </div>
             {enrollments.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No students enrolled in this series yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.series.noEnrollmentsYet")}</p>
             ) : (
               <div className="space-y-2">
                 {enrollments.map((enrollment) => (
@@ -545,10 +547,10 @@ export default function SeriesDetailPage() {
         <div className="space-y-6">
           {/* Series Info */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Details</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.series.details")}</h2>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-foreground-muted">Course</p>
+                <p className="text-foreground-muted">{t("tenant.training.series.course")}</p>
                 <Link
                   to={`/tenant/training/courses/${series.courseId}`}
                   className="text-brand hover:underline"
@@ -558,26 +560,26 @@ export default function SeriesDetailPage() {
               </div>
               {series.agencyName && (
                 <div>
-                  <p className="text-foreground-muted">Agency</p>
+                  <p className="text-foreground-muted">{t("tenant.training.series.agency")}</p>
                   <p>{series.agencyName}</p>
                 </div>
               )}
               <div>
-                <p className="text-foreground-muted">Max Students</p>
-                <p>{series.maxStudents || "Unlimited"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.series.maxStudents")}</p>
+                <p>{series.maxStudents || t("common.unlimited")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Price</p>
-                <p>{series.priceOverride ? `$${series.priceOverride}` : "Not set"}</p>
+                <p className="text-foreground-muted">{t("common.price")}</p>
+                <p>{series.priceOverride ? `$${series.priceOverride}` : t("tenant.training.series.notSet")}</p>
               </div>
             </div>
           </div>
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Series ID: {series.id}</p>
+            <p>{t("tenant.training.series.seriesId")}: {series.id}</p>
             {series.createdAt && (
-              <p>Created {new Date(series.createdAt).toLocaleDateString()}</p>
+              <p>{t("tenant.training.series.created")} {new Date(series.createdAt).toLocaleDateString()}</p>
             )}
           </div>
         </div>
@@ -587,12 +589,12 @@ export default function SeriesDetailPage() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
-            <h2 className="text-lg font-bold mb-4">Delete Series</h2>
+            <h2 className="text-lg font-bold mb-4">{t("tenant.training.series.deleteSeries")}</h2>
             <p className="text-foreground-muted mb-6">
-              Are you sure you want to delete this training series? This action cannot be undone.
+              {t("tenant.training.series.deleteConfirmMessage")}
               {enrollments.length > 0 && (
                 <span className="block mt-2 text-danger">
-                  Warning: This series has {enrollments.length} enrolled student(s). Please remove all enrollments first.
+                  {t("tenant.training.series.deleteWarningEnrollments", { count: enrollments.length })}
                 </span>
               )}
             </p>
@@ -601,7 +603,7 @@ export default function SeriesDetailPage() {
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-surface-inset"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <fetcher.Form method="post" className="flex-1">
                 <CsrfInput />
@@ -611,7 +613,7 @@ export default function SeriesDetailPage() {
                   disabled={enrollments.length > 0}
                   className="w-full px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger-hover disabled:bg-danger-muted disabled:cursor-not-allowed"
                 >
-                  Delete Series
+                  {t("tenant.training.series.deleteSeries")}
                 </button>
               </fetcher.Form>
             </div>

@@ -10,6 +10,7 @@ import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { BarcodeScannerModal } from "../../../../components/BarcodeScannerModal";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
@@ -149,6 +150,7 @@ export default function EditEquipmentPage() {
   const { equipment, images } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState(equipment.barcode || "");
@@ -157,20 +159,20 @@ export default function EditEquipmentPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/equipment/${equipment.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Equipment
+          {t("tenant.equipment.backToEquipment")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Equipment</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.equipment.editEquipment")}</h1>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Equipment Name *
+                {t("tenant.equipment.equipmentName")} *
               </label>
               <input
                 type="text"
@@ -185,7 +187,7 @@ export default function EditEquipmentPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="category" className="block text-sm font-medium mb-1">
-                  Category *
+                  {t("tenant.equipment.category")} *
                 </label>
                 <select
                   id="category"
@@ -207,7 +209,7 @@ export default function EditEquipmentPage() {
 
               <div>
                 <label htmlFor="size" className="block text-sm font-medium mb-1">
-                  Size
+                  {t("tenant.equipment.size")}
                 </label>
                 <input
                   type="text"
@@ -223,7 +225,7 @@ export default function EditEquipmentPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="brand" className="block text-sm font-medium mb-1">
-                  Brand
+                  {t("tenant.equipment.brand")}
                 </label>
                 <input
                   type="text"
@@ -236,7 +238,7 @@ export default function EditEquipmentPage() {
 
               <div>
                 <label htmlFor="model" className="block text-sm font-medium mb-1">
-                  Model
+                  {t("tenant.equipment.model")}
                 </label>
                 <input
                   type="text"
@@ -250,7 +252,7 @@ export default function EditEquipmentPage() {
 
             <div>
               <label htmlFor="serialNumber" className="block text-sm font-medium mb-1">
-                Serial Number
+                {t("tenant.equipment.serialNumber")}
               </label>
               <input
                 type="text"
@@ -263,7 +265,7 @@ export default function EditEquipmentPage() {
 
             <div>
               <label htmlFor="barcode" className="block text-sm font-medium mb-1">
-                Barcode
+                {t("tenant.equipment.barcode")}
               </label>
               <div className="flex gap-2">
                 <input
@@ -279,7 +281,7 @@ export default function EditEquipmentPage() {
                   type="button"
                   onClick={() => setShowBarcodeScanner(true)}
                   className="px-3 py-2 bg-surface text-foreground border border-border rounded-lg hover:bg-surface-raised"
-                  title="Scan Barcode"
+                  title={t("tenant.equipment.scanBarcode")}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -292,7 +294,7 @@ export default function EditEquipmentPage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Equipment Images</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.equipment.equipmentImages")}</h2>
           <ImageManager
             entityType="equipment"
             entityId={equipment.id}
@@ -303,11 +305,11 @@ export default function EditEquipmentPage() {
 
         {/* Status & Condition */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Status & Condition</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.equipment.statusCondition")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="status" className="block text-sm font-medium mb-1">
-                Status *
+                {t("common.status")} *
               </label>
               <select
                 id="status"
@@ -325,7 +327,7 @@ export default function EditEquipmentPage() {
 
             <div>
               <label htmlFor="condition" className="block text-sm font-medium mb-1">
-                Condition *
+                {t("tenant.equipment.condition")} *
               </label>
               <select
                 id="condition"
@@ -345,7 +347,7 @@ export default function EditEquipmentPage() {
 
         {/* Rental */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Rental Settings</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.equipment.rentalSettings")}</h2>
           <div className="space-y-4">
             <label className="flex items-center gap-3">
               <input
@@ -356,16 +358,16 @@ export default function EditEquipmentPage() {
                 className="rounded"
                 id="isRentableCheckbox"
               />
-              <span className="font-medium">Available for Rent</span>
+              <span className="font-medium">{t("tenant.equipment.availableForRent")}</span>
             </label>
             <p className="text-xs text-foreground-muted -mt-2 ml-7">
-              Equipment marked as rentable will appear in the POS rental section
+              {t("tenant.equipment.rentableInPOS")}
             </p>
 
             <div className="w-1/2">
               <label htmlFor="rentalPrice" className="block text-sm font-medium mb-1">
-                Rental Price (per day) {" "}
-                <span className="text-foreground-muted text-xs">(required if rentable)</span>
+                {t("tenant.equipment.rentalPricePerDay")} {" "}
+                <span className="text-foreground-muted text-xs">({t("tenant.equipment.requiredIfRentable")})</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -381,7 +383,7 @@ export default function EditEquipmentPage() {
                 />
               </div>
               <p className="text-xs text-foreground-muted mt-1">
-                Equipment with no rental price won't appear in POS
+                {t("tenant.equipment.noPriceNoPOS")}
               </p>
               {actionData?.errors?.rentalPrice && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.rentalPrice}</p>
@@ -392,11 +394,11 @@ export default function EditEquipmentPage() {
 
         {/* Service */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Service Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.equipment.serviceInformation")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="lastServiceDate" className="block text-sm font-medium mb-1">
-                Last Service Date
+                {t("tenant.equipment.lastServiceDate")}
               </label>
               <input
                 type="date"
@@ -409,7 +411,7 @@ export default function EditEquipmentPage() {
 
             <div>
               <label htmlFor="nextServiceDate" className="block text-sm font-medium mb-1">
-                Next Service Due
+                {t("tenant.equipment.nextServiceDue")}
               </label>
               <input
                 type="date"
@@ -423,7 +425,7 @@ export default function EditEquipmentPage() {
 
           <div className="mt-4">
             <label htmlFor="serviceNotes" className="block text-sm font-medium mb-1">
-              Service Notes
+              {t("tenant.equipment.serviceNotes")}
             </label>
             <textarea
               id="serviceNotes"
@@ -437,7 +439,7 @@ export default function EditEquipmentPage() {
 
         {/* Notes */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Notes</h2>
+          <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
           <textarea
             id="notes"
             name="notes"
@@ -454,10 +456,10 @@ export default function EditEquipmentPage() {
                 defaultChecked={actionData?.values?.isPublic !== "false" && equipment.isPublic}
                 className="rounded"
               />
-              <span className="text-sm font-medium">Show on public website</span>
+              <span className="text-sm font-medium">{t("tenant.equipment.showOnPublicSite")}</span>
             </label>
             <p className="text-xs text-foreground-muted mt-1">
-              Make this equipment visible on your public rental catalog
+              {t("tenant.equipment.publicCatalogDesc")}
             </p>
           </div>
         </div>
@@ -469,13 +471,13 @@ export default function EditEquipmentPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/equipment/${equipment.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>
@@ -488,7 +490,7 @@ export default function EditEquipmentPage() {
           setBarcodeValue(barcode);
           setShowBarcodeScanner(false);
         }}
-        title="Scan Equipment Barcode"
+        title={t("tenant.equipment.scanEquipmentBarcode")}
       />
     </div>
   );

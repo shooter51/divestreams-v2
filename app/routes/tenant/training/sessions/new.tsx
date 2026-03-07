@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useActionData, useNavigation, Link } from "rea
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getCourseById, getCourses, createSession } from "../../../../../lib/db/training.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { useT } from "../../../../i18n/use-t";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Schedule Session - DiveStreams" }];
@@ -82,6 +83,7 @@ export default function NewSessionPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   // Get tomorrow's date as default
   const tomorrow = new Date();
@@ -92,12 +94,12 @@ export default function NewSessionPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/training/sessions" className="text-brand hover:underline text-sm">
-          &larr; Back to Sessions
+          &larr; {t("tenant.training.sessions.backToSessions")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Schedule Training Session</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.training.sessions.scheduleSession")}</h1>
         {selectedCourse && (
           <p className="text-foreground-muted">
-            Creating session for: <strong>{selectedCourse.name}</strong>
+            {t("tenant.training.sessions.creatingSessionFor")}: <strong>{selectedCourse.name}</strong>
           </p>
         )}
       </div>
@@ -106,11 +108,11 @@ export default function NewSessionPage() {
         <CsrfInput />
         {/* Course Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Course</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.course")}</h2>
 
           <div>
             <label htmlFor="courseId" className="block text-sm font-medium mb-1">
-              Select Course *
+              {t("tenant.training.sessions.selectCourse")} *
             </label>
             <select
               id="courseId"
@@ -119,7 +121,7 @@ export default function NewSessionPage() {
               defaultValue={courseId || ""}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
-              <option value="">Choose a course...</option>
+              <option value="">{t("tenant.training.sessions.chooseCourse")}</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.name} {course.agencyName ? `(${course.agencyName})` : ""}
@@ -133,10 +135,10 @@ export default function NewSessionPage() {
 
           {selectedCourse && (
             <div className="mt-4 p-3 bg-surface-inset rounded-lg text-sm">
-              <p><strong>Duration:</strong> {selectedCourse.durationDays || 1} day(s)</p>
-              <p><strong>Price:</strong> ${Number(selectedCourse.price).toFixed(2)}</p>
+              <p><strong>{t("common.duration")}:</strong> {t("tenant.training.sessions.durationDays", { count: selectedCourse.durationDays || 1 })}</p>
+              <p><strong>{t("common.price")}:</strong> ${Number(selectedCourse.price).toFixed(2)}</p>
               {selectedCourse.maxStudents && (
-                <p><strong>Default Max Students:</strong> {selectedCourse.maxStudents}</p>
+                <p><strong>{t("tenant.training.sessions.defaultMaxStudents")}:</strong> {selectedCourse.maxStudents}</p>
               )}
             </div>
           )}
@@ -144,12 +146,12 @@ export default function NewSessionPage() {
 
         {/* Date & Time */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Date & Time</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.dateAndTime")}</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="startDate" className="block text-sm font-medium mb-1">
-                Start Date *
+                {t("tenant.training.sessions.startDate")} *
               </label>
               <input
                 type="date"
@@ -166,7 +168,7 @@ export default function NewSessionPage() {
 
             <div>
               <label htmlFor="endDate" className="block text-sm font-medium mb-1">
-                End Date
+                {t("tenant.training.sessions.endDate")}
               </label>
               <input
                 type="date"
@@ -174,12 +176,12 @@ export default function NewSessionPage() {
                 name="endDate"
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
-              <p className="text-xs text-foreground-muted mt-1">Leave blank for single-day sessions</p>
+              <p className="text-xs text-foreground-muted mt-1">{t("tenant.training.sessions.leaveBlankSingleDay")}</p>
             </div>
 
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium mb-1">
-                Start Time
+                {t("tenant.training.sessions.startTime")}
               </label>
               <input
                 type="time"
@@ -193,31 +195,31 @@ export default function NewSessionPage() {
 
         {/* Location */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Location</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.location")}</h2>
 
           <div className="space-y-4">
             <div>
               <label htmlFor="location" className="block text-sm font-medium mb-1">
-                Location / Venue
+                {t("tenant.training.sessions.locationVenue")}
               </label>
               <input
                 type="text"
                 id="location"
                 name="location"
-                placeholder="e.g., Main Dive Center, Beach Site A"
+                placeholder={t("tenant.training.sessions.locationPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
             <div>
               <label htmlFor="meetingPoint" className="block text-sm font-medium mb-1">
-                Meeting Point
+                {t("tenant.training.sessions.meetingPoint")}
               </label>
               <input
                 type="text"
                 id="meetingPoint"
                 name="meetingPoint"
-                placeholder="e.g., Front desk at 8:00 AM"
+                placeholder={t("tenant.training.sessions.meetingPointPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -226,25 +228,25 @@ export default function NewSessionPage() {
 
         {/* Instructor & Capacity */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Instructor & Capacity</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.instructorAndCapacity")}</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="instructorName" className="block text-sm font-medium mb-1">
-                Instructor Name
+                {t("tenant.training.sessions.instructorName")}
               </label>
               <input
                 type="text"
                 id="instructorName"
                 name="instructorName"
-                placeholder="Instructor name"
+                placeholder={t("tenant.training.sessions.instructorNamePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
             <div>
               <label htmlFor="maxStudents" className="block text-sm font-medium mb-1">
-                Max Students
+                {t("tenant.training.sessions.maxStudents")}
               </label>
               <input
                 type="number"
@@ -254,18 +256,18 @@ export default function NewSessionPage() {
                 placeholder={selectedCourse?.maxStudents?.toString() || "8"}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
-              <p className="text-xs text-foreground-muted mt-1">Leave blank to use course default</p>
+              <p className="text-xs text-foreground-muted mt-1">{t("tenant.training.sessions.leaveBlankCourseDefault")}</p>
             </div>
           </div>
         </div>
 
         {/* Pricing */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Pricing</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.pricing")}</h2>
 
           <div>
             <label htmlFor="priceOverride" className="block text-sm font-medium mb-1">
-              Price Override
+              {t("tenant.training.sessions.priceOverride")}
             </label>
             <div className="relative">
               <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -280,7 +282,7 @@ export default function NewSessionPage() {
               />
             </div>
             <p className="text-xs text-foreground-muted mt-1">
-              Leave blank to use course price
+              {t("tenant.training.sessions.leaveBlankCoursePrice")}
               {selectedCourse && ` ($${Number(selectedCourse.price).toFixed(2)})`}
             </p>
           </div>
@@ -288,40 +290,40 @@ export default function NewSessionPage() {
 
         {/* Session Type */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Session Type</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.sessionType")}</h2>
           <div>
             <label htmlFor="sessionType" className="block text-sm font-medium mb-1">
-              Session Type
+              {t("tenant.training.sessions.sessionType")}
             </label>
             <select
               id="sessionType"
               name="sessionType"
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
-              <option value="">Not specified</option>
-              <option value="classroom">Classroom</option>
-              <option value="pool">Pool</option>
-              <option value="confined_water">Confined Water</option>
-              <option value="open_water">Open Water</option>
-              <option value="exam">Exam</option>
-              <option value="other">Other</option>
+              <option value="">{t("tenant.training.sessions.notSpecified")}</option>
+              <option value="classroom">{t("tenant.training.sessions.typeClassroom")}</option>
+              <option value="pool">{t("tenant.training.sessions.typePool")}</option>
+              <option value="confined_water">{t("tenant.training.sessions.typeConfinedWater")}</option>
+              <option value="open_water">{t("tenant.training.sessions.typeOpenWater")}</option>
+              <option value="exam">{t("tenant.training.sessions.typeExam")}</option>
+              <option value="other">{t("tenant.training.sessions.typeOther")}</option>
             </select>
           </div>
         </div>
 
         {/* Notes */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Additional Notes</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.sessions.additionalNotes")}</h2>
 
           <div>
             <label htmlFor="notes" className="block text-sm font-medium mb-1">
-              Internal Notes
+              {t("tenant.training.sessions.internalNotes")}
             </label>
             <textarea
               id="notes"
               name="notes"
               rows={3}
-              placeholder="Any additional notes for this session..."
+              placeholder={t("tenant.training.sessions.notesPlaceholder")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
@@ -334,13 +336,13 @@ export default function NewSessionPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Creating..." : "Create Session"}
+            {isSubmitting ? t("common.creating") : t("tenant.training.sessions.createSession")}
           </button>
           <Link
             to="/tenant/training/sessions"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

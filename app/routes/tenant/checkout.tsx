@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { useT } from "../../i18n/use-t";
 
 /**
  * Checkout Route
@@ -32,12 +33,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function CheckoutPage() {
+  const t = useT();
   // This component won't be rendered as loader always redirects
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Processing checkout...</h1>
-        <p className="text-foreground-muted">Please wait while we redirect you.</p>
+        <h1 className="text-2xl font-bold mb-4">{t("tenant.checkout.processing")}</h1>
+        <p className="text-foreground-muted">{t("tenant.checkout.pleaseWait")}</p>
       </div>
     </div>
   );

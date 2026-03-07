@@ -17,6 +17,7 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
@@ -226,12 +227,13 @@ export default function EquipmentDetailPage() {
   const { equipment, rentalHistory, serviceHistory, stats, images } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this equipment?")) {
+    if (confirm(t("tenant.equipment.confirmDelete"))) {
       fetcher.submit({ intent: "delete" }, { method: "post" });
     }
   };
@@ -243,7 +245,7 @@ export default function EquipmentDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/equipment" className="text-brand hover:underline text-sm">
-          ← Back to Equipment
+          {t("tenant.equipment.backToEquipment")}
         </Link>
       </div>
 
@@ -263,7 +265,7 @@ export default function EquipmentDetailPage() {
             </span>
           </div>
           <p className="text-foreground-muted">
-            {categoryLabels[equipment.category]} • {[equipment.brand, equipment.model].filter(Boolean).join(" ") || "No brand"}
+            {categoryLabels[equipment.category]} • {[equipment.brand, equipment.model].filter(Boolean).join(" ") || t("tenant.equipment.noBrand")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -271,7 +273,7 @@ export default function EquipmentDetailPage() {
             to={`/tenant/equipment/${equipment.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           {equipment.status !== "retired" && (
             <fetcher.Form method="post">
@@ -281,7 +283,7 @@ export default function EquipmentDetailPage() {
                 type="submit"
                 className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
               >
-                Retire
+                {t("tenant.equipment.retire")}
               </button>
             </fetcher.Form>
           )}
@@ -289,7 +291,7 @@ export default function EquipmentDetailPage() {
             onClick={handleDelete}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -301,25 +303,25 @@ export default function EquipmentDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalRentals}</p>
-              <p className="text-foreground-muted text-sm">Total Rentals</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.equipment.totalRentals")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold text-success">${stats.rentalRevenue}</p>
-              <p className="text-foreground-muted text-sm">Revenue</p>
+              <p className="text-foreground-muted text-sm">{t("common.total")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.daysRented}</p>
-              <p className="text-foreground-muted text-sm">Days Rented</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.equipment.daysRented")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.avgRentalsPerMonth}</p>
-              <p className="text-foreground-muted text-sm">Avg/Month</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.equipment.avgPerMonth")}</p>
             </div>
           </div>
 
           {/* Images */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Equipment Images</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.equipmentImages")}</h2>
             <ImageManager
               entityType="equipment"
               entityId={equipment.id}
@@ -330,7 +332,7 @@ export default function EquipmentDetailPage() {
 
           {/* Change Status */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Quick Status Change</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.quickStatusChange")}</h2>
             <fetcher.Form method="post" className="flex gap-2">
               <CsrfInput />
               <input type="hidden" name="intent" value="update-status" />
@@ -348,16 +350,16 @@ export default function EquipmentDetailPage() {
                 type="submit"
                 className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
               >
-                Update
+                {t("tenant.equipment.update")}
               </button>
             </fetcher.Form>
           </div>
 
           {/* Rental History */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Recent Rentals</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.recentRentals")}</h2>
             {rentalHistory.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No rental history.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.equipment.noRentalHistory")}</p>
             ) : (
               <div className="space-y-3">
                 {rentalHistory.map((rental) => (
@@ -379,7 +381,7 @@ export default function EquipmentDetailPage() {
                           : "bg-brand-muted text-brand"
                       }`}
                     >
-                      {rental.returned ? "Returned" : "Active"}
+                      {rental.returned ? t("tenant.equipment.returned") : t("common.active")}
                     </span>
                   </Link>
                 ))}
@@ -389,7 +391,7 @@ export default function EquipmentDetailPage() {
 
           {/* Service History */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Service History</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.serviceHistory")}</h2>
             {serviceHistory.length > 0 ? (
               <div className="space-y-3 text-sm mb-4">
                 {serviceHistory.slice(0, 3).map((service) => (
@@ -408,12 +410,12 @@ export default function EquipmentDetailPage() {
                 ))}
                 {serviceHistory.length > 3 && (
                   <p className="text-foreground-muted text-xs">
-                    +{serviceHistory.length - 3} more records
+                    {t("tenant.equipment.moreRecords", { count: serviceHistory.length - 3 })}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-foreground-muted text-sm mb-4">No service records yet.</p>
+              <p className="text-foreground-muted text-sm mb-4">{t("tenant.equipment.noServiceRecords")}</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
               <CsrfInput />
@@ -433,26 +435,26 @@ export default function EquipmentDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Description</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("common.description")}</label>
                 <input
                   type="text"
                   name="description"
-                  placeholder="What was done?"
+                  placeholder={t("tenant.equipment.whatWasDone")}
                   className="w-full text-sm border rounded-lg px-3 py-2"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Performed By</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.equipment.performedBy")}</label>
                 <input
                   type="text"
                   name="performedBy"
-                  placeholder="Technician or company name"
+                  placeholder={t("tenant.equipment.technicianOrCompany")}
                   className="w-full text-sm border rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Cost</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.equipment.cost")}</label>
                 <input
                   type="number"
                   name="cost"
@@ -462,16 +464,16 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Notes</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("common.notes")}</label>
                 <textarea
                   name="notes"
-                  placeholder="Additional details..."
+                  placeholder={t("tenant.equipment.additionalNotes")}
                   rows={2}
                   className="w-full text-sm border rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Next Service Date</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.equipment.nextServiceDate")}</label>
                 <input
                   type="date"
                   name="nextServiceDate"
@@ -479,19 +481,19 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Certification Expiry</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.equipment.certificationExpiry")}</label>
                 <input
                   type="date"
                   name="certificationExpiry"
                   className="w-full text-sm border rounded-lg px-3 py-2"
                 />
-                <p className="text-xs text-foreground-muted mt-1">For tanks, regulators, etc.</p>
+                <p className="text-xs text-foreground-muted mt-1">{t("tenant.equipment.forTanksRegs")}</p>
               </div>
               <button
                 type="submit"
                 className="w-full text-center py-2 text-sm text-white bg-brand rounded-lg hover:bg-brand-hover"
               >
-                Log Service
+                {t("tenant.equipment.logService")}
               </button>
             </fetcher.Form>
           </div>
@@ -499,7 +501,7 @@ export default function EquipmentDetailPage() {
           {/* Notes */}
           {equipment.notes && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-3">Notes</h2>
+              <h2 className="font-semibold mb-3">{t("common.notes")}</h2>
               <p className="text-foreground">{equipment.notes}</p>
             </div>
           )}
@@ -509,29 +511,29 @@ export default function EquipmentDetailPage() {
         <div className="space-y-6">
           {/* Details */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Details</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.details")}</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Category</span>
+                <span className="text-foreground-muted">{t("tenant.equipment.category")}</span>
                 <span>{categoryLabels[equipment.category]}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Brand</span>
+                <span className="text-foreground-muted">{t("tenant.equipment.brand")}</span>
                 <span>{equipment.brand}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Model</span>
+                <span className="text-foreground-muted">{t("tenant.equipment.model")}</span>
                 <span>{equipment.model || "—"}</span>
               </div>
               {equipment.serialNumber && (
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Serial #</span>
+                  <span className="text-foreground-muted">{t("tenant.equipment.serialNumber")}</span>
                   <span>{equipment.serialNumber}</span>
                 </div>
               )}
               {equipment.size && (
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Size</span>
+                  <span className="text-foreground-muted">{t("tenant.equipment.size")}</span>
                   <span>{equipment.size}</span>
                 </div>
               )}
@@ -540,15 +542,15 @@ export default function EquipmentDetailPage() {
 
           {/* Rental Info */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Rental</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.rental")}</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Rentable</span>
-                <span>{equipment.isRentable ? "Yes" : "No"}</span>
+                <span className="text-foreground-muted">{t("tenant.equipment.rentable")}</span>
+                <span>{equipment.isRentable ? t("tenant.equipment.yes") : t("tenant.equipment.no")}</span>
               </div>
               {equipment.isRentable && (
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Price/Day</span>
+                  <span className="text-foreground-muted">{t("tenant.equipment.pricePerDay")}</span>
                   <span className="font-medium">${equipment.rentalPrice}</span>
                 </div>
               )}
@@ -557,24 +559,24 @@ export default function EquipmentDetailPage() {
 
           {/* Service */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Service</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.equipment.service")}</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Last Service</span>
-                <span>{equipment.lastServiceDate ? formatDate(equipment.lastServiceDate) : "Never"}</span>
+                <span className="text-foreground-muted">{t("tenant.equipment.lastService")}</span>
+                <span>{equipment.lastServiceDate ? formatDate(equipment.lastServiceDate) : t("tenant.equipment.notSet")}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Next Due</span>
+                <span className="text-foreground-muted">{t("tenant.equipment.nextDue")}</span>
                 <span className={serviceDue ? "text-warning font-medium" : ""}>
-                  {equipment.nextServiceDate ? formatDate(equipment.nextServiceDate) : "Not set"}
+                  {equipment.nextServiceDate ? formatDate(equipment.nextServiceDate) : t("tenant.equipment.notSet")}
                 </span>
               </div>
               {serviceDue && (
-                <p className="text-warning text-xs">Service overdue!</p>
+                <p className="text-warning text-xs">{t("tenant.equipment.serviceOverdue")}</p>
               )}
               {equipment.serviceNotes && (
                 <div className="pt-2 border-t">
-                  <p className="text-foreground-muted mb-1">Last notes:</p>
+                  <p className="text-foreground-muted mb-1">{t("tenant.equipment.lastNotes")}</p>
                   <p className="text-foreground">{equipment.serviceNotes}</p>
                 </div>
               )}
@@ -584,17 +586,17 @@ export default function EquipmentDetailPage() {
           {/* Purchase Info */}
           {(equipment.purchaseDate || equipment.purchasePrice) && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Purchase</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.equipment.purchase")}</h2>
               <div className="space-y-3 text-sm">
                 {equipment.purchaseDate && (
                   <div className="flex justify-between">
-                    <span className="text-foreground-muted">Date</span>
+                    <span className="text-foreground-muted">{t("tenant.equipment.purchaseDate")}</span>
                     <span>{formatDate(equipment.purchaseDate)}</span>
                   </div>
                 )}
                 {equipment.purchasePrice && (
                   <div className="flex justify-between">
-                    <span className="text-foreground-muted">Price</span>
+                    <span className="text-foreground-muted">{t("common.price")}</span>
                     <span>${equipment.purchasePrice}</span>
                   </div>
                 )}
@@ -604,9 +606,9 @@ export default function EquipmentDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Created: {formatDate(equipment.createdAt)}</p>
-            <p>Updated: {formatDate(equipment.updatedAt)}</p>
-            <p>ID: {equipment.id}</p>
+            <p>{t("tenant.equipment.created")}: {formatDate(equipment.createdAt)}</p>
+            <p>{t("tenant.equipment.updated")}: {formatDate(equipment.updatedAt)}</p>
+            <p>{t("tenant.equipment.equipmentId")}: {equipment.id}</p>
           </div>
         </div>
       </div>

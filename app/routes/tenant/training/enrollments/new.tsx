@@ -6,6 +6,7 @@ import { getCustomers } from "../../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { formatTime } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
 
@@ -130,6 +131,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewEnrollmentPage() {
+  const t = useT();
   const { session, sessions, customers, mode } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [searchParams] = useSearchParams();
@@ -139,7 +141,7 @@ export default function NewEnrollmentPage() {
   const backLink = session
     ? `/tenant/training/sessions/${session.id}`
     : "/tenant/training";
-  const backText = session ? "← Back to Session" : "← Back to Training";
+  const backText = session ? `← ${t("tenant.training.enrollments.backToSession")}` : `← ${t("tenant.training.enrollments.backToTraining")}`;
 
   return (
     <div className="max-w-2xl">
@@ -150,7 +152,7 @@ export default function NewEnrollmentPage() {
         >
           {backText}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Enroll Student</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.training.enrollments.enrollStudent")}</h1>
         {session && (
           <p className="text-foreground-muted mt-1">
             {session.courseName} - {new Date(session.startDate).toLocaleDateString()}
@@ -170,7 +172,7 @@ export default function NewEnrollmentPage() {
         {mode === "select-session" && sessions && (
           <div>
             <label htmlFor="sessionId" className="block text-sm font-medium mb-1">
-              Training Session *
+              {t("tenant.training.enrollments.trainingSession")} *
             </label>
             <select
               id="sessionId"
@@ -179,12 +181,12 @@ export default function NewEnrollmentPage() {
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               required
             >
-              <option value="">Select a session...</option>
+              <option value="">{t("tenant.training.enrollments.selectSession")}</option>
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.courseName} - {new Date(s.startDate).toLocaleDateString()}
                   {s.startTime ? ` at ${formatTime(s.startTime)}` : ""}
-                  {" "}({s.enrolledCount || 0}/{s.maxStudents || "∞"} enrolled)
+                  {" "}({s.enrolledCount || 0}/{s.maxStudents || "∞"} {t("tenant.training.enrollments.status.enrolled").toLowerCase()})
                 </option>
               ))}
             </select>
@@ -201,7 +203,7 @@ export default function NewEnrollmentPage() {
 
         <div>
           <label htmlFor="customerId" className="block text-sm font-medium mb-1">
-            Student *
+            {t("tenant.training.enrollments.col.student")} *
           </label>
           <select
             id="customerId"
@@ -210,7 +212,7 @@ export default function NewEnrollmentPage() {
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             required
           >
-            <option value="">Select a student...</option>
+            <option value="">{t("tenant.training.enrollments.selectStudent")}</option>
             {customers.map((customer) => (
               <option key={customer.id} value={customer.id}>
                 {customer.firstName} {customer.lastName} ({customer.email})
@@ -224,7 +226,7 @@ export default function NewEnrollmentPage() {
 
         <div>
           <label htmlFor="paymentStatus" className="block text-sm font-medium mb-1">
-            Payment Status
+            {t("tenant.training.enrollments.paymentStatusLabel")}
           </label>
           <select
             id="paymentStatus"
@@ -232,15 +234,15 @@ export default function NewEnrollmentPage() {
             defaultValue={actionData?.values?.paymentStatus || "pending"}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           >
-            <option value="pending">Pending</option>
-            <option value="partial">Partial</option>
-            <option value="paid">Paid</option>
+            <option value="pending">{t("tenant.training.enrollments.paymentStatus.pending")}</option>
+            <option value="partial">{t("tenant.training.enrollments.paymentStatus.partial")}</option>
+            <option value="paid">{t("tenant.training.enrollments.paymentStatus.paid")}</option>
           </select>
         </div>
 
         <div>
           <label htmlFor="amountPaid" className="block text-sm font-medium mb-1">
-            Amount Paid
+            {t("tenant.training.enrollments.amountPaid")}
           </label>
           <input
             type="number"
@@ -261,13 +263,13 @@ export default function NewEnrollmentPage() {
             type="submit"
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Create Enrollment
+            {t("tenant.training.enrollments.createEnrollment")}
           </button>
           <Link
             to={backLink}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

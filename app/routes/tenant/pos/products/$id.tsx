@@ -10,6 +10,7 @@ import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-conte
 import { getProductById, deleteProduct, adjustProductStock } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.product ? `${data.product.name} - DiveStreams` : "Product - DiveStreams" },
@@ -108,6 +109,7 @@ const categoryColors: Record<string, string> = {
 export default function ProductDetailPage() {
   const { product, images } = useLoaderData<typeof loader>();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const t = useT();
 
   const margin = product.costPrice && product.price > 0
     ? Math.round(((product.price - product.costPrice) / product.price) * 100)
@@ -134,14 +136,14 @@ export default function ProductDetailPage() {
                 {product.category}
               </span>
               {product.sku && (
-                <span className="text-sm text-foreground-muted">SKU: {product.sku}</span>
+                <span className="text-sm text-foreground-muted">{t("tenant.pos.products.skuLabel", { sku: product.sku })}</span>
               )}
               <span
                 className={`text-xs px-2 py-1 rounded ${
                   product.isActive ? "bg-success-muted text-success" : "bg-surface-inset text-foreground-muted"
                 }`}
               >
-                {product.isActive ? "Active" : "Inactive"}
+                {product.isActive ? t("common.active") : t("common.inactive")}
               </span>
             </div>
           </div>
@@ -151,7 +153,7 @@ export default function ProductDetailPage() {
             to={`/tenant/pos/products/${product.id}/edit`}
             className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
-            Edit Product
+            {t("tenant.pos.products.editProduct")}
           </Link>
         </div>
       </div>
@@ -159,28 +161,28 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-2 gap-6">
         {/* Pricing */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Pricing</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.pos.products.pricing")}</h2>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Sell Price</span>
+              <span className="text-foreground-muted">{t("tenant.pos.products.sellPrice")}</span>
               <span className="text-2xl font-bold text-brand">{formatCurrency(product.price)}</span>
             </div>
             {product.costPrice && (
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Cost Price</span>
+                <span className="text-foreground-muted">{t("tenant.pos.products.costPrice")}</span>
                 <span className="font-medium">{formatCurrency(product.costPrice)}</span>
               </div>
             )}
             {margin !== null && (
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Margin</span>
+                <span className="text-foreground-muted">{t("tenant.pos.products.margin")}</span>
                 <span className={`font-medium ${margin >= 30 ? "text-success" : margin >= 15 ? "text-warning" : "text-danger"}`}>
                   {margin}%
                 </span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Tax Rate</span>
+              <span className="text-foreground-muted">{t("tenant.pos.products.taxRate")}</span>
               <span className="font-medium">{product.taxRate}%</span>
             </div>
           </div>
@@ -188,11 +190,11 @@ export default function ProductDetailPage() {
 
         {/* Inventory */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Inventory</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.pos.products.inventory")}</h2>
           {product.trackInventory ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-foreground-muted">In Stock</span>
+                <span className="text-foreground-muted">{t("tenant.pos.products.inStock")}</span>
                 <span
                   className={`text-2xl font-bold ${
                     product.stockQuantity <= product.lowStockThreshold
@@ -204,13 +206,13 @@ export default function ProductDetailPage() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Low Stock Alert</span>
-                <span className="font-medium">{product.lowStockThreshold} units</span>
+                <span className="text-foreground-muted">{t("tenant.pos.products.lowStockAlert")}</span>
+                <span className="font-medium">{t("tenant.pos.products.units", { count: product.lowStockThreshold })}</span>
               </div>
 
               {/* Quick Stock Adjustment */}
               <div className="border-t pt-4 mt-4">
-                <p className="text-sm text-foreground-muted mb-2">Quick Adjustment</p>
+                <p className="text-sm text-foreground-muted mb-2">{t("tenant.pos.products.quickAdjustment")}</p>
                 <div className="flex gap-2">
                   <Form method="post" className="flex gap-2">
                     <CsrfInput />
@@ -249,7 +251,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
           ) : (
-            <p className="text-foreground-muted">Inventory tracking disabled</p>
+            <p className="text-foreground-muted">{t("tenant.pos.products.inventoryTrackingDisabled")}</p>
           )}
         </div>
       </div>
@@ -257,12 +259,12 @@ export default function ProductDetailPage() {
       {/* Product Images */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6" data-testid="product-images-section">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold">Product Images</h2>
+          <h2 className="font-semibold">{t("tenant.pos.products.productImages")}</h2>
           <Link
             to={`/tenant/pos/products/${product.id}/edit`}
             className="text-sm text-brand hover:text-brand-hover"
           >
-            Manage Images
+            {t("tenant.pos.products.manageImages")}
           </Link>
         </div>
         {images.length > 0 ? (
@@ -283,7 +285,7 @@ export default function ProductDetailPage() {
                   />
                   {image.isPrimary && (
                     <div className="absolute top-1 left-1 bg-brand text-white text-xs px-1.5 py-0.5 rounded">
-                      Primary
+                      {t("tenant.pos.products.primary")}
                     </div>
                   )}
                 </div>
@@ -300,7 +302,7 @@ export default function ProductDetailPage() {
                 <button
                   className="absolute top-4 right-4 text-white text-3xl hover:text-foreground-muted"
                   onClick={() => setLightboxIndex(null)}
-                  aria-label="Close lightbox"
+                  aria-label={t("tenant.pos.products.closeLightbox")}
                 >
                   &times;
                 </button>
@@ -311,7 +313,7 @@ export default function ProductDetailPage() {
                       e.stopPropagation();
                       setLightboxIndex(lightboxIndex - 1);
                     }}
-                    aria-label="Previous image"
+                    aria-label={t("tenant.pos.products.previousImage")}
                   >
                     &#8249;
                   </button>
@@ -323,7 +325,7 @@ export default function ProductDetailPage() {
                       e.stopPropagation();
                       setLightboxIndex(lightboxIndex + 1);
                     }}
-                    aria-label="Next image"
+                    aria-label={t("tenant.pos.products.nextImage")}
                   >
                     &#8250;
                   </button>
@@ -340,12 +342,12 @@ export default function ProductDetailPage() {
         ) : (
           <div className="border-2 border-dashed border-border-strong rounded-lg p-8 text-center" data-testid="no-images-placeholder">
             <div className="text-foreground-subtle text-4xl mb-2">📷</div>
-            <p className="text-foreground-muted text-sm mb-3">No product images yet</p>
+            <p className="text-foreground-muted text-sm mb-3">{t("tenant.pos.products.noImagesYet")}</p>
             <Link
               to={`/tenant/pos/products/${product.id}/edit`}
               className="inline-block px-4 py-2 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
-              Add Images
+              {t("tenant.pos.products.addImages")}
             </Link>
           </div>
         )}
@@ -354,27 +356,27 @@ export default function ProductDetailPage() {
       {/* Description */}
       {product.description && (
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6">
-          <h2 className="font-semibold mb-2">Description</h2>
+          <h2 className="font-semibold mb-2">{t("common.description")}</h2>
           <p className="text-foreground-muted">{product.description}</p>
         </div>
       )}
 
       {/* Danger Zone */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6 border border-danger">
-        <h2 className="font-semibold text-danger mb-4">Danger Zone</h2>
+        <h2 className="font-semibold text-danger mb-4">{t("tenant.pos.products.dangerZone")}</h2>
         <Form method="post">
           <CsrfInput />
           <input type="hidden" name="intent" value="delete" />
           <button
             type="submit"
             onClick={(e) => {
-              if (!confirm("Are you sure you want to delete this product? This cannot be undone.")) {
+              if (!confirm(t("tenant.pos.products.confirmDeleteFull"))) {
                 e.preventDefault();
               }
             }}
             className="px-4 py-2 border border-danger text-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete Product
+            {t("tenant.pos.products.deleteProduct")}
           </button>
         </Form>
       </div>

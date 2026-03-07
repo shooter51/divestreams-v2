@@ -7,6 +7,7 @@ import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { customerSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Customer - DiveStreams" }];
 
@@ -114,6 +115,7 @@ export default function EditCustomerPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -122,21 +124,21 @@ export default function EditCustomerPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/customers/${customer.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Customer
+          {t("tenant.customers.backToCustomer")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Customer</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.customers.editCustomer")}</h1>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.basicInfo")}</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-                  First Name *
+                  {t("common.firstName")} *
                 </label>
                 <input
                   type="text"
@@ -150,7 +152,7 @@ export default function EditCustomerPage() {
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-                  Last Name *
+                  {t("common.lastName")} *
                 </label>
                 <input
                   type="text"
@@ -165,7 +167,7 @@ export default function EditCustomerPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email *
+                {t("common.email")} *
               </label>
               <input
                 type="email"
@@ -180,7 +182,7 @@ export default function EditCustomerPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium mb-1">
-                  Phone
+                  {t("common.phone")}
                 </label>
                 <input
                   type="tel"
@@ -193,7 +195,7 @@ export default function EditCustomerPage() {
 
               <div>
                 <label htmlFor="dateOfBirth" className="block text-sm font-medium mb-1">
-                  Date of Birth
+                  {t("common.dateOfBirth")}
                 </label>
                 <input
                   type="date"
@@ -207,7 +209,7 @@ export default function EditCustomerPage() {
 
             <div>
               <label htmlFor="preferredLanguage" className="block text-sm font-medium mb-1">
-                Preferred Language
+                {t("tenant.customers.preferredLanguage")}
               </label>
               <select
                 id="preferredLanguage"
@@ -228,11 +230,11 @@ export default function EditCustomerPage() {
 
         {/* Address */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Address</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.addressSection")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="address" className="block text-sm font-medium mb-1">
-                Street Address
+                {t("common.streetAddress")}
               </label>
               <input
                 type="text"
@@ -246,7 +248,7 @@ export default function EditCustomerPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="city" className="block text-sm font-medium mb-1">
-                  City
+                  {t("common.city")}
                 </label>
                 <input
                   type="text"
@@ -259,7 +261,7 @@ export default function EditCustomerPage() {
 
               <div>
                 <label htmlFor="state" className="block text-sm font-medium mb-1">
-                  State/Province
+                  {t("common.stateProvince")}
                 </label>
                 <input
                   type="text"
@@ -274,7 +276,7 @@ export default function EditCustomerPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="postalCode" className="block text-sm font-medium mb-1">
-                  Postal Code
+                  {t("common.postalCode")}
                 </label>
                 <input
                   type="text"
@@ -287,7 +289,7 @@ export default function EditCustomerPage() {
 
               <div>
                 <label htmlFor="country" className="block text-sm font-medium mb-1">
-                  Country
+                  {t("common.country")}
                 </label>
                 <input
                   type="text"
@@ -303,11 +305,11 @@ export default function EditCustomerPage() {
 
         {/* Emergency Contact */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Emergency Contact</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.emergencyContact")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="emergencyContactName" className="block text-sm font-medium mb-1">
-                Contact Name
+                {t("tenant.customers.contactName")}
               </label>
               <input
                 type="text"
@@ -321,7 +323,7 @@ export default function EditCustomerPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="emergencyContactPhone" className="block text-sm font-medium mb-1">
-                  Contact Phone
+                  {t("tenant.customers.contactPhone")}
                 </label>
                 <input
                   type="tel"
@@ -334,7 +336,7 @@ export default function EditCustomerPage() {
 
               <div>
                 <label htmlFor="emergencyContactRelation" className="block text-sm font-medium mb-1">
-                  Relationship
+                  {t("tenant.customers.relationship")}
                 </label>
                 <input
                   type="text"
@@ -351,11 +353,11 @@ export default function EditCustomerPage() {
 
         {/* Medical */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Medical Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.medicalInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="medicalConditions" className="block text-sm font-medium mb-1">
-                Medical Conditions
+                {t("tenant.customers.medicalConditions")}
               </label>
               <textarea
                 id="medicalConditions"
@@ -368,7 +370,7 @@ export default function EditCustomerPage() {
 
             <div>
               <label htmlFor="medications" className="block text-sm font-medium mb-1">
-                Current Medications
+                {t("tenant.customers.currentMedications")}
               </label>
               <textarea
                 id="medications"
@@ -383,11 +385,11 @@ export default function EditCustomerPage() {
 
         {/* Notes & Preferences */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Notes & Preferences</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.customers.notesPreferences")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="notes" className="block text-sm font-medium mb-1">
-                Notes
+                {t("common.notes")}
               </label>
               <textarea
                 id="notes"
@@ -406,7 +408,7 @@ export default function EditCustomerPage() {
                 defaultChecked={actionData?.values?.marketingOptIn !== "false" && !!customer.marketingOptIn}
                 className="rounded"
               />
-              <span className="text-sm">Opt in to marketing emails</span>
+              <span className="text-sm">{t("tenant.customers.optInMarketing")}</span>
             </label>
           </div>
         </div>
@@ -418,13 +420,13 @@ export default function EditCustomerPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/customers/${customer.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

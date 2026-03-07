@@ -11,6 +11,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
 import { useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Upload Gallery Images - DiveStreams" }];
 
@@ -28,6 +29,7 @@ export default function GalleryUploadPage() {
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   const preselectedAlbumId = searchParams.get("albumId") || "";
+  const t = useT();
 
   const isSubmitting = navigation.state === "submitting";
 
@@ -41,19 +43,19 @@ export default function GalleryUploadPage() {
           to={preselectedAlbumId ? `/tenant/gallery/${preselectedAlbumId}` : "/tenant/gallery"}
           className="text-brand hover:underline text-sm"
         >
-          ← Back to Gallery
+          {t("tenant.gallery.backToGallery")}
         </Link>
       </div>
 
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-        <h1 className="text-2xl font-bold mb-6">Upload Gallery Images</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("tenant.gallery.uploadGalleryImages")}</h1>
 
         <form method="post" action="/tenant/gallery/upload" encType="multipart/form-data" className="space-y-6">
           <CsrfInput />
           {/* Album Selection */}
           <div>
             <label htmlFor="albumId" className="block text-sm font-medium mb-2">
-              Album (Optional)
+              {t("tenant.gallery.albumOptional")}
             </label>
             <select
               id="albumId"
@@ -61,7 +63,7 @@ export default function GalleryUploadPage() {
               defaultValue={preselectedAlbumId}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
-              <option value="">No Album (Uncategorized)</option>
+              <option value="">{t("tenant.gallery.noAlbumUncategorized")}</option>
               {albums.map((album) => (
                 <option key={album.id} value={album.id}>
                   {album.name}
@@ -69,14 +71,14 @@ export default function GalleryUploadPage() {
               ))}
             </select>
             <p className="text-xs text-foreground-muted mt-1">
-              Choose an album to organize your images
+              {t("tenant.gallery.albumSelectionHint")}
             </p>
           </div>
 
           {/* File Input */}
           <div>
             <label htmlFor="file" className="block text-sm font-medium mb-2">
-              Images *
+              {t("tenant.gallery.imagesRequired")}
             </label>
             <input
               type="file"
@@ -94,20 +96,20 @@ export default function GalleryUploadPage() {
                 file:cursor-pointer cursor-pointer"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Select one or more images (JPEG, PNG, WebP, GIF). Max 10MB per file.
+              {t("tenant.gallery.imageFileHint")}
             </p>
           </div>
 
           {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Title
+              {t("tenant.gallery.imageTitle")}
             </label>
             <input
               type="text"
               id="title"
               name="title"
-              placeholder="Image title (uses filename if empty)"
+              placeholder={t("tenant.gallery.imageTitlePlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
@@ -115,13 +117,13 @@ export default function GalleryUploadPage() {
           {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium mb-2">
-              Description
+              {t("common.description")}
             </label>
             <textarea
               id="description"
               name="description"
               rows={3}
-              placeholder="Optional description..."
+              placeholder={t("tenant.gallery.optionalDescription")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
@@ -129,35 +131,35 @@ export default function GalleryUploadPage() {
           {/* Category */}
           <div>
             <label htmlFor="category" className="block text-sm font-medium mb-2">
-              Category
+              {t("tenant.gallery.category")}
             </label>
             <select
               id="category"
               name="category"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
-              <option value="">None</option>
-              <option value="coral-reefs">Coral Reefs</option>
-              <option value="marine-life">Marine Life</option>
-              <option value="wrecks">Wrecks</option>
-              <option value="underwater">Underwater</option>
-              <option value="team">Team</option>
-              <option value="customers">Customers</option>
-              <option value="equipment">Equipment</option>
-              <option value="events">Events</option>
+              <option value="">{t("tenant.gallery.categoryNone")}</option>
+              <option value="coral-reefs">{t("tenant.gallery.categoryCoralReefs")}</option>
+              <option value="marine-life">{t("tenant.gallery.categoryMarineLife")}</option>
+              <option value="wrecks">{t("tenant.gallery.categoryWrecks")}</option>
+              <option value="underwater">{t("tenant.gallery.categoryUnderwater")}</option>
+              <option value="team">{t("tenant.gallery.categoryTeam")}</option>
+              <option value="customers">{t("tenant.gallery.categoryCustomers")}</option>
+              <option value="equipment">{t("tenant.gallery.categoryEquipment")}</option>
+              <option value="events">{t("tenant.gallery.categoryEvents")}</option>
             </select>
           </div>
 
           {/* Location */}
           <div>
             <label htmlFor="location" className="block text-sm font-medium mb-2">
-              Location
+              {t("tenant.gallery.location")}
             </label>
             <input
               type="text"
               id="location"
               name="location"
-              placeholder="e.g., Great Barrier Reef"
+              placeholder={t("tenant.gallery.locationPlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
@@ -165,13 +167,13 @@ export default function GalleryUploadPage() {
           {/* Photographer */}
           <div>
             <label htmlFor="photographer" className="block text-sm font-medium mb-2">
-              Photographer
+              {t("tenant.gallery.photographer")}
             </label>
             <input
               type="text"
               id="photographer"
               name="photographer"
-              placeholder="Photographer name"
+              placeholder={t("tenant.gallery.photographerPlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
@@ -179,17 +181,17 @@ export default function GalleryUploadPage() {
           {/* Tags */}
           <div>
             <label htmlFor="tags" className="block text-sm font-medium mb-2">
-              Tags
+              {t("tenant.gallery.tags")}
             </label>
             <input
               type="text"
               id="tags"
               name="tags"
-              placeholder="scuba, diving, reef (comma-separated)"
+              placeholder={t("tenant.gallery.tagsPlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Separate multiple tags with commas
+              {t("tenant.gallery.tagsHint")}
             </p>
           </div>
 
@@ -200,13 +202,13 @@ export default function GalleryUploadPage() {
               disabled={isSubmitting}
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
             >
-              {isSubmitting ? "Uploading..." : "Upload Images"}
+              {isSubmitting ? t("tenant.gallery.uploading") : t("tenant.gallery.uploadImages")}
             </button>
             <Link
               to={preselectedAlbumId ? `/tenant/gallery/${preselectedAlbumId}` : "/tenant/gallery"}
               className="px-6 py-2 border border-border-strong rounded-lg hover:bg-surface-inset"
             >
-              Cancel
+              {t("common.cancel")}
             </Link>
           </div>
         </form>

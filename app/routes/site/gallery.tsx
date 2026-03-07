@@ -24,6 +24,7 @@ import {
   type GalleryAlbumWithImages,
 } from "../../../lib/db/gallery.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { useT } from "../../i18n/use-t";
 
 // ============================================================================
 // Types
@@ -102,6 +103,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
 // ============================================================================
 
 export default function GalleryPage() {
+  const t = useT();
   const { images, albums, categories, tags, filters } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -165,9 +167,9 @@ export default function GalleryPage() {
       {/* Hero Section */}
       <div className="text-white py-16" style={{ background: "linear-gradient(135deg, var(--primary-color), var(--secondary-color))" }}>
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Photo Gallery</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t("site.gallery.title")}</h1>
           <p className="text-xl text-white/80">
-            Explore our underwater adventures and dive experiences
+            {t("site.gallery.subtitle")}
           </p>
         </div>
       </div>
@@ -176,7 +178,7 @@ export default function GalleryPage() {
         {/* Albums Section */}
         {albums.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--text-color)" }}>Albums</h2>
+            <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--text-color)" }}>{t("site.gallery.albums")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {albums.map((album) => (
                 <button
@@ -230,7 +232,7 @@ export default function GalleryPage() {
               {categories.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
-                    Category
+                    {t("site.gallery.category")}
                   </label>
                   <select
                     value={filters.category || ""}
@@ -238,7 +240,7 @@ export default function GalleryPage() {
                     className="block w-full rounded-md border-border shadow-sm focus:border-brand focus:ring-brand"
                     style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
                   >
-                    <option value="">All Categories</option>
+                    <option value="">{t("site.gallery.allCategories")}</option>
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
@@ -252,7 +254,7 @@ export default function GalleryPage() {
               {tags.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
-                    Tags
+                    {t("site.gallery.tags")}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {tags.slice(0, 8).map((tag) => (
@@ -287,7 +289,7 @@ export default function GalleryPage() {
                 onClick={clearFilters}
                 className="text-sm font-medium text-brand hover:text-brand-hover whitespace-nowrap"
               >
-                Clear All Filters
+                {t("site.gallery.clearAllFilters")}
               </button>
             )}
           </div>
@@ -332,7 +334,7 @@ export default function GalleryPage() {
                   </div>
                   {image.isFeatured && (
                     <div className="absolute top-2 right-2 bg-warning text-white text-xs font-bold px-2 py-1 rounded">
-                      Featured
+                      {t("site.gallery.featured")}
                     </div>
                   )}
                 </button>
@@ -344,18 +346,18 @@ export default function GalleryPage() {
             <svg className="mx-auto h-24 w-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: "var(--text-color)", opacity: 0.4 }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No photos found</h3>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>{t("site.gallery.noPhotos")}</h3>
             <p className="mb-6" style={{ color: "var(--text-color)", opacity: 0.7 }}>
               {hasFilters
-                ? "Try adjusting your filters to see more photos."
-                : "Check back soon for our latest dive photos!"}
+                ? t("site.gallery.adjustFilters")
+                : t("site.gallery.checkBackSoon")}
             </p>
             {hasFilters && (
               <button
                 onClick={clearFilters}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand"
               >
-                Clear Filters
+                {t("site.gallery.clearFilters")}
               </button>
             )}
           </div>
@@ -430,19 +432,19 @@ export default function GalleryPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {selectedImage.location && (
                   <div>
-                    <span className="text-white/60">Location:</span>
+                    <span className="text-white/60">{t("site.gallery.location")}:</span>
                     <span className="ml-2">{selectedImage.location}</span>
                   </div>
                 )}
                 {selectedImage.photographer && (
                   <div>
-                    <span className="text-white/60">Photographer:</span>
+                    <span className="text-white/60">{t("site.gallery.photographer")}:</span>
                     <span className="ml-2">{selectedImage.photographer}</span>
                   </div>
                 )}
                 {selectedImage.dateTaken && (
                   <div>
-                    <span className="text-white/60">Date:</span>
+                    <span className="text-white/60">{t("site.gallery.date")}:</span>
                     <span className="ml-2">
                       {new Date(selectedImage.dateTaken).toLocaleDateString()}
                     </span>
@@ -450,7 +452,7 @@ export default function GalleryPage() {
                 )}
                 {selectedImage.album && (
                   <div>
-                    <span className="text-white/60">Album:</span>
+                    <span className="text-white/60">{t("site.gallery.album")}:</span>
                     <span className="ml-2">{selectedImage.album.name}</span>
                   </div>
                 )}

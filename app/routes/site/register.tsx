@@ -12,6 +12,7 @@ import { registerCustomer, loginCustomer } from "../../../lib/auth/customer-auth
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import type { SiteLoaderData } from "./_layout";
+import { useT } from "../../i18n/use-t";
 
 // ============================================================================
 // ICONS
@@ -402,6 +403,7 @@ function PasswordRequirements({ password }: { password: string }) {
 // ============================================================================
 
 export default function SiteRegisterPage() {
+  const t = useT();
   // Get data from parent layout loader
   const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
 
@@ -425,8 +427,8 @@ export default function SiteRegisterPage() {
   if (!loaderData) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold" style={{ color: "var(--text-color)" }}>Sign Up</h1>
-        <p className="mt-4 text-lg opacity-75">Loading...</p>
+        <h1 className="text-4xl font-bold" style={{ color: "var(--text-color)" }}>{t("site.register.title")}</h1>
+        <p className="mt-4 text-lg opacity-75">{t("common.loading")}</p>
       </div>
     );
   }
@@ -438,9 +440,9 @@ export default function SiteRegisterPage() {
       <div className="max-w-md mx-auto">
         {/* Page Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--text-color)" }}>Create an Account</h1>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--text-color)" }}>{t("site.register.createAccount")}</h1>
           <p className="opacity-75">
-            Join {organization.name} to book trips and manage your reservations.
+            {t("site.register.joinToBook", { name: organization.name })}
           </p>
         </div>
 
@@ -463,7 +465,7 @@ export default function SiteRegisterPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  First Name <span className="text-danger">*</span>
+                  {t("site.register.firstName")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -502,7 +504,7 @@ export default function SiteRegisterPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Last Name <span className="text-danger">*</span>
+                  {t("site.register.lastName")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -542,7 +544,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Email Address <span className="text-danger">*</span>
+                {t("site.register.emailAddress")} <span className="text-danger">*</span>
               </label>
               <input
                 type="email"
@@ -581,7 +583,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Phone <span className="text-sm opacity-50">(optional)</span>
+                {t("site.register.phone")} <span className="text-sm opacity-50">({t("common.optional")})</span>
               </label>
               <input
                 type="tel"
@@ -619,7 +621,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Password <span className="text-danger" aria-hidden="true">*</span>
+                {t("site.register.password")} <span className="text-danger" aria-hidden="true">*</span>
               </label>
               <div className="relative">
                 <input
@@ -681,7 +683,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Confirm Password <span className="text-danger">*</span>
+                {t("site.register.confirmPassword")} <span className="text-danger">*</span>
               </label>
               <div className="relative">
                 <input
@@ -749,23 +751,23 @@ export default function SiteRegisterPage() {
                   }
                 />
                 <span className="text-sm">
-                  I agree to the{" "}
+                  {t("site.register.agreeToTerms")}{" "}
                   <Link
                     to="/terms"
                     target="_blank"
                     className="underline hover:opacity-80"
                     style={{ color: "var(--primary-color)" }}
                   >
-                    Terms of Service
+                    {t("site.register.termsOfService")}
                   </Link>{" "}
-                  and{" "}
+                  {t("site.register.and")}{" "}
                   <Link
                     to="/privacy"
                     target="_blank"
                     className="underline hover:opacity-80"
                     style={{ color: "var(--primary-color)" }}
                   >
-                    Privacy Policy
+                    {t("site.register.privacyPolicy")}
                   </Link>
                 </span>
               </label>
@@ -797,20 +799,20 @@ export default function SiteRegisterPage() {
                 backgroundColor: "var(--primary-color)",
               }}
             >
-              {isSubmitting ? "Creating Account..." : "Create Account"}
+              {isSubmitting ? t("site.register.creatingAccount") : t("site.register.createAccountButton")}
             </button>
           </Form>
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">
             <p className="text-sm opacity-75">
-              Already have an account?{" "}
+              {t("site.register.alreadyHaveAccount")}{" "}
               <Link
                 to="/site/login"
                 className="font-medium hover:opacity-80"
                 style={{ color: "var(--primary-color)" }}
               >
-                Sign in
+                {t("site.register.signIn")}
               </Link>
             </p>
           </div>
