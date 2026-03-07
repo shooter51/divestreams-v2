@@ -341,22 +341,8 @@
     {
       "idx": 48,
       "version": "7",
-      "when": 1772903396496,
-      "tag": "0048_woozy_wolfsbane",
-      "breakpoints": true
-    },
-    {
-      "idx": 49,
-      "version": "7",
-      "when": 1772903518000,
-      "tag": "0049_marvelous_skullbuster",
-      "breakpoints": true
-    },
-    {
-      "idx": 50,
-      "version": "7",
       "when": 1772909595124,
-      "tag": "0050_next_zarek",
+      "tag": "0048_next_zarek",
       "breakpoints": true
     }
   ]
