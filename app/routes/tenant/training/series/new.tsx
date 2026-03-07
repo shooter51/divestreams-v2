@@ -5,6 +5,7 @@ import { requireOrgContext, requireRole } from "../../../../../lib/auth/org-cont
 import { getCourses, createSeries } from "../../../../../lib/db/training.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "New Training Series - DiveStreams" }];
 
@@ -72,15 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(redirectWithNotification("/tenant/training/series", "Series has been successfully created", "success"));
 }
 
-const SESSION_TYPES = [
-  { value: "", label: "Not specified" },
-  { value: "classroom", label: "Classroom" },
-  { value: "pool", label: "Pool" },
-  { value: "confined_water", label: "Confined Water" },
-  { value: "open_water", label: "Open Water" },
-  { value: "exam", label: "Exam" },
-  { value: "other", label: "Other" },
-];
+// SESSION_TYPES moved inside component for i18n
 
 interface SessionRow {
   id: number;
@@ -93,10 +86,21 @@ interface SessionRow {
 }
 
 export default function NewSeriesPage() {
+  const t = useT();
   const { courses } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  const SESSION_TYPES = [
+    { value: "", label: t("tenant.training.series.notSpecified") },
+    { value: "classroom", label: t("tenant.training.series.sessionTypeClassroom") },
+    { value: "pool", label: t("tenant.training.series.sessionTypePool") },
+    { value: "confined_water", label: t("tenant.training.series.sessionTypeConfinedWater") },
+    { value: "open_water", label: t("tenant.training.series.sessionTypeOpenWater") },
+    { value: "exam", label: t("tenant.training.series.sessionTypeExam") },
+    { value: "other", label: t("tenant.training.series.sessionTypeOther") },
+  ];
 
   const [sessionRows, setSessionRows] = useState<SessionRow[]>([]);
   const [nextId, setNextId] = useState(0);
@@ -127,9 +131,9 @@ export default function NewSeriesPage() {
     <div className="max-w-3xl">
       <div className="mb-6">
         <Link to="/tenant/training/series" className="text-brand hover:underline text-sm">
-          &larr; Back to Series
+          &larr; {t("tenant.training.series.backToSeries")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Create Training Series</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.training.series.createTrainingSeries")}</h1>
       </div>
 
       <form method="post" className="space-y-6">
@@ -137,19 +141,19 @@ export default function NewSeriesPage() {
 
         {/* Series Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Series Information</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.series.seriesInformation")}</h2>
 
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Series Name *
+                {t("tenant.training.series.seriesName")} *
               </label>
               <input
                 type="text"
                 id="name"
                 name="name"
                 required
-                placeholder="e.g., Open Water Diver - Spring 2026"
+                placeholder={t("tenant.training.series.seriesNamePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.name && (
@@ -159,7 +163,7 @@ export default function NewSeriesPage() {
 
             <div>
               <label htmlFor="courseId" className="block text-sm font-medium mb-1">
-                Course *
+                {t("tenant.training.series.course")} *
               </label>
               <select
                 id="courseId"
@@ -167,7 +171,7 @@ export default function NewSeriesPage() {
                 required
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="">Choose a course...</option>
+                <option value="">{t("tenant.training.series.chooseCourse")}</option>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
                     {course.name} {course.agencyName ? `(${course.agencyName})` : ""}
@@ -182,7 +186,7 @@ export default function NewSeriesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="maxStudents" className="block text-sm font-medium mb-1">
-                  Max Students
+                  {t("tenant.training.series.maxStudents")}
                 </label>
                 <input
                   type="number"
@@ -196,7 +200,7 @@ export default function NewSeriesPage() {
 
               <div>
                 <label htmlFor="priceOverride" className="block text-sm font-medium mb-1">
-                  Price Override
+                  {t("tenant.training.series.priceOverride")}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -210,32 +214,32 @@ export default function NewSeriesPage() {
                     className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
-                <p className="text-xs text-foreground-muted mt-1">Leave blank to use course price</p>
+                <p className="text-xs text-foreground-muted mt-1">{t("tenant.training.series.priceOverrideHint")}</p>
               </div>
             </div>
 
             <div>
               <label htmlFor="instructorName" className="block text-sm font-medium mb-1">
-                Instructor Name
+                {t("tenant.training.series.instructorName")}
               </label>
               <input
                 type="text"
                 id="instructorName"
                 name="instructorName"
-                placeholder="Instructor name"
+                placeholder={t("tenant.training.series.instructorNamePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
             <div>
               <label htmlFor="notes" className="block text-sm font-medium mb-1">
-                Notes
+                {t("common.notes")}
               </label>
               <textarea
                 id="notes"
                 name="notes"
                 rows={3}
-                placeholder="Any additional notes..."
+                placeholder={t("tenant.training.series.notesPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -245,52 +249,52 @@ export default function NewSeriesPage() {
         {/* Sessions */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold">Sessions ({sessionRows.length})</h2>
+            <h2 className="font-semibold">{t("tenant.training.series.sessions")} ({sessionRows.length})</h2>
             <button
               type="button"
               onClick={addSession}
               className="px-3 py-1.5 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
-              + Add Session
+              {t("tenant.training.series.addSession")}
             </button>
           </div>
 
           {sessionRows.length === 0 ? (
             <p className="text-foreground-muted text-sm text-center py-4">
-              No sessions added yet. You can add sessions after creating the series, or add them now.
+              {t("tenant.training.series.noSessionsAddedYet")}
             </p>
           ) : (
             <div className="space-y-4">
               {sessionRows.map((row, idx) => (
                 <div key={row.id} className="border border-border-strong rounded-lg p-4 relative">
                   <div className="flex justify-between items-center mb-3">
-                    <p className="text-sm font-medium text-foreground-muted">Session {idx + 1}</p>
+                    <p className="text-sm font-medium text-foreground-muted">{t("tenant.training.series.sessionNumber", { number: idx + 1 })}</p>
                     <button
                       type="button"
                       onClick={() => removeSession(row.id)}
                       className="text-danger text-sm hover:underline"
                     >
-                      Remove
+                      {t("tenant.training.series.remove")}
                     </button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium mb-1">Session Type</label>
+                      <label className="block text-xs font-medium mb-1">{t("tenant.training.series.sessionType")}</label>
                       <select
                         name={`sessions[${idx}].sessionType`}
                         value={row.sessionType}
                         onChange={(e) => updateSession(row.id, "sessionType", e.target.value)}
                         className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                       >
-                        {SESSION_TYPES.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
+                        {SESSION_TYPES.map((st) => (
+                          <option key={st.value} value={st.value}>{st.label}</option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">Start Date *</label>
+                      <label className="block text-xs font-medium mb-1">{t("tenant.training.series.startDate")} *</label>
                       <input
                         type="date"
                         name={`sessions[${idx}].startDate`}
@@ -302,7 +306,7 @@ export default function NewSeriesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">Start Time</label>
+                      <label className="block text-xs font-medium mb-1">{t("tenant.training.series.startTime")}</label>
                       <input
                         type="time"
                         name={`sessions[${idx}].startTime`}
@@ -313,7 +317,7 @@ export default function NewSeriesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">End Date</label>
+                      <label className="block text-xs font-medium mb-1">{t("tenant.training.series.endDate")}</label>
                       <input
                         type="date"
                         name={`sessions[${idx}].endDate`}
@@ -324,25 +328,25 @@ export default function NewSeriesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">Location</label>
+                      <label className="block text-xs font-medium mb-1">{t("tenant.training.series.location")}</label>
                       <input
                         type="text"
                         name={`sessions[${idx}].location`}
                         value={row.location}
                         onChange={(e) => updateSession(row.id, "location", e.target.value)}
-                        placeholder="e.g., Dive Center"
+                        placeholder={t("tenant.training.series.locationPlaceholder")}
                         className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">Meeting Point</label>
+                      <label className="block text-xs font-medium mb-1">{t("tenant.training.series.meetingPoint")}</label>
                       <input
                         type="text"
                         name={`sessions[${idx}].meetingPoint`}
                         value={row.meetingPoint}
                         onChange={(e) => updateSession(row.id, "meetingPoint", e.target.value)}
-                        placeholder="e.g., Front desk"
+                        placeholder={t("tenant.training.series.meetingPointPlaceholder")}
                         className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand text-sm"
                       />
                     </div>
@@ -360,13 +364,13 @@ export default function NewSeriesPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Creating..." : "Create Series"}
+            {isSubmitting ? t("common.creating") : t("tenant.training.series.createSeries")}
           </button>
           <Link
             to="/tenant/training/series"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

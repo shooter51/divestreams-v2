@@ -10,6 +10,9 @@ import { getProductById, updateProduct } from "../../../../../../lib/db/queries.
 import { getTenantDb } from "../../../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../../../app/components/ui";
 import { CsrfInput } from "../../../../../components/CsrfInput";
+import { useT } from "../../../../../i18n/use-t";
+import { enqueueTranslation } from "../../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../../i18n/types";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.product ? `Edit ${data.product.name} - DiveStreams` : "Edit Product - DiveStreams" },
@@ -101,21 +104,39 @@ export async function action({ request, params }: ActionFunctionArgs) {
     isActive: formData.get("isActive") === "on",
   });
 
+  // Enqueue auto-translation for non-default locales
+  const fieldsToTranslate = [
+    { field: "name", text: name },
+    { field: "description", text: formData.get("description") as string },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "product",
+      entityId: params.id!,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
+
   return redirect(`/tenant/pos/products/${params.id}`);
 }
-
-const categories = [
-  { value: "equipment", label: "Equipment" },
-  { value: "apparel", label: "Apparel" },
-  { value: "accessories", label: "Accessories" },
-  { value: "courses", label: "Courses" },
-  { value: "rental", label: "Rental" },
-];
 
 export default function EditProductPage() {
   const { product, images } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
+
+  const categories = [
+    { value: "equipment", label: t("tenant.pos.products.categoryEquipment") },
+    { value: "apparel", label: t("tenant.pos.products.categoryApparel") },
+    { value: "accessories", label: t("tenant.pos.products.categoryAccessories") },
+    { value: "courses", label: t("tenant.pos.products.categoryCourses") },
+    { value: "rental", label: t("tenant.pos.products.categoryRental") },
+  ];
 
   return (
     <div className="max-w-2xl">
@@ -125,7 +146,7 @@ export default function EditProductPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-2xl font-bold">Edit Product</h1>
+        <h1 className="text-2xl font-bold">{t("tenant.pos.products.editProduct")}</h1>
       </div>
 
       <Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
@@ -134,7 +155,7 @@ export default function EditProductPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
-              Product Name *
+              {t("tenant.pos.products.productName")}
             </label>
             <input
               type="text"
@@ -148,7 +169,7 @@ export default function EditProductPage() {
 
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-foreground mb-1">
-              Category *
+              {t("tenant.pos.products.categoryLabel")}
             </label>
             <select
               id="category"
@@ -167,7 +188,7 @@ export default function EditProductPage() {
 
           <div>
             <label htmlFor="sku" className="block text-sm font-medium text-foreground mb-1">
-              SKU
+              {t("tenant.pos.products.skuField")}
             </label>
             <input
               type="text"
@@ -180,7 +201,7 @@ export default function EditProductPage() {
 
           <div className="col-span-2">
             <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">
-              Description
+              {t("tenant.pos.products.descriptionLabel")}
             </label>
             <textarea
               id="description"
@@ -194,11 +215,11 @@ export default function EditProductPage() {
 
         {/* Pricing */}
         <div className="border-t pt-6">
-          <h3 className="font-medium mb-4">Pricing</h3>
+          <h3 className="font-medium mb-4">{t("tenant.pos.products.pricing")}</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-foreground mb-1">
-                Price *
+                {t("tenant.pos.products.priceLabel")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -217,7 +238,7 @@ export default function EditProductPage() {
 
             <div>
               <label htmlFor="costPrice" className="block text-sm font-medium text-foreground mb-1">
-                Cost Price
+                {t("tenant.pos.products.costPriceLabel")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -235,7 +256,7 @@ export default function EditProductPage() {
 
             <div>
               <label htmlFor="taxRate" className="block text-sm font-medium text-foreground mb-1">
-                Tax Rate
+                {t("tenant.pos.products.taxRateLabel")}
               </label>
               <div className="relative">
                 <input
@@ -256,7 +277,7 @@ export default function EditProductPage() {
 
         {/* Inventory */}
         <div className="border-t pt-6">
-          <h3 className="font-medium mb-4">Inventory</h3>
+          <h3 className="font-medium mb-4">{t("tenant.pos.products.inventory")}</h3>
           <div className="space-y-4">
             <label className="flex items-center gap-3">
               <input
@@ -265,13 +286,13 @@ export default function EditProductPage() {
                 defaultChecked={product.trackInventory}
                 className="w-4 h-4 text-brand border-border-strong rounded focus:ring-brand"
               />
-              <span className="text-sm text-foreground">Track inventory for this product</span>
+              <span className="text-sm text-foreground">{t("tenant.pos.products.trackInventory")}</span>
             </label>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="stockQuantity" className="block text-sm font-medium text-foreground mb-1">
-                  Stock Quantity
+                  {t("tenant.pos.products.stockQuantity")}
                 </label>
                 <input
                   type="number"
@@ -285,7 +306,7 @@ export default function EditProductPage() {
 
               <div>
                 <label htmlFor="lowStockThreshold" className="block text-sm font-medium text-foreground mb-1">
-                  Low Stock Alert
+                  {t("tenant.pos.products.lowStockAlert")}
                 </label>
                 <input
                   type="number"
@@ -302,7 +323,7 @@ export default function EditProductPage() {
 
         {/* Product Images */}
         <div className="border-t pt-6">
-          <h3 className="font-medium mb-4">Product Images</h3>
+          <h3 className="font-medium mb-4">{t("tenant.pos.products.productImages")}</h3>
           <ImageManager
             entityType="product"
             entityId={product.id}
@@ -320,7 +341,7 @@ export default function EditProductPage() {
               defaultChecked={product.isActive}
               className="w-4 h-4 text-brand border-border-strong rounded focus:ring-brand"
             />
-            <span className="text-sm text-foreground">Product is active and available for sale</span>
+            <span className="text-sm text-foreground">{t("tenant.pos.products.isActiveLabel")}</span>
           </label>
         </div>
 
@@ -331,13 +352,13 @@ export default function EditProductPage() {
             disabled={isSubmitting}
             className="px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("tenant.pos.products.savingChanges") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/pos/products/${product.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </Form>

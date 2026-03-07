@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { user as userTable } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "My Profile - DiveStreams" }];
 
@@ -93,20 +94,21 @@ export default function UserProfilePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          ← Back to Settings
+          {t("tenant.settings.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">My Profile</h1>
-        <p className="text-foreground-muted">Manage your personal information and password</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.myProfile")}</h1>
+        <p className="text-foreground-muted">{t("tenant.settings.userProfile.subtitle")}</p>
       </div>
 
       {/* Basic Information */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-        <h2 className="font-semibold mb-4">Personal Information</h2>
+        <h2 className="font-semibold mb-4">{t("tenant.settings.userProfile.personalInfo")}</h2>
 
         {actionData?.type === "profile" && actionData?.success && (
           <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
@@ -126,7 +128,7 @@ export default function UserProfilePage() {
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-1">
-              Full Name
+              {t("tenant.settings.userProfile.fullName")}
             </label>
             <input
               type="text"
@@ -145,7 +147,7 @@ export default function UserProfilePage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email Address
+              {t("tenant.settings.userProfile.emailAddress")}
             </label>
             <input
               type="email"
@@ -155,13 +157,13 @@ export default function UserProfilePage() {
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-inset text-foreground-muted cursor-not-allowed"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Email cannot be changed. Contact your organization owner if you need to update it.
+              {t("tenant.settings.userProfile.emailCannotChange")}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Role
+              {t("tenant.settings.userProfile.role")}
             </label>
             <input
               type="text"
@@ -178,8 +180,8 @@ export default function UserProfilePage() {
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
             >
               {isSubmitting && navigation.formData?.get("intent") === "update-name"
-                ? "Saving..."
-                : "Save Changes"}
+                ? t("common.saving")
+                : t("common.saveChanges")}
             </button>
           </div>
         </Form>
@@ -187,7 +189,7 @@ export default function UserProfilePage() {
 
       {/* Change Password */}
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-        <h2 className="font-semibold mb-4">Change Password</h2>
+        <h2 className="font-semibold mb-4">{t("tenant.settings.password.title")}</h2>
 
         {actionData?.type === "password" && actionData?.success && (
           <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
@@ -207,7 +209,7 @@ export default function UserProfilePage() {
 
           <div>
             <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
-              Current Password
+              {t("tenant.settings.password.currentPassword")}
             </label>
             <input
               type="password"
@@ -225,7 +227,7 @@ export default function UserProfilePage() {
 
           <div>
             <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
-              New Password
+              {t("tenant.settings.password.newPassword")}
             </label>
             <input
               type="password"
@@ -241,13 +243,13 @@ export default function UserProfilePage() {
               <p className="mt-1 text-sm text-danger">{actionData.error}</p>
             )}
             <p className="text-xs text-foreground-muted mt-1">
-              Must be at least 8 characters
+              {t("tenant.settings.password.minChars")}
             </p>
           </div>
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-              Confirm New Password
+              {t("tenant.settings.password.confirmNewPassword")}
             </label>
             <input
               type="password"
@@ -271,8 +273,8 @@ export default function UserProfilePage() {
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
             >
               {isSubmitting && navigation.formData?.get("intent") === "change-password"
-                ? "Changing..."
-                : "Change Password"}
+                ? t("tenant.settings.password.changing")
+                : t("tenant.settings.password.title")}
             </button>
           </div>
         </Form>

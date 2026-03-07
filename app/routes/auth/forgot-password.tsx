@@ -6,6 +6,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { useT } from "../../i18n/use-t";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
@@ -92,6 +93,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ForgotPasswordPage() {
+  const t = useT();
   const loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -102,12 +104,12 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen bg-surface-inset flex items-center justify-center">
         <div className="max-w-md w-full text-center">
           <div className="bg-surface-raised rounded-xl p-8 shadow-sm border">
-            <h1 className="text-xl font-bold mb-4">Check Your Email</h1>
+            <h1 className="text-xl font-bold mb-4">{t("auth.forgotPassword.checkYourEmail")}</h1>
             <p className="text-foreground-muted mb-4">
-              If an account exists with that email, we've sent password reset instructions.
+              {t("auth.forgotPassword.resetEmailSent")}
             </p>
             <a href="/auth/login" className="text-brand">
-              Back to login
+              {t("auth.forgotPassword.backToLogin")}
             </a>
           </div>
         </div>
@@ -120,14 +122,14 @@ export default function ForgotPasswordPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-brand">DiveStreams</h1>
-          <p className="text-foreground-muted mt-2">Reset your password</p>
+          <p className="text-foreground-muted mt-2">{t("auth.forgotPassword.resetYourPassword")}</p>
         </div>
 
         <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
           <CsrfTokenInput token={loaderData?.csrfToken} />
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
+              {t("common.email")}
             </label>
             <input
               type="email"
@@ -147,11 +149,11 @@ export default function ForgotPasswordPage() {
             disabled={isSubmitting}
             className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Sending..." : "Send Reset Link"}
+            {isSubmitting ? t("common.sending") : t("auth.forgotPassword.sendResetLink")}
           </button>
 
           <a href="/auth/login" className="block text-center text-sm text-foreground-muted mt-4">
-            Back to login
+            {t("auth.forgotPassword.backToLogin")}
           </a>
         </form>
       </div>

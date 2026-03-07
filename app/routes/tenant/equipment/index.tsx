@@ -10,6 +10,7 @@ import { eq, or, ilike, sql, and } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 import { useNotification } from "../../../../lib/use-notification";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Equipment - DiveStreams" }];
 
@@ -163,6 +164,7 @@ const conditionLabels: Record<string, string> = {
 export default function EquipmentPage() {
   // Show notifications from URL params
   useNotification();
+  const t = useT();
 
   const {
     equipment,
@@ -232,7 +234,7 @@ export default function EquipmentPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Equipment Inventory</h1>
+          <h1 className="text-2xl font-bold">{t("tenant.equipment.title")}</h1>
           <p className="text-foreground-muted">{stats.total} items total</p>
         </div>
         <div className="flex gap-3">
@@ -244,20 +246,20 @@ export default function EquipmentPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
             </svg>
-            Scan Barcode
+            {t("tenant.equipment.scanBarcode")}
           </button>
           {/* Rental management button */}
           <Link
             to="/tenant/equipment/rentals"
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm flex items-center gap-2"
           >
-            Manage Rentals
+            {t("tenant.equipment.manageRentals")}
           </Link>
           <Link
             to="/tenant/equipment/new"
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Add Equipment
+            {t("tenant.equipment.addEquipment")}
           </Link>
         </div>
       </div>
@@ -271,7 +273,7 @@ export default function EquipmentPage() {
           onClick={() => setFilter("status", "")}
         >
           <p className="text-2xl font-bold">{stats.total}</p>
-          <p className="text-foreground-muted text-sm">Total</p>
+          <p className="text-foreground-muted text-sm">{t("common.total")}</p>
         </div>
         <div
           className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-success ${
@@ -292,7 +294,7 @@ export default function EquipmentPage() {
           <p className="text-foreground-muted text-sm">
             Rented
             {!hasEquipmentRentals && stats.rented > 0 && (
-              <span className="ml-1 text-xs text-warning">(Premium)</span>
+              <span className="ml-1 text-xs text-warning">({t("tenant.equipment.premiumRequired")})</span>
             )}
           </p>
         </div>
@@ -322,7 +324,7 @@ export default function EquipmentPage() {
           <input
             type="search"
             name="q"
-            placeholder="Search equipment..."
+            placeholder={t("tenant.equipment.searchEquipment")}
             defaultValue={search}
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
@@ -332,7 +334,7 @@ export default function EquipmentPage() {
           onChange={(e) => setFilter("category", e.target.value)}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
-          <option value="">All Categories</option>
+          <option value="">{t("tenant.equipment.allCategories")}</option>
           <option value="bcd">BCD</option>
           <option value="regulator">Regulator</option>
           <option value="wetsuit">Wetsuit</option>
@@ -347,12 +349,12 @@ export default function EquipmentPage() {
       {/* Equipment List */}
       {equipment.length === 0 ? (
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
-          <p className="text-foreground-muted">No equipment found.</p>
+          <p className="text-foreground-muted">{t("tenant.equipment.noEquipmentFound")}</p>
           <Link
             to="/tenant/equipment/new"
             className="inline-block mt-4 text-brand hover:underline"
           >
-            Add your first equipment item
+            {t("tenant.equipment.addFirstEquipment")}
           </Link>
         </div>
       ) : (
@@ -360,12 +362,12 @@ export default function EquipmentPage() {
           <table className="w-full">
             <thead className="bg-surface-inset border-b">
               <tr>
-                <th className="text-left py-3 px-4 font-medium text-sm">Item</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Category</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Size</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Condition</th>
-                <th className="text-left py-3 px-4 font-medium text-sm">Status</th>
-                <th className="text-right py-3 px-4 font-medium text-sm">Rental</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.item")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.category")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.size")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("tenant.equipment.condition")}</th>
+                <th className="text-left py-3 px-4 font-medium text-sm">{t("common.status")}</th>
+                <th className="text-right py-3 px-4 font-medium text-sm">{t("tenant.equipment.rental")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -426,9 +428,9 @@ export default function EquipmentPage() {
       {/* Premium rental notice */}
       {!isPremium && rentableCount > 0 && (
         <div className="mt-4 text-center text-sm text-foreground-muted">
-          <span className="text-warning">*</span> Equipment rentals require a premium subscription.{" "}
+          <span className="text-warning">*</span> {t("tenant.equipment.rentalsPremiumNote")}{" "}
           <Link to="/tenant/settings/billing" className="text-brand hover:underline">
-            Upgrade now
+            {t("tenant.equipment.upgradeNow")}
           </Link>
         </div>
       )}
@@ -438,7 +440,7 @@ export default function EquipmentPage() {
         isOpen={showBarcodeScanner}
         onClose={() => setShowBarcodeScanner(false)}
         onScan={handleBarcodeScan}
-        title="Scan Equipment Barcode"
+        title={t("tenant.equipment.scanEquipmentBarcode")}
         showConfirmation={false}
       />
 

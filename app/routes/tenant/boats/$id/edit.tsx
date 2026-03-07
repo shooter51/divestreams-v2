@@ -9,6 +9,7 @@ import { boatSchema, validateFormData, getFormValues } from "../../../../../lib/
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
 
@@ -129,6 +130,7 @@ export default function EditBoatPage() {
   const { boat, images } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
 
   // Show notifications from URL params
@@ -170,20 +172,20 @@ export default function EditBoatPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/boats/${boat.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Boat
+          {t("tenant.boats.backToBoat")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Boat</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.boats.editBoat")}</h1>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Boat Name *
+                {t("tenant.boats.boatName")} *
               </label>
               <input
                 type="text"
@@ -201,7 +203,7 @@ export default function EditBoatPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="type" className="block text-sm font-medium mb-1">
-                  Boat Type
+                  {t("tenant.boats.boatType")}
                 </label>
                 <select
                   id="type"
@@ -209,7 +211,7 @@ export default function EditBoatPage() {
                   defaultValue={actionData?.values?.type || boat.type}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="">Select type...</option>
+                  <option value="">{t("tenant.boats.selectType")}</option>
                   <option value="Dive Boat">Dive Boat</option>
                   <option value="Speed Boat">Speed Boat</option>
                   <option value="Catamaran">Catamaran</option>
@@ -221,7 +223,7 @@ export default function EditBoatPage() {
 
               <div>
                 <label htmlFor="capacity" className="block text-sm font-medium mb-1">
-                  Passenger Capacity *
+                  {t("tenant.boats.passengerCapacity")} *
                 </label>
                 <input
                   type="number"
@@ -238,7 +240,7 @@ export default function EditBoatPage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
@@ -253,7 +255,7 @@ export default function EditBoatPage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Boat Images</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.boats.boatImages")}</h2>
           <ImageManager
             entityType="boat"
             entityId={boat.id}
@@ -264,10 +266,10 @@ export default function EditBoatPage() {
 
         {/* Registration */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Registration</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.boats.registration")}</h2>
           <div>
             <label htmlFor="registrationNumber" className="block text-sm font-medium mb-1">
-              Registration Number
+              {t("tenant.boats.registrationNumber")}
             </label>
             <input
               type="text"
@@ -281,7 +283,7 @@ export default function EditBoatPage() {
 
         {/* Amenities */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Amenities & Features</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.boats.amenitiesFeatures")}</h2>
 
           {/* Hidden input to store selected amenities as comma-separated string */}
           <input
@@ -294,7 +296,7 @@ export default function EditBoatPage() {
           {selectedAmenities.length > 0 && (
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
-                Selected Amenities
+                {t("tenant.boats.selectedAmenities")}
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedAmenities.map((amenity) => (
@@ -321,7 +323,7 @@ export default function EditBoatPage() {
 
           {/* Common amenities - hide already selected ones */}
           <div>
-            <p className="text-sm font-medium mb-2">Add Amenities:</p>
+            <p className="text-sm font-medium mb-2">{t("tenant.boats.addAmenities")}:</p>
             <div className="flex flex-wrap gap-2">
               {commonAmenities
                 .filter((amenity) => !selectedAmenities.includes(amenity))
@@ -337,7 +339,7 @@ export default function EditBoatPage() {
                 ))}
               {commonAmenities.every((amenity) => selectedAmenities.includes(amenity)) && (
                 <p className="text-xs text-foreground-muted italic">
-                  All common amenities added! You can remove any by clicking the × button above.
+                  {t("tenant.boats.allAmenitiesAdded")}
                 </p>
               )}
             </div>
@@ -354,7 +356,7 @@ export default function EditBoatPage() {
               defaultChecked={actionData?.values?.isActive !== "false" && boat.isActive}
               className="rounded"
             />
-            <span className="font-medium">Active</span>
+            <span className="font-medium">{t("common.active")}</span>
           </label>
         </div>
 
@@ -365,13 +367,13 @@ export default function EditBoatPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/boats/${boat.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

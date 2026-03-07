@@ -16,6 +16,7 @@ import { bookings, customers, trips, tours, equipment } from "../../../../lib/db
 import { eq, gte, and, sql, count, lte, desc } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { pluralize } from "../../../lib/format";
+import { useT } from "../../../i18n/use-t";
 import { useState, useRef, useEffect } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Reports - DiveStreams" }];
@@ -375,27 +376,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-// Status label mapping
-const bookingStatusLabels: Record<string, string> = {
-  confirmed: "Confirmed",
-  pending: "Pending",
-  checked_in: "Checked In",
-  completed: "Completed",
-  canceled: "Canceled",
-  no_show: "No Show",
+// Status label mapping keys (translated at render time)
+const bookingStatusKeys: Record<string, string> = {
+  confirmed: "tenant.reports.statusConfirmed",
+  pending: "tenant.reports.statusPending",
+  checked_in: "tenant.reports.statusCheckedIn",
+  completed: "tenant.reports.statusCompleted",
+  canceled: "tenant.reports.statusCanceled",
+  no_show: "tenant.reports.statusNoShow",
 };
 
-// Equipment category display map
-const equipmentCategoryLabels: Record<string, string> = {
-  bcd: "BCD",
-  regulator: "Regulator",
-  wetsuit: "Wetsuit",
-  mask: "Mask",
-  fins: "Fins",
-  tank: "Tank",
-  computer: "Dive Computer",
-  torch: "Torch",
-  other: "Other",
+// Equipment category label keys (translated at render time)
+const equipmentCategoryKeys: Record<string, string> = {
+  bcd: "tenant.reports.eqBcd",
+  regulator: "tenant.reports.eqRegulator",
+  wetsuit: "tenant.reports.eqWetsuit",
+  mask: "tenant.reports.eqMask",
+  fins: "tenant.reports.eqFins",
+  tank: "tenant.reports.eqTank",
+  computer: "tenant.reports.eqDiveComputer",
+  torch: "tenant.reports.eqTorch",
+  other: "tenant.reports.eqOther",
 };
 
 // Status color mapping
@@ -432,6 +433,7 @@ function DateRangeSelector({
   currentStart?: string;
   currentEnd?: string;
 }) {
+  const t = useT();
   const [, setSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [showCustom, setShowCustom] = useState(currentPreset === "custom");
@@ -451,10 +453,10 @@ function DateRangeSelector({
   }, []);
 
   const presets = [
-    { value: "today", label: "Today" },
-    { value: "this_week", label: "This Week" },
-    { value: "this_month", label: "This Month" },
-    { value: "this_year", label: "This Year" },
+    { value: "today", label: t("tenant.reports.today") },
+    { value: "this_week", label: t("tenant.reports.thisWeek") },
+    { value: "this_month", label: t("tenant.reports.thisMonth") },
+    { value: "this_year", label: t("tenant.reports.thisYear") },
   ];
 
   const handlePresetSelect = (preset: string) => {
@@ -483,7 +485,7 @@ function DateRangeSelector({
       return `${currentStart} to ${currentEnd}`;
     }
     const preset = presets.find((p) => p.value === currentPreset);
-    return preset?.label || "This Month";
+    return preset?.label || t("tenant.reports.thisMonth");
   };
 
   return (
@@ -522,7 +524,7 @@ function DateRangeSelector({
         <div className="absolute right-0 mt-2 w-72 bg-surface-raised rounded-lg shadow-lg border border-border z-50">
           <div className="p-2">
             <p className="px-3 py-2 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
-              Presets
+              {t("tenant.reports.presets")}
             </p>
             {presets.map((preset) => (
               <button
@@ -546,14 +548,14 @@ function DateRangeSelector({
                 currentPreset === "custom" ? "bg-brand-muted text-brand font-medium" : "text-foreground"
               }`}
             >
-              Custom Range
+              {t("tenant.reports.customRange")}
             </button>
 
             {showCustom && (
               <div className="p-3 space-y-3">
                 <div>
                   <label htmlFor="start-date" className="block text-xs font-medium text-foreground-muted mb-1">
-                    Start Date
+                    {t("tenant.reports.startDate")}
                   </label>
                   <input
                     type="date"
@@ -566,7 +568,7 @@ function DateRangeSelector({
                 </div>
                 <div>
                   <label htmlFor="end-date" className="block text-xs font-medium text-foreground-muted mb-1">
-                    End Date
+                    {t("tenant.reports.endDate")}
                   </label>
                   <input
                     type="date"
@@ -583,7 +585,7 @@ function DateRangeSelector({
                   disabled={!customStartDate || !customEndDate}
                   className="w-full px-4 py-2 text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed"
                 >
-                  Apply
+                  {t("tenant.reports.apply")}
                 </button>
               </div>
             )}
@@ -595,6 +597,7 @@ function DateRangeSelector({
 }
 
 export default function ReportsPage() {
+  const t = useT();
   const {
     revenueOverview,
     revenueData,
@@ -612,13 +615,21 @@ export default function ReportsPage() {
   // Get max revenue for scaling the chart bars
   const maxRevenue = Math.max(...revenueData.map((d) => d.revenue), 1);
 
-  // Get period label for display
-  const periodLabel = dateRange.label;
-  const comparisonLabel = dateRange.preset === "today" ? "vs yesterday" :
-    dateRange.preset === "this_week" ? "vs last week" :
-    dateRange.preset === "this_month" ? "vs last month" :
-    dateRange.preset === "this_year" ? "vs last year" :
-    "vs previous period";
+  // Get period label for display (translate client-side)
+  const periodLabelMap: Record<string, string> = {
+    today: t("tenant.reports.today"),
+    this_week: t("tenant.reports.thisWeek"),
+    this_month: t("tenant.reports.thisMonth"),
+    this_year: t("tenant.reports.thisYear"),
+  };
+  const periodLabel = dateRange.preset === "custom" && dateRange.start && dateRange.end
+    ? `${dateRange.start} to ${dateRange.end}`
+    : periodLabelMap[dateRange.preset] || t("tenant.reports.thisMonth");
+  const comparisonLabel = dateRange.preset === "today" ? t("tenant.reports.vsYesterday") :
+    dateRange.preset === "this_week" ? t("tenant.reports.vsLastWeek") :
+    dateRange.preset === "this_month" ? t("tenant.reports.vsLastMonth") :
+    dateRange.preset === "this_year" ? t("tenant.reports.vsLastYear") :
+    t("tenant.reports.vsPreviousPeriod");
 
   // Build export URL with current date range params
   const buildExportUrl = (type: "csv" | "pdf") => {
@@ -640,7 +651,7 @@ export default function ReportsPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Reports</h1>
+        <h1 className="text-2xl font-bold">{t("tenant.reports.title")}</h1>
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportCSV}
@@ -649,7 +660,7 @@ export default function ReportsPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Export CSV
+            {t("tenant.reports.exportCsv")}
           </button>
           <button
             onClick={handleExportPDF}
@@ -658,7 +669,7 @@ export default function ReportsPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Export PDF
+            {t("tenant.reports.exportPdf")}
           </button>
           <DateRangeSelector
             currentPreset={dateRange.preset}
@@ -682,16 +693,16 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <p className="text-foreground-muted text-sm mb-1">Previous Period</p>
+          <p className="text-foreground-muted text-sm mb-1">{t("tenant.reports.previousPeriod")}</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.previousPeriod)}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <p className="text-foreground-muted text-sm mb-1">Year to Date</p>
+          <p className="text-foreground-muted text-sm mb-1">{t("tenant.reports.yearToDate")}</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.yearToDate)}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.avgBookingValue)}</p>
-          <p className="text-foreground-muted text-sm mb-1">Avg Booking Value</p>
+          <p className="text-foreground-muted text-sm mb-1">{t("tenant.reports.avgBookingValue")}</p>
         </div>
       </div>
 
@@ -699,7 +710,7 @@ export default function ReportsPage() {
         {/* Revenue Chart - Premium Feature */}
         <PremiumGate feature="Advanced Revenue Charts" isPremium={isPremium}>
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Revenue Trend ({periodLabel})</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.reports.revenueTrend", { period: periodLabel })}</h2>
             {revenueData.length > 0 ? (
               <div className="h-48">
                 <div className="flex justify-between h-full gap-1">
@@ -726,7 +737,7 @@ export default function ReportsPage() {
               </div>
             ) : (
               <div className="h-48 flex items-center justify-center text-foreground-subtle">
-                No revenue data available
+                {t("tenant.reports.noRevenueData")}
               </div>
             )}
           </div>
@@ -735,7 +746,7 @@ export default function ReportsPage() {
         {/* Booking Status Breakdown - Premium Feature */}
         <PremiumGate feature="Detailed Booking Analytics" isPremium={isPremium}>
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Bookings by Status</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.reports.bookingsByStatus")}</h2>
             {totalBookings > 0 ? (
               <div className="space-y-3">
                 {bookingsByStatus.map((status) => {
@@ -750,7 +761,7 @@ export default function ReportsPage() {
                     <div key={status.status}>
                       <div className="flex justify-between items-center mb-1">
                         <span className={`text-sm font-medium ${colors.text}`}>
-                          {bookingStatusLabels[status.status] || status.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                          {bookingStatusKeys[status.status] ? t(bookingStatusKeys[status.status]) : status.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                         </span>
                         <span className="text-sm text-foreground-muted">
                           {status.count} ({percentage}%)
@@ -768,7 +779,7 @@ export default function ReportsPage() {
               </div>
             ) : (
               <div className="h-48 flex items-center justify-center text-foreground-subtle">
-                No booking data available
+                {t("tenant.reports.noBookingData")}
               </div>
             )}
           </div>
@@ -779,7 +790,7 @@ export default function ReportsPage() {
         {/* Top Tours - Premium Feature */}
         <PremiumGate feature="Detailed Revenue Breakdowns" isPremium={isPremium}>
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Top Tours by Revenue</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.reports.topToursByRevenue")}</h2>
             {topTours.length > 0 ? (
               <div className="space-y-3">
                 {topTours.map((tour, index) => (
@@ -812,46 +823,46 @@ export default function ReportsPage() {
               </div>
             ) : (
               <div className="h-48 flex items-center justify-center text-foreground-subtle">
-                No tour data available
+                {t("tenant.reports.noTourData")}
               </div>
             )}
             <Link
               to="/tenant/tours"
               className="block text-center text-brand mt-4 text-sm hover:underline"
             >
-              View all tours
+              {t("tenant.reports.viewAllTours")}
             </Link>
           </div>
         </PremiumGate>
 
         {/* Customer Stats - Available to all users (basic analytics) */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Customer Insights</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.reports.customerInsights")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-brand-muted rounded-lg">
               <p className="text-2xl font-bold text-brand">{customerStats.totalCustomers}</p>
-              <p className="text-sm text-brand">Total Customers</p>
+              <p className="text-sm text-brand">{t("tenant.reports.totalCustomers")}</p>
             </div>
             <div className="p-4 bg-success-muted rounded-lg">
               <p className="text-2xl font-bold text-success">{customerStats.newInPeriod}</p>
-              <p className="text-sm text-success">New {periodLabel}</p>
+              <p className="text-sm text-success">{t("tenant.reports.newInPeriod", { period: periodLabel })}</p>
             </div>
             <div className="p-4 bg-info-muted rounded-lg">
               <p className="text-2xl font-bold text-info">{customerStats.repeatCustomers}</p>
-              <p className="text-sm text-info">Repeat Customers</p>
+              <p className="text-sm text-info">{t("tenant.reports.repeatCustomers")}</p>
             </div>
             <div className="p-4 bg-accent-muted rounded-lg">
               <p className="text-2xl font-bold text-accent">
                 {customerStats.avgBookingsPerCustomer}
               </p>
-              <p className="text-sm text-accent">Avg Bookings/Customer</p>
+              <p className="text-sm text-accent">{t("tenant.reports.avgBookingsPerCustomer")}</p>
             </div>
           </div>
           <Link
             to="/tenant/customers"
             className="block text-center text-brand mt-4 text-sm hover:underline"
           >
-            View all customers
+            {t("tenant.reports.viewAllCustomers")}
           </Link>
         </div>
       </div>
@@ -859,18 +870,18 @@ export default function ReportsPage() {
       {/* Equipment Utilization - Premium Feature */}
       <PremiumGate feature="Equipment Utilization Reports" isPremium={isPremium}>
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Equipment Utilization</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.reports.equipmentUtilization")}</h2>
           {equipmentUtilization.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b text-left text-sm text-foreground-muted">
-                    <th className="pb-3 font-medium">Category</th>
-                    <th className="pb-3 font-medium text-center">Total</th>
-                    <th className="pb-3 font-medium text-center">Available</th>
-                    <th className="pb-3 font-medium text-center">Rented</th>
-                    <th className="pb-3 font-medium text-center">Maintenance</th>
-                    <th className="pb-3 font-medium">Utilization</th>
+                    <th className="pb-3 font-medium">{t("tenant.reports.categoryCol")}</th>
+                    <th className="pb-3 font-medium text-center">{t("tenant.reports.totalCol")}</th>
+                    <th className="pb-3 font-medium text-center">{t("tenant.reports.availableCol")}</th>
+                    <th className="pb-3 font-medium text-center">{t("tenant.reports.rentedCol")}</th>
+                    <th className="pb-3 font-medium text-center">{t("tenant.reports.maintenanceCol")}</th>
+                    <th className="pb-3 font-medium">{t("tenant.reports.utilizationCol")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -882,7 +893,7 @@ export default function ReportsPage() {
 
                     return (
                       <tr key={category.category} className="border-b last:border-0">
-                        <td className="py-3 font-medium">{equipmentCategoryLabels[category.category] || category.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</td>
+                        <td className="py-3 font-medium">{equipmentCategoryKeys[category.category] ? t(equipmentCategoryKeys[category.category]) : category.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</td>
                         <td className="py-3 text-center">{category.total}</td>
                         <td className="py-3 text-center text-success">{category.available}</td>
                         <td className="py-3 text-center text-brand">{category.rented}</td>
@@ -906,14 +917,14 @@ export default function ReportsPage() {
             </div>
           ) : (
             <div className="h-32 flex items-center justify-center text-foreground-subtle">
-              No equipment data available
+              {t("tenant.reports.noEquipmentData")}
             </div>
           )}
           <Link
             to="/tenant/equipment"
             className="block text-center text-brand mt-4 text-sm hover:underline"
           >
-            View all equipment
+            {t("tenant.reports.viewAllEquipment")}
           </Link>
         </div>
       </PremiumGate>

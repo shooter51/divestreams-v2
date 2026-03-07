@@ -8,6 +8,7 @@ import { eq, count, and } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/email.server";
 import { cancelSubscription } from "../../../../lib/stripe/index";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 /**
  * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
@@ -327,6 +328,7 @@ export default function SettingsPage() {
   const { tenantName, planName, teamCount, connectedIntegrations } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const t = useT();
 
   // Handle logout redirect after deletion request
   useEffect(() => {
@@ -345,57 +347,57 @@ export default function SettingsPage() {
   }> = [
     {
       href: "/tenant/settings/user-profile",
-      title: "My Profile",
-      description: "Update your personal information and change your password",
+      title: t("tenant.settings.myProfile"),
+      description: t("tenant.settings.myProfileDesc"),
       icon: "👤",
       preview: null,
     },
     {
       href: "/tenant/settings/profile",
-      title: "Shop Profile",
-      description: "Business name, address, timezone, and booking settings",
+      title: t("tenant.settings.shopProfile"),
+      description: t("tenant.settings.shopProfileDesc"),
       icon: "🏪",
       preview: tenantName,
     },
     {
       href: "/tenant/settings/billing",
-      title: "Billing & Subscription",
-      description: "Manage your subscription, payment methods, and invoices",
+      title: t("tenant.settings.billingSubscription"),
+      description: t("tenant.settings.billingSubscriptionDesc"),
       icon: "💳",
-      preview: `${planName} Plan`,
+      preview: t("tenant.settings.planPreview", { plan: planName }),
     },
     {
       href: "/tenant/settings/team",
-      title: "Team Members",
-      description: "Invite staff and manage roles and permissions",
+      title: t("tenant.settings.teamMembers"),
+      description: t("tenant.settings.teamMembersDesc"),
       icon: "👥",
-      preview: `${teamCount} members`,
+      preview: t("tenant.settings.membersPreview", { count: teamCount }),
     },
     {
       href: "/tenant/settings/integrations",
-      title: "Integrations",
-      description: "Connect third-party services like Stripe, Google Calendar, and more",
+      title: t("tenant.settings.integrationsTitle"),
+      description: t("tenant.settings.integrationsDesc"),
       icon: "🔌",
-      preview: `${connectedIntegrations} connected`,
+      preview: t("tenant.settings.connectedPreview", { count: connectedIntegrations }),
     },
     {
       href: "/tenant/settings/notifications",
-      title: "Notifications",
-      description: "Configure email and notification preferences",
+      title: t("tenant.settings.notificationsTitle"),
+      description: t("tenant.settings.notificationsDesc"),
       icon: "🔔",
       preview: null,
     },
     {
       href: "/tenant/settings/booking-widget",
-      title: "Booking Widget",
-      description: "Customize and embed your booking widget",
+      title: t("tenant.settings.bookingWidgetTitle"),
+      description: t("tenant.settings.bookingWidgetDesc"),
       icon: "🎨",
       preview: null,
     },
     {
       href: "/tenant/settings/public-site",
-      title: "Public Site",
-      description: "Configure your public-facing website and appearance",
+      title: t("tenant.settings.publicSiteTitle"),
+      description: t("tenant.settings.publicSiteDesc"),
       icon: "🌐",
       preview: null,
     },
@@ -403,7 +405,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6">{t("nav.settings")}</h1>
 
       <div className="space-y-4">
         {settingsLinks.map((link) =>
@@ -418,7 +420,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold">{link.title}</h2>
                     <span className="text-xs bg-surface-overlay text-foreground-muted px-2 py-0.5 rounded-full">
-                      Coming soon
+                      {t("tenant.settings.comingSoon")}
                     </span>
                   </div>
                   <p className="text-foreground-muted text-sm mt-1">{link.description}</p>
@@ -454,16 +456,16 @@ export default function SettingsPage() {
 
       {/* Danger Zone */}
       <div className="mt-8 bg-danger-muted rounded-xl p-6 border border-danger-muted">
-        <h2 className="font-semibold text-danger mb-2">Danger Zone</h2>
+        <h2 className="font-semibold text-danger mb-2">{t("tenant.settings.dangerZone")}</h2>
         <p className="text-sm text-danger mb-4">
-          Permanent actions that cannot be undone
+          {t("tenant.settings.dangerZoneDesc")}
         </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-danger">Delete account</p>
+              <p className="font-medium text-danger">{t("tenant.settings.deleteAccount")}</p>
               <p className="text-xs text-danger">
-                Request account deletion - will be reviewed by platform admins
+                {t("tenant.settings.deleteAccountDesc")}
               </p>
             </div>
             <fetcher.Form method="post">
@@ -479,7 +481,7 @@ export default function SettingsPage() {
                 }}
                 className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger-hover disabled:opacity-50"
               >
-                {fetcher.state === "submitting" ? "Submitting..." : "Request Deletion"}
+                {fetcher.state === "submitting" ? t("tenant.settings.submitting") : t("tenant.settings.requestDeletion")}
               </button>
             </fetcher.Form>
           </div>

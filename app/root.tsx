@@ -11,8 +11,9 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import type { Locale } from "./i18n/types";
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "./i18n/types";
+import { DEFAULT_LOCALE } from "./i18n/types";
 import { getTranslations } from "./i18n/index";
+import { resolveLocale } from "./i18n/resolve-locale";
 import { LocaleContext } from "./i18n/use-t";
 
 export const links: Route.LinksFunction = () => [
@@ -27,32 +28,6 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
   },
 ];
-
-function resolveLocale(request: Request): Locale {
-  // 1. Check ds_locale cookie
-  const cookieHeader = request.headers.get("Cookie") || "";
-  const cookieMatch = cookieHeader.match(/ds_locale=(\w+)/);
-  if (cookieMatch) {
-    const cookieLocale = cookieMatch[1] as Locale;
-    if (SUPPORTED_LOCALES.includes(cookieLocale)) return cookieLocale;
-  }
-
-  // 2. Parse Accept-Language header
-  const acceptLanguage = request.headers.get("Accept-Language") || "";
-  const languages = acceptLanguage
-    .split(",")
-    .map((part) => {
-      const [lang, q] = part.trim().split(";q=");
-      return { lang: lang.trim().split("-")[0].toLowerCase(), q: q ? parseFloat(q) : 1 };
-    })
-    .sort((a, b) => b.q - a.q);
-
-  for (const { lang } of languages) {
-    if (SUPPORTED_LOCALES.includes(lang as Locale)) return lang as Locale;
-  }
-
-  return DEFAULT_LOCALE;
-}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const locale = resolveLocale(request);

@@ -9,6 +9,7 @@ import {
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { formatLabel, formatTime } from "../../../../lib/format";
+import { useT } from "../../../../i18n/use-t";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Course Details - DiveStreams" }];
@@ -69,6 +70,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function CourseDetailPage() {
   const { course, sessions } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -93,7 +95,7 @@ export default function CourseDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/training/courses" className="text-brand hover:underline text-sm">
-          &larr; Back to Courses
+          &larr; {t("tenant.training.courses.backToCourses")}
         </Link>
       </div>
 
@@ -108,16 +110,16 @@ export default function CourseDetailPage() {
             )}
             {!course.isActive && (
               <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
-                Inactive
+                {t("common.inactive")}
               </span>
             )}
             {course.isPublic ? (
               <span className="text-sm bg-brand-muted text-brand px-2 py-1 rounded">
-                Public
+                {t("tenant.training.courses.public")}
               </span>
             ) : (
               <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
-                Private
+                {t("tenant.training.courses.private")}
               </span>
             )}
           </div>
@@ -130,19 +132,19 @@ export default function CourseDetailPage() {
             to={`/tenant/training/sessions/new?courseId=${course.id}`}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Schedule Session
+            {t("tenant.training.sessions.scheduleSession")}
           </Link>
           <Link
             to={`/tenant/training/courses/${course.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           <button
             onClick={handleDelete}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -156,75 +158,75 @@ export default function CourseDetailPage() {
               <p className="text-2xl font-bold">
                 ${Number(course.price).toFixed(2)}
               </p>
-              <p className="text-foreground-muted text-sm">Price ({course.currency})</p>
+              <p className="text-foreground-muted text-sm">{t("common.price")} ({course.currency})</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{course.durationDays || "—"}</p>
-              <p className="text-foreground-muted text-sm">{course.durationDays === 1 ? "Day" : "Days"}</p>
+              <p className="text-foreground-muted text-sm">{course.durationDays === 1 ? t("tenant.training.day") : t("tenant.training.days")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{upcomingSessions.length}</p>
-              <p className="text-foreground-muted text-sm">Upcoming Sessions</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.dashboard.upcomingSessions")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{totalEnrolled}</p>
-              <p className="text-foreground-muted text-sm">Total Enrolled</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.courses.totalEnrolled")}</p>
             </div>
           </div>
 
           {/* Description */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-3">Description</h2>
+            <h2 className="font-semibold mb-3">{t("common.description")}</h2>
             <p className="text-foreground">
-              {course.description || "No description provided."}
+              {course.description || t("tenant.training.courses.noDescription")}
             </p>
           </div>
 
           {/* Course Structure */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Course Structure</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.courses.courseStructure")}</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-foreground-muted">Classroom Hours</p>
-                <p>{course.classroomHours ?? "Not specified"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.courses.classroomHours")}</p>
+                <p>{course.classroomHours ?? t("tenant.training.notSpecified")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Pool/Confined Water Hours</p>
-                <p>{course.poolHours ?? "Not specified"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.courses.poolHours")}</p>
+                <p>{course.poolHours ?? t("tenant.training.notSpecified")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Open Water Dives</p>
-                <p>{course.openWaterDives ?? "Not specified"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.courses.openWaterDives")}</p>
+                <p>{course.openWaterDives ?? t("tenant.training.notSpecified")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Max Students</p>
-                <p>{course.maxStudents || "Not specified"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.courses.maxStudents")}</p>
+                <p>{course.maxStudents || t("tenant.training.notSpecified")}</p>
               </div>
             </div>
           </div>
 
           {/* Requirements */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Requirements</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.training.courses.requirements")}</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-foreground-muted">Minimum Age</p>
-                <p>{course.minAge ? `${course.minAge} years` : "No minimum"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.courses.minimumAge")}</p>
+                <p>{course.minAge ? `${course.minAge} ${t("tenant.training.courses.years")}` : t("tenant.training.courses.noMinimum")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Required Certification</p>
-                <p>{course.requiredCertLevel || "None required"}</p>
+                <p className="text-foreground-muted">{t("tenant.training.courses.requiredCertification")}</p>
+                <p>{course.requiredCertLevel || t("tenant.training.courses.noneRequired")}</p>
               </div>
             </div>
             {course.prerequisites && (
               <div className="mt-4">
-                <p className="text-foreground-muted text-sm">Prerequisites</p>
+                <p className="text-foreground-muted text-sm">{t("tenant.training.courses.prerequisites")}</p>
                 <p className="text-sm">{course.prerequisites}</p>
               </div>
             )}
             {course.medicalRequirements && (
               <div className="mt-4">
-                <p className="text-foreground-muted text-sm">Medical Requirements</p>
+                <p className="text-foreground-muted text-sm">{t("tenant.training.courses.medicalRequirements")}</p>
                 <p className="text-sm">{course.medicalRequirements}</p>
               </div>
             )}
@@ -233,16 +235,16 @@ export default function CourseDetailPage() {
           {/* Sessions List */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Sessions</h2>
+              <h2 className="font-semibold">{t("tenant.training.sessions.title")}</h2>
               <Link
                 to={`/tenant/training/sessions?courseId=${course.id}`}
                 className="text-brand text-sm hover:underline"
               >
-                View all
+                {t("tenant.training.viewAll")}
               </Link>
             </div>
             {sessions.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No sessions scheduled yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.training.sessions.noSessionsYet")}</p>
             ) : (
               <div className="space-y-3">
                 {sessions.slice(0, 5).map((session) => (
@@ -257,14 +259,14 @@ export default function CourseDetailPage() {
                         {session.startTime && ` at ${formatTime(session.startTime)}`}
                       </p>
                       <p className="text-sm text-foreground-muted">
-                        {session.location || "Location TBD"}
+                        {session.location || t("tenant.training.sessions.locationTBD")}
                         {session.instructorName && ` - ${session.instructorName}`}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
                         {session.enrolledCount || 0}/{session.maxStudents || course.maxStudents || "?"}{" "}
-                        students
+                        {t("tenant.training.students")}
                       </p>
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
@@ -292,7 +294,7 @@ export default function CourseDetailPage() {
           {/* Course Images */}
           {course.images && course.images.length > 0 && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Course Images</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.training.courses.courseImages")}</h2>
               <div className="space-y-2">
                 {course.images.map((img: string, idx: number) => (
                   <div key={idx} className="relative">
@@ -303,7 +305,7 @@ export default function CourseDetailPage() {
                     />
                     {idx === 0 && (
                       <span className="absolute top-2 left-2 bg-brand text-white text-xs px-2 py-1 rounded">
-                        Main Image
+                        {t("tenant.training.courses.mainImage")}
                       </span>
                     )}
                   </div>
@@ -314,13 +316,13 @@ export default function CourseDetailPage() {
 
           {/* Quick Actions */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Quick Actions</h2>
+            <h2 className="font-semibold mb-4">{t("common.quickActions")}</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/training/sessions/new?courseId=${course.id}`}
                 className="block w-full text-center bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
               >
-                Schedule Session
+                {t("tenant.training.sessions.scheduleSession")}
               </Link>
               <fetcher.Form method="post">
                 <CsrfInput />
@@ -329,7 +331,7 @@ export default function CourseDetailPage() {
                   type="submit"
                   className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
-                  {course.isActive ? "Deactivate Course" : "Activate Course"}
+                  {course.isActive ? t("tenant.training.courses.deactivateCourse") : t("tenant.training.courses.activateCourse")}
                 </button>
               </fetcher.Form>
               <fetcher.Form method="post">
@@ -339,7 +341,7 @@ export default function CourseDetailPage() {
                   type="submit"
                   className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
-                  {course.isPublic ? "Make Private" : "Make Public"}
+                  {course.isPublic ? t("tenant.training.courses.makePrivate") : t("tenant.training.courses.makePublic")}
                 </button>
               </fetcher.Form>
             </div>
@@ -350,18 +352,18 @@ export default function CourseDetailPage() {
             course.equipmentIncluded ||
             (course.includedItems && course.includedItems.length > 0)) && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">What's Included</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.training.courses.whatsIncluded")}</h2>
               <ul className="space-y-2 text-sm">
                 {course.materialsIncluded && (
                   <li className="flex items-center gap-2">
                     <span className="text-success">&#10003;</span>
-                    Course Materials
+                    {t("tenant.training.courses.courseMaterials")}
                   </li>
                 )}
                 {course.equipmentIncluded && (
                   <li className="flex items-center gap-2">
                     <span className="text-success">&#10003;</span>
-                    Equipment
+                    {t("tenant.training.courses.equipment")}
                   </li>
                 )}
                 {course.includedItems?.map((item: string, i: number) => (
@@ -377,7 +379,7 @@ export default function CourseDetailPage() {
           {/* Required Items */}
           {course.requiredItems && course.requiredItems.length > 0 && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Students Must Bring</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.training.courses.studentsMustBring")}</h2>
               <ul className="space-y-2 text-sm">
                 {course.requiredItems.map((item: string, i: number) => (
                   <li key={i} className="flex items-center gap-2">

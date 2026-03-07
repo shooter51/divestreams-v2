@@ -3,6 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getSeriesList, getCourses } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Training Series - DiveStreams" }];
 
@@ -36,15 +37,16 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-danger-muted text-danger",
 };
 
-const statusLabels: Record<string, string> = {
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
 export default function SeriesPage() {
   useNotification();
+  const t = useT();
+
+  const statusLabels: Record<string, string> = {
+    scheduled: t("tenant.training.series.statusScheduled"),
+    in_progress: t("tenant.training.series.statusInProgress"),
+    completed: t("tenant.training.series.statusCompleted"),
+    cancelled: t("tenant.training.series.statusCancelled"),
+  };
 
   const { seriesList, courses, total, courseId, status } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,14 +71,14 @@ export default function SeriesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Training Series</h1>
-          <p className="text-foreground-muted">{total} series{total !== 1 ? "" : ""}</p>
+          <h1 className="text-2xl font-bold">{t("tenant.training.series.title")}</h1>
+          <p className="text-foreground-muted">{t("tenant.training.series.totalCount", { count: total })}</p>
         </div>
         <Link
           to="/tenant/training/series/new"
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
-          New Series
+          {t("tenant.training.series.newSeries")}
         </Link>
       </div>
 
@@ -85,14 +87,14 @@ export default function SeriesPage() {
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-foreground mb-1">
-              Course
+              {t("tenant.training.series.course")}
             </label>
             <select
               value={courseId}
               onChange={(e) => updateFilter("courseId", e.target.value)}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
-              <option value="">All Courses</option>
+              <option value="">{t("tenant.training.series.allCourses")}</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.name}
@@ -103,18 +105,18 @@ export default function SeriesPage() {
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-foreground mb-1">
-              Status
+              {t("common.status")}
             </label>
             <select
               value={status}
               onChange={(e) => updateFilter("status", e.target.value)}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
-              <option value="">All Statuses</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="">{t("tenant.training.series.allStatuses")}</option>
+              <option value="scheduled">{t("tenant.training.series.statusScheduled")}</option>
+              <option value="in_progress">{t("tenant.training.series.statusInProgress")}</option>
+              <option value="completed">{t("tenant.training.series.statusCompleted")}</option>
+              <option value="cancelled">{t("tenant.training.series.statusCancelled")}</option>
             </select>
           </div>
 
@@ -123,7 +125,7 @@ export default function SeriesPage() {
               onClick={clearFilters}
               className="px-4 py-2 text-sm text-foreground-muted hover:text-foreground hover:bg-surface-overlay rounded-lg"
             >
-              Clear Filters
+              {t("tenant.training.series.clearFilters")}
             </button>
           )}
         </div>
@@ -134,14 +136,14 @@ export default function SeriesPage() {
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
           <p className="text-foreground-muted">
             {hasFilters
-              ? "No series match your filters."
-              : "No training series created yet."}
+              ? t("tenant.training.series.noMatchingFilters")
+              : t("tenant.training.series.noSeriesYet")}
           </p>
           <Link
             to="/tenant/training/series/new"
             className="inline-block mt-4 text-brand hover:underline"
           >
-            Create your first series
+            {t("tenant.training.series.createFirst")}
           </Link>
         </div>
       ) : (
@@ -149,11 +151,11 @@ export default function SeriesPage() {
           <table className="w-full">
             <thead className="bg-surface-inset border-b">
               <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Name</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Course</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Sessions</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Enrolled</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Status</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("common.name")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.training.series.course")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.training.series.sessions")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.training.series.enrolled")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("common.status")}</th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
@@ -163,7 +165,7 @@ export default function SeriesPage() {
                   <td className="px-6 py-4">
                     <p className="font-medium">{series.name}</p>
                     {series.instructorName && (
-                      <p className="text-sm text-foreground-muted">Instructor: {series.instructorName}</p>
+                      <p className="text-sm text-foreground-muted">{t("tenant.training.series.instructor")}: {series.instructorName}</p>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -175,7 +177,7 @@ export default function SeriesPage() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <p className="font-medium">{series.sessionCount ?? 0} sessions</p>
+                    <p className="font-medium">{t("tenant.training.series.sessionCount", { count: series.sessionCount ?? 0 })}</p>
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-medium">
@@ -196,7 +198,7 @@ export default function SeriesPage() {
                       to={`/tenant/training/series/${series.id}`}
                       className="text-brand hover:underline text-sm"
                     >
-                      View
+                      {t("common.view")}
                     </Link>
                   </td>
                 </tr>

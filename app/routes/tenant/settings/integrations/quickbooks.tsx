@@ -28,6 +28,7 @@ import { db } from "../../../../../lib/db";
 import { eq, desc } from "drizzle-orm";
 import { integrationSyncLog } from "../../../../../lib/db/schema/integrations";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [
   { title: "QuickBooks Integration - DiveStreams" },
@@ -128,6 +129,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function QuickBooksSettings() {
+  const t = useT();
   const { status, items, syncLogs, settings } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showSyncHistory, setShowSyncHistory] = useState(false);
@@ -142,11 +144,11 @@ export default function QuickBooksSettings() {
           to="/tenant/settings/integrations"
           className="text-sm text-brand hover:text-brand mb-2 inline-block"
         >
-          ← Back to Integrations
+          &larr; {t("tenant.settings.integrations.quickbooks.backToIntegrations")}
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">QuickBooks Integration</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t("tenant.settings.integrations.quickbooks.title")}</h1>
         <p className="text-foreground-muted mt-1">
-          Sync invoices, customers, and payments with QuickBooks Online
+          {t("tenant.settings.integrations.quickbooks.subtitle")}
         </p>
       </div>
 
@@ -154,7 +156,7 @@ export default function QuickBooksSettings() {
       <div className="bg-surface-raised rounded-lg shadow p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Connection Status</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t("tenant.settings.integrations.quickbooks.connectionStatus")}</h2>
             {isConnected ? (
               <div className="mt-2">
                 <div className="flex items-center text-success mb-1">
@@ -165,13 +167,13 @@ export default function QuickBooksSettings() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Connected
+                  {t("tenant.settings.integrations.connected")}
                 </div>
                 {status?.companyName && (
-                  <p className="text-sm text-foreground-muted">Company: {status.companyName}</p>
+                  <p className="text-sm text-foreground-muted">{t("tenant.settings.integrations.quickbooks.company")}: {status.companyName}</p>
                 )}
                 {status?.useSandbox && (
-                  <p className="text-sm text-accent font-medium">Sandbox Mode</p>
+                  <p className="text-sm text-accent font-medium">{t("tenant.settings.integrations.quickbooks.sandboxMode")}</p>
                 )}
               </div>
             ) : (
@@ -184,7 +186,7 @@ export default function QuickBooksSettings() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Not Connected
+                  {t("tenant.settings.integrations.notConnected")}
                 </div>
               </div>
             )}
@@ -199,7 +201,7 @@ export default function QuickBooksSettings() {
                   type="submit"
                   className="px-4 py-2 border border-danger text-danger rounded-lg hover:bg-danger-muted"
                 >
-                  Disconnect
+                  {t("tenant.settings.integrations.disconnect")}
                 </button>
               </Form>
             ) : (
@@ -207,7 +209,7 @@ export default function QuickBooksSettings() {
                 href="/api/integrations/quickbooks/connect"
                 className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover"
               >
-                Connect QuickBooks
+                {t("tenant.settings.integrations.quickbooks.connectQuickBooks")}
               </a>
             )}
           </div>
@@ -218,7 +220,7 @@ export default function QuickBooksSettings() {
         <>
           {/* Sync Settings */}
           <div className="bg-surface-raised rounded-lg shadow p-6 mb-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Sync Settings</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">{t("tenant.settings.integrations.quickbooks.syncSettings")}</h2>
 
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="updateSettings" />
@@ -232,7 +234,7 @@ export default function QuickBooksSettings() {
                     className="rounded border-border-strong text-success focus:ring-success"
                   />
                   <span className="ml-2 text-foreground">
-                    Sync invoices (create invoices in QuickBooks for bookings)
+                    {t("tenant.settings.integrations.quickbooks.syncInvoices")}
                   </span>
                 </label>
 
@@ -244,7 +246,7 @@ export default function QuickBooksSettings() {
                     className="rounded border-border-strong text-success focus:ring-success"
                   />
                   <span className="ml-2 text-foreground">
-                    Sync payments (record payments in QuickBooks)
+                    {t("tenant.settings.integrations.quickbooks.syncPayments")}
                   </span>
                 </label>
 
@@ -256,7 +258,7 @@ export default function QuickBooksSettings() {
                     className="rounded border-border-strong text-success focus:ring-success"
                   />
                   <span className="ml-2 text-foreground">
-                    Sync customers (create customers in QuickBooks)
+                    {t("tenant.settings.integrations.quickbooks.syncCustomers")}
                   </span>
                 </label>
 
@@ -268,7 +270,7 @@ export default function QuickBooksSettings() {
                     className="rounded border-border-strong text-success focus:ring-success"
                   />
                   <span className="ml-2 text-foreground">
-                    Auto-sync (automatically sync new bookings and payments)
+                    {t("tenant.settings.integrations.quickbooks.autoSync")}
                   </span>
                 </label>
               </div>
@@ -278,7 +280,7 @@ export default function QuickBooksSettings() {
                   type="submit"
                   className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
                 >
-                  Save Settings
+                  {t("tenant.settings.integrations.quickbooks.saveSettings")}
                 </button>
               </div>
 
@@ -294,24 +296,23 @@ export default function QuickBooksSettings() {
           {items.length > 0 && (
             <div className="bg-surface-raised rounded-lg shadow p-6 mb-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">
-                QuickBooks Items
+                {t("tenant.settings.integrations.quickbooks.items")}
               </h2>
               <p className="text-sm text-foreground-muted mb-4">
-                These items are available in your QuickBooks account for mapping to DiveStreams
-                products.
+                {t("tenant.settings.integrations.quickbooks.itemsDescription")}
               </p>
               <div className="overflow-auto max-h-64">
                 <table className="min-w-full divide-y divide-border">
                   <thead className="bg-surface-inset">
                     <tr>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Name
+                        {t("common.name")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Type
+                        {t("tenant.settings.integrations.quickbooks.type")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Unit Price
+                        {t("tenant.settings.integrations.quickbooks.unitPrice")}
                       </th>
                     </tr>
                   </thead>
@@ -334,12 +335,12 @@ export default function QuickBooksSettings() {
           {/* Sync History */}
           <div className="bg-surface-raised rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Sync History</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t("tenant.settings.integrations.quickbooks.syncHistory")}</h2>
               <button
                 onClick={() => setShowSyncHistory(!showSyncHistory)}
                 className="text-sm text-brand hover:text-brand"
               >
-                {showSyncHistory ? "Hide" : "Show"} Details
+                {showSyncHistory ? t("tenant.settings.integrations.quickbooks.hideDetails") : t("tenant.settings.integrations.quickbooks.showDetails")}
               </button>
             </div>
 
@@ -349,16 +350,16 @@ export default function QuickBooksSettings() {
                   <thead className="bg-surface-inset">
                     <tr>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Date
+                        {t("common.date")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Action
+                        {t("tenant.settings.integrations.quickbooks.action")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Entity
+                        {t("tenant.settings.integrations.quickbooks.entity")}
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
-                        Status
+                        {t("common.status")}
                       </th>
                     </tr>
                   </thead>
@@ -391,7 +392,7 @@ export default function QuickBooksSettings() {
             )}
 
             {showSyncHistory && syncLogs.length === 0 && (
-              <p className="text-sm text-foreground-muted">No sync history yet.</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.settings.integrations.quickbooks.noSyncHistory")}</p>
             )}
           </div>
         </>
@@ -400,10 +401,10 @@ export default function QuickBooksSettings() {
       {/* Setup Instructions */}
       {!isConnected && (
         <div className="bg-brand-muted rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-brand mb-3">Setup Instructions</h3>
+          <h3 className="text-lg font-semibold text-brand mb-3">{t("tenant.settings.integrations.quickbooks.setupInstructions")}</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-brand">
             <li>
-              Create an Intuit Developer account at{" "}
+              {t("tenant.settings.integrations.quickbooks.setupStep1")}{" "}
               <a
                 href="https://developer.intuit.com/"
                 target="_blank"
@@ -413,14 +414,14 @@ export default function QuickBooksSettings() {
                 developer.intuit.com
               </a>
             </li>
-            <li>Create a new app and get your OAuth credentials</li>
-            <li>Configure environment variables:
+            <li>{t("tenant.settings.integrations.quickbooks.setupStep2")}</li>
+            <li>{t("tenant.settings.integrations.quickbooks.setupStep3")}
               <ul className="list-disc list-inside ml-4 mt-1">
                 <li>QUICKBOOKS_CLIENT_ID</li>
                 <li>QUICKBOOKS_CLIENT_SECRET</li>
               </ul>
             </li>
-            <li>Click "Connect QuickBooks" above to authorize DiveStreams</li>
+            <li>{t("tenant.settings.integrations.quickbooks.setupStep4")}</li>
           </ol>
         </div>
       )}

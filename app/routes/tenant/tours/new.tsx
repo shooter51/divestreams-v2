@@ -11,6 +11,7 @@ import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -258,6 +259,7 @@ export default function NewTourPage() {
   const { limitRemaining, limitMax } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
   const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
 
@@ -268,11 +270,11 @@ export default function NewTourPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/tours" className="text-brand hover:underline text-sm">
-          ← Back to Tours
+          {t("tenant.tours.backToTours")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Create Tour</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.tours.createTour")}</h1>
         <p className="text-foreground-muted">
-          Create a tour template that can be scheduled as trips.
+          {t("tenant.tours.createTourDesc")}
         </p>
       </div>
 
@@ -280,18 +282,18 @@ export default function NewTourPage() {
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Tour Name *
+                {t("tenant.tours.tourName")} *
               </label>
               <input
                 type="text"
                 id="name"
                 name="name"
                 defaultValue={actionData?.values?.name}
-                placeholder="e.g., Morning 2-Tank Dive"
+                placeholder={t("tenant.tours.tourNamePlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
@@ -302,14 +304,14 @@ export default function NewTourPage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description}
-                placeholder="Describe the tour experience..."
+                placeholder={t("tenant.tours.descriptionPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -317,7 +319,7 @@ export default function NewTourPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="type" className="block text-sm font-medium mb-1">
-                  Tour Type *
+                  {t("tenant.tours.tourType")} *
                 </label>
                 <select
                   id="type"
@@ -326,18 +328,18 @@ export default function NewTourPage() {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 >
-                  <option value="single_dive">Single Dive</option>
-                  <option value="multi_dive">Multi-Dive</option>
-                  <option value="course">Course</option>
-                  <option value="snorkel">Snorkel</option>
-                  <option value="night_dive">Night Dive</option>
-                  <option value="other">Other</option>
+                  <option value="single_dive">{t("tenant.tours.singleDive")}</option>
+                  <option value="multi_dive">{t("tenant.tours.multiDive")}</option>
+                  <option value="course">{t("tenant.tours.course")}</option>
+                  <option value="snorkel">{t("tenant.tours.snorkel")}</option>
+                  <option value="night_dive">{t("tenant.tours.nightDive")}</option>
+                  <option value="other">{t("tenant.tours.other")}</option>
                 </select>
               </div>
 
               <div>
                 <label htmlFor="duration" className="block text-sm font-medium mb-1">
-                  Duration (minutes)
+                  {t("tenant.tours.durationMinutes")}
                 </label>
                 <input
                   type="number"
@@ -354,11 +356,11 @@ export default function NewTourPage() {
 
         {/* Pricing & Capacity */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.pricingCapacity")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price *
+                {t("common.price")} *
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -380,7 +382,7 @@ export default function NewTourPage() {
 
             <div>
               <label htmlFor="currency" className="block text-sm font-medium mb-1">
-                Currency
+                {t("common.currency")}
               </label>
               <select
                 id="currency"
@@ -400,7 +402,7 @@ export default function NewTourPage() {
 
             <div>
               <label htmlFor="maxParticipants" className="block text-sm font-medium mb-1">
-                Max Participants *
+                {t("tenant.tours.maxParticipants")} *
               </label>
               <input
                 type="number"
@@ -418,7 +420,7 @@ export default function NewTourPage() {
 
             <div>
               <label htmlFor="minParticipants" className="block text-sm font-medium mb-1">
-                Min Participants
+                {t("tenant.tours.minParticipants")}
               </label>
               <input
                 type="number"
@@ -434,7 +436,7 @@ export default function NewTourPage() {
 
         {/* Inclusions */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">What's Included</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.whatsIncluded")}</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <label className="flex items-center gap-2">
@@ -445,7 +447,7 @@ export default function NewTourPage() {
                   defaultChecked={actionData?.values?.includesEquipment === "true"}
                   className="rounded"
                 />
-                <span className="text-sm">Equipment Rental</span>
+                <span className="text-sm">{t("tenant.tours.equipmentRental")}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -455,7 +457,7 @@ export default function NewTourPage() {
                   defaultChecked={actionData?.values?.includesMeals === "true"}
                   className="rounded"
                 />
-                <span className="text-sm">Meals/Snacks</span>
+                <span className="text-sm">{t("tenant.tours.mealsSnacks")}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -465,19 +467,19 @@ export default function NewTourPage() {
                   defaultChecked={actionData?.values?.includesTransport === "true"}
                   className="rounded"
                 />
-                <span className="text-sm">Transport</span>
+                <span className="text-sm">{t("tenant.tours.transport")}</span>
               </label>
             </div>
 
             <div>
               <label htmlFor="inclusionsStr" className="block text-sm font-medium mb-1">
-                Additional Inclusions
+                {t("tenant.tours.additionalInclusions")}
               </label>
               <input
                 type="text"
                 id="inclusionsStr"
                 name="inclusionsStr"
-                placeholder="Bottled water, Towels, Photos (comma-separated)"
+                placeholder={t("tenant.tours.inclusionsPlaceholder")}
                 defaultValue={actionData?.values?.inclusionsStr}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -485,13 +487,13 @@ export default function NewTourPage() {
 
             <div>
               <label htmlFor="exclusionsStr" className="block text-sm font-medium mb-1">
-                Exclusions
+                {t("tenant.tours.exclusions")}
               </label>
               <input
                 type="text"
                 id="exclusionsStr"
                 name="exclusionsStr"
-                placeholder="Certification fees, Marine park fees (comma-separated)"
+                placeholder={t("tenant.tours.exclusionsPlaceholder")}
                 defaultValue={actionData?.values?.exclusionsStr}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -501,11 +503,11 @@ export default function NewTourPage() {
 
         {/* Requirements */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Requirements</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.requirements")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="minCertLevel" className="block text-sm font-medium mb-1">
-                Minimum Certification
+                {t("tenant.tours.minCertification")}
               </label>
               <select
                 id="minCertLevel"
@@ -513,17 +515,17 @@ export default function NewTourPage() {
                 defaultValue={actionData?.values?.minCertLevel || ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
-                <option value="">None Required</option>
-                <option value="Open Water">Open Water</option>
-                <option value="Advanced Open Water">Advanced Open Water</option>
-                <option value="Rescue Diver">Rescue Diver</option>
-                <option value="Divemaster">Divemaster</option>
+                <option value="">{t("tenant.tours.noneRequired")}</option>
+                <option value="Open Water">{t("tenant.tours.openWater")}</option>
+                <option value="Advanced Open Water">{t("tenant.tours.advancedOpenWater")}</option>
+                <option value="Rescue Diver">{t("tenant.tours.rescueDiver")}</option>
+                <option value="Divemaster">{t("tenant.tours.divemaster")}</option>
               </select>
             </div>
 
             <div>
               <label htmlFor="minAge" className="block text-sm font-medium mb-1">
-                Minimum Age
+                {t("tenant.tours.minimumAge")}
               </label>
               <input
                 type="number"
@@ -539,13 +541,13 @@ export default function NewTourPage() {
 
           <div className="mt-4">
             <label htmlFor="requirementsStr" className="block text-sm font-medium mb-1">
-              Other Requirements
+              {t("tenant.tours.otherRequirements")}
             </label>
             <input
               type="text"
               id="requirementsStr"
               name="requirementsStr"
-              placeholder="Must swim, Medical clearance required (comma-separated)"
+              placeholder={t("tenant.tours.requirementsPlaceholder")}
               defaultValue={actionData?.values?.requirementsStr}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
@@ -554,11 +556,11 @@ export default function NewTourPage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Images (Optional)</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.imagesOptional")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="images" className="block text-sm font-medium mb-2">
-                Upload up to 5 images
+                {t("tenant.tours.uploadUpTo5")}
               </label>
               <input
                 type="file"
@@ -575,7 +577,7 @@ export default function NewTourPage() {
                   file:cursor-pointer cursor-pointer"
               />
               <p className="mt-2 text-sm text-foreground-muted">
-                JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.
+                {t("tenant.tours.imageFormats")}
               </p>
             </div>
           </div>
@@ -591,9 +593,9 @@ export default function NewTourPage() {
               defaultChecked={actionData?.values?.isActive !== "false"}
               className="rounded"
             />
-            <span className="font-medium">Active</span>
+            <span className="font-medium">{t("common.active")}</span>
             <span className="text-foreground-muted text-sm">
-              (Inactive tours cannot be scheduled)
+              {t("tenant.tours.inactiveCantSchedule")}
             </span>
           </label>
         </div>
@@ -602,9 +604,9 @@ export default function NewTourPage() {
         {isNearLimit && (
           <div className="mb-4 p-3 bg-warning-muted border border-warning rounded-lg">
             <p className="text-warning text-sm">
-              {limitRemaining} of {limitMax} tours per month remaining.{" "}
+              {t("tenant.tours.limitWarning", { remaining: limitRemaining, max: limitMax })}{" "}
               <Link to="/tenant/settings/billing" className="underline font-medium">
-                Upgrade for more
+                {t("tenant.tours.upgradeForMore")}
               </Link>
             </p>
           </div>
@@ -617,13 +619,13 @@ export default function NewTourPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? "Creating..." : "Create Tour"}
+            {isSubmitting ? t("tenant.tours.creating") : t("tenant.tours.createTour")}
           </button>
           <Link
             to="/tenant/tours"
             className={`px-6 py-2 border rounded-lg hover:bg-surface-inset ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

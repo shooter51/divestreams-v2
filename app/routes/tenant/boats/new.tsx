@@ -8,6 +8,7 @@ import { redirectWithNotification } from "../../../../lib/use-notification";
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
@@ -177,6 +178,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function NewBoatPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
 
   // Parse initial amenities from actionData
@@ -215,20 +217,20 @@ export default function NewBoatPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/boats" className="text-brand hover:underline text-sm">
-          ← Back to Boats
+          {t("tenant.boats.backToBoats")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Add Boat</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.boats.addBoat")}</h1>
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Boat Name *
+                {t("tenant.boats.boatName")} *
               </label>
               <input
                 type="text"
@@ -246,7 +248,7 @@ export default function NewBoatPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="type" className="block text-sm font-medium mb-1">
-                  Boat Type
+                  {t("tenant.boats.boatType")}
                 </label>
                 <select
                   id="type"
@@ -254,7 +256,7 @@ export default function NewBoatPage() {
                   defaultValue={actionData?.values?.type || ""}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="">Select type...</option>
+                  <option value="">{t("tenant.boats.selectType")}</option>
                   <option value="Dive Boat">Dive Boat</option>
                   <option value="Speed Boat">Speed Boat</option>
                   <option value="Catamaran">Catamaran</option>
@@ -266,7 +268,7 @@ export default function NewBoatPage() {
 
               <div>
                 <label htmlFor="capacity" className="block text-sm font-medium mb-1">
-                  Passenger Capacity *
+                  {t("tenant.boats.passengerCapacity")} *
                 </label>
                 <input
                   type="number"
@@ -286,7 +288,7 @@ export default function NewBoatPage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
@@ -301,10 +303,10 @@ export default function NewBoatPage() {
 
         {/* Registration */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Registration</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.boats.registration")}</h2>
           <div>
             <label htmlFor="registrationNumber" className="block text-sm font-medium mb-1">
-              Registration Number
+              {t("tenant.boats.registrationNumber")}
             </label>
             <input
               type="text"
@@ -319,7 +321,7 @@ export default function NewBoatPage() {
 
         {/* Amenities */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Amenities & Features</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.boats.amenitiesFeatures")}</h2>
 
           {/* Hidden input to store selected amenities as comma-separated string */}
           <input
@@ -332,7 +334,7 @@ export default function NewBoatPage() {
           {selectedAmenities.length > 0 && (
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
-                Selected Amenities
+                {t("tenant.boats.selectedAmenities")}
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedAmenities.map((amenity) => (
@@ -359,7 +361,7 @@ export default function NewBoatPage() {
 
           {/* Common amenities - hide already selected ones */}
           <div>
-            <p className="text-sm font-medium mb-2">Add Amenities:</p>
+            <p className="text-sm font-medium mb-2">{t("tenant.boats.addAmenities")}:</p>
             <div className="flex flex-wrap gap-2">
               {commonAmenities
                 .filter((amenity) => !selectedAmenities.includes(amenity))
@@ -375,7 +377,7 @@ export default function NewBoatPage() {
                 ))}
               {commonAmenities.every((amenity) => selectedAmenities.includes(amenity)) && (
                 <p className="text-xs text-foreground-muted italic">
-                  All common amenities added! You can remove any by clicking the × button above.
+                  {t("tenant.boats.allAmenitiesAdded")}
                 </p>
               )}
             </div>
@@ -384,11 +386,11 @@ export default function NewBoatPage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Images (Optional)</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.boats.imagesOptional")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="images" className="block text-sm font-medium mb-2">
-                Upload up to 5 images
+                {t("tenant.boats.uploadUpTo5")}
               </label>
               <input
                 type="file"
@@ -405,7 +407,7 @@ export default function NewBoatPage() {
                   file:cursor-pointer cursor-pointer"
               />
               <p className="mt-2 text-sm text-foreground-muted">
-                JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.
+                {t("tenant.boats.imageFormats")}
               </p>
             </div>
           </div>
@@ -421,10 +423,10 @@ export default function NewBoatPage() {
               defaultChecked={actionData?.values?.isActive !== "false"}
               className="rounded"
             />
-            <span className="font-medium">Active</span>
+            <span className="font-medium">{t("common.active")}</span>
           </label>
           <p className="text-sm text-foreground-muted mt-1 ml-6">
-            Active boats can be assigned to trips
+            {t("tenant.boats.activeBoatsAssigned")}
           </p>
         </div>
 
@@ -435,13 +437,13 @@ export default function NewBoatPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Add Boat"}
+            {isSubmitting ? t("common.saving") : t("tenant.boats.addBoat")}
           </button>
           <Link
             to="/tenant/boats"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

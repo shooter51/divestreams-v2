@@ -1,6 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useSearchParams } from "react-router";
 import { useState } from "react";
+import { useT } from "../../i18n/use-t";
 import { eq } from "drizzle-orm";
 import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { auth } from "../../../lib/auth";
@@ -85,6 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ResetPasswordPage() {
+  const t = useT();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -98,7 +100,7 @@ export default function ResetPasswordPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-brand">DiveStreams</h1>
-          <p className="text-foreground-muted mt-2">Create a new password</p>
+          <p className="text-foreground-muted mt-2">{t("auth.resetPassword.createNewPassword")}</p>
         </div>
 
         <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
@@ -107,7 +109,7 @@ export default function ResetPasswordPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-1">
-                New Password
+                {t("auth.resetPassword.newPassword")}
               </label>
               <div className="relative">
                 <input
@@ -123,7 +125,7 @@ export default function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-foreground-muted hover:text-foreground transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("auth.resetPassword.hidePassword") : t("auth.resetPassword.showPassword")}
                 >
                   {showPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -141,7 +143,7 @@ export default function ResetPasswordPage() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-                Confirm Password
+                {t("auth.resetPassword.confirmPassword")}
               </label>
               <div className="relative">
                 <input
@@ -157,7 +159,7 @@ export default function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-foreground-muted hover:text-foreground transition-colors"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={showConfirmPassword ? t("auth.resetPassword.hidePassword") : t("auth.resetPassword.showPassword")}
                 >
                   {showConfirmPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -183,7 +185,7 @@ export default function ResetPasswordPage() {
             disabled={isSubmitting}
             className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Resetting..." : "Reset Password"}
+            {isSubmitting ? t("auth.resetPassword.resetting") : t("auth.resetPassword")}
           </button>
         </form>
       </div>

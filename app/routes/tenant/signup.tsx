@@ -7,6 +7,7 @@ import { db } from "../../../lib/db";
 import { organization, member, user } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { useT } from "../../i18n/use-t";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -200,6 +201,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function SignupPage() {
+  const t = useT();
   const { orgName } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
@@ -230,13 +232,13 @@ export default function SignupPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-          Create your account
+          {t("tenant.auth.signup.createYourAccount")}
         </h2>
         <p className="mt-2 text-center text-sm text-foreground-muted">
           {isCustomerSignup ? (
-            <>Join <span className="font-medium">{orgName}</span> as a customer</>
+            <>{t("tenant.auth.signup.joinAsCustomer", { org: orgName })}</>
           ) : (
-            "Get started with DiveStreams"
+            t("tenant.auth.signup.getStarted")
           )}
         </p>
       </div>
@@ -256,7 +258,7 @@ export default function SignupPage() {
             {/* Name Field */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-foreground">
-                Full name <span className="text-danger">*</span>
+                {t("tenant.auth.signup.fullName")} <span className="text-danger">*</span>
               </label>
               <div className="mt-1">
                 <input
@@ -280,7 +282,7 @@ export default function SignupPage() {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email address <span className="text-danger">*</span>
+                {t("common.emailAddress")} <span className="text-danger">*</span>
               </label>
               <div className="mt-1">
                 <input
@@ -304,7 +306,7 @@ export default function SignupPage() {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground">
-                Password <span className="text-danger">*</span>
+                {t("common.password")} <span className="text-danger">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -318,7 +320,7 @@ export default function SignupPage() {
                   className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
                     errors.password ? "border-danger" : "border-border-strong"
                   }`}
-                  placeholder="Create a password"
+                  placeholder={t("tenant.auth.signup.createPassword")}
                 />
                 <button
                   type="button"
@@ -344,12 +346,12 @@ export default function SignupPage() {
               {/* Password Requirements */}
               {password.length > 0 && (
                 <div className="mt-2 space-y-1">
-                  <p className="text-xs text-foreground-muted font-medium">Password requirements:</p>
+                  <p className="text-xs text-foreground-muted font-medium">{t("common.passwordRequirements")}</p>
                   <div className="grid grid-cols-2 gap-1">
-                    <RequirementCheck met={hasMinLength} text="8+ characters" />
-                    <RequirementCheck met={hasUppercase} text="Uppercase letter" />
-                    <RequirementCheck met={hasLowercase} text="Lowercase letter" />
-                    <RequirementCheck met={hasNumber} text="Number" />
+                    <RequirementCheck met={hasMinLength} text={t("common.passwordMinLength")} />
+                    <RequirementCheck met={hasUppercase} text={t("common.passwordUppercase")} />
+                    <RequirementCheck met={hasLowercase} text={t("common.passwordLowercase")} />
+                    <RequirementCheck met={hasNumber} text={t("common.passwordNumber")} />
                   </div>
                 </div>
               )}
@@ -358,7 +360,7 @@ export default function SignupPage() {
             {/* Confirm Password Field */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
-                Confirm password <span className="text-danger">*</span>
+                {t("common.confirmPassword")} <span className="text-danger">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -370,7 +372,7 @@ export default function SignupPage() {
                   className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
                     errors.confirmPassword ? "border-danger" : "border-border-strong"
                   }`}
-                  placeholder="Confirm your password"
+                  placeholder={t("common.confirmYourPassword")}
                 />
                 <button
                   type="button"
@@ -396,13 +398,13 @@ export default function SignupPage() {
 
             {/* Terms */}
             <div className="text-sm text-foreground-muted">
-              By creating an account, you agree to our{" "}
+              {t("tenant.auth.signup.byCreatingAccount")}{" "}
               <Link to="/terms" className="text-brand hover:text-brand">
-                Terms of Service
+                {t("tenant.auth.signup.termsOfService")}
               </Link>{" "}
-              and{" "}
+              {t("tenant.auth.signup.and")}{" "}
               <Link to="/privacy" className="text-brand hover:text-brand">
-                Privacy Policy
+                {t("tenant.auth.signup.privacyPolicy")}
               </Link>
               .
             </div>
@@ -420,10 +422,10 @@ export default function SignupPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Creating account...
+                    {t("tenant.auth.signup.creatingAccount")}
                   </span>
                 ) : (
-                  "Create account"
+                  t("tenant.auth.signup.createAccount")
                 )}
               </button>
             </div>
@@ -432,12 +434,12 @@ export default function SignupPage() {
           {/* Sign In Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-foreground-muted">
-              Already have an account?{" "}
+              {t("tenant.auth.signup.alreadyHaveAccount")}{" "}
               <Link
                 to={`/login${redirectTo !== "/tenant" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
                 className="font-medium text-brand hover:text-brand"
               >
-                Sign in
+                {t("tenant.auth.signup.signIn")}
               </Link>
             </p>
           </div>
