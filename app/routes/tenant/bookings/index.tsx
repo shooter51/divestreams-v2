@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
@@ -174,6 +175,7 @@ function mapBookingStatus(status: string): BadgeStatus {
 
 export default function BookingsPage() {
   useNotification();
+  const t = useT();
 
   const {
     bookings,
@@ -220,12 +222,12 @@ export default function BookingsPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Bookings</h1>
+          <h1 className="text-2xl font-bold">{t("nav.bookings")}</h1>
           <p className="text-foreground-muted">
-            {total} total bookings
+            {t("tenant.bookings.totalBookings", { count: total })}
             {!isPremium && (
               <span className="ml-2 text-sm text-foreground-subtle">
-                ({usage}/{limit} this month)
+                {t("tenant.bookings.usageThisMonth", { usage, limit })}
               </span>
             )}
           </p>
@@ -244,7 +246,7 @@ export default function BookingsPage() {
           }}
           aria-disabled={!canAddBooking}
         >
-          New Booking
+          {t("tenant.bookings.newBooking")}
         </Link>
       </div>
 
@@ -252,15 +254,15 @@ export default function BookingsPage() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{stats.today}</p>
-          <p className="text-foreground-muted text-sm">Today's Bookings</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.bookings.todaysBookings")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{stats.upcoming}</p>
-          <p className="text-foreground-muted text-sm">Upcoming Confirmed</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.bookings.upcomingConfirmed")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold text-warning">{stats.pendingPayment}</p>
-          <p className="text-foreground-muted text-sm">Pending Payment</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.bookings.pendingPayment")}</p>
         </div>
       </div>
 
@@ -270,7 +272,7 @@ export default function BookingsPage() {
           type="text"
           name="search"
           defaultValue={search}
-          placeholder="Search by booking #, customer name, or email..."
+          placeholder={t("tenant.bookings.searchPlaceholder")}
           className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
         <select
@@ -278,18 +280,18 @@ export default function BookingsPage() {
           defaultValue={status}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="no_show">No Show</option>
+          <option value="">{t("tenant.bookings.allStatuses")}</option>
+          <option value="pending">{t("tenant.bookings.status.pending")}</option>
+          <option value="confirmed">{t("tenant.bookings.status.confirmed")}</option>
+          <option value="completed">{t("tenant.bookings.status.completed")}</option>
+          <option value="cancelled">{t("tenant.bookings.status.cancelled")}</option>
+          <option value="no_show">{t("tenant.bookings.status.noShow")}</option>
         </select>
         <button
           type="submit"
           className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
-          Filter
+          {t("common.filter")}
         </button>
       </form>
 
@@ -298,12 +300,12 @@ export default function BookingsPage() {
         <table className="w-full">
           <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Booking</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Customer</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Trip</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Pax</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Total</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Status</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.bookings.col.booking")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.bookings.col.customer")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.bookings.col.trip")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.bookings.col.pax")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.bookings.col.total")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.bookings.col.status")}</th>
               <th className="px-6 py-3"></th>
             </tr>
           </thead>
@@ -312,8 +314,8 @@ export default function BookingsPage() {
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-foreground-muted">
                   {search || status
-                    ? "No bookings found matching your filters."
-                    : "No bookings yet. Create your first booking to get started."}
+                    ? t("tenant.bookings.noBookingsFiltered")
+                    : t("tenant.bookings.noBookings")}
                 </td>
               </tr>
             ) : (
@@ -348,7 +350,7 @@ export default function BookingsPage() {
                     <p className="font-medium">{formatCurrency(booking.total)}</p>
                     {booking.paidAmount < booking.total && (
                       <p className="text-xs text-warning">
-                        {formatCurrency(booking.paidAmount)} paid
+                        {t("tenant.bookings.paid", { amount: formatCurrency(booking.paidAmount) })}
                       </p>
                     )}
                   </td>
@@ -360,7 +362,7 @@ export default function BookingsPage() {
                       to={`/tenant/bookings/${booking.id}`}
                       className="text-brand hover:underline text-sm"
                     >
-                      View
+                      {t("common.view")}
                     </Link>
                   </td>
                 </tr>
@@ -373,7 +375,7 @@ export default function BookingsPage() {
         {totalPages > 1 && (
           <div className="px-6 py-3 border-t flex justify-between items-center">
             <span className="text-sm text-foreground-muted">
-              Page {page} of {totalPages}
+              {t("common.pageOf", { page, total: totalPages })}
             </span>
             <div className="flex gap-2">
               <button
@@ -381,14 +383,14 @@ export default function BookingsPage() {
                 disabled={page <= 1}
                 className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
-                Previous
+                {t("common.previous")}
               </button>
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page + 1) })}
                 disabled={page >= totalPages}
                 className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
-                Next
+                {t("common.next")}
               </button>
             </div>
           </div>

@@ -21,6 +21,7 @@ import {
 } from "../email";
 import { cleanupStaleTenants } from "./stale-tenant-cleanup";
 import { startQuickBooksSyncWorker } from "./quickbooks-sync.server";
+import { createTranslationWorker } from "./translation.worker";
 import { db } from "../db";
 import { organization } from "../db/schema/auth";
 import { bookings, trips, tours, customers } from "../db/schema";
@@ -41,6 +42,7 @@ export const QUEUES = {
   BOOKING: "booking",
   REPORT: "report",
   MAINTENANCE: "maintenance",
+  TRANSLATION: "translation",
 } as const;
 
 // Create queues
@@ -364,6 +366,9 @@ function startWorkers() {
   // QuickBooks sync worker
   const quickbooksWorker = startQuickBooksSyncWorker();
 
+  // Translation worker
+  const translationWorker = createTranslationWorker(connection);
+
   jobLogger.info("Workers started. Waiting for jobs...");
 
   // Graceful shutdown
@@ -374,6 +379,7 @@ function startWorkers() {
     await reportWorker.close();
     await maintenanceWorker.close();
     await quickbooksWorker.close();
+    await translationWorker.close();
     await redisClient.quit();
     process.exit(0);
   };

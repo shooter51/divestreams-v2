@@ -12,6 +12,7 @@
 
 import { Link, useLoaderData, useSearchParams } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, desc, sql } from "drizzle-orm";
@@ -167,12 +168,13 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<BookingsL
 export default function AccountBookings() {
   const { bookings, filter } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const t = useT();
 
   const filterOptions = [
-    { value: "all", label: "All Bookings" },
-    { value: "upcoming", label: "Upcoming" },
-    { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "all", label: t("site.account.bookings.all") },
+    { value: "upcoming", label: t("site.account.bookings.upcoming") },
+    { value: "completed", label: t("site.account.bookings.completed") },
+    { value: "cancelled", label: t("site.account.bookings.cancelled") },
   ];
 
   const handleFilterChange = (newFilter: string) => {
@@ -190,10 +192,10 @@ export default function AccountBookings() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold" style={{ color: "var(--text-color)" }}>
-            My Bookings
+            {t("site.account.bookings.title")}
           </h2>
           <p className="mt-1 opacity-75">
-            View and manage all your bookings
+            {t("site.account.bookings.subtitle")}
           </p>
         </div>
       </div>
@@ -239,6 +241,7 @@ export default function AccountBookings() {
 // ============================================================================
 
 function BookingCard({ booking }: { booking: BookingItem }) {
+  const t = useT();
   const isUpcoming = new Date(booking.trip.date) >= new Date(new Date().toISOString().split("T")[0]);
   const isCancelled = booking.status === "cancelled" || booking.status === "canceled" || booking.status === "no_show";
 
@@ -279,7 +282,7 @@ function BookingCard({ booking }: { booking: BookingItem }) {
             </span>
             <span className="flex items-center gap-1.5">
               <UsersIcon className="w-4 h-4 opacity-60" />
-              {booking.participants} {booking.participants === 1 ? "person" : "people"}
+              {booking.participants} {booking.participants === 1 ? t("site.account.bookings.person") : t("site.account.bookings.people")}
             </span>
           </div>
         </div>
@@ -298,7 +301,7 @@ function BookingCard({ booking }: { booking: BookingItem }) {
             className="text-sm font-medium transition-opacity hover:opacity-80"
             style={{ color: "var(--primary-color)" }}
           >
-            View Details
+            {t("site.account.viewDetails")}
           </Link>
         </div>
       </div>
@@ -307,13 +310,14 @@ function BookingCard({ booking }: { booking: BookingItem }) {
 }
 
 function EmptyState({ filter }: { filter: string }) {
+  const t = useT();
   const messages: Record<string, { title: string; description: string }> = {
     all: {
-      title: "No bookings yet",
+      title: t("site.account.bookings.noBookings"),
       description: "Start your diving adventure by booking your first trip!",
     },
     upcoming: {
-      title: "No upcoming bookings",
+      title: t("site.account.noUpcomingBookings"),
       description: "You don't have any upcoming trips scheduled.",
     },
     completed: {
@@ -348,7 +352,7 @@ function EmptyState({ filter }: { filter: string }) {
         className="inline-block px-6 py-2.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
         style={{ backgroundColor: "var(--primary-color)" }}
       >
-        Browse Trips
+        {t("site.account.bookings.browseTrips")}
       </Link>
     </div>
   );

@@ -9,6 +9,8 @@ import { redirectWithNotification, useNotification } from "../../../../lib/use-n
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -118,6 +120,23 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     // Re-throw other errors
     throw error;
+  }
+
+  // Enqueue auto-translation for non-default locales
+  const fieldsToTranslate = [
+    { field: "name", text: formData.get("name") as string },
+    { field: "description", text: formData.get("description") as string },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "tour",
+      entityId: newTour.id,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
   }
 
   // Process uploaded images if any

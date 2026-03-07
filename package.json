@@ -73,6 +73,7 @@
     "seed:full": "npm run seed:api && npm run seed:export"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1004.0",
     "@aws-sdk/client-s3": "^3.967.0",
     "@fullcalendar/core": "^6.1.20",
     "@fullcalendar/daygrid": "^6.1.20",

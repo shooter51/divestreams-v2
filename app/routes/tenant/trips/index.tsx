@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/schema";
@@ -126,6 +127,7 @@ function mapTripStatus(status: string): BadgeStatus {
 
 export default function TripsPage() {
   useNotification();
+  const t = useT();
 
   const { trips, tripsByDate, total, view } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -140,14 +142,14 @@ export default function TripsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Scheduled Trips</h1>
-          <p className="text-foreground-muted">{total} trips</p>
+          <h1 className="text-2xl font-bold">{t("tenant.trips.title")}</h1>
+          <p className="text-foreground-muted">{t("tenant.trips.totalTrips", { count: total })}</p>
         </div>
         <Link
           to="/tenant/trips/new"
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
-          Schedule Trip
+          {t("tenant.trips.scheduleTrip")}
         </Link>
       </div>
 
@@ -159,7 +161,7 @@ export default function TripsPage() {
             view === "upcoming" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
           }`}
         >
-          Upcoming
+          {t("tenant.trips.upcoming")}
         </button>
         <button
           onClick={() => setView("past")}
@@ -167,7 +169,7 @@ export default function TripsPage() {
             view === "past" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
           }`}
         >
-          Past
+          {t("tenant.trips.past")}
         </button>
         <button
           onClick={() => setView("all")}
@@ -175,7 +177,7 @@ export default function TripsPage() {
             view === "all" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
           }`}
         >
-          All
+          {t("tenant.trips.all")}
         </button>
       </div>
 
@@ -184,16 +186,16 @@ export default function TripsPage() {
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
           <p className="text-foreground-muted">
             {view === "upcoming"
-              ? "No upcoming trips scheduled."
+              ? t("tenant.trips.noUpcoming")
               : view === "past"
-              ? "No past trips."
-              : "No trips found."}
+              ? t("tenant.trips.noPast")
+              : t("tenant.trips.noTrips")}
           </p>
           <Link
             to="/tenant/trips/new"
             className="inline-block mt-4 text-brand hover:underline"
           >
-            Schedule your first trip
+            {t("tenant.trips.scheduleFirstTrip")}
           </Link>
         </div>
       ) : (
@@ -248,7 +250,7 @@ export default function TripsPage() {
                       <div className="flex items-center gap-6">
                         <div className="text-right">
                           <p className="font-medium">
-                            {formatCapacity(trip.bookedParticipants, trip.maxParticipants)} booked
+                            {t("tenant.trips.booked", { capacity: formatCapacity(trip.bookedParticipants, trip.maxParticipants) })}
                           </p>
                           <p className="text-sm text-foreground-muted">${trip.revenue}</p>
                         </div>

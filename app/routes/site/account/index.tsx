@@ -10,6 +10,7 @@
 
 import { Link, useLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
@@ -189,33 +190,34 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<Dashboard
 
 export default function AccountDashboard() {
   const { customer, stats, nextBooking } = useLoaderData<typeof loader>();
+  const t = useT();
 
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
       <div>
         <h2 className="text-2xl font-bold" style={{ color: "var(--text-color)" }}>
-          Welcome back, {customer.firstName}!
+          {t("site.account.welcomeBack", { name: customer.firstName })}
         </h2>
         <p className="mt-1 opacity-75">
-          Here's an overview of your account and upcoming adventures.
+          {t("site.account.overviewMessage")}
         </p>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          label="Upcoming Bookings"
+          label={t("site.account.upcomingBookings")}
           value={stats.upcomingCount.toString()}
           icon={<CalendarIcon />}
         />
         <StatCard
-          label="Total Trips"
+          label={t("site.account.totalTrips")}
           value={stats.totalTrips.toString()}
           icon={<WaveIcon />}
         />
         <StatCard
-          label="Total Spent"
+          label={t("site.account.totalSpent")}
           value={`$${parseFloat(stats.totalSpent).toFixed(2)}`}
           icon={<CurrencyIcon />}
         />
@@ -224,7 +226,7 @@ export default function AccountDashboard() {
       {/* Next Booking */}
       <div>
         <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>
-          Next Upcoming Booking
+          {t("site.account.nextUpcomingBooking")}
         </h3>
         {nextBooking ? (
           <div
@@ -250,7 +252,7 @@ export default function AccountDashboard() {
                   </span>
                   <span className="flex items-center gap-1">
                     <UsersIcon className="w-4 h-4" />
-                    {nextBooking.participants} {nextBooking.participants === 1 ? "person" : "people"}
+                    {nextBooking.participants} {nextBooking.participants === 1 ? t("site.account.bookings.person") : t("site.account.bookings.people")}
                   </span>
                 </div>
               </div>
@@ -261,7 +263,7 @@ export default function AccountDashboard() {
                   className="text-sm font-medium transition-opacity hover:opacity-80"
                   style={{ color: "var(--primary-color)" }}
                 >
-                  View Details
+                  {t("site.account.viewDetails")}
                 </Link>
               </div>
             </div>
@@ -272,13 +274,13 @@ export default function AccountDashboard() {
             style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <WaveIcon className="w-12 h-12 mx-auto opacity-40 mb-4" />
-            <p className="opacity-75">No upcoming bookings</p>
+            <p className="opacity-75">{t("site.account.noUpcomingBookings")}</p>
             <Link
               to="/site/trips"
               className="inline-block mt-4 px-6 py-2 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--primary-color)" }}
             >
-              Browse Trips
+              {t("site.account.browseTrips")}
             </Link>
           </div>
         )}
@@ -287,32 +289,32 @@ export default function AccountDashboard() {
       {/* Quick Links */}
       <div>
         <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>
-          Quick Links
+          {t("site.account.quickLinks")}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <QuickLinkCard
             to="/site/account/bookings"
             icon={<CalendarIcon />}
-            title="My Bookings"
-            description="View and manage all your bookings"
+            title={t("site.account.myBookings")}
+            description={t("site.account.viewManageBookings")}
           />
           <QuickLinkCard
             to="/site/account/profile"
             icon={<UserIcon />}
-            title="Profile Settings"
-            description="Update your personal information"
+            title={t("site.account.profileSettings")}
+            description={t("site.account.updatePersonalInfo")}
           />
           <QuickLinkCard
             to="/site/trips"
             icon={<WaveIcon />}
-            title="Browse Trips"
-            description="Discover new diving adventures"
+            title={t("site.account.browseTrips")}
+            description={t("site.account.discoverAdventures")}
           />
           <QuickLinkCard
             to="/site/courses"
             icon={<BookIcon />}
-            title="Browse Courses"
-            description="Explore certifications and courses"
+            title={t("site.account.browseCourses")}
+            description={t("site.account.exploreCertifications")}
           />
         </div>
       </div>

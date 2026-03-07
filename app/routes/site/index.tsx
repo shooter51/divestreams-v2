@@ -12,6 +12,7 @@
 
 import { Link, useLoaderData, useRouteLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { useT } from "../../i18n/use-t";
 import {
   getPublicTrips,
   getPublicCourses,
@@ -185,6 +186,7 @@ function TripCard({
 }: {
   trip: HomeLoaderData["featuredTrips"][0];
 }) {
+  const t = useT();
   const formattedDate = new Date(trip.date).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -213,7 +215,7 @@ function TripCard({
         {trip.primaryImage ? (
           <img
             src={trip.primaryImage}
-            alt={trip.tour?.name || "Dive Trip"}
+            alt={trip.tour?.name || t("site.home.diveTrip")}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -247,7 +249,7 @@ function TripCard({
       {/* Trip Info */}
       <div className="p-4">
         <h3 className="font-semibold text-lg group-hover:opacity-80 transition-opacity line-clamp-1">
-          {trip.tour?.name || "Dive Trip"}
+          {trip.tour?.name || t("site.home.diveTrip")}
         </h3>
         {trip.tour?.description && (
           <p className="mt-1 text-sm opacity-75 line-clamp-2">
@@ -273,14 +275,15 @@ function CourseCard({
 }: {
   course: HomeLoaderData["featuredCourses"][0];
 }) {
+  const t = useT();
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: course.currency,
   }).format(parseFloat(course.price));
 
   const durationText = course.durationDays === 1
-    ? "1 day"
-    : `${course.durationDays} days`;
+    ? t("site.home.oneDay")
+    : t("site.home.xDays", { count: course.durationDays });
 
   return (
     <Link
@@ -350,18 +353,13 @@ function CourseCard({
 export default function SiteHomePage() {
   const { featuredTrips, featuredCourses } = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
+  const t = useT();
 
   const settings = layoutData?.settings;
   const organization = layoutData?.organization;
   const contactInfo = layoutData?.contactInfo;
   const enabledPages = layoutData?.enabledPages;
 
-  // Debug: log settings to console
-  if (typeof window !== "undefined") {
-    console.log("Layout Data:", layoutData);
-    console.log("Settings:", settings);
-    console.log("Hero Image URL:", settings?.heroImageUrl);
-  }
 
   return (
     <div>
@@ -395,7 +393,7 @@ export default function SiteHomePage() {
             className="mt-4 text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto"
             style={{ color: "white" }}
           >
-            Discover amazing underwater adventures and dive experiences
+            {t("site.home.tagline")}
           </p>
 
           {/* CTA Buttons */}
@@ -409,7 +407,7 @@ export default function SiteHomePage() {
                   color: "var(--primary-color)",
                 }}
               >
-                Explore Trips
+                {t("site.home.exploreTrips")}
               </Link>
             )}
             {enabledPages?.courses && (
@@ -421,7 +419,7 @@ export default function SiteHomePage() {
                   color: "white",
                 }}
               >
-                View Courses
+                {t("site.home.viewCourses")}
               </Link>
             )}
           </div>
@@ -481,9 +479,9 @@ export default function SiteHomePage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold">Upcoming Trips</h2>
+                <h2 className="text-3xl font-bold">{t("site.trips.title")}</h2>
                 <p className="mt-2 opacity-75">
-                  Book your next diving adventure
+                  {t("site.home.bookNextAdventure")}
                 </p>
               </div>
               <Link
@@ -494,7 +492,7 @@ export default function SiteHomePage() {
                   color: "var(--primary-color)",
                 }}
               >
-                View All Trips
+                {t("site.home.viewAllTrips")}
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -527,7 +525,7 @@ export default function SiteHomePage() {
                   color: "white",
                 }}
               >
-                View All Trips
+                {t("site.home.viewAllTrips")}
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -556,9 +554,9 @@ export default function SiteHomePage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold">Dive Courses</h2>
+                <h2 className="text-3xl font-bold">{t("site.home.diveCourses")}</h2>
                 <p className="mt-2 opacity-75">
-                  Learn to dive or advance your skills
+                  {t("site.home.advanceSkills")}
                 </p>
               </div>
               <Link
@@ -569,7 +567,7 @@ export default function SiteHomePage() {
                   color: "var(--primary-color)",
                 }}
               >
-                View All Courses
+                {t("site.home.viewAllCourses")}
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -602,7 +600,7 @@ export default function SiteHomePage() {
                   color: "white",
                 }}
               >
-                View All Courses
+                {t("site.home.viewAllCourses")}
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -626,7 +624,7 @@ export default function SiteHomePage() {
       {enabledPages?.about && settings?.aboutContent && (
         <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">About Us</h2>
+            <h2 className="text-3xl font-bold mb-6">{t("site.about.title")}</h2>
             <p className="text-lg opacity-80 leading-relaxed line-clamp-4 whitespace-pre-line">
               {settings.aboutContent}
             </p>
@@ -635,7 +633,7 @@ export default function SiteHomePage() {
               className="inline-flex items-center gap-2 mt-6 font-medium transition-opacity hover:opacity-80"
               style={{ color: "var(--primary-color)" }}
             >
-              Learn more about us
+              {t("site.home.learnMoreAboutUs")}
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -662,9 +660,9 @@ export default function SiteHomePage() {
         >
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold">Get in Touch</h2>
+              <h2 className="text-3xl font-bold">{t("site.home.getInTouch")}</h2>
               <p className="mt-2 opacity-75">
-                Ready to dive? Contact us today!
+                {t("site.home.contactUsToday")}
               </p>
             </div>
 
@@ -694,7 +692,7 @@ export default function SiteHomePage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold mb-2">Call Us</h3>
+                  <h3 className="font-semibold mb-2">{t("site.home.callUs")}</h3>
                   <a
                     href={`tel:${contactInfo.phone}`}
                     className="opacity-75 hover:opacity-100"
@@ -730,7 +728,7 @@ export default function SiteHomePage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold mb-2">Email Us</h3>
+                  <h3 className="font-semibold mb-2">{t("site.home.emailUs")}</h3>
                   <a
                     href={`mailto:${contactInfo.email}`}
                     className="opacity-75 hover:opacity-100 break-all"
@@ -766,7 +764,7 @@ export default function SiteHomePage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold mb-2">Hours</h3>
+                  <h3 className="font-semibold mb-2">{t("site.home.hours")}</h3>
                   <p className="opacity-75">{contactInfo.hours}</p>
                 </div>
               )}
@@ -782,7 +780,7 @@ export default function SiteHomePage() {
                   color: "white",
                 }}
               >
-                Contact Us
+                {t("site.contact.title")}
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -825,10 +823,9 @@ export default function SiteHomePage() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
+            <h2 className="text-2xl font-bold mb-4">{t("site.home.comingSoon")}</h2>
             <p className="opacity-75 text-lg">
-              We are preparing exciting trips and courses for you.
-              Check back soon or contact us for more information!
+              {t("site.home.comingSoonMessage")}
             </p>
             {enabledPages?.contact && (
               <Link
@@ -839,7 +836,7 @@ export default function SiteHomePage() {
                   color: "white",
                 }}
               >
-                Get in Touch
+                {t("site.home.getInTouch")}
               </Link>
             )}
           </div>
