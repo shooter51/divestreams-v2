@@ -64,6 +64,7 @@ interface LoaderData {
     agency: string | null;
     level: string | null;
   };
+  availableAgencies: Array<{ id: string; name: string }>;
 }
 
 // ============================================================================
@@ -140,6 +141,18 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   // Get all public courses
   const result = await getPublicCourses(org.id, { page, limit: 100 });
 
+  // Extract unique agencies from actual courses (before filtering)
+  const availableAgencies = Array.from(
+    new Map(
+      result.courses
+        .filter((c) => c.agencyName)
+        .map((c) => {
+          const id = c.agencyName!.toLowerCase().replace(/[^a-z]/g, "");
+          return [id, { id, name: c.agencyName! }];
+        })
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
   // Apply filters by agency name and level name
   let filteredCourses = result.courses;
 
@@ -168,6 +181,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
       agency,
       level,
     },
+    availableAgencies,
   };
 }
 
@@ -319,8 +333,10 @@ function CourseCard({ course }: { course: Course }) {
  */
 function FilterSection({
   filters,
+  availableAgencies,
 }: {
   filters: { agency: string | null; level: string | null };
+  availableAgencies: Array<{ id: string; name: string }>;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -363,7 +379,7 @@ function FilterSection({
             }}
           >
             <option value="">All Agencies</option>
-            {CERTIFICATION_AGENCIES.map((agency) => (
+            {availableAgencies.map((agency) => (
               <option key={agency.id} value={agency.id}>
                 {agency.name}
               </option>
@@ -518,7 +534,7 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
 // ============================================================================
 
 export default function SiteCoursesPage() {
-  const { courses, total, page, limit, filters } = useLoaderData<typeof loader>();
+  const { courses, total, page, limit, filters, availableAgencies } = useLoaderData<typeof loader>();
 
   const hasFilters = Boolean(filters.agency || filters.level);
 
@@ -556,7 +572,7 @@ export default function SiteCoursesPage() {
       </div>
 
       {/* Filters */}
-      <FilterSection filters={filters} />
+      <FilterSection filters={filters} availableAgencies={availableAgencies} />
 
       {/* Results Count */}
       {courses.length > 0 && (
