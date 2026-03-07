@@ -194,6 +194,39 @@ export const trainingCourses = pgTable(
 );
 
 // ============================================================================
+// TRAINING SESSION SERIES (Groups of linked sessions for multi-week courses)
+// ============================================================================
+
+export const trainingSessionSeries = pgTable(
+  "training_session_series",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => trainingCourses.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    maxStudents: integer("max_students"),
+    priceOverride: decimal("price_override", { precision: 10, scale: 2 }),
+    status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, cancelled
+    notes: text("notes"),
+    instructorId: text("instructor_id"),
+    instructorName: text("instructor_name"),
+    enrolledCount: integer("enrolled_count").notNull().default(0),
+    completedCount: integer("completed_count").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("training_series_org_idx").on(table.organizationId),
+    index("training_series_course_idx").on(table.courseId),
+    index("training_series_status_idx").on(table.organizationId, table.status),
+  ]
+);
+
+// ============================================================================
 // TRAINING SESSIONS (Scheduled instances of courses)
 // ============================================================================
 
@@ -207,6 +240,13 @@ export const trainingSessions = pgTable(
     courseId: uuid("course_id")
       .notNull()
       .references(() => trainingCourses.id, { onDelete: "cascade" }),
+
+    // Series membership (nullable — standalone sessions don't belong to a series)
+    seriesId: uuid("series_id").references(() => trainingSessionSeries.id, {
+      onDelete: "cascade",
+    }),
+    seriesIndex: integer("series_index"), // 1-based position within series
+    sessionType: text("session_type"), // classroom, pool, confined_water, open_water, exam, other
 
     // Scheduling
     startDate: date("start_date").notNull(),
@@ -241,6 +281,7 @@ export const trainingSessions = pgTable(
   (table) => [
     index("training_sessions_org_idx").on(table.organizationId),
     index("training_sessions_course_idx").on(table.courseId),
+    index("training_sessions_series_idx").on(table.seriesId),
     index("training_sessions_date_idx").on(table.organizationId, table.startDate),
     index("training_sessions_status_idx").on(table.organizationId, table.status),
   ]
@@ -260,6 +301,9 @@ export const trainingEnrollments = pgTable(
     sessionId: uuid("session_id")
       .notNull()
       .references(() => trainingSessions.id, { onDelete: "cascade" }),
+    seriesId: uuid("series_id").references(() => trainingSessionSeries.id, {
+      onDelete: "set null",
+    }),
     customerId: uuid("customer_id")
       .notNull()
       .references(() => customers.id, { onDelete: "cascade" }),
@@ -377,6 +421,23 @@ export const trainingCoursesRelations = relations(
       references: [certificationLevels.id],
     }),
     sessions: many(trainingSessions),
+    series: many(trainingSessionSeries),
+  })
+);
+
+export const trainingSessionSeriesRelations = relations(
+  trainingSessionSeries,
+  ({ one, many }) => ({
+    organization: one(organization, {
+      fields: [trainingSessionSeries.organizationId],
+      references: [organization.id],
+    }),
+    course: one(trainingCourses, {
+      fields: [trainingSessionSeries.courseId],
+      references: [trainingCourses.id],
+    }),
+    sessions: many(trainingSessions),
+    enrollments: many(trainingEnrollments),
   })
 );
 
@@ -390,6 +451,10 @@ export const trainingSessionsRelations = relations(
     course: one(trainingCourses, {
       fields: [trainingSessions.courseId],
       references: [trainingCourses.id],
+    }),
+    series: one(trainingSessionSeries, {
+      fields: [trainingSessions.seriesId],
+      references: [trainingSessionSeries.id],
     }),
     enrollments: many(trainingEnrollments),
   })
@@ -405,6 +470,10 @@ export const trainingEnrollmentsRelations = relations(
     session: one(trainingSessions, {
       fields: [trainingEnrollments.sessionId],
       references: [trainingSessions.id],
+    }),
+    series: one(trainingSessionSeries, {
+      fields: [trainingEnrollments.seriesId],
+      references: [trainingSessionSeries.id],
     }),
     customer: one(customers, {
       fields: [trainingEnrollments.customerId],

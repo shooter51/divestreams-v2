@@ -31,6 +31,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+const sessionTypeLabels: Record<string, string> = {
+  classroom: "Classroom",
+  pool: "Pool",
+  confined_water: "Confined Water",
+  open_water: "Open Water",
+  exam: "Exam",
+  other: "Other",
+};
+
+const sessionTypeColors: Record<string, string> = {
+  classroom: "bg-blue-100 text-blue-700",
+  pool: "bg-cyan-100 text-cyan-700",
+  confined_water: "bg-teal-100 text-teal-700",
+  open_water: "bg-emerald-100 text-emerald-700",
+  exam: "bg-purple-100 text-purple-700",
+  other: "bg-gray-100 text-gray-700",
+};
+
 const statusColors: Record<string, string> = {
   open: "bg-brand-muted text-brand",
   scheduled: "bg-brand-muted text-brand",
@@ -202,7 +220,18 @@ export default function SessionsPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-semibold">{session.courseName}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">{session.courseName}</p>
+                            {session.sessionType && (
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                  sessionTypeColors[session.sessionType] || "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {sessionTypeLabels[session.sessionType] || session.sessionType}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 text-sm text-foreground-muted">
                             {session.agencyName && (
                               <span className="text-xs bg-surface-inset px-2 py-0.5 rounded">
@@ -214,6 +243,15 @@ export default function SessionsPage() {
                             )}
                             {session.location && (
                               <span>@ {session.location}</span>
+                            )}
+                            {session.seriesId && session.seriesName && (
+                              <Link
+                                to={`/tenant/training/series/${session.seriesId}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs text-brand hover:underline"
+                              >
+                                Series: {session.seriesName}
+                              </Link>
                             )}
                           </div>
                         </div>
