@@ -47,6 +47,18 @@ vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
   asc: vi.fn((field) => ({ type: "asc", field })),
+  relations: vi.fn(() => ({})),
+  sql: vi.fn(),
+}));
+
+vi.mock("../../../../../lib/jobs/index", () => ({
+  enqueueTranslation: vi.fn(),
+  QUEUES: { TRANSLATION: "translation" },
+}));
+
+vi.mock("../../../../../app/i18n/types", () => ({
+  SUPPORTED_LOCALES: ["en", "es"],
+  DEFAULT_LOCALE: "en",
 }));
 
 vi.mock("../../../../../lib/use-notification", () => ({
