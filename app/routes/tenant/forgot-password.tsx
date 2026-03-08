@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
                   autoComplete="email"
                   required
                   className="appearance-none block w-full px-3 py-2 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
-                  placeholder="Enter your email"
+                  placeholder={t("tenant.forgotPassword.emailPlaceholder")}
                 />
               </div>
             </div>

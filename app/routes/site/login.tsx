@@ -382,7 +382,7 @@ export default function SiteLoginPage() {
                     ? "var(--danger-bg)"
                     : "var(--color-card-bg)",
                 }}
-                placeholder="you@example.com"
+                placeholder={t("site.login.emailPlaceholder")}
                 required
               />
               {actionData?.errors?.email && (
@@ -426,7 +426,7 @@ export default function SiteLoginPage() {
                       ? "var(--danger-bg)"
                       : "var(--color-card-bg)",
                   }}
-                  placeholder="Enter your password"
+                  placeholder={t("site.login.passwordPlaceholder")}
                   required
                 />
                 <button
