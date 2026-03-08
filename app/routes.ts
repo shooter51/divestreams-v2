@@ -22,6 +22,9 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Locale switcher (works from any context — tenant, site, or admin)
+  route("api/set-locale", "routes/api/set-locale.tsx"),
+
   // Demo seed reset endpoint (protected by SEED_KEY)
   route("api/seed/reset", "routes/api/seed/reset.ts"),
 
@@ -220,9 +223,6 @@ export default [
   // Public site routes (accessed via subdomain/site)
   // These routes are for the customer-facing public website
   ...prefix("site", [
-    // Locale switcher (action-only, no layout needed)
-    route("set-locale", "routes/site/set-locale.tsx"),
-
     layout("routes/site/_layout.tsx", [
       index("routes/site/index.tsx"), // Homepage
       route("about", "routes/site/about.tsx"),

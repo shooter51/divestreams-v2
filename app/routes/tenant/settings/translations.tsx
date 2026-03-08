@@ -128,6 +128,51 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true };
   }
 
+  if (intent === "translate-all") {
+    // Fetch all translatable entities for this org
+    const allTours = await db
+      .select({ id: tours.id, name: tours.name, description: tours.description })
+      .from(tours)
+      .where(eq(tours.organizationId, ctx.org.id));
+
+    const allCourses = await db
+      .select({ id: trainingCourses.id, name: trainingCourses.name, description: trainingCourses.description })
+      .from(trainingCourses)
+      .where(eq(trainingCourses.organizationId, ctx.org.id));
+
+    const allProducts = await db
+      .select({ id: products.id, name: products.name, description: products.description })
+      .from(products)
+      .where(eq(products.organizationId, ctx.org.id));
+
+    let enqueued = 0;
+
+    const enqueueEntity = async (entityType: string, entity: { id: string; name: string; description: string | null }) => {
+      const fields = [
+        { field: "name", text: entity.name },
+        ...(entity.description?.trim() ? [{ field: "description", text: entity.description }] : []),
+      ];
+      if (fields.length === 0) return;
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType,
+          entityId: entity.id,
+          fields,
+          targetLocale: locale,
+        });
+        enqueued++;
+      }
+    };
+
+    for (const tour of allTours) await enqueueEntity("tour", tour);
+    for (const course of allCourses) await enqueueEntity("course", course);
+    for (const product of allProducts) await enqueueEntity("product", product);
+
+    return { success: true, enqueued };
+  }
+
   return { error: "Unknown action" };
 }
 
@@ -164,12 +209,33 @@ export default function TranslationsPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">{t("tenant.translations.title")}</h1>
-        <p className="text-foreground-muted mt-1">
-          {t("tenant.translations.description")}
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t("tenant.translations.title")}</h1>
+          <p className="text-foreground-muted mt-1">
+            {t("tenant.translations.description")}
+          </p>
+        </div>
+        <fetcher.Form method="post">
+          <CsrfInput />
+          <input type="hidden" name="intent" value="translate-all" />
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:opacity-90 disabled:opacity-50"
+            disabled={fetcher.state === "submitting"}
+          >
+            {fetcher.state === "submitting"
+              ? t("tenant.translations.translating")
+              : t("tenant.translations.translateAll")}
+          </button>
+        </fetcher.Form>
       </div>
+
+      {fetcher.data && "enqueued" in fetcher.data && (
+        <div className="mb-4 p-3 bg-success-muted text-success rounded-lg text-sm">
+          {t("tenant.translations.enqueued", { count: String(fetcher.data.enqueued) })}
+        </div>
+      )}
 
       {translations.length === 0 ? (
         <div className="bg-surface-raised rounded-xl p-8 text-center text-foreground-muted">

@@ -401,6 +401,13 @@ export default function SettingsPage() {
       icon: "🌐",
       preview: null,
     },
+    {
+      href: "/tenant/settings/translations",
+      title: t("tenant.translations.title"),
+      description: t("tenant.translations.description"),
+      icon: "🌍",
+      preview: null,
+    },
   ];
 
   return (
