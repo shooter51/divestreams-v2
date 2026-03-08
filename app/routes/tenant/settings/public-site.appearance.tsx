@@ -13,45 +13,13 @@ type OutletContextType = {
   publicSiteUrl: string;
 };
 
-const themes = [
-  {
-    id: "ocean",
-    name: "Ocean",
-    description: "Deep blue tones inspired by the sea",
-    colors: ["#0ea5e9", "#0284c7", "#0369a1"],
-  },
-  {
-    id: "tropical",
-    name: "Tropical",
-    description: "Vibrant greens and teals",
-    colors: ["#14b8a6", "#0d9488", "#0f766e"],
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    description: "Clean, modern grayscale design",
-    colors: ["#6b7280", "#4b5563", "#374151"],
-  },
-  {
-    id: "dark",
-    name: "Dark",
-    description: "Dark mode theme for night divers",
-    colors: ["#1f2937", "#111827", "#0f172a"],
-  },
-  {
-    id: "classic",
-    name: "Classic",
-    description: "Traditional navy and gold",
-    colors: ["#1e3a5f", "#0c4a6e", "#b8860b"],
-  },
-];
-
-const fontFamilies = [
-  { id: "inter", name: "Inter", sample: "Clean and modern" },
-  { id: "poppins", name: "Poppins", sample: "Friendly and rounded" },
-  { id: "roboto", name: "Roboto", sample: "Professional and balanced" },
-  { id: "open-sans", name: "Open Sans", sample: "Neutral and readable" },
-];
+const themeColors: Record<string, string[]> = {
+  ocean: ["#0ea5e9", "#0284c7", "#0369a1"],
+  tropical: ["#14b8a6", "#0d9488", "#0f766e"],
+  minimal: ["#6b7280", "#4b5563", "#374151"],
+  dark: ["#1f2937", "#111827", "#0f172a"],
+  classic: ["#1e3a5f", "#0c4a6e", "#b8860b"],
+};
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -101,6 +69,19 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function PublicSiteAppearanceSettings() {
   const t = useT();
+  const themes = [
+    { id: "ocean", name: "Ocean", description: t("tenant.settings.publicSite.appearance.themeOcean"), colors: themeColors.ocean },
+    { id: "tropical", name: "Tropical", description: t("tenant.settings.publicSite.appearance.themeTropical"), colors: themeColors.tropical },
+    { id: "minimal", name: "Minimal", description: t("tenant.settings.publicSite.appearance.themeMinimal"), colors: themeColors.minimal },
+    { id: "dark", name: "Dark", description: t("tenant.settings.publicSite.appearance.themeDark"), colors: themeColors.dark },
+    { id: "classic", name: "Classic", description: t("tenant.settings.publicSite.appearance.themeClassic"), colors: themeColors.classic },
+  ];
+  const fontFamilies = [
+    { id: "inter", name: "Inter", sample: t("tenant.settings.publicSite.appearance.fontInter") },
+    { id: "poppins", name: "Poppins", sample: t("tenant.settings.publicSite.appearance.fontPoppins") },
+    { id: "roboto", name: "Roboto", sample: t("tenant.settings.publicSite.appearance.fontRoboto") },
+    { id: "open-sans", name: "Open Sans", sample: t("tenant.settings.publicSite.appearance.fontOpenSans") },
+  ];
   const { settings, publicSiteUrl } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const isSubmitting = fetcher.state === "submitting";

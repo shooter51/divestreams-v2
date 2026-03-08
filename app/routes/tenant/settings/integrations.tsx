@@ -52,62 +52,89 @@ import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Integrations - DiveStreams" }];
 
-const availableIntegrations = [
-  {
-    id: "stripe",
-    name: "Stripe",
-    description: "Process payments, deposits, and refunds",
-    category: "payments",
-    icon: "CreditCard",
-    features: ["Online payments", "Card processing", "Automatic refunds", "Invoice generation"],
-    requiredPlan: "starter",
-  },
-  {
-    id: "google-calendar",
-    name: "Google Calendar",
-    description: "Sync trips and bookings with Google Calendar",
-    category: "calendar",
-    icon: "Calendar",
-    features: ["Two-way sync", "Automatic updates", "Team calendars"],
-    requiredPlan: "starter",
-  },
-  {
-    id: "mailchimp",
-    name: "Mailchimp",
-    description: "Email marketing and customer newsletters",
-    category: "marketing",
-    icon: "Mail",
-    features: ["Customer sync", "Automated campaigns", "Booking follow-ups"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "quickbooks",
-    name: "QuickBooks",
-    description: "Accounting and financial reporting",
-    category: "accounting",
-    icon: "BarChart",
-    features: ["Invoice sync", "Expense tracking", "Financial reports"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "zapier",
-    name: "Zapier",
-    description: "Connect to 5,000+ apps with automation",
-    category: "automation",
-    icon: "Zap",
-    features: ["Custom workflows", "Triggers", "Multi-step automations"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "xero",
-    name: "Xero",
-    description: "Cloud accounting software",
-    category: "accounting",
-    icon: "TrendingUp",
-    features: ["Invoice sync", "Bank reconciliation", "Multi-currency"],
-    requiredPlan: "enterprise",
-  },
-];
+function getAvailableIntegrations(t: (key: string) => string) {
+  return [
+    {
+      id: "stripe",
+      name: "Stripe",
+      description: t("tenant.settings.integrations.stripe.description"),
+      category: "payments",
+      icon: "CreditCard",
+      features: [
+        t("tenant.settings.integrations.stripe.featureOnlinePayments"),
+        t("tenant.settings.integrations.stripe.featureCardProcessing"),
+        t("tenant.settings.integrations.stripe.featureAutomaticRefunds"),
+        t("tenant.settings.integrations.stripe.featureInvoiceGeneration"),
+      ],
+      requiredPlan: "starter",
+    },
+    {
+      id: "google-calendar",
+      name: "Google Calendar",
+      description: t("tenant.settings.integrations.googleCalendar.description"),
+      category: "calendar",
+      icon: "Calendar",
+      features: [
+        t("tenant.settings.integrations.googleCalendar.featureTwoWaySync"),
+        t("tenant.settings.integrations.googleCalendar.featureAutomaticUpdates"),
+        t("tenant.settings.integrations.googleCalendar.featureTeamCalendars"),
+      ],
+      requiredPlan: "starter",
+    },
+    {
+      id: "mailchimp",
+      name: "Mailchimp",
+      description: t("tenant.settings.integrations.mailchimp.description"),
+      category: "marketing",
+      icon: "Mail",
+      features: [
+        t("tenant.settings.integrations.mailchimp.featureCustomerSync"),
+        t("tenant.settings.integrations.mailchimp.featureAutomatedCampaigns"),
+        t("tenant.settings.integrations.mailchimp.featureBookingFollowUps"),
+      ],
+      requiredPlan: "professional",
+    },
+    {
+      id: "quickbooks",
+      name: "QuickBooks",
+      description: t("tenant.settings.integrations.quickbooksCard.description"),
+      category: "accounting",
+      icon: "BarChart",
+      features: [
+        t("tenant.settings.integrations.quickbooksCard.featureInvoiceSync"),
+        t("tenant.settings.integrations.quickbooksCard.featureExpenseTracking"),
+        t("tenant.settings.integrations.quickbooksCard.featureFinancialReports"),
+      ],
+      requiredPlan: "professional",
+    },
+    {
+      id: "zapier",
+      name: "Zapier",
+      description: t("tenant.settings.integrations.zapierCard.description"),
+      category: "automation",
+      icon: "Zap",
+      features: [
+        t("tenant.settings.integrations.zapierCard.featureCustomWorkflows"),
+        t("tenant.settings.integrations.zapierCard.featureTriggers"),
+        t("tenant.settings.integrations.zapierCard.featureMultiStepAutomations"),
+      ],
+      requiredPlan: "professional",
+    },
+    {
+      id: "xero",
+      name: "Xero",
+      description: t("tenant.settings.integrations.xero.description"),
+      category: "accounting",
+      icon: "TrendingUp",
+      features: [
+        t("tenant.settings.integrations.xero.featureInvoiceSync"),
+        t("tenant.settings.integrations.xero.featureBankReconciliation"),
+        t("tenant.settings.integrations.xero.featureMultiCurrency"),
+      ],
+      requiredPlan: "enterprise",
+    },
+  ];
+}
 
 // ─── Loader ─────────────────────────────────────────────────────────────────
 
@@ -229,7 +256,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     connectedIntegrations,
-    availableIntegrations,
     currentPlan,
     isPremium: ctx.isPremium,
     orgId: ctx.org.id,
@@ -528,9 +554,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function IntegrationsPage() {
   const t = useT();
+  const integrations = getAvailableIntegrations(t);
   const {
     connectedIntegrations,
-    availableIntegrations: integrations,
     xeroSettings,
     zapierTriggers,
     zapierTriggerDescriptions,

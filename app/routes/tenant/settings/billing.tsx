@@ -340,17 +340,17 @@ export async function action({ request }: ActionFunctionArgs) {
   return null;
 }
 
-const subscriptionStatusLabels: Record<string, string> = {
-  active: "Active",
-  trialing: "Trialing",
-  canceled: "Canceled",
-  past_due: "Past Due",
-  incomplete: "Incomplete",
-};
-
 export default function BillingPage() {
   const { billing, plans } = useLoaderData<typeof loader>();
   const t = useT();
+
+  const subscriptionStatusLabels: Record<string, string> = {
+    active: t("tenant.settings.billing.status.active"),
+    trialing: t("tenant.settings.billing.status.trialing"),
+    canceled: t("tenant.settings.billing.status.canceled"),
+    past_due: t("tenant.settings.billing.status.pastDue"),
+    incomplete: t("tenant.settings.billing.status.incomplete"),
+  };
   const fetcher = useFetcher<{ error?: string; cancelled?: boolean; message?: string }>();
   const couponFetcher = useFetcher<{ error?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
