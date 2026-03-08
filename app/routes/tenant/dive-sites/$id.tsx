@@ -159,13 +159,6 @@ const difficultyColors: Record<string, string> = {
   expert: "bg-danger-muted text-danger",
 };
 
-const difficultyLabels: Record<string, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-  expert: "Expert",
-};
-
 function formatDepth(depth: number): string {
   return `${depth}m / ${Math.round(depth * 3.28084)}ft`;
 }
@@ -175,6 +168,13 @@ export default function DiveSiteDetailPage() {
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
   const t = useT();
+
+  const difficultyLabels: Record<string, string> = {
+    beginner: t("tenant.diveSites.difficulty.beginner"),
+    intermediate: t("tenant.diveSites.difficulty.intermediate"),
+    advanced: t("tenant.diveSites.difficulty.advanced"),
+    expert: t("tenant.diveSites.difficulty.expert"),
+  };
 
   // Show notifications from URL params
   useNotification();

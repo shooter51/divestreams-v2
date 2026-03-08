@@ -10,34 +10,30 @@ import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
-const roles = [
-  {
-    id: "owner",
-    name: "Owner",
-    description: "Full access to everything",
-    permissions: ["all"],
-  },
-  {
-    id: "admin",
-    name: "Admin",
-    description: "Manage bookings, customers, and staff",
-    permissions: ["bookings", "customers", "trips", "tours", "equipment", "boats", "reports"],
-  },
-  {
-    id: "member",
-    name: "Staff",
-    description: "View and manage daily operations",
-    permissions: ["bookings", "customers", "trips"],
-  },
-];
+function getRoles(t: (key: string) => string) {
+  return [
+    {
+      id: "owner",
+      name: "Owner",
+      description: t("tenant.settings.roles.ownerDesc"),
+      permissions: ["all"],
+    },
+    {
+      id: "admin",
+      name: "Admin",
+      description: t("tenant.settings.roles.adminDesc"),
+      permissions: ["bookings", "customers", "trips", "tours", "equipment", "boats", "reports"],
+    },
+    {
+      id: "member",
+      name: "Staff",
+      description: t("tenant.settings.roles.memberDesc"),
+      permissions: ["bookings", "customers", "trips"],
+    },
+  ];
+}
 
-const roleDisplayLabels: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  staff: "Staff",
-  member: "Staff",
-  customer: "Customer",
-};
+// roleDisplayLabels moved inside component to use t() for i18n
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Import server-only modules inline to prevent client bundle leakage
@@ -98,6 +94,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Plan limit from requireLimit check
   const planLimit = limitCheck.limit;
+
+  // Static role definitions - descriptions will be translated client-side
+  const roles = [
+    { id: "owner", name: "Owner", description: "", permissions: ["all"] },
+    { id: "admin", name: "Admin", description: "", permissions: ["bookings", "customers", "trips", "tours", "equipment", "boats", "reports"] },
+    { id: "member", name: "Staff", description: "", permissions: ["bookings", "customers", "trips"] },
+  ];
 
   return {
     team,
@@ -487,8 +490,20 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TeamPage() {
-  const { team, pendingInvites, roles, planLimit, limitRemaining, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const { team, pendingInvites, roles: loaderRoles, planLimit, limitRemaining, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const t = useT();
+
+  const roleDisplayLabels: Record<string, string> = {
+    owner: t("tenant.settings.roles.owner"),
+    admin: t("tenant.settings.roles.admin"),
+    staff: t("tenant.settings.roles.staff"),
+    member: t("tenant.settings.roles.staff"),
+    customer: t("tenant.settings.roles.customer"),
+  };
+
+  // Apply translated descriptions to roles from loader
+  const roles = getRoles(t);
+
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();

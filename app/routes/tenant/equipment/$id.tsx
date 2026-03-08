@@ -183,30 +183,11 @@ function formatDate(d: string | null | undefined): string {
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-const categoryLabels: Record<string, string> = {
-  bcd: "BCD",
-  regulator: "Regulator",
-  wetsuit: "Wetsuit",
-  mask: "Mask",
-  fins: "Fins",
-  tank: "Tank",
-  computer: "Dive Computer",
-  torch: "Torch/Light",
-  other: "Other",
-};
-
 const statusColors: Record<string, string> = {
   available: "bg-success-muted text-success",
   rented: "bg-brand-muted text-brand",
   maintenance: "bg-warning-muted text-warning",
   retired: "bg-surface-inset text-foreground-muted",
-};
-
-const statusLabels: Record<string, string> = {
-  available: "Available",
-  rented: "Rented",
-  maintenance: "Maintenance",
-  retired: "Retired",
 };
 
 const conditionColors: Record<string, string> = {
@@ -216,18 +197,37 @@ const conditionColors: Record<string, string> = {
   poor: "bg-danger-muted text-danger",
 };
 
-const conditionLabels: Record<string, string> = {
-  excellent: "Excellent",
-  good: "Good",
-  fair: "Fair",
-  poor: "Poor",
-};
-
 export default function EquipmentDetailPage() {
   const { equipment, rentalHistory, serviceHistory, stats, images } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const t = useT();
+
+  const categoryLabels: Record<string, string> = {
+    bcd: t("tenant.equipment.category.bcd"),
+    regulator: t("tenant.equipment.category.regulator"),
+    wetsuit: t("tenant.equipment.category.wetsuit"),
+    mask: t("tenant.equipment.category.mask"),
+    fins: t("tenant.equipment.category.fins"),
+    tank: t("tenant.equipment.category.tank"),
+    computer: t("tenant.equipment.category.computer"),
+    torch: t("tenant.equipment.category.torch"),
+    other: t("tenant.equipment.category.other"),
+  };
+
+  const statusLabels: Record<string, string> = {
+    available: t("tenant.equipment.status.available"),
+    rented: t("tenant.equipment.status.rented"),
+    maintenance: t("tenant.equipment.status.maintenance"),
+    retired: t("tenant.equipment.status.retired"),
+  };
+
+  const conditionLabels: Record<string, string> = {
+    excellent: t("tenant.equipment.condition.excellent"),
+    good: t("tenant.equipment.condition.good"),
+    fair: t("tenant.equipment.condition.fair"),
+    poor: t("tenant.equipment.condition.poor"),
+  };
 
   // Show notifications from URL params
   useNotification();

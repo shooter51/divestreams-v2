@@ -158,15 +158,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-const tourTypes: Record<string, string> = {
-  single_dive: "Single Dive",
-  multi_dive: "Multi-Dive",
-  course: "Course",
-  snorkel: "Snorkel",
-  night_dive: "Night Dive",
-  other: "Other",
-};
-
 function formatTime(t: string | null | undefined): string {
   if (!t) return "TBD";
   const [h, m] = t.split(":").map(Number);
@@ -180,6 +171,15 @@ export default function TourDetailPage() {
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
   const t = useT();
+
+  const tourTypes: Record<string, string> = {
+    single_dive: t("tenant.tours.type.singleDive"),
+    multi_dive: t("tenant.tours.type.multiDive"),
+    course: t("tenant.tours.type.course"),
+    snorkel: t("tenant.tours.type.snorkel"),
+    night_dive: t("tenant.tours.type.nightDive"),
+    other: t("tenant.tours.type.other"),
+  };
 
   // Show notifications from URL params
   useNotification();

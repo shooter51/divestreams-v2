@@ -117,22 +117,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const vesselTypeLabels: Record<string, string> = {
-  catamaran: "Catamaran",
-  speedboat: "Speedboat",
-  sailboat: "Sailboat",
-  inflatable: "Inflatable",
-  rigid_inflatable: "Rigid Inflatable",
-  dive_boat: "Dive Boat",
-  other: "Other",
-};
-
 export default function BoatsPage() {
   // Show notifications from URL params
   useNotification();
 
   const { boats, total, activeCount, totalCapacity, search } = useLoaderData<typeof loader>();
   const t = useT();
+
+  const vesselTypeLabels: Record<string, string> = {
+    catamaran: t("tenant.boats.type.catamaran"),
+    speedboat: t("tenant.boats.type.speedboat"),
+    sailboat: t("tenant.boats.type.sailboat"),
+    inflatable: t("tenant.boats.type.inflatable"),
+    rigid_inflatable: t("tenant.boats.type.rigidInflatable"),
+    dive_boat: t("tenant.boats.type.diveBoat"),
+    other: t("tenant.boats.type.other"),
+  };
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
