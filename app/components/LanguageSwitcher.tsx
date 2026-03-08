@@ -6,7 +6,7 @@ export function LanguageSwitcher() {
   const currentLocale = useLocale();
 
   return (
-    <Form method="post" action="/site/set-locale" className="inline-flex">
+    <Form method="post" action="/api/set-locale" className="inline-flex">
       <select
         name="locale"
         defaultValue={currentLocale}
