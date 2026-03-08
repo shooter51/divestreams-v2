@@ -16,6 +16,7 @@ import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { CsrfInput } from "../../components/CsrfInput";
+import { useT } from "../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
@@ -231,33 +232,26 @@ type DiscountCode = {
 };
 
 // Takes 'now' parameter to avoid hydration mismatch (don't call new Date() during render)
-function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; color: string } {
+// Returns a status key instead of display label - translate in component
+function getDiscountStatus(discount: DiscountCode, now: Date): { statusKey: string; color: string } {
   if (!discount.isActive) {
-    return { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
+    return { statusKey: "inactive", color: "bg-surface-inset text-foreground-muted" };
   }
 
   if (discount.maxUses && discount.usedCount >= discount.maxUses) {
-    return { label: "Used Up", color: "bg-warning-muted text-warning" };
+    return { statusKey: "usedUp", color: "bg-warning-muted text-warning" };
   }
 
   if (discount.validTo && new Date(discount.validTo) < now) {
-    return { label: "Expired", color: "bg-danger-muted text-danger" };
+    return { statusKey: "expired", color: "bg-danger-muted text-danger" };
   }
 
   if (discount.validFrom && new Date(discount.validFrom) > now) {
-    return { label: "Not Yet Active", color: "bg-warning-muted text-warning" };
+    return { statusKey: "notYetActive", color: "bg-warning-muted text-warning" };
   }
 
-  return { label: "Active", color: "bg-success-muted text-success" };
+  return { statusKey: "active", color: "bg-success-muted text-success" };
 }
-
-const applicableToLabels: Record<string, string> = {
-  all: "All",
-  tours: "Tours",
-  equipment: "Equipment",
-  products: "Products",
-  courses: "Courses",
-};
 
 function formatDiscountValue(type: string, value: string): string {
   if (type === "percentage") {
@@ -268,6 +262,7 @@ function formatDiscountValue(type: string, value: string): string {
 
 export default function DiscountsPage() {
   useNotification();
+  const t = useT();
 
   const { discountCodes } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
@@ -277,7 +272,7 @@ export default function DiscountsPage() {
   const [discountType, setDiscountType] = useState<string>("percentage");
 
   // Track discount statuses (calculated client-side to avoid hydration mismatch)
-  const [discountStatuses, setDiscountStatuses] = useState<Map<string, { label: string; color: string }>>(new Map());
+  const [discountStatuses, setDiscountStatuses] = useState<Map<string, { statusKey: string; color: string }>>(new Map());
 
   const isSubmitting = fetcher.state === "submitting";
   const fetcherData = fetcher.data as { error?: string; success?: boolean; message?: string } | undefined;
@@ -285,7 +280,7 @@ export default function DiscountsPage() {
   // Calculate discount statuses after hydration (client-side only)
   useEffect(() => {
     const now = new Date();
-    const statusMap = new Map<string, { label: string; color: string }>();
+    const statusMap = new Map<string, { statusKey: string; color: string }>();
     discountCodes.forEach((discount) => {
       statusMap.set(discount.id, getDiscountStatus(discount as DiscountCode, now));
     });
@@ -310,14 +305,31 @@ export default function DiscountsPage() {
   }, [fetcherData, showToast]);
 
 
+  // Status key -> translated label map
+  const statusLabels: Record<string, string> = {
+    inactive: t("tenant.discounts.status.inactive"),
+    usedUp: t("tenant.discounts.status.usedUp"),
+    expired: t("tenant.discounts.status.expired"),
+    notYetActive: t("tenant.discounts.status.notYetActive"),
+    active: t("tenant.discounts.status.active"),
+  };
+
+  const applicableToLabels: Record<string, string> = {
+    all: t("tenant.discounts.applicableTo.all"),
+    tours: t("tenant.discounts.applicableTo.tours"),
+    equipment: t("tenant.discounts.applicableTo.equipment"),
+    products: t("tenant.discounts.applicableTo.products"),
+    courses: t("tenant.discounts.applicableTo.courses"),
+  };
+
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);
-    return status && (status.label === "Active" || status.label === "Not Yet Active");
+    return status && (status.statusKey === "active" || status.statusKey === "notYetActive");
   });
   const inactiveDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);
-    return !status || (status.label !== "Active" && status.label !== "Not Yet Active");
+    return !status || (status.statusKey !== "active" && status.statusKey !== "notYetActive");
   });
 
   const formatDateForInput = (dateVal: Date | string | null): string => {
@@ -330,8 +342,8 @@ export default function DiscountsPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Discount Codes</h1>
-          <p className="text-foreground-muted">Create and manage discount codes for bookings</p>
+          <h1 className="text-2xl font-bold">{t("tenant.discounts.title")}</h1>
+          <p className="text-foreground-muted">{t("tenant.discounts.description")}</p>
         </div>
         <button
           type="button"
@@ -342,7 +354,7 @@ export default function DiscountsPage() {
           }}
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
         >
-          + Create Discount Code
+          + {t("tenant.discounts.createCode")}
         </button>
       </div>
 
@@ -351,25 +363,25 @@ export default function DiscountsPage() {
       {/* Active Discounts */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-3 text-foreground">
-          Active Discount Codes ({activeDiscounts.length})
+          {t("tenant.discounts.activeCount", { count: String(activeDiscounts.length) })}
         </h2>
         {activeDiscounts.length > 0 ? (
           <div className="bg-surface-raised rounded-lg shadow overflow-hidden">
             <table className="w-full">
               <thead className="bg-surface-inset">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Discount</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Applies To</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Valid Period</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Usage</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.code")}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.discount")}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.appliesTo")}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.validPeriod")}</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.usage")}</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">{t("common.status")}</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {activeDiscounts.map((discount) => {
-                  const status = discountStatuses.get(discount.id) || { label: "Active", color: "bg-success-muted text-success" };
+                  const status = discountStatuses.get(discount.id) || { statusKey: "active", color: "bg-success-muted text-success" };
                   return (
                     <tr key={discount.id}>
                       <td className="px-4 py-3">
@@ -394,23 +406,23 @@ export default function DiscountsPage() {
                             {discount.validTo && ` - ${new Date(discount.validTo).toLocaleDateString()}`}
                           </>
                         ) : discount.validTo ? (
-                          `Until ${new Date(discount.validTo).toLocaleDateString()}`
+                          `${t("tenant.discounts.until")} ${new Date(discount.validTo).toLocaleDateString()}`
                         ) : (
-                          "No limit"
+                          t("tenant.discounts.noLimit")
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {discount.maxUses
                           ? `${discount.usedCount} / ${discount.maxUses}`
-                          : `${discount.usedCount} uses`}
+                          : t("tenant.discounts.usesCount", { count: String(discount.usedCount) })}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
-                          {status.label}
+                          {statusLabels[status.statusKey] || status.statusKey}
                         </span>
-                        {status.label === "Not Yet Active" && discount.validFrom && (
+                        {status.statusKey === "notYetActive" && discount.validFrom && (
                           <p className="text-xs text-warning mt-1">
-                            Active from {new Date(discount.validFrom).toLocaleDateString()}
+                            {t("tenant.discounts.activeFrom", { date: new Date(discount.validFrom).toLocaleDateString() })}
                           </p>
                         )}
                       </td>
@@ -426,7 +438,7 @@ export default function DiscountsPage() {
                             }}
                             className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
                           >
-                            Edit
+                            {t("common.edit")}
                           </button>
                           <fetcher.Form method="post">
                             <CsrfInput />
@@ -437,7 +449,7 @@ export default function DiscountsPage() {
                               type="submit"
                               className="px-2 py-1 text-sm text-warning hover:bg-warning-muted rounded"
                             >
-                              Deactivate
+                              {t("tenant.discounts.deactivate")}
                             </button>
                           </fetcher.Form>
                         </div>
@@ -450,7 +462,7 @@ export default function DiscountsPage() {
           </div>
         ) : (
           <div className="bg-surface-inset rounded-lg p-8 text-center">
-            <p className="text-foreground-muted mb-4">No active discount codes.</p>
+            <p className="text-foreground-muted mb-4">{t("tenant.discounts.noActive")}</p>
             <button
               type="button"
               onClick={() => {
@@ -459,7 +471,7 @@ export default function DiscountsPage() {
               }}
               className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
-              Create Your First Discount Code
+              {t("tenant.discounts.createFirst")}
             </button>
           </div>
         )}
@@ -469,22 +481,22 @@ export default function DiscountsPage() {
       {inactiveDiscounts.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold mb-3 text-foreground-muted">
-            Inactive / Expired ({inactiveDiscounts.length})
+            {t("tenant.discounts.inactiveCount", { count: String(inactiveDiscounts.length) })}
           </h2>
           <div className="bg-surface-raised rounded-lg shadow overflow-hidden opacity-75">
             <table className="w-full">
               <thead className="bg-surface-inset">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Discount</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Usage</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.code")}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.discount")}</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.usage")}</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">{t("common.status")}</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">{t("tenant.discounts.col.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {inactiveDiscounts.map((discount) => {
-                  const status = discountStatuses.get(discount.id) || { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
+                  const status = discountStatuses.get(discount.id) || { statusKey: "inactive", color: "bg-surface-inset text-foreground-muted" };
                   return (
                     <tr key={discount.id}>
                       <td className="px-4 py-3">
@@ -499,16 +511,16 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3 text-center">
                         {discount.maxUses
                           ? `${discount.usedCount} / ${discount.maxUses}`
-                          : `${discount.usedCount} uses`}
+                          : t("tenant.discounts.usesCount", { count: String(discount.usedCount) })}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
-                          {status.label}
+                          {statusLabels[status.statusKey] || status.statusKey}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {status.label === "Inactive" && (
+                          {status.statusKey === "inactive" && (
                             <fetcher.Form method="post">
                               <CsrfInput />
                               <input type="hidden" name="intent" value="toggle-active" />
@@ -518,7 +530,7 @@ export default function DiscountsPage() {
                                 type="submit"
                                 className="px-2 py-1 text-sm text-success hover:bg-success-muted rounded"
                               >
-                                Activate
+                                {t("tenant.discounts.activate")}
                               </button>
                             </fetcher.Form>
                           )}
@@ -532,7 +544,7 @@ export default function DiscountsPage() {
                             }}
                             className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
                           >
-                            Edit
+                            {t("common.edit")}
                           </button>
                         </div>
                       </td>
@@ -551,7 +563,7 @@ export default function DiscountsPage() {
           <div className="bg-surface-raised rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">
-                {editingDiscount ? "Edit Discount Code" : "Create Discount Code"}
+                {editingDiscount ? t("tenant.discounts.editCode") : t("tenant.discounts.createCode")}
               </h2>
 
               <fetcher.Form method="post" className="space-y-4">
@@ -568,7 +580,7 @@ export default function DiscountsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-1">Code *</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.col.code")} *</label>
                     <input
                       type="text"
                       name="code"
@@ -578,12 +590,12 @@ export default function DiscountsPage() {
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand uppercase font-mono"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      Customers will enter this code when booking
+                      {t("tenant.discounts.codeHint")}
                     </p>
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <label className="block text-sm font-medium mb-1">{t("common.description")}</label>
                     <input
                       type="text"
                       name="description"
@@ -594,7 +606,7 @@ export default function DiscountsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Discount Type *</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.discountType")} *</label>
                     <select
                       name="discountType"
                       defaultValue={editingDiscount?.discountType || "percentage"}
@@ -602,13 +614,13 @@ export default function DiscountsPage() {
                       onChange={(e) => setDiscountType(e.target.value)}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
-                      <option value="percentage">Percentage (%)</option>
-                      <option value="fixed">Fixed Amount ($)</option>
+                      <option value="percentage">{t("tenant.discounts.type.percentage")}</option>
+                      <option value="fixed">{t("tenant.discounts.type.fixedAmount")}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Discount Value *</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.discountValue")} *</label>
                     <input
                       type="number"
                       name="discountValue"
@@ -622,13 +634,13 @@ export default function DiscountsPage() {
                     />
                     <p className="text-xs text-foreground-muted mt-1">
                       {discountType === "percentage"
-                        ? "Min 1%, max 100%"
-                        : "Min $1, max $100,000"}
+                        ? t("tenant.discounts.percentageRange")
+                        : t("tenant.discounts.fixedRange")}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Min Booking Amount</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.minBookingAmount")}</label>
                     <input
                       type="number"
                       name="minBookingAmount"
@@ -636,28 +648,28 @@ export default function DiscountsPage() {
                       min="1"
                       max="100000"
                       defaultValue={editingDiscount?.minBookingAmount || ""}
-                      placeholder="No minimum"
+                      placeholder={t("tenant.discounts.noMinimum")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      Optional: $1 - $100,000
+                      {t("tenant.discounts.minAmountHint")}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Max Uses</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.maxUses")}</label>
                     <input
                       type="number"
                       name="maxUses"
                       min="1"
                       defaultValue={editingDiscount?.maxUses || ""}
-                      placeholder="Unlimited"
+                      placeholder={t("tenant.discounts.unlimited")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Valid From</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.validFrom")}</label>
                     <input
                       type="datetime-local"
                       name="validFrom"
@@ -667,7 +679,7 @@ export default function DiscountsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Valid Until</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.validUntil")}</label>
                     <input
                       type="datetime-local"
                       name="validTo"
@@ -677,16 +689,16 @@ export default function DiscountsPage() {
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-1">Applicable To *</label>
+                    <label className="block text-sm font-medium mb-1">{t("tenant.discounts.col.appliesTo")} *</label>
                     <select
                       name="applicableTo"
                       defaultValue={editingDiscount?.applicableTo || "all"}
                       required
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
-                      <option value="all">All Bookings</option>
-                      <option value="tours">Tours Only</option>
-                      <option value="courses">Courses Only</option>
+                      <option value="all">{t("tenant.discounts.applicableTo.allBookings")}</option>
+                      <option value="tours">{t("tenant.discounts.applicableTo.toursOnly")}</option>
+                      <option value="courses">{t("tenant.discounts.applicableTo.coursesOnly")}</option>
                     </select>
                   </div>
 
@@ -700,7 +712,7 @@ export default function DiscountsPage() {
                           defaultChecked={editingDiscount.isActive}
                           className="w-4 h-4 rounded"
                         />
-                        <span className="text-sm">Active</span>
+                        <span className="text-sm">{t("common.active")}</span>
                       </label>
                     </div>
                   )}
@@ -715,14 +727,14 @@ export default function DiscountsPage() {
                     }}
                     className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
-                    {isSubmitting ? "Saving..." : editingDiscount ? "Update" : "Create"}
+                    {isSubmitting ? t("common.saving") : editingDiscount ? t("common.update") : t("common.create")}
                   </button>
                 </div>
               </fetcher.Form>
@@ -736,13 +748,13 @@ export default function DiscountsPage() {
                     <button
                       type="submit"
                       onClick={(e) => {
-                        if (!confirm("Delete this discount code? This cannot be undone.")) {
+                        if (!confirm(t("tenant.discounts.deleteConfirm"))) {
                           e.preventDefault();
                         }
                       }}
                       className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
                     >
-                      Delete Discount Code
+                      {t("tenant.discounts.deleteCode")}
                     </button>
                   </fetcher.Form>
                 </div>
