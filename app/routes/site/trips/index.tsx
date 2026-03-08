@@ -11,6 +11,8 @@ import { useT } from "../../../i18n/use-t";
 import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Trips" }];
@@ -196,8 +198,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   );
 
+  // Apply content translations for tour names/descriptions
+  const locale = resolveLocale(request);
+  let translatedTripCards = tripCards;
+  if (locale !== "en" && tripCards.length > 0) {
+    const tourIds = [...new Set(tripCards.map((t) => t.tourId))];
+    const translations = await bulkGetContentTranslations(
+      org.id,
+      "tour",
+      tourIds,
+      locale
+    );
+    translatedTripCards = tripCards.map((t) => {
+      const tr = translations.get(t.tourId);
+      return tr
+        ? { ...t, tourName: tr.name || t.tourName, tourDescription: tr.description || t.tourDescription }
+        : t;
+    });
+  }
+
   return {
-    trips: tripCards,
+    trips: translatedTripCards,
     total,
     page,
     totalPages,

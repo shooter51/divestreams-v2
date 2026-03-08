@@ -11,6 +11,8 @@ import { eq } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema/auth";
 import { getPublicCourses } from "../../../../lib/db/public-site.server";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 // ============================================================================
@@ -139,8 +141,27 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   const agency = url.searchParams.get("agency");
   const level = url.searchParams.get("level");
 
+  // Get locale for translations
+  const locale = resolveLocale(request);
+
   // Get all public courses
   const result = await getPublicCourses(org.id, { page, limit: 100 });
+
+  // Apply content translations
+  if (locale !== "en" && result.courses.length > 0) {
+    const translations = await bulkGetContentTranslations(
+      org.id,
+      "course",
+      result.courses.map((c) => c.id),
+      locale
+    );
+    result.courses = result.courses.map((c) => {
+      const t = translations.get(c.id);
+      return t
+        ? { ...c, name: t.name || c.name, description: t.description || c.description }
+        : c;
+    });
+  }
 
   // Extract unique agencies from actual courses (before filtering)
   const availableAgencies = Array.from(
