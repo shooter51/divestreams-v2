@@ -29,7 +29,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
       contentTranslations.field
     );
 
-  return { translations: rows };
+  // Collect unique entity keys to fetch source texts
+  const entityKeys = new Set<string>();
+  for (const row of rows) {
+    entityKeys.add(`${row.entityType}:${row.entityId}`);
+  }
+
+  // Fetch source texts for all entities
+  const sourceTexts: Record<string, Record<string, string | null>> = {};
+  for (const key of entityKeys) {
+    const [entityType, entityId] = key.split(":");
+    sourceTexts[key] = await getEntitySourceTexts(ctx.org.id, entityType, entityId);
+  }
+
+  return { translations: rows, sourceTexts };
 }
 
 async function getEntitySourceTexts(
@@ -202,13 +215,13 @@ function groupByEntity(
 }
 
 export default function TranslationsPage() {
-  const { translations } = useLoaderData<typeof loader>();
+  const { translations, sourceTexts } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const grouped = groupByEntity(translations as TranslationRow[]);
   const t = useT();
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-6xl">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t("tenant.translations.title")}</h1>
@@ -245,6 +258,8 @@ export default function TranslationsPage() {
         <div className="space-y-8">
           {[...grouped.entries()].map(([entityKey, rows]) => {
             const [entityType, entityId] = entityKey.split(":");
+            const entitySource = sourceTexts[entityKey] || {};
+            const entityName = entitySource.name || entityId;
             return (
               <div key={entityKey} className="bg-surface-raised rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
@@ -252,7 +267,7 @@ export default function TranslationsPage() {
                     <span className="text-xs font-medium uppercase tracking-wide text-foreground-muted">
                       {entityType}
                     </span>
-                    <p className="text-sm text-foreground-subtle font-mono">{entityId}</p>
+                    <p className="text-sm font-medium">{entityName}</p>
                   </div>
                   <fetcher.Form method="post">
                     <CsrfInput />
@@ -274,6 +289,7 @@ export default function TranslationsPage() {
                     <tr className="text-left text-foreground-muted border-b border-surface-overlay">
                       <th className="pb-2 font-medium">{t("tenant.translations.field")}</th>
                       <th className="pb-2 font-medium">{t("tenant.translations.locale")}</th>
+                      <th className="pb-2 font-medium">{t("tenant.translations.original")}</th>
                       <th className="pb-2 font-medium">{t("tenant.translations.value")}</th>
                       <th className="pb-2 font-medium">{t("tenant.translations.source")}</th>
                       <th className="pb-2"></th>
@@ -281,7 +297,7 @@ export default function TranslationsPage() {
                   </thead>
                   <tbody className="divide-y divide-surface-overlay">
                     {rows.map((row) => (
-                      <EditableRow key={row.id} row={row as TranslationRow} />
+                      <EditableRow key={row.id} row={row as TranslationRow} originalText={entitySource[row.field] || ""} />
                     ))}
                   </tbody>
                 </table>
@@ -294,7 +310,7 @@ export default function TranslationsPage() {
   );
 }
 
-function EditableRow({ row }: { row: TranslationRow }) {
+function EditableRow({ row, originalText }: { row: TranslationRow; originalText: string }) {
   const fetcher = useFetcher<typeof action>();
   const t = useT();
 
@@ -306,7 +322,10 @@ function EditableRow({ row }: { row: TranslationRow }) {
           {LOCALE_LABELS[row.locale as keyof typeof LOCALE_LABELS] ?? row.locale}
         </span>
       </td>
-      <td className="py-2 pr-4 flex-1">
+      <td className="py-2 pr-4 text-foreground-muted max-w-[200px] truncate" title={originalText}>
+        {originalText}
+      </td>
+      <td className="py-2 pr-4">
         <fetcher.Form method="post" className="flex gap-2 items-center">
           <CsrfInput />
           <input type="hidden" name="intent" value="update" />
