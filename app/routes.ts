@@ -152,6 +152,9 @@ export default [
       route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
       route("training/enrollments/new", "routes/tenant/training/enrollments/new.tsx"),
       route("training/enrollments/:id", "routes/tenant/training/enrollments/$id.tsx"),
+      route("training/series", "routes/tenant/training/series/index.tsx"),
+      route("training/series/new", "routes/tenant/training/series/new.tsx"),
+      route("training/series/:id", "routes/tenant/training/series/$id.tsx"),
 
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
@@ -174,7 +177,13 @@ export default [
         route("settings/public-site", "routes/tenant/settings/public-site.general.tsx"),
         route("settings/public-site/content", "routes/tenant/settings/public-site.content.tsx"),
         route("settings/public-site/appearance", "routes/tenant/settings/public-site.appearance.tsx"),
+        route("settings/public-site/pages", "routes/tenant/settings/public-site.pages.tsx"),
+        route("settings/public-site/pages/:pageId/edit", "routes/tenant/settings/public-site.pages.$pageId.edit.tsx"),
+        route("settings/public-site/team", "routes/tenant/settings/public-site.team.tsx"),
       ]),
+
+      // Translations Settings
+      route("settings/translations", "routes/tenant/settings/translations.tsx"),
 
       // Training Settings
       route("settings/training/agencies", "routes/tenant/settings/training/agencies.tsx"),
@@ -211,6 +220,9 @@ export default [
   // Public site routes (accessed via subdomain/site)
   // These routes are for the customer-facing public website
   ...prefix("site", [
+    // Locale switcher (action-only, no layout needed)
+    route("set-locale", "routes/site/set-locale.tsx"),
+
     layout("routes/site/_layout.tsx", [
       index("routes/site/index.tsx"), // Homepage
       route("about", "routes/site/about.tsx"),
