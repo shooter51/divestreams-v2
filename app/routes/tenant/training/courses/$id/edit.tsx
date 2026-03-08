@@ -250,7 +250,7 @@ export default function EditCoursePage() {
                 id="code"
                 name="code"
                 defaultValue={actionData?.values?.code || course.code || ""}
-                placeholder="e.g., OWD, AOWD, EFR"
+                placeholder={t("tenant.training.courses.codePlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -500,7 +500,7 @@ export default function EditCoursePage() {
                 type="text"
                 id="includedItemsStr"
                 name="includedItemsStr"
-                placeholder="Logbook, Certification card, Photos (comma-separated)"
+                placeholder={t("tenant.training.courses.includedItemsPlaceholder")}
                 defaultValue={
                   actionData?.values?.includedItemsStr ||
                   course.includedItems?.join(", ") ||
@@ -518,7 +518,7 @@ export default function EditCoursePage() {
                 type="text"
                 id="requiredItemsStr"
                 name="requiredItemsStr"
-                placeholder="Swimsuit, Towel, Sunscreen (comma-separated)"
+                placeholder={t("tenant.training.courses.studentsMustBringPlaceholder")}
                 defaultValue={
                   actionData?.values?.requiredItemsStr ||
                   course.requiredItems?.join(", ") ||
@@ -542,7 +542,7 @@ export default function EditCoursePage() {
                 type="text"
                 id="requiredCertLevel"
                 name="requiredCertLevel"
-                placeholder="e.g., Open Water Diver"
+                placeholder={t("tenant.training.courses.namePlaceholder")}
                 defaultValue={
                   actionData?.values?.requiredCertLevel || course.requiredCertLevel || ""
                 }
@@ -573,7 +573,7 @@ export default function EditCoursePage() {
                 id="medicalRequirements"
                 name="medicalRequirements"
                 rows={2}
-                placeholder="e.g., Medical questionnaire required, physician clearance if over 45"
+                placeholder={t("tenant.training.courses.medicalPlaceholder")}
                 defaultValue={
                   actionData?.values?.medicalRequirements || course.medicalRequirements || ""
                 }

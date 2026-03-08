@@ -7,6 +7,8 @@ import { redirectWithNotification, useNotification } from "../../../../lib/use-n
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
@@ -57,6 +59,23 @@ export async function action({ request }: ActionFunctionArgs) {
     currentStrength: (formData.get("currentStrength") as string) || undefined,
     visibility: (formData.get("visibility") as string) || undefined,
   });
+
+  // Enqueue auto-translation for translatable fields
+  const fieldsToTranslate = [
+    { field: "name", text: formData.get("name") as string },
+    { field: "description", text: formData.get("description") as string },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "dive_site",
+      entityId: newSite.id,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   // Process uploaded images if any
   if (imageFiles.length > 0) {
@@ -343,11 +362,11 @@ export default function NewDiveSitePage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Images (Optional)</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.diveSites.imagesOptional")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="images" className="block text-sm font-medium mb-2">
-                Upload up to 5 images
+                {t("tenant.diveSites.uploadUpTo")}
               </label>
               <input
                 type="file"
@@ -364,7 +383,7 @@ export default function NewDiveSitePage() {
                   file:cursor-pointer cursor-pointer"
               />
               <p className="mt-2 text-sm text-foreground-muted">
-                JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.
+                {t("tenant.diveSites.imageFormats")}
               </p>
             </div>
           </div>

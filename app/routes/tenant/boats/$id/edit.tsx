@@ -9,6 +9,8 @@ import { boatSchema, validateFormData, getFormValues } from "../../../../../lib/
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
 import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
@@ -122,6 +124,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(and(eq(schema.boats.organizationId, organizationId), eq(schema.boats.id, boatId)));
+
+  // Enqueue auto-translation for translatable fields
+  const fieldsToTranslate = [
+    { field: "name", text: validation.data.name },
+    { field: "description", text: validation.data.description || "" },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "boat",
+      entityId: boatId,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   return redirect(redirectWithNotification(`/tenant/boats/${boatId}`, `Boat "${validation.data.name}" has been successfully updated`, "success"));
 }

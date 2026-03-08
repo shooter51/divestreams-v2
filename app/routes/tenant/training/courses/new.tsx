@@ -156,7 +156,7 @@ export default function NewCoursePage() {
                 id="name"
                 name="name"
                 defaultValue={actionData?.values?.name}
-                placeholder="e.g., Open Water Diver"
+                placeholder={t("tenant.training.courses.namePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
@@ -174,7 +174,7 @@ export default function NewCoursePage() {
                 id="code"
                 name="code"
                 defaultValue={actionData?.values?.code}
-                placeholder="e.g., OWD, AOWD, EFR"
+                placeholder={t("tenant.training.courses.codePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -263,7 +263,7 @@ export default function NewCoursePage() {
                 name="classroomHours"
                 min="0"
                 defaultValue={actionData?.values?.classroomHours}
-                placeholder="e.g., 8"
+                placeholder={t("tenant.training.courses.maxStudentsPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -278,7 +278,7 @@ export default function NewCoursePage() {
                 name="poolHours"
                 min="0"
                 defaultValue={actionData?.values?.poolHours}
-                placeholder="e.g., 4"
+                placeholder={t("tenant.training.courses.numberPlaceholder4")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -293,7 +293,7 @@ export default function NewCoursePage() {
                 name="openWaterDives"
                 min="0"
                 defaultValue={actionData?.values?.openWaterDives}
-                placeholder="e.g., 4"
+                placeholder={t("tenant.training.courses.numberPlaceholder4")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -370,7 +370,7 @@ export default function NewCoursePage() {
                 name="minAge"
                 min="1"
                 defaultValue={actionData?.values?.minAge}
-                placeholder="e.g., 10"
+                placeholder={t("tenant.training.courses.minAgePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -389,7 +389,7 @@ export default function NewCoursePage() {
               name="prerequisites"
               rows={2}
               defaultValue={actionData?.values?.prerequisites}
-              placeholder="e.g., Open Water Diver certification, minimum 10 logged dives"
+              placeholder={t("tenant.training.courses.prerequisitesPlaceholder")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
