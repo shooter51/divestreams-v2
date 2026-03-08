@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { Icons } from "./Icons";
 import type { XeroSettings } from "./types";
 
@@ -16,6 +17,7 @@ export function XeroIntegration({
   onNotification,
   openModal,
 }: XeroIntegrationProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
 
@@ -74,7 +76,7 @@ export function XeroIntegration({
             type="submit"
             className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
           >
-            Configure
+            {t("tenant.integrations.xero.configure")}
           </button>
         </fetcher.Form>
       )}
@@ -85,9 +87,9 @@ export function XeroIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Connect Xero</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.xero.connectXero")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Enter your Xero OAuth credentials to enable accounting sync
+                  {t("tenant.integrations.xero.enterOAuthCredentials")}
                 </p>
               </div>
               <button
@@ -103,14 +105,14 @@ export function XeroIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-danger">*</span>
+                  {t("tenant.integrations.xero.clientId")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   name="clientId"
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
-                  placeholder="Your Xero Client ID"
+                  placeholder={t("tenant.integrations.xero.clientIdPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
@@ -118,27 +120,27 @@ export function XeroIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-danger">*</span>
+                  {t("tenant.integrations.xero.clientSecret")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
                   name="clientSecret"
                   value={clientSecret}
                   onChange={(e) => setClientSecret(e.target.value)}
-                  placeholder="Your Xero Client Secret"
+                  placeholder={t("tenant.integrations.xero.clientSecretPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  This will be encrypted and stored securely
+                  {t("tenant.integrations.xero.encryptedStorage")}
                 </p>
               </div>
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-sm text-brand">
-                  <strong>Get your credentials:</strong>
+                  <strong>{t("tenant.integrations.xero.getCredentials")}:</strong>
                   <br />
-                  1. Go to{" "}
+                  1. {t("tenant.integrations.xero.step1GoTo")}{" "}
                   <a
                     href="https://developer.xero.com/app/manage"
                     target="_blank"
@@ -148,9 +150,9 @@ export function XeroIntegration({
                     Xero Developer Portal
                   </a>
                   <br />
-                  2. Create an OAuth 2.0 app
+                  2. {t("tenant.integrations.xero.step2CreateApp")}
                   <br />
-                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/xero/callback</code>
+                  3. {t("tenant.integrations.xero.step3AddRedirect")}: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/xero/callback</code>
                 </p>
               </div>
 
@@ -160,14 +162,14 @@ export function XeroIntegration({
                   onClick={() => setShowOAuthModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.xero.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to Xero"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.xero.connecting") : t("tenant.integrations.xero.continueToXero")}
                 </button>
               </div>
             </fetcher.Form>
@@ -181,13 +183,13 @@ export function XeroIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Xero Settings</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.xero.xeroSettings")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Configure sync options and account mapping
+                  {t("tenant.integrations.xero.configureSyncOptions")}
                 </p>
                 {xeroSettings?.tenantName && (
                   <p className="text-xs text-foreground-subtle mt-1">
-                    Connected to: {xeroSettings.tenantName}
+                    {t("tenant.integrations.xero.connectedTo")}: {xeroSettings.tenantName}
                   </p>
                 )}
               </div>
@@ -204,7 +206,7 @@ export function XeroIntegration({
 
               {/* Sync Options */}
               <div>
-                <h3 className="text-sm font-medium mb-3">Sync Options</h3>
+                <h3 className="text-sm font-medium mb-3">{t("tenant.integrations.xero.syncOptions")}</h3>
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-surface-inset cursor-pointer">
                     <input
@@ -216,9 +218,9 @@ export function XeroIntegration({
                       className="rounded border-border-strong text-brand focus:ring-brand"
                     />
                     <div>
-                      <span className="text-sm font-medium">Sync Invoices</span>
+                      <span className="text-sm font-medium">{t("tenant.integrations.xero.syncInvoices")}</span>
                       <p className="text-xs text-foreground-muted">
-                        Automatically create invoices in Xero when bookings are confirmed
+                        {t("tenant.integrations.xero.syncInvoicesDesc")}
                       </p>
                     </div>
                   </label>
@@ -233,9 +235,9 @@ export function XeroIntegration({
                       className="rounded border-border-strong text-brand focus:ring-brand"
                     />
                     <div>
-                      <span className="text-sm font-medium">Sync Payments</span>
+                      <span className="text-sm font-medium">{t("tenant.integrations.xero.syncPayments")}</span>
                       <p className="text-xs text-foreground-muted">
-                        Record payments in Xero when received via Stripe
+                        {t("tenant.integrations.xero.syncPaymentsDesc")}
                       </p>
                     </div>
                   </label>
@@ -250,9 +252,9 @@ export function XeroIntegration({
                       className="rounded border-border-strong text-brand focus:ring-brand"
                     />
                     <div>
-                      <span className="text-sm font-medium">Sync Contacts</span>
+                      <span className="text-sm font-medium">{t("tenant.integrations.xero.syncContacts")}</span>
                       <p className="text-xs text-foreground-muted">
-                        Create and update contacts in Xero from customer data
+                        {t("tenant.integrations.xero.syncContactsDesc")}
                       </p>
                     </div>
                   </label>
@@ -261,11 +263,11 @@ export function XeroIntegration({
 
               {/* Account Mapping */}
               <div>
-                <h3 className="text-sm font-medium mb-3">Account Mapping</h3>
+                <h3 className="text-sm font-medium mb-3">{t("tenant.integrations.xero.accountMapping")}</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Default Revenue Account Code
+                      {t("tenant.integrations.xero.defaultRevenueAccountCode")}
                     </label>
                     <input
                       type="text"
@@ -276,13 +278,13 @@ export function XeroIntegration({
                       className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      The account code for booking revenue in your Xero chart of accounts
+                      {t("tenant.integrations.xero.revenueAccountCodeHint")}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Default Tax Type
+                      {t("tenant.integrations.xero.defaultTaxType")}
                     </label>
                     <select
                       name="defaultTaxType"
@@ -290,21 +292,21 @@ export function XeroIntegration({
                       onChange={(e) => setTaxType(e.target.value)}
                       className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                     >
-                      <option value="">Select tax type...</option>
-                      <option value="OUTPUT">OUTPUT (Standard Tax)</option>
-                      <option value="OUTPUT2">OUTPUT2 (Reduced Rate)</option>
-                      <option value="NONE">NONE (No Tax)</option>
-                      <option value="ZERORATEDOUTPUT">Zero Rated</option>
-                      <option value="EXEMPTOUTPUT">Exempt</option>
+                      <option value="">{t("tenant.integrations.xero.selectTaxType")}</option>
+                      <option value="OUTPUT">{t("tenant.integrations.xero.taxOutputStandard")}</option>
+                      <option value="OUTPUT2">{t("tenant.integrations.xero.taxOutputReduced")}</option>
+                      <option value="NONE">{t("tenant.integrations.xero.taxNone")}</option>
+                      <option value="ZERORATEDOUTPUT">{t("tenant.integrations.xero.taxZeroRated")}</option>
+                      <option value="EXEMPTOUTPUT">{t("tenant.integrations.xero.taxExempt")}</option>
                     </select>
                     <p className="text-xs text-foreground-muted mt-1">
-                      Tax type to apply to invoices
+                      {t("tenant.integrations.xero.taxTypeHint")}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Invoice Reference Prefix
+                      {t("tenant.integrations.xero.invoiceReferencePrefix")}
                     </label>
                     <input
                       type="text"
@@ -315,7 +317,7 @@ export function XeroIntegration({
                       className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      Prefix added to invoice references (e.g., DS-12345)
+                      {t("tenant.integrations.xero.invoicePrefixHint")}
                     </p>
                   </div>
                 </div>
@@ -323,8 +325,7 @@ export function XeroIntegration({
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-sm text-brand">
-                  <strong>Note:</strong> Changes to sync settings will apply to new bookings and transactions.
-                  Existing records will not be automatically synced.
+                  <strong>{t("tenant.integrations.xero.note")}:</strong> {t("tenant.integrations.xero.syncSettingsNote")}
                 </p>
               </div>
 
@@ -338,14 +339,14 @@ export function XeroIntegration({
                   onClick={() => setShowConfigModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.xero.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Saving..." : "Save Settings"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.xero.saving") : t("tenant.integrations.xero.saveSettings")}
                 </button>
               </div>
             </fetcher.Form>

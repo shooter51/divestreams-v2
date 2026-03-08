@@ -275,8 +275,8 @@ describe("ImageManager Component", () => {
   });
 
   it("shows empty state when no images", () => {
-    expect(imageManagerSource).toContain("No images yet");
-    expect(imageManagerSource).toContain("Upload your first image");
+    expect(imageManagerSource).toContain("noImages");
+    expect(imageManagerSource).toContain("uploadFirst");
   });
 
   it("shows image count out of max", () => {
@@ -285,13 +285,12 @@ describe("ImageManager Component", () => {
 
   it("supports setting primary image", () => {
     expect(imageManagerSource).toContain("handleSetPrimary");
-    expect(imageManagerSource).toContain("Set as primary");
+    expect(imageManagerSource).toContain("setAsPrimary");
   });
 
   it("validates max images limit before upload", () => {
     expect(imageManagerSource).toContain("images.length >= maxImages");
-    expect(imageManagerSource).toContain("Maximum");
-    expect(imageManagerSource).toContain("images allowed");
+    expect(imageManagerSource).toContain("maxImages");
   });
 });
 

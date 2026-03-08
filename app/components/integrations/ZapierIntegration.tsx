@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { Icons } from "./Icons";
 import type { ZapierSettings } from "./types";
 
@@ -22,6 +23,7 @@ export function ZapierIntegration({
   onNotification,
   openModal,
 }: ZapierIntegrationProps) {
+  const t = useT();
   const fetcher = useFetcher();
 
   // Connect modal state
@@ -84,7 +86,7 @@ export function ZapierIntegration({
     }
 
     if ("zapierTestSuccess" in fetcherData && fetcherData.zapierTestSuccess) {
-      onNotification({ type: "success", message: "Test webhook sent successfully!" });
+      onNotification({ type: "success", message: t("tenant.integrations.zapier.testWebhookSuccess") });
       return;
     }
 
@@ -143,7 +145,7 @@ export function ZapierIntegration({
           onClick={() => setShowConfigModal(true)}
           className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
         >
-          Configure
+          {t("tenant.integrations.zapier.configure")}
         </button>
       )}
 
@@ -153,9 +155,9 @@ export function ZapierIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Connect Zapier</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.zapier.connectZapier")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Automate workflows by connecting DiveStreams to 6,000+ apps
+                  {t("tenant.integrations.zapier.automateWorkflows")}
                 </p>
               </div>
               <button
@@ -171,9 +173,9 @@ export function ZapierIntegration({
 
               {/* Webhook URL from DiveStreams */}
               <div className="bg-surface-inset rounded-lg p-4">
-                <h3 className="text-sm font-medium mb-2">Your DiveStreams Webhook URL</h3>
+                <h3 className="text-sm font-medium mb-2">{t("tenant.integrations.zapier.yourWebhookUrl")}</h3>
                 <p className="text-xs text-foreground-muted mb-3">
-                  Use this URL in your Zapier "Webhooks by Zapier" trigger to receive events from DiveStreams.
+                  {t("tenant.integrations.zapier.webhookUrlDescription")}
                 </p>
                 <div className="flex items-center gap-2">
                   <input
@@ -186,7 +188,7 @@ export function ZapierIntegration({
                     type="button"
                     onClick={() => copyToClipboard(zapierWebhookUrl)}
                     className="p-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
-                    title="Copy URL"
+                    title={t("tenant.integrations.zapier.copyUrl")}
                   >
                     <Icons.Copy className="w-4 h-4" />
                   </button>
@@ -196,7 +198,7 @@ export function ZapierIntegration({
               {/* Optional: Zapier Webhook URL for Catch Hook */}
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Zapier Webhook URL (Optional)
+                  {t("tenant.integrations.zapier.zapierWebhookUrlOptional")}
                 </label>
                 <input
                   type="url"
@@ -207,27 +209,27 @@ export function ZapierIntegration({
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  If you want DiveStreams to push events to Zapier, enter your Zapier Catch Hook URL here.
+                  {t("tenant.integrations.zapier.catchHookDescription")}
                 </p>
               </div>
 
               {/* Available Triggers */}
               <div>
-                <label className="block text-sm font-medium mb-2">Available Triggers</label>
+                <label className="block text-sm font-medium mb-2">{t("tenant.integrations.zapier.availableTriggersLabel")}</label>
                 <p className="text-xs text-foreground-muted mb-3">
-                  Select which events should be sent to Zapier
+                  {t("tenant.integrations.zapier.selectEvents")}
                 </p>
                 {renderTriggerCheckboxes()}
               </div>
 
               <div className="bg-brand-muted rounded-lg p-4 text-sm">
-                <h4 className="font-medium text-brand mb-1">How to use with Zapier:</h4>
+                <h4 className="font-medium text-brand mb-1">{t("tenant.integrations.zapier.howToUse")}:</h4>
                 <ol className="list-decimal list-inside text-brand space-y-1 text-xs">
-                  <li>Create a new Zap in Zapier</li>
-                  <li>Choose "Webhooks by Zapier" as your trigger</li>
-                  <li>Select "Catch Hook" and copy the provided URL</li>
-                  <li>Paste that URL in the field above</li>
-                  <li>DiveStreams will send events to your Zap automatically</li>
+                  <li>{t("tenant.integrations.zapier.howStep1")}</li>
+                  <li>{t("tenant.integrations.zapier.howStep2")}</li>
+                  <li>{t("tenant.integrations.zapier.howStep3")}</li>
+                  <li>{t("tenant.integrations.zapier.howStep4")}</li>
+                  <li>{t("tenant.integrations.zapier.howStep5")}</li>
                 </ol>
               </div>
 
@@ -237,14 +239,14 @@ export function ZapierIntegration({
                   onClick={() => setShowConnectModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.zapier.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Connecting..." : "Connect Zapier"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.zapier.connecting") : t("tenant.integrations.zapier.connectZapier")}
                 </button>
               </div>
             </fetcher.Form>
@@ -258,9 +260,9 @@ export function ZapierIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Zapier Settings</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.zapier.zapierSettings")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Manage your Zapier integration settings
+                  {t("tenant.integrations.zapier.manageSettings")}
                 </p>
               </div>
               <button
@@ -276,7 +278,7 @@ export function ZapierIntegration({
 
               {/* Webhook URL from DiveStreams */}
               <div className="bg-surface-inset rounded-lg p-4">
-                <h3 className="text-sm font-medium mb-2">Your DiveStreams Webhook URL</h3>
+                <h3 className="text-sm font-medium mb-2">{t("tenant.integrations.zapier.yourWebhookUrl")}</h3>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -288,7 +290,7 @@ export function ZapierIntegration({
                     type="button"
                     onClick={() => copyToClipboard(zapierWebhookUrl)}
                     className="p-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
-                    title="Copy URL"
+                    title={t("tenant.integrations.zapier.copyUrl")}
                   >
                     <Icons.Copy className="w-4 h-4" />
                   </button>
@@ -298,7 +300,7 @@ export function ZapierIntegration({
               {/* Zapier Webhook URL */}
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Zapier Webhook URL
+                  {t("tenant.integrations.zapier.zapierWebhookUrl")}
                 </label>
                 <input
                   type="url"
@@ -312,7 +314,7 @@ export function ZapierIntegration({
 
               {/* Enabled Triggers */}
               <div>
-                <label className="block text-sm font-medium mb-2">Enabled Triggers</label>
+                <label className="block text-sm font-medium mb-2">{t("tenant.integrations.zapier.enabledTriggers")}</label>
                 {renderTriggerCheckboxes()}
               </div>
 
@@ -322,14 +324,14 @@ export function ZapierIntegration({
                   onClick={() => setShowConfigModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.zapier.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Saving..." : "Save Settings"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.zapier.saving") : t("tenant.integrations.zapier.saveSettings")}
                 </button>
               </div>
             </fetcher.Form>
@@ -343,7 +345,7 @@ export function ZapierIntegration({
                   disabled={fetcher.state !== "idle" || !userWebhookUrl}
                   className="w-full py-2 border rounded-lg hover:bg-surface-inset disabled:opacity-50 text-sm"
                 >
-                  {fetcher.state !== "idle" ? "Testing..." : "Test Webhook Connection"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.zapier.testing") : t("tenant.integrations.zapier.testWebhookConnection")}
                 </button>
               </fetcher.Form>
 
@@ -354,7 +356,7 @@ export function ZapierIntegration({
                   disabled={fetcher.state !== "idle"}
                   className="w-full py-2 border border-accent text-accent rounded-lg hover:bg-accent-muted disabled:opacity-50 text-sm"
                 >
-                  Regenerate Webhook Secret
+                  {t("tenant.integrations.zapier.regenerateWebhookSecret")}
                 </button>
               </fetcher.Form>
             </div>
@@ -368,9 +370,9 @@ export function ZapierIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold text-success">Zapier Connected!</h2>
+                <h2 className="text-lg font-bold text-success">{t("tenant.integrations.zapier.zapierConnected")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Save your webhook secret - you won't be able to see it again
+                  {t("tenant.integrations.zapier.saveSecretWarning")}
                 </p>
               </div>
             </div>
@@ -379,14 +381,13 @@ export function ZapierIntegration({
               <div className="flex items-start gap-2">
                 <Icons.AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-warning">
-                  <strong>Important:</strong> Copy this secret now. For security reasons,
-                  it will not be displayed again. You'll need it to verify webhook signatures.
+                  <strong>{t("tenant.integrations.zapier.important")}:</strong> {t("tenant.integrations.zapier.copySecretNow")}
                 </div>
               </div>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Webhook Secret</label>
+              <label className="block text-sm font-medium mb-2">{t("tenant.integrations.zapier.webhookSecret")}</label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -398,7 +399,7 @@ export function ZapierIntegration({
                   type="button"
                   onClick={() => copyToClipboard(secret)}
                   className="p-3 bg-brand text-white rounded-lg hover:bg-brand-hover"
-                  title="Copy Secret"
+                  title={t("tenant.integrations.zapier.copySecret")}
                 >
                   <Icons.Copy className="w-4 h-4" />
                 </button>
@@ -413,7 +414,7 @@ export function ZapierIntegration({
               }}
               className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
-              I've Saved My Secret
+              {t("tenant.integrations.zapier.savedMySecret")}
             </button>
           </div>
         </div>

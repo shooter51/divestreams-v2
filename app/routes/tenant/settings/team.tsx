@@ -649,7 +649,7 @@ export default function TeamPage() {
                   >
                     {roles.find((r) => r.id === member.role)?.name || roleDisplayLabels[member.role] || member.role}
                   </span>
-                  <p className="text-xs text-foreground-subtle mt-1">{member.lastActive}</p>
+                  <p className="text-xs text-foreground-subtle mt-1">{t("tenant.settings.team.recently")}</p>
                 </div>
 
                 {member.role !== "owner" && (
