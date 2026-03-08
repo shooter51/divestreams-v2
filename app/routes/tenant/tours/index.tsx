@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { useT } from "../../../i18n/use-t";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { tours, trips } from "../../../../lib/db/schema";
@@ -110,6 +112,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
     tripCount: tripCountMap.get(t.id) || 0,
     imageUrl: imageMap.get(t.id),
   }));
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && tourData.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "tour", tourData.map(t => t.id), locale);
+    for (const tour of tourData) {
+      const tr = translations.get(tour.id);
+      if (tr) {
+        if (tr.name) tour.name = tr.name;
+      }
+    }
+  }
 
   // Get total count for usage tracking (without filters)
   const [{ value: totalTours }] = await db

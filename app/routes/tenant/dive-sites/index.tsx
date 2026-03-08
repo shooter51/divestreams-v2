@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
 import { eq, ilike, and, or } from "drizzle-orm";
@@ -72,6 +74,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isActive: s.isActive ?? true,
     imageUrl: imageMap.get(s.id),
   }));
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && diveSites.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "dive_site", diveSites.map(s => s.id), locale);
+    for (const site of diveSites) {
+      const tr = translations.get(site.id);
+      if (tr) {
+        if (tr.name) site.name = tr.name;
+        if (tr.description) site.description = tr.description;
+      }
+    }
+  }
 
   return {
     diveSites,
