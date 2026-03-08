@@ -54,7 +54,7 @@ import {
 import { ReceiptModal } from "../../components/pos/TransactionModals";
 import type { CartItem } from "../../../lib/validation/pos";
 import { useToast } from "../../../lib/toast-context";
-import { formatLabel } from "../../lib/format";
+import { useT } from "../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
@@ -367,6 +367,7 @@ export default function POSPage() {
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { showToast } = useToast();
+  const t = useT();
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
 
@@ -645,7 +646,7 @@ export default function POSPage() {
     }
 
     if (fetcherData?.barcodeNotFound) {
-      setBarcodeError(`Product not found for barcode: ${fetcherData.scannedBarcode}`);
+      setBarcodeError(t("tenant.pos.barcodeNotFound", { barcode: fetcherData.scannedBarcode ?? "" }));
       // Clear error after 3 seconds
       setTimeout(() => setBarcodeError(null), 3000);
     }
@@ -659,12 +660,12 @@ export default function POSPage() {
         });
       }
       clearCart();
-      showToast(`Sale complete! Receipt #${fetcherData.receiptNumber}`, "success");
+      showToast(t("tenant.pos.saleComplete", { receipt: fetcherData.receiptNumber }), "success");
     }
 
     // Handle refund success
     if (fetcherData?.success && fetcherData?.refundId && fetcherData?.amount) {
-      showToast(`Refund processed successfully! $${fetcherData.amount.toFixed(2)} refunded to customer.`, "success");
+      showToast(t("tenant.pos.refundComplete", { amount: fetcherData.amount.toFixed(2) }), "success");
       setShowRefundConfirmation(false);
       setSelectedTransaction(null);
     }
@@ -675,14 +676,14 @@ export default function POSPage() {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-surface-raised">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">Point of Sale</h1>
+          <h1 className="text-xl font-bold">{t("tenant.pos.title")}</h1>
           <button
             type="button"
             onClick={clearCart}
             className="px-4 py-2 text-sm bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
-            aria-label="Start new sale and clear cart"
+            aria-label={t("tenant.pos.newSaleAria")}
           >
-            New Sale
+            {t("tenant.pos.newSale")}
           </button>
           <button
             onClick={() => setShowBarcodeScanner(true)}
@@ -691,7 +692,7 @@ export default function POSPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
             </svg>
-            Scan Barcode
+            {t("tenant.pos.scanBarcode")}
           </button>
           <button
             onClick={() => setShowTransactionLookup(true)}
@@ -700,7 +701,7 @@ export default function POSPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
             </svg>
-            Refund
+            {t("tenant.pos.refund")}
           </button>
           <Link
             to="/tenant/pos/transactions"
@@ -709,7 +710,7 @@ export default function POSPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
-            Transactions
+            {t("tenant.pos.transactionsLink")}
           </Link>
         </div>
         <div className="text-sm text-foreground-muted">
@@ -723,21 +724,21 @@ export default function POSPage() {
         <div className="flex-1 flex flex-col bg-surface-inset">
           {/* Tabs */}
           <div className="flex gap-1 p-4 pb-0">
-            {(["retail", "rentals", "trips"] as const).map(t => (
+            {(["retail", "rentals", "trips"] as const).map(tabKey => (
               <button
-                key={t}
+                key={tabKey}
                 onClick={() => {
-                  setTab(t);
+                  setTab(tabKey);
                   setSelectedCategory(null);
                   setSearchQuery("");
                 }}
                 className={`px-6 py-2 rounded-t-lg font-medium ${
-                  tab === t
+                  tab === tabKey
                     ? "bg-surface-raised text-brand border-t border-x"
                     : "bg-surface-overlay text-foreground-muted hover:bg-border"
                 }`}
               >
-                {formatLabel(t)}
+                {t(`tenant.pos.tab.${tabKey}`)}
               </button>
             ))}
           </div>
@@ -847,7 +848,7 @@ export default function POSPage() {
           isOpen={showBarcodeScanner}
           onClose={() => setShowBarcodeScanner(false)}
           onScan={handleBarcodeScan}
-          title="Scan Product Barcode"
+          title={t("tenant.pos.scanProductBarcode")}
           showConfirmation={false}
         />
       </Suspense>

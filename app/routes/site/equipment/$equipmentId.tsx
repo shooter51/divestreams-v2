@@ -11,6 +11,8 @@ import { useState } from "react";
 import { eq, and } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { equipment, images, organization } from "../../../../lib/db/schema";
+import { getTranslatedEntity } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -147,8 +149,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     notes: equipmentData.notes,
   };
 
+  // Apply content translations
+  const locale = resolveLocale(request);
+  const translatedEquipment = await getTranslatedEntity(
+    org.id,
+    "product",
+    equipmentDetail.id,
+    locale,
+    equipmentDetail as unknown as Record<string, unknown>,
+    ["name", "description"]
+  ) as unknown as EquipmentDetail;
+
   return {
-    equipment: equipmentDetail,
+    equipment: translatedEquipment,
     images: equipmentImages,
     organizationName: org.name,
     organizationId: org.id,
