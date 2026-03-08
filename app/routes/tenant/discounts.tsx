@@ -586,7 +586,7 @@ export default function DiscountsPage() {
                       name="code"
                       defaultValue={editingDiscount?.code || ""}
                       required
-                      placeholder="e.g., SUMMER20"
+                      placeholder={t("tenant.discounts.codePlaceholder")}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand uppercase font-mono"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -600,7 +600,7 @@ export default function DiscountsPage() {
                       type="text"
                       name="description"
                       defaultValue={editingDiscount?.description || ""}
-                      placeholder="e.g., Summer 2024 promotion"
+                      placeholder={t("tenant.discounts.descriptionPlaceholder")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>

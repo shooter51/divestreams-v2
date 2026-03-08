@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher } from "react-router";
 import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { tours, products } from "../../../../lib/db/schema";
+import { tours, products, diveSites, boats } from "../../../../lib/db/schema";
 import { trainingCourses } from "../../../../lib/db/schema/training";
 import { contentTranslations } from "../../../../lib/db/schema/translations";
 import { eq, and } from "drizzle-orm";
@@ -74,6 +74,22 @@ async function getEntitySourceTexts(
       .limit(1);
     return row ? { name: row.name, description: row.description } : {};
   }
+  if (entityType === "dive_site") {
+    const [row] = await db
+      .select({ name: diveSites.name, description: diveSites.description })
+      .from(diveSites)
+      .where(and(eq(diveSites.id, entityId), eq(diveSites.organizationId, orgId)))
+      .limit(1);
+    return row ? { name: row.name, description: row.description } : {};
+  }
+  if (entityType === "boat") {
+    const [row] = await db
+      .select({ name: boats.name, description: boats.description })
+      .from(boats)
+      .where(and(eq(boats.id, entityId), eq(boats.organizationId, orgId)))
+      .limit(1);
+    return row ? { name: row.name, description: row.description } : {};
+  }
   return {};
 }
 
@@ -141,6 +157,39 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true };
   }
 
+  if (intent === "reset-to-auto") {
+    const id = formData.get("id") as string;
+    const [row] = await db
+      .select()
+      .from(contentTranslations)
+      .where(
+        and(
+          eq(contentTranslations.id, id),
+          eq(contentTranslations.organizationId, ctx.org.id)
+        )
+      )
+      .limit(1);
+
+    if (!row) {
+      return { error: "Translation not found" };
+    }
+
+    // Get source text and re-translate
+    const sourceTexts = await getEntitySourceTexts(ctx.org.id, row.entityType, row.entityId);
+    const sourceText = sourceTexts[row.field];
+    if (sourceText?.trim()) {
+      await enqueueTranslation({
+        orgId: ctx.org.id,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        fields: [{ field: row.field, text: sourceText }],
+        targetLocale: row.locale,
+      });
+    }
+
+    return { success: true };
+  }
+
   if (intent === "translate-all") {
     // Fetch all translatable entities for this org
     const allTours = await db
@@ -157,6 +206,16 @@ export async function action({ request }: ActionFunctionArgs) {
       .select({ id: products.id, name: products.name, description: products.description })
       .from(products)
       .where(eq(products.organizationId, ctx.org.id));
+
+    const allDiveSites = await db
+      .select({ id: diveSites.id, name: diveSites.name, description: diveSites.description })
+      .from(diveSites)
+      .where(eq(diveSites.organizationId, ctx.org.id));
+
+    const allBoats = await db
+      .select({ id: boats.id, name: boats.name, description: boats.description })
+      .from(boats)
+      .where(eq(boats.organizationId, ctx.org.id));
 
     let enqueued = 0;
 
@@ -182,6 +241,8 @@ export async function action({ request }: ActionFunctionArgs) {
     for (const tour of allTours) await enqueueEntity("tour", tour);
     for (const course of allCourses) await enqueueEntity("course", course);
     for (const product of allProducts) await enqueueEntity("product", product);
+    for (const site of allDiveSites) await enqueueEntity("dive_site", site);
+    for (const boat of allBoats) await enqueueEntity("boat", boat);
 
     return { success: true, enqueued };
   }
@@ -345,7 +406,7 @@ function EditableRow({ row, originalText }: { row: TranslationRow; originalText:
           </button>
         </fetcher.Form>
       </td>
-      <td className="py-2 pr-4">
+      <td className="py-2 pr-4 flex items-center gap-2">
         <span
           className={`text-xs rounded-full px-2 py-0.5 ${
             row.source === "manual"
@@ -355,6 +416,21 @@ function EditableRow({ row, originalText }: { row: TranslationRow; originalText:
         >
           {row.source}
         </span>
+        {row.source === "manual" && (
+          <fetcher.Form method="post" className="inline">
+            <CsrfInput />
+            <input type="hidden" name="intent" value="reset-to-auto" />
+            <input type="hidden" name="id" value={row.id} />
+            <button
+              type="submit"
+              className="text-xs text-foreground-muted hover:text-foreground underline disabled:opacity-50"
+              disabled={fetcher.state === "submitting"}
+              title={t("tenant.translations.resetToAuto")}
+            >
+              {t("tenant.translations.resetToAuto")}
+            </button>
+          </fetcher.Form>
+        )}
       </td>
     </tr>
   );
