@@ -235,7 +235,7 @@ export default function EquipmentPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">{t("tenant.equipment.title")}</h1>
-          <p className="text-foreground-muted">{stats.total} items total</p>
+          <p className="text-foreground-muted">{stats.total} {t("tenant.equipment.itemsTotal")}</p>
         </div>
         <div className="flex gap-3">
           {/* Scan Barcode button */}
@@ -282,7 +282,7 @@ export default function EquipmentPage() {
           onClick={() => setFilter("status", "available")}
         >
           <p className="text-2xl font-bold text-success">{stats.available}</p>
-          <p className="text-foreground-muted text-sm">Available</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.equipment.status.available")}</p>
         </div>
         <div
           className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-brand ${
@@ -292,7 +292,7 @@ export default function EquipmentPage() {
         >
           <p className="text-2xl font-bold text-brand">{stats.rented}</p>
           <p className="text-foreground-muted text-sm">
-            Rented
+            {t("tenant.equipment.status.rented")}
             {!hasEquipmentRentals && stats.rented > 0 && (
               <span className="ml-1 text-xs text-warning">({t("tenant.equipment.premiumRequired")})</span>
             )}
@@ -305,7 +305,7 @@ export default function EquipmentPage() {
           onClick={() => setFilter("status", "maintenance")}
         >
           <p className="text-2xl font-bold text-warning">{stats.maintenance}</p>
-          <p className="text-foreground-muted text-sm">Maintenance</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.equipment.status.maintenance")}</p>
         </div>
         <div
           className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-foreground-subtle ${
@@ -314,7 +314,7 @@ export default function EquipmentPage() {
           onClick={() => setFilter("status", "retired")}
         >
           <p className="text-2xl font-bold text-foreground-muted">{stats.retired}</p>
-          <p className="text-foreground-muted text-sm">Retired</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.equipment.status.retired")}</p>
         </div>
       </div>
 
@@ -335,14 +335,14 @@ export default function EquipmentPage() {
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
           <option value="">{t("tenant.equipment.allCategories")}</option>
-          <option value="bcd">BCD</option>
-          <option value="regulator">Regulator</option>
-          <option value="wetsuit">Wetsuit</option>
-          <option value="mask">Mask</option>
-          <option value="fins">Fins</option>
-          <option value="tank">Tank</option>
-          <option value="computer">Dive Computer</option>
-          <option value="other">Other</option>
+          <option value="bcd">{t("tenant.equipment.category.bcd")}</option>
+          <option value="regulator">{t("tenant.equipment.category.regulator")}</option>
+          <option value="wetsuit">{t("tenant.equipment.category.wetsuit")}</option>
+          <option value="mask">{t("tenant.equipment.category.mask")}</option>
+          <option value="fins">{t("tenant.equipment.category.fins")}</option>
+          <option value="tank">{t("tenant.equipment.category.tank")}</option>
+          <option value="computer">{t("tenant.equipment.category.computer")}</option>
+          <option value="other">{t("tenant.equipment.category.other")}</option>
         </select>
       </div>
 
@@ -407,15 +407,15 @@ export default function EquipmentPage() {
                   <td className="py-3 px-4 text-right">
                     {item.isRentable ? (
                       <div>
-                        <span className="text-sm">${Number(item.rentalPrice || 0).toFixed(2)}/day</span>
+                        <span className="text-sm">${Number(item.rentalPrice || 0).toFixed(2)}{t("tenant.equipment.perDay")}</span>
                         {!hasEquipmentRentals && (
-                          <span className="ml-1 text-xs text-warning" title="Premium feature required for rentals">
+                          <span className="ml-1 text-xs text-warning" title={t("tenant.equipment.premiumFeatureRequired")}>
                             *
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span className="text-sm text-foreground-subtle">N/A</span>
+                      <span className="text-sm text-foreground-subtle">{t("tenant.equipment.na")}</span>
                     )}
                   </td>
                 </tr>

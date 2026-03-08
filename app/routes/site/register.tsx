@@ -366,13 +366,14 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 // ============================================================================
 
 function PasswordRequirements({ password }: { password: string }) {
+  const t = useT();
   const validation = validatePassword(password);
 
   const requirements = [
-    { label: "At least 8 characters", met: validation.hasMinLength },
-    { label: "One uppercase letter", met: validation.hasUppercase },
-    { label: "One lowercase letter", met: validation.hasLowercase },
-    { label: "One number", met: validation.hasNumber },
+    { label: t("site.register.min8Chars"), met: validation.hasMinLength },
+    { label: t("site.register.oneUppercase"), met: validation.hasUppercase },
+    { label: t("site.register.oneLowercase"), met: validation.hasLowercase },
+    { label: t("site.register.oneNumber"), met: validation.hasNumber },
   ];
 
   return (

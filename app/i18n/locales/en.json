@@ -468,6 +468,8 @@
   "site.login.troubleSigningIn": "Having trouble signing in?",
   "site.login.contactUs": "Contact us",
   "site.login.passwordSetSuccess": "Password set successfully! You can now sign in with your new password.",
+  "site.login.emailPlaceholder": "you@example.com",
+  "site.login.passwordPlaceholder": "Enter your password",
 
   "site.register.title": "Sign Up",
   "site.register.createAccount": "Create an Account",
@@ -486,6 +488,10 @@
   "site.register.privacyPolicy": "Privacy Policy",
   "site.register.agreeToTerms": "By creating an account, you agree to our",
   "site.register.and": "and",
+  "site.register.min8Chars": "At least 8 characters",
+  "site.register.oneUppercase": "One uppercase letter",
+  "site.register.oneLowercase": "One lowercase letter",
+  "site.register.oneNumber": "One number",
 
   "site.account.myAccount": "My Account",
   "site.account.welcomeBack": "Welcome back, {{name}}!",
@@ -545,6 +551,10 @@
   "site.setPassword.setPasswordButton": "Set Password & Continue",
   "site.setPassword.invalidLink": "Invalid or Expired Link",
   "site.setPassword.contactUs": "Contact Us",
+  "site.setPassword.confirmPlaceholder": "Re-enter your password",
+  "site.setPassword.passwordRequirements": "Must be at least 8 characters with uppercase, lowercase, and a number",
+  "site.setPassword.mustHaveUppercase": "Password must contain at least one uppercase letter",
+  "site.setPassword.mustHaveLowercase": "Password must contain at least one lowercase letter",
 
   "tenant.translations.title": "Content Translations",
   "tenant.translations.description": "Manage auto-generated and manual translations for your content.",
@@ -1111,6 +1121,16 @@
   "tenant.equipment.scanEquipmentBarcode": "Scan Equipment Barcode",
   "tenant.equipment.whatWasDone": "What was done?",
   "tenant.equipment.noBrand": "No brand",
+  "tenant.equipment.itemsTotal": "items total",
+  "tenant.equipment.perDay": "/day",
+  "tenant.equipment.premiumFeatureRequired": "Premium feature required for rentals",
+  "tenant.equipment.na": "N/A",
+  "tenant.equipment.serviceType": "Type",
+  "tenant.equipment.serviceInspection": "Inspection",
+  "tenant.equipment.serviceRepair": "Repair",
+  "tenant.equipment.serviceCertification": "Certification",
+  "tenant.equipment.serviceCleaning": "Cleaning",
+  "tenant.equipment.serviceReplacement": "Replacement",
 
   "tenant.equipment.rentals.title": "Rental Management",
   "tenant.equipment.rentals.totalRentals": "total rentals",
@@ -2511,6 +2531,8 @@
   "tenant.auth.forgotPassword.title": "Forgot Password",
   "tenant.auth.forgotPassword.tryAgain": "Try again",
 
+  "tenant.forgotPassword.emailPlaceholder": "Enter your email",
+
   "tenant.auth.login.accessDenied": "Access Denied",
   "tenant.auth.login.createAccount": "Create an account",
   "tenant.auth.login.emailSkippedNote": "Note: Email verification was skipped. You can sign in immediately.",
@@ -2530,6 +2552,9 @@
   "tenant.auth.login.signInToAccount": "Sign in to your account",
   "tenant.auth.login.signupSuccess": "Account created successfully! You can now sign in.",
   "tenant.auth.login.welcomeBack": "Welcome back! Enter your credentials to continue.",
+
+  "tenant.resetPassword.newPasswordPlaceholder": "Enter new password",
+  "tenant.resetPassword.confirmPasswordPlaceholder": "Confirm new password",
 
   "tenant.auth.resetPassword.continueToLogin": "Continue to Login",
   "tenant.auth.resetPassword.subtitle": "Enter a new password for your account.",
@@ -2583,6 +2608,7 @@
 
   "tenant.training.allStatuses": "All Statuses",
   "tenant.training.backToDashboard": "Back to Dashboard",
+  "tenant.training.backToTraining": "Back to Training",
   "tenant.training.courses.activateCourse": "Activate Course",
   "tenant.training.courses.additionalIncludedItems": "Additional Included Items",
   "tenant.training.courses.backToCourse": "Back to Course",
