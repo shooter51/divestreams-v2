@@ -171,18 +171,6 @@ function formatDate(d: string | null | undefined): string {
   return formatDisplayDate(d);
 }
 
-const sourceLabels: Record<string, string> = {
-  referral: "Referral",
-  walk_in: "Walk-in",
-  direct: "Direct",
-  online: "Online",
-  phone: "Phone",
-  repeat: "Repeat Customer",
-  website: "Website",
-  partner: "Partner/Agent",
-  other: "Other",
-};
-
 export default function BookingDetailPage() {
   useNotification();
 
@@ -190,6 +178,18 @@ export default function BookingDetailPage() {
   const fetcher = useFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const t = useT();
+
+  const sourceLabels: Record<string, string> = {
+    referral: t("tenant.bookings.source.referral"),
+    walk_in: t("tenant.bookings.source.walkIn"),
+    direct: t("tenant.bookings.source.direct"),
+    online: t("tenant.bookings.source.online"),
+    phone: t("tenant.bookings.source.phone"),
+    repeat: t("tenant.bookings.source.repeat"),
+    website: t("tenant.bookings.source.website"),
+    partner: t("tenant.bookings.source.partner"),
+    other: t("tenant.bookings.source.other"),
+  };
 
   const handleCancel = () => {
     if (confirm(t("tenant.bookings.confirmCancel"))) {

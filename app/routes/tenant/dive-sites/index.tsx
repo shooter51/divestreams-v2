@@ -82,13 +82,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const difficultyLabels: Record<string, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-  expert: "Expert",
-};
-
 const difficultyColors: Record<string, string> = {
   beginner: "bg-success-muted text-success",
   intermediate: "bg-brand-muted text-brand",
@@ -100,6 +93,13 @@ export default function DiveSitesPage() {
   const { diveSites, total, search, difficulty } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const t = useT();
+
+  const difficultyLabels: Record<string, string> = {
+    beginner: t("tenant.diveSites.difficulty.beginner"),
+    intermediate: t("tenant.diveSites.difficulty.intermediate"),
+    advanced: t("tenant.diveSites.difficulty.advanced"),
+    expert: t("tenant.diveSites.difficulty.expert"),
+  };
 
   // Show notifications from URL params
   useNotification();

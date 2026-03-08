@@ -9,12 +9,14 @@ let cachedClient: BedrockRuntimeClient | null = null;
 
 function getClient(): BedrockRuntimeClient {
   if (cachedClient) return cachedClient;
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error("AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.");
+  }
   cachedClient = new BedrockRuntimeClient({
     region: process.env.AWS_REGION || "us-east-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
+    credentials: { accessKeyId, secretAccessKey },
   });
   return cachedClient;
 }

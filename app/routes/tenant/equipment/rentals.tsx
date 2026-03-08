@@ -168,16 +168,16 @@ export async function action({ request }: ActionFunctionArgs) {
   return null;
 }
 
-const rentalStatusLabels: Record<string, string> = {
-  active: "Active",
-  overdue: "Overdue",
-  returned: "Returned",
-  cancelled: "Cancelled",
-};
-
 export default function RentalsPage() {
   useNotification();
   const t = useT();
+
+  const rentalStatusLabels: Record<string, string> = {
+    active: t("tenant.equipment.rentals.status.active"),
+    overdue: t("tenant.equipment.rentals.status.overdue"),
+    returned: t("tenant.equipment.rentals.status.returned"),
+    cancelled: t("tenant.equipment.rentals.status.cancelled"),
+  };
 
   const { rentals, stats, status: activeStatus } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
