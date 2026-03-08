@@ -16,6 +16,8 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
+import { getTranslatedEntity } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 // ============================================================================
@@ -223,6 +225,17 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<L
     throw new Response("Course not found", { status: 404 });
   }
 
+  // Apply content translations
+  const locale = resolveLocale(request);
+  const translatedCourse = await getTranslatedEntity(
+    org.id,
+    "course",
+    course.id,
+    locale,
+    course,
+    ["name", "description"]
+  );
+
   // Get scheduled sessions for this course
   const sessionsResult = await getCourseScheduledTrips(
     org.id,
@@ -231,7 +244,7 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<L
   );
 
   return {
-    course,
+    course: translatedCourse,
     sessions: sessionsResult.trips,
     totalSessions: sessionsResult.total,
     organizationSlug: subdomain || org.slug,

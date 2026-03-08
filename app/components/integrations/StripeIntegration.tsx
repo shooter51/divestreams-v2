@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { Icons } from "./Icons";
 import type { StripeSettings, ConnectedIntegration } from "./types";
 
@@ -16,6 +17,7 @@ export function StripeIntegration({
   onNotification,
   openModal,
 }: StripeIntegrationProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [showConnectModal, setShowConnectModal] = useState(false);
 
@@ -60,7 +62,7 @@ export function StripeIntegration({
           onClick={() => setShowSettingsModal(true)}
           className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
         >
-          View Settings
+          {t("tenant.integrations.stripe.viewSettings")}
         </button>
       )}
 
@@ -70,9 +72,9 @@ export function StripeIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Connect Stripe</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.stripe.connectStripe")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Enter your Stripe API keys to enable payment processing
+                  {t("tenant.integrations.stripe.enterApiKeys")}
                 </p>
               </div>
               <button
@@ -88,7 +90,7 @@ export function StripeIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Secret Key <span className="text-danger">*</span>
+                  {t("tenant.integrations.stripe.secretKey")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -100,13 +102,13 @@ export function StripeIntegration({
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  Your Stripe Secret Key (starts with sk_test_ or sk_live_)
+                  {t("tenant.integrations.stripe.secretKeyHint")}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Publishable Key <span className="text-danger">*</span>
+                  {t("tenant.integrations.stripe.publishableKey")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -118,15 +120,15 @@ export function StripeIntegration({
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  Your Stripe Publishable Key (starts with pk_test_ or pk_live_)
+                  {t("tenant.integrations.stripe.publishableKeyHint")}
                 </p>
               </div>
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-xs text-brand">
-                  <strong>Where to find your API keys:</strong>
+                  <strong>{t("tenant.integrations.stripe.whereToFindKeys")}:</strong>
                   <br />
-                  Visit your{" "}
+                  {t("tenant.integrations.stripe.visitYour")}{" "}
                   <a
                     href="https://dashboard.stripe.com/apikeys"
                     target="_blank"
@@ -136,7 +138,7 @@ export function StripeIntegration({
                     Stripe Dashboard &rarr; API Keys
                   </a>
                   <br />
-                  Use test keys for development and live keys for production.
+                  {t("tenant.integrations.stripe.useTestKeys")}
                 </p>
               </div>
 
@@ -146,14 +148,14 @@ export function StripeIntegration({
                   onClick={() => setShowConnectModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.stripe.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Connecting..." : "Connect Stripe"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.stripe.connecting") : t("tenant.integrations.stripe.connectStripe")}
                 </button>
               </div>
             </fetcher.Form>
@@ -167,9 +169,9 @@ export function StripeIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Stripe Settings</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.stripe.stripeSettings")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  View your Stripe integration configuration
+                  {t("tenant.integrations.stripe.viewConfiguration")}
                 </p>
               </div>
               <button
@@ -184,15 +186,15 @@ export function StripeIntegration({
               <div className="bg-surface-inset rounded-lg p-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-foreground-muted mb-1">Account ID</p>
+                    <p className="text-xs text-foreground-muted mb-1">{t("tenant.integrations.stripe.accountId")}</p>
                     <p className="text-sm font-mono">{stripeSettings.accountId || "N/A"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-foreground-muted mb-1">Account Name</p>
+                    <p className="text-xs text-foreground-muted mb-1">{t("tenant.integrations.stripe.accountName")}</p>
                     <p className="text-sm">{stripeSettings.accountName || "N/A"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-foreground-muted mb-1">Mode</p>
+                    <p className="text-xs text-foreground-muted mb-1">{t("tenant.integrations.stripe.mode")}</p>
                     <span
                       className={`inline-block px-2 py-1 text-xs rounded-full ${
                         stripeSettings.liveMode
@@ -200,21 +202,21 @@ export function StripeIntegration({
                           : "bg-warning-muted text-warning"
                       }`}
                     >
-                      {stripeSettings.liveMode ? "Live Mode" : "Test Mode"}
+                      {stripeSettings.liveMode ? t("tenant.integrations.stripe.liveMode") : t("tenant.integrations.stripe.testMode")}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-foreground-muted mb-1">Publishable Key</p>
+                    <p className="text-xs text-foreground-muted mb-1">{t("tenant.integrations.stripe.publishableKey")}</p>
                     <p className="text-sm font-mono">{stripeSettings.publishableKeyPrefix || "N/A"}</p>
                   </div>
                 </div>
               </div>
 
               <div className="bg-surface-inset rounded-lg p-4">
-                <p className="text-sm font-medium mb-2">Capabilities</p>
+                <p className="text-sm font-medium mb-2">{t("tenant.integrations.stripe.capabilities")}</p>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground-muted">Charges Enabled</span>
+                    <span className="text-sm text-foreground-muted">{t("tenant.integrations.stripe.chargesEnabled")}</span>
                     {stripeSettings.chargesEnabled ? (
                       <Icons.Check className="w-5 h-5 text-success" />
                     ) : (
@@ -222,7 +224,7 @@ export function StripeIntegration({
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground-muted">Payouts Enabled</span>
+                    <span className="text-sm text-foreground-muted">{t("tenant.integrations.stripe.payoutsEnabled")}</span>
                     {stripeSettings.payoutsEnabled ? (
                       <Icons.Check className="w-5 h-5 text-success" />
                     ) : (
@@ -230,7 +232,7 @@ export function StripeIntegration({
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground-muted">Webhook Configured</span>
+                    <span className="text-sm text-foreground-muted">{t("tenant.integrations.stripe.webhookConfigured")}</span>
                     {stripeSettings.webhookConfigured ? (
                       <Icons.Check className="w-5 h-5 text-success" />
                     ) : (
@@ -242,9 +244,9 @@ export function StripeIntegration({
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-xs text-brand">
-                  <strong>Dashboard Access:</strong>
+                  <strong>{t("tenant.integrations.stripe.dashboardAccess")}:</strong>
                   <br />
-                  Manage your Stripe account at{" "}
+                  {t("tenant.integrations.stripe.manageAccount")}{" "}
                   <a
                     href="https://dashboard.stripe.com"
                     target="_blank"
@@ -262,7 +264,7 @@ export function StripeIntegration({
                   onClick={() => setShowSettingsModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Close
+                  {t("tenant.integrations.stripe.close")}
                 </button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { Icons } from "./Icons";
 import type { MailchimpAudience, MailchimpSettings } from "./types";
 
@@ -15,6 +16,7 @@ export function MailchimpIntegration({
   onNotification,
   openModal,
 }: MailchimpIntegrationProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
 
@@ -65,9 +67,9 @@ export function MailchimpIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Connect Mailchimp</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.mailchimp.connectMailchimp")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Enter your Mailchimp OAuth credentials to enable email marketing
+                  {t("tenant.integrations.mailchimp.enterOAuthCredentials")}
                 </p>
               </div>
               <button
@@ -83,14 +85,14 @@ export function MailchimpIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-danger">*</span>
+                  {t("tenant.integrations.mailchimp.clientId")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   name="clientId"
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
-                  placeholder="Your Mailchimp Client ID"
+                  placeholder={t("tenant.integrations.mailchimp.clientIdPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
@@ -98,27 +100,27 @@ export function MailchimpIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-danger">*</span>
+                  {t("tenant.integrations.mailchimp.clientSecret")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
                   name="clientSecret"
                   value={clientSecret}
                   onChange={(e) => setClientSecret(e.target.value)}
-                  placeholder="Your Mailchimp Client Secret"
+                  placeholder={t("tenant.integrations.mailchimp.clientSecretPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  This will be encrypted and stored securely
+                  {t("tenant.integrations.mailchimp.encryptedStorage")}
                 </p>
               </div>
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-sm text-brand">
-                  <strong>Get your credentials:</strong>
+                  <strong>{t("tenant.integrations.mailchimp.getCredentials")}:</strong>
                   <br />
-                  1. Go to{" "}
+                  1. {t("tenant.integrations.mailchimp.step1GoTo")}{" "}
                   <a
                     href="https://admin.mailchimp.com/account/oauth2/"
                     target="_blank"
@@ -128,9 +130,9 @@ export function MailchimpIntegration({
                     Mailchimp Developer Portal
                   </a>
                   <br />
-                  2. Register your OAuth app
+                  2. {t("tenant.integrations.mailchimp.step2Register")}
                   <br />
-                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/mailchimp/callback</code>
+                  3. {t("tenant.integrations.mailchimp.step3AddRedirect")}: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/mailchimp/callback</code>
                 </p>
               </div>
 
@@ -140,14 +142,14 @@ export function MailchimpIntegration({
                   onClick={() => setShowOAuthModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.mailchimp.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to Mailchimp"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.mailchimp.connecting") : t("tenant.integrations.mailchimp.continueToMailchimp")}
                 </button>
               </div>
             </fetcher.Form>

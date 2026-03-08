@@ -17,6 +17,8 @@ import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, boats, diveSites, tourDiveSites } from "../../../../lib/db/schema";
 import { organization } from "../../../../lib/db/schema/auth";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
+import { getTranslatedEntity } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useState } from "react";
 import { useT } from "../../../i18n/use-t";
 
@@ -229,11 +231,28 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const maxParticipants = Number(tripData.tripMaxParticipants || tripData.tourMaxParticipants);
   const bookedParticipants = Number(bookingCount?.total || 0);
 
+  // Apply content translations for the tour
+  const locale = resolveLocale(request);
+  let translatedTourName = tripData.tourName;
+  let translatedTourDescription = tripData.tourDescription;
+  if (locale !== "en") {
+    const translatedTour = await getTranslatedEntity(
+      org.id,
+      "tour",
+      tripData.tourId,
+      locale,
+      { name: tripData.tourName, description: tripData.tourDescription },
+      ["name", "description"]
+    );
+    translatedTourName = translatedTour.name;
+    translatedTourDescription = translatedTour.description;
+  }
+
   const trip: TripDetail = {
     id: tripData.id,
     tourId: tripData.tourId,
-    tourName: tripData.tourName,
-    tourDescription: tripData.tourDescription,
+    tourName: translatedTourName,
+    tourDescription: translatedTourDescription,
     tourType: tripData.tourType,
     date: tripData.date,
     startTime: tripData.startTime,

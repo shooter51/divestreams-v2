@@ -12,11 +12,12 @@ import { db } from "../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../lib/db/schema";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { useState, useCallback, useMemo } from "react";
-import { useT } from "../../i18n/use-t";
+import { useT, useLocale } from "../../i18n/use-t";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import type { EventClickArg } from "@fullcalendar/core";
+import esLocale from "@fullcalendar/core/locales/es";
 
 export const meta: MetaFunction = () => [{ title: "Calendar - DiveStreams" }];
 
@@ -266,6 +267,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
 
 export default function CalendarPage() {
   const t = useT();
+  const locale = useLocale();
   const { trips } = useLoaderData<typeof loader>();
   const [selectedTrip, setSelectedTrip] = useState<CalendarTrip | null>(null);
   const [currentView, setCurrentView] = useState<"dayGridMonth" | "timeGridWeek">("dayGridMonth");
@@ -416,6 +418,7 @@ export default function CalendarPage() {
             minute: "2-digit",
             meridiem: "short",
           }}
+          locale={locale === "es" ? esLocale : undefined}
           key={currentView}
         />
       </div>

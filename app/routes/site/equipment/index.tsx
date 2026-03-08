@@ -11,6 +11,8 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { eq, and, or, like, sql, asc, desc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { equipment, images, organization } from "../../../../lib/db/schema";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -220,8 +222,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   );
 
+  // Apply content translations
+  const locale = resolveLocale(request);
+  let translatedCards = equipmentCards;
+  if (locale !== "en" && equipmentCards.length > 0) {
+    const translations = await bulkGetContentTranslations(
+      org.id,
+      "product",
+      equipmentCards.map((e) => e.id),
+      locale
+    );
+    translatedCards = equipmentCards.map((e) => {
+      const t = translations.get(e.id);
+      return t
+        ? { ...e, name: t.name || e.name }
+        : e;
+    });
+  }
+
   return {
-    equipment: equipmentCards,
+    equipment: translatedCards,
     total,
     page,
     totalPages,

@@ -282,7 +282,7 @@ export default function NewCustomerPage() {
                 defaultValue={actionData?.values?.certAgency}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="">Select...</option>
+                <option value="">{t("common.selectPlaceholder")}</option>
                 <option value="PADI">PADI</option>
                 <option value="SSI">SSI</option>
                 <option value="NAUI">NAUI</option>
@@ -301,7 +301,7 @@ export default function NewCustomerPage() {
                 defaultValue={actionData?.values?.certLevel}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="">Select...</option>
+                <option value="">{t("common.selectPlaceholder")}</option>
                 <option value="Open Water">Open Water</option>
                 <option value="Advanced Open Water">Advanced Open Water</option>
                 <option value="Rescue Diver">Rescue Diver</option>
@@ -360,7 +360,7 @@ export default function NewCustomerPage() {
                 type="text"
                 id="emergencyContactRelation"
                 name="emergencyContactRelation"
-                placeholder="e.g., Spouse, Parent"
+                placeholder={t("tenant.customers.emergencyRelationPlaceholder")}
                 defaultValue={actionData?.values?.emergencyContactRelation}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -380,7 +380,7 @@ export default function NewCustomerPage() {
                 id="medicalConditions"
                 name="medicalConditions"
                 rows={2}
-                placeholder="Any conditions we should know about..."
+                placeholder={t("tenant.customers.medicalNotesPlaceholder")}
                 defaultValue={actionData?.values?.medicalConditions}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />

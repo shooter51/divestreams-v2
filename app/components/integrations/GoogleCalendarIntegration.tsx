@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFetcher, Form } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { Icons } from "./Icons";
 
 interface GoogleCalendarIntegrationProps {
@@ -13,6 +14,7 @@ export function GoogleCalendarIntegration({
   onNotification,
   openModal,
 }: GoogleCalendarIntegrationProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
 
@@ -58,7 +60,7 @@ export function GoogleCalendarIntegration({
             disabled={fetcher.state !== "idle"}
             className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset disabled:opacity-50"
           >
-            {fetcher.state !== "idle" ? "Syncing..." : "Sync Now"}
+            {fetcher.state !== "idle" ? t("tenant.integrations.google.syncing") : t("tenant.integrations.google.syncNow")}
           </button>
         </fetcher.Form>
       )}
@@ -69,9 +71,9 @@ export function GoogleCalendarIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Connect Google Calendar</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.google.connectGoogleCalendar")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Enter your Google OAuth credentials to enable calendar sync
+                  {t("tenant.integrations.google.enterOAuthCredentials")}
                 </p>
               </div>
               <button
@@ -87,7 +89,7 @@ export function GoogleCalendarIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-danger">*</span>
+                  {t("tenant.integrations.google.clientId")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -102,27 +104,27 @@ export function GoogleCalendarIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-danger">*</span>
+                  {t("tenant.integrations.google.clientSecret")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
                   name="clientSecret"
                   value={clientSecret}
                   onChange={(e) => setClientSecret(e.target.value)}
-                  placeholder="Your Google Client Secret"
+                  placeholder={t("tenant.integrations.google.clientSecretPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  This will be encrypted and stored securely
+                  {t("tenant.integrations.google.encryptedStorage")}
                 </p>
               </div>
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-sm text-brand">
-                  <strong>Get your credentials:</strong>
+                  <strong>{t("tenant.integrations.google.getCredentials")}:</strong>
                   <br />
-                  1. Go to{" "}
+                  1. {t("tenant.integrations.google.step1GoTo")}{" "}
                   <a
                     href="https://console.cloud.google.com/apis/credentials"
                     target="_blank"
@@ -132,9 +134,9 @@ export function GoogleCalendarIntegration({
                     Google Cloud Console
                   </a>
                   <br />
-                  2. Create OAuth 2.0 Client ID
+                  2. {t("tenant.integrations.google.step2CreateOAuth")}
                   <br />
-                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/google/callback</code>
+                  3. {t("tenant.integrations.google.step3AddRedirect")}: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/google/callback</code>
                 </p>
               </div>
 
@@ -144,13 +146,13 @@ export function GoogleCalendarIntegration({
                   onClick={() => setShowOAuthModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.google.cancel")}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
                 >
-                  Continue to Google
+                  {t("tenant.integrations.google.continueToGoogle")}
                 </button>
               </div>
             </Form>
