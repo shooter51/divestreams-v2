@@ -336,19 +336,19 @@ describe("Cart", () => {
 
     it("shows 'Add Customer (Optional)' button when no customer and requiresCustomer is false", () => {
       render(<Cart {...baseProps} customer={null} requiresCustomer={false} />);
-      expect(screen.getByText("Add Customer (Optional)")).toBeInTheDocument();
+      expect(screen.getByText("Add customer (optional)")).toBeInTheDocument();
     });
 
     it("calls onSelectCustomer when 'Add Customer' button is clicked", () => {
       const onSelectCustomer = vi.fn();
       render(<Cart {...baseProps} customer={null} onSelectCustomer={onSelectCustomer} />);
-      fireEvent.click(screen.getByText("Add Customer (Optional)"));
+      fireEvent.click(screen.getByText("Add customer (optional)"));
       expect(onSelectCustomer).toHaveBeenCalled();
     });
 
     it("shows 'Customer Required' text when requiresCustomer is true and no customer selected", () => {
       render(<Cart {...baseProps} customer={null} requiresCustomer={true} />);
-      expect(screen.getByText("Customer Required")).toBeInTheDocument();
+      expect(screen.getByText("Customer required")).toBeInTheDocument();
     });
   });
 

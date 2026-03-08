@@ -8,6 +8,8 @@ import { diveSiteSchema, validateFormData, getFormValues } from "../../../../../
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
 import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Dive Site - DiveStreams" }];
@@ -127,6 +129,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(and(eq(schema.diveSites.organizationId, organizationId), eq(schema.diveSites.id, siteId)));
+
+  // Enqueue auto-translation for translatable fields
+  const fieldsToTranslate = [
+    { field: "name", text: validation.data.name },
+    { field: "description", text: validation.data.description || "" },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "dive_site",
+      entityId: siteId,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   const diveSiteName = validation.data.name;
   return redirect(redirectWithNotification(`/tenant/dive-sites/${siteId}`, `Dive Site "${diveSiteName}" has been successfully updated`, "success"));

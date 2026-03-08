@@ -300,7 +300,7 @@ describe("CustomerSearchModal", () => {
   it("renders the search input", () => {
     renderSearch();
     expect(
-      screen.getByPlaceholderText("Search by name, email, or phone...")
+      screen.getByPlaceholderText("Type to search customers...")
     ).toBeInTheDocument();
   });
 
@@ -348,14 +348,14 @@ describe("CustomerSearchModal", () => {
 
   it("calls onSearch when at least 2 characters are typed in the search input", () => {
     renderSearch();
-    const input = screen.getByPlaceholderText("Search by name, email, or phone...");
+    const input = screen.getByPlaceholderText("Type to search customers...");
     fireEvent.change(input, { target: { value: "al" } });
     expect(onSearch).toHaveBeenCalledWith("al");
   });
 
   it("does not call onSearch when fewer than 2 characters are typed", () => {
     renderSearch();
-    const input = screen.getByPlaceholderText("Search by name, email, or phone...");
+    const input = screen.getByPlaceholderText("Type to search customers...");
     fireEvent.change(input, { target: { value: "a" } });
     expect(onSearch).not.toHaveBeenCalled();
   });
@@ -514,7 +514,7 @@ describe("RentalAgreementModal", () => {
   it("renders the terms and conditions list", () => {
     renderRental();
     expect(
-      screen.getByText(/Equipment must be returned by the due date/)
+      screen.getByText(/Equipment must be returned in the same condition/)
     ).toBeInTheDocument();
   });
 });

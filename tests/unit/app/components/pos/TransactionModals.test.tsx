@@ -134,7 +134,7 @@ describe("ReceiptModal", () => {
 
   it("renders 'No itemized details' when transaction items are null", () => {
     renderReceipt({ transaction: { items: null } });
-    expect(screen.getByText("No itemized details")).toBeInTheDocument();
+    expect(screen.getByText("No itemized details available")).toBeInTheDocument();
   });
 
   it("renders the payment method", () => {

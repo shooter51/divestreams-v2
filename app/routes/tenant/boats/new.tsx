@@ -8,6 +8,8 @@ import { redirectWithNotification } from "../../../../lib/use-notification";
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
@@ -67,6 +69,23 @@ export async function action({ request }: ActionFunctionArgs) {
     isActive: formData.get("isActive") === "true",
   });
   console.log("[boats/new] Boat created with ID:", newBoat.id);
+
+  // Enqueue auto-translation for translatable fields
+  const fieldsToTranslate = [
+    { field: "name", text: formData.get("name") as string },
+    { field: "description", text: formData.get("description") as string },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "boat",
+      entityId: newBoat.id,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   // Process uploaded images if any
   if (imageFiles.length > 0) {
