@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../../lib/db/translations.server";
 import { getCourses, getAgencies, getCourseById, updateCourse } from "../../../../../lib/db/training.server";
 import { useNotification } from "../../../../../lib/use-notification";
 import { useT } from "../../../../i18n/use-t";
@@ -75,6 +77,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isActive: c.isActive ?? true,
     isPublic: c.isPublic ?? false,
   }));
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && courses.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "course", courses.map(c => c.id), locale);
+    for (const course of courses) {
+      const tr = translations.get(course.id);
+      if (tr) {
+        if (tr.name) course.name = tr.name;
+        if (tr.description) course.description = tr.description;
+      }
+    }
+  }
 
   return {
     courses,

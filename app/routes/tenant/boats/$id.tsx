@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc, desc } from "drizzle-orm";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getBoatById,
@@ -90,6 +92,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
     return String(date);
   };
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "boat", boatId, locale);
+    if (tr.name) boat.name = tr.name;
+    if (tr.description) boat.description = tr.description;
+  }
 
   // Format boat data with dates as strings
   const formattedBoat = {

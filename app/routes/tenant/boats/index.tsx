@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
@@ -103,6 +105,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     tripCount: tripCountMap.get(b.id) || 0,
     imageUrl: imageMap.get(b.id),
   }));
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && boats.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "boat", boats.map(b => b.id), locale);
+    for (const boat of boats) {
+      const tr = translations.get(boat.id);
+      if (tr) {
+        if (tr.name) boat.name = tr.name;
+        if (tr.description) boat.description = tr.description;
+      }
+    }
+  }
 
   const totalCapacity = boats.filter((b) => b.isActive).reduce((sum, b) => sum + b.capacity, 0);
   const activeCount = boats.filter((b) => b.isActive).length;
