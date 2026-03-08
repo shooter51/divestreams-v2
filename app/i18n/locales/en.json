@@ -526,6 +526,9 @@
   "tenant.translations.locale": "Locale",
   "tenant.translations.value": "Value",
   "tenant.translations.source": "Source",
+  "tenant.translations.translateAll": "Translate All Content",
+  "tenant.translations.translating": "Translating...",
+  "tenant.translations.enqueued": "{{count}} translation jobs enqueued. Translations will appear shortly.",
 
   "common.saving": "Saving...",
   "common.creating": "Creating...",
