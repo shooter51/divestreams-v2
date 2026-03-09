@@ -80,13 +80,13 @@ export default function TrainingDashboardPage() {
           </Link>
           <Link
             to="/tenant/training/sessions"
-            className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
+            className="px-4 py-2 border border-brand text-brand rounded-lg hover:bg-brand-muted transition-colors"
           >
             {t("tenant.training.dashboard.viewSessions")}
           </Link>
           <Link
             to="/tenant/training/series"
-            className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
+            className="px-4 py-2 border border-brand text-brand rounded-lg hover:bg-brand-muted transition-colors"
           >
             {t("tenant.training.dashboard.viewSeries")}
           </Link>

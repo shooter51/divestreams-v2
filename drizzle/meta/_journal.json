@@ -351,6 +351,13 @@
       "when": 1772909595125,
       "tag": "0049_add_training_session_series",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1772909595126,
+      "tag": "0050_add_session_type_column",
+      "breakpoints": true
     }
   ]
 }
