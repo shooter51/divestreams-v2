@@ -65,6 +65,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     serialNumber: equipmentData.serialNumber || "",
     barcode: equipmentData.barcode || "",
     size: equipmentData.size || "",
+    gasType: equipmentData.gasType || "",
     condition: equipmentData.condition,
     status: equipmentData.status,
     isRentable: equipmentData.isRentable,
@@ -128,6 +129,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       serialNumber: validation.data.serialNumber,
       barcode,
       size: validation.data.size,
+      gasType: validation.data.gasType || null,
       condition: validation.data.condition,
       status: validation.data.status,
       isRentable: validation.data.isRentable,
@@ -154,6 +156,7 @@ export default function EditEquipmentPage() {
   const isSubmitting = navigation.state === "submitting";
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState(equipment.barcode || "");
+  const [selectedCategory, setSelectedCategory] = useState(equipment.category || "");
 
   return (
     <div className="max-w-2xl">
@@ -194,6 +197,7 @@ export default function EditEquipmentPage() {
                   name="category"
                   required
                   defaultValue={actionData?.values?.category || equipment.category}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="bcd">{t("tenant.equipment.category.bcd")}</option>
@@ -221,6 +225,26 @@ export default function EditEquipmentPage() {
                 />
               </div>
             </div>
+
+            {selectedCategory === "tank" && (
+              <div>
+                <label htmlFor="gasType" className="block text-sm font-medium mb-1">
+                  {t("tenant.equipment.gasType")}
+                </label>
+                <select
+                  id="gasType"
+                  name="gasType"
+                  defaultValue={actionData?.values?.gasType || equipment.gasType || "air"}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                >
+                  <option value="air">{t("tenant.equipment.gasType.air")}</option>
+                  <option value="nitrox32">{t("tenant.equipment.gasType.nitrox32")}</option>
+                  <option value="nitrox36">{t("tenant.equipment.gasType.nitrox36")}</option>
+                  <option value="trimix">{t("tenant.equipment.gasType.trimix")}</option>
+                  <option value="oxygen">{t("tenant.equipment.gasType.oxygen")}</option>
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>

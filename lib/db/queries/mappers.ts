@@ -254,6 +254,7 @@ export function mapEquipment(row: EquipmentInput) {
     serialNumber: pick(row.serialNumber, r.serial_number) as string | null,
     barcode: row.barcode,
     size: row.size,
+    gasType: pick(row.gasType, r.gas_type) as string | null,
     status: row.status,
     condition: row.condition,
     rentalPrice: rentalPriceRaw != null ? Number(rentalPriceRaw) : null,

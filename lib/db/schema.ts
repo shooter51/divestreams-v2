@@ -408,6 +408,7 @@ export const bookings = pgTable("bookings", {
   equipmentRental: jsonb("equipment_rental").$type<{
     item: string;
     size?: string;
+    gasType?: string;
     quantity?: number;
     price: number;
   }[]>(),
@@ -448,6 +449,7 @@ export const equipment = pgTable("equipment", {
   serialNumber: text("serial_number"),
   barcode: text("barcode"), // Barcode for quick equipment lookup/check-in/check-out
   size: text("size"),
+  gasType: text("gas_type"), // air, nitrox32, nitrox36, trimix, oxygen — only relevant for category="tank"
 
   status: text("status").notNull().default("available"), // available, rented, maintenance, retired
   condition: text("condition").default("good"), // excellent, good, fair, poor

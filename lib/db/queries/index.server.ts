@@ -67,6 +67,7 @@ export {
   getTripBookings,
   getTripRevenue,
   getTripBookedParticipants,
+  getTripEquipmentRentals,
   type CalendarTrip,
 } from "./trips.server";
 
