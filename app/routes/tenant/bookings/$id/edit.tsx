@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
+import { getBookingWithFullDetails, getEquipment } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
@@ -20,11 +20,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Booking ID required", { status: 400 });
   }
 
-  const bookingData = await getBookingWithFullDetails(organizationId, bookingId);
+  const [bookingData, equipmentData] = await Promise.all([
+    getBookingWithFullDetails(organizationId, bookingId),
+    getEquipment(organizationId, { isRentable: true, status: "available" }),
+  ]);
 
   if (!bookingData) {
     throw new Response("Booking not found", { status: 404 });
   }
+
+  // Group equipment by name+price (same pattern as new.tsx)
+  const equipmentGroups = new Map<string, { name: string; price: string; count: number; ids: string[] }>();
+  for (const e of equipmentData) {
+    const price = e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00";
+    const key = `${e.name}|${price}`;
+    if (!equipmentGroups.has(key)) {
+      equipmentGroups.set(key, { name: e.name, price, count: 0, ids: [] });
+    }
+    const entry = equipmentGroups.get(key)!;
+    entry.count++;
+    entry.ids.push(e.id);
+  }
+  const rentalEquipment = Array.from(equipmentGroups.values());
+
+  // Get existing equipment rental items (names) for pre-selection
+  const existingRentals = (bookingData.equipmentRental || []) as Array<{ item: string; price: number }>;
+  const existingRentalNames = existingRentals.map((r) => r.item);
 
   const booking = {
     id: bookingData.id,
@@ -40,7 +61,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     internalNotes: bookingData.internalNotes || "",
   };
 
-  return { booking };
+  return { booking, rentalEquipment, existingRentalNames };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -61,6 +82,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const specialRequests = formData.get("specialRequests") as string;
   const internalNotes = formData.get("internalNotes") as string;
 
+  // Parse equipment rental selections
+  const selectedEquipmentIds = formData.getAll("equipment") as string[];
+  let equipmentRental: Array<{ item: string; price: number }> | null = null;
+
+  if (selectedEquipmentIds.length > 0) {
+    const allEquipment = await getEquipment(organizationId, { isRentable: true });
+    equipmentRental = [];
+    for (const eqId of selectedEquipmentIds) {
+      const eq_item = allEquipment.find((e) => e.id === eqId);
+      if (eq_item && eq_item.rentalPrice) {
+        const price = eq_item.rentalPrice * participants;
+        equipmentRental.push({ item: eq_item.name, price });
+      }
+    }
+    if (equipmentRental.length === 0) equipmentRental = null;
+  }
+
   // Update booking in database
   const { db, schema } = getTenantDb(organizationId);
 
@@ -71,6 +109,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       status,
       specialRequests,
       internalNotes,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      equipmentRental: equipmentRental as any,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.bookings.organizationId, organizationId), eq(schema.bookings.id, bookingId)));
@@ -79,7 +119,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function EditBookingPage() {
-  const { booking } = useLoaderData<typeof loader>();
+  const { booking, rentalEquipment, existingRentalNames } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const t = useT();
@@ -189,6 +229,40 @@ export default function EditBookingPage() {
             </div>
           </div>
         </div>
+
+        {/* Equipment Rental */}
+        {rentalEquipment.length > 0 && (
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">{t("tenant.bookings.equipmentRentalTitle")}</h2>
+            <p className="text-sm text-foreground-muted mb-4">{t("tenant.bookings.selectEquipment")}</p>
+            <div className="grid grid-cols-2 gap-3">
+              {rentalEquipment.map((item) => (
+                <label
+                  key={item.name}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      name="equipment"
+                      value={item.ids[0]}
+                      defaultChecked={existingRentalNames.includes(item.name)}
+                      className="w-4 h-4 text-brand rounded focus:ring-brand"
+                    />
+                    <span className="text-sm font-medium">
+                      {item.name}
+                      <span className="text-foreground-muted font-normal"> ({t("tenant.bookings.availableCount", { count: item.count })})</span>
+                    </span>
+                  </div>
+                  <span className="text-sm text-foreground-muted">${item.price}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-foreground-subtle mt-3">
+              {t("tenant.bookings.equipmentNote")}
+            </p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
