@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getDiveSiteById,
@@ -89,6 +91,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ? new Date(siteData.updatedAt).toISOString().split("T")[0]
       : "",
   };
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "dive_site", siteId, locale);
+    if (tr.name) diveSite.name = tr.name;
+    if (tr.description) diveSite.description = tr.description;
+  }
 
   // Helper to format dates as strings
   const formatDate = (date: Date | string | null | undefined): string | null => {

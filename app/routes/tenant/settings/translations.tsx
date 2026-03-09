@@ -174,6 +174,12 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Translation not found" };
     }
 
+    // Reset source to "auto" so the worker won't skip it
+    await db
+      .update(contentTranslations)
+      .set({ source: "auto", updatedAt: new Date() })
+      .where(eq(contentTranslations.id, id));
+
     // Get source text and re-translate
     const sourceTexts = await getEntitySourceTexts(ctx.org.id, row.entityType, row.entityId);
     const sourceText = sourceTexts[row.field];

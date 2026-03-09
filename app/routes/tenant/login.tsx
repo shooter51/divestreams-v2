@@ -424,7 +424,7 @@ export default function LoginPage() {
                   required
                   defaultValue={actionData?.email || ""}
                   className="appearance-none block w-full px-3 py-2 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
-                  placeholder="you@example.com"
+                  placeholder={t("site.login.emailPlaceholder")}
                 />
               </div>
             </div>
@@ -442,7 +442,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   required
                   className="appearance-none block w-full px-3 py-2 pr-10 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
-                  placeholder="Enter your password"
+                  placeholder={t("site.login.passwordPlaceholder")}
                 />
                 <button
                   type="button"

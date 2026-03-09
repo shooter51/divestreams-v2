@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, Link, useFetcher } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../../lib/db/translations.server";
 import {
   getCourseById,
   getSessions,
@@ -30,6 +32,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Get sessions for this course
   const sessions = await getSessions(ctx.org.id, { courseId });
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(ctx.org.id, "course", courseId, locale);
+    if (tr.name) course.name = tr.name;
+    if (tr.description) course.description = tr.description;
+  }
 
   return { course, sessions };
 }

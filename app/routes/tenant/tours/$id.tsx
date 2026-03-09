@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useT } from "../../../i18n/use-t";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { eq, and, asc } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
@@ -110,6 +112,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }),
     averageRating: stats.averageRating,
   };
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "tour", tourId, locale);
+    if (tr.name) tour.name = tr.name;
+    if (tr.description) tour.description = tr.description;
+  }
 
   // Format images for the component
   const images: Image[] = tourImages.map((img) => ({

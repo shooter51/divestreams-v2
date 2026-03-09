@@ -102,7 +102,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       and(
         eq(equipment.id, equipmentId),
         eq(equipment.organizationId, org.id),
-        eq(equipment.isPublic, true)
+        eq(equipment.isRentable, true),
+        eq(equipment.status, "available")
       )
     )
     .limit(1);

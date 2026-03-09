@@ -7,6 +7,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, Form, useSearchParams } from "react-router";
 import { requireOrgContext, requireRole } from "../../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../../lib/db/translations.server";
 import {
   getProducts,
   getProductCategories,
@@ -30,6 +32,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getProducts(organizationId, { category, search, activeOnly: false }),
     getProductCategories(organizationId),
   ]);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && products.length > 0) {
+    const translations = await bulkGetContentTranslations(organizationId, "product", products.map((p: Product) => p.id), locale);
+    for (const product of products) {
+      const tr = translations.get(product.id);
+      if (tr) {
+        if (tr.name) product.name = tr.name;
+        if (tr.description) product.description = tr.description ?? null;
+      }
+    }
+  }
 
   return { products, categories };
 }

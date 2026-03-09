@@ -240,7 +240,7 @@ export default function ResetPasswordPage() {
                   className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
                     errors.password ? "border-danger" : "border-border-strong"
                   }`}
-                  placeholder="Enter new password"
+                  placeholder={t("tenant.resetPassword.newPasswordPlaceholder")}
                 />
                 <button
                   type="button"
@@ -292,7 +292,7 @@ export default function ResetPasswordPage() {
                   className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
                     errors.confirmPassword ? "border-danger" : "border-border-strong"
                   }`}
-                  placeholder="Confirm new password"
+                  placeholder={t("tenant.resetPassword.confirmPasswordPlaceholder")}
                 />
                 <button
                   type="button"

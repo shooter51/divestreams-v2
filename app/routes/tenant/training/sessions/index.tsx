@@ -108,6 +108,11 @@ export default function SessionsPage() {
 
   return (
     <div>
+      <div className="mb-4">
+        <Link to="/tenant/training" className="text-brand hover:underline text-sm">
+          &larr; {t("tenant.training.backToTraining")}
+        </Link>
+      </div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">{t("tenant.training.sessions.title")}</h1>

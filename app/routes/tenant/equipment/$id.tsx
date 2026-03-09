@@ -341,10 +341,10 @@ export default function EquipmentDetailPage() {
                 defaultValue={equipment.status}
                 className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
-                <option value="available">Available</option>
-                <option value="rented">Rented</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="retired">Retired</option>
+                <option value="available">{t("tenant.equipment.status.available")}</option>
+                <option value="rented">{t("tenant.equipment.status.rented")}</option>
+                <option value="maintenance">{t("tenant.equipment.status.maintenance")}</option>
+                <option value="retired">{t("tenant.equipment.status.retired")}</option>
               </select>
               <button
                 type="submit"
@@ -421,17 +421,17 @@ export default function EquipmentDetailPage() {
               <CsrfInput />
               <input type="hidden" name="intent" value="log-service" />
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Type</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.equipment.serviceType")}</label>
                 <select
                   name="type"
                   className="w-full text-sm border rounded-lg px-3 py-2"
                   required
                 >
-                  <option value="inspection">Inspection</option>
-                  <option value="repair">Repair</option>
-                  <option value="certification">Certification</option>
-                  <option value="cleaning">Cleaning</option>
-                  <option value="replacement">Replacement</option>
+                  <option value="inspection">{t("tenant.equipment.serviceInspection")}</option>
+                  <option value="repair">{t("tenant.equipment.serviceRepair")}</option>
+                  <option value="certification">{t("tenant.equipment.serviceCertification")}</option>
+                  <option value="cleaning">{t("tenant.equipment.serviceCleaning")}</option>
+                  <option value="replacement">{t("tenant.equipment.serviceReplacement")}</option>
                 </select>
               </div>
               <div>

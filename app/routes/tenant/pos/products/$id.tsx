@@ -7,6 +7,8 @@ import { useLoaderData, Link, Form, redirect } from "react-router";
 import { useState } from "react";
 import { eq, and, asc } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../../lib/db/translations.server";
 import { getProductById, deleteProduct, adjustProductStock } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../../components/CsrfInput";
@@ -50,6 +52,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   if (!product) {
     throw new Response("Product not found", { status: 404 });
+  }
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "product", productId, locale);
+    if (tr.name) product.name = tr.name;
+    if (tr.description) product.description = tr.description ?? null;
   }
 
   const images = productImages.map((img) => ({

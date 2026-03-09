@@ -196,14 +196,14 @@ export default function EditEquipmentPage() {
                   defaultValue={actionData?.values?.category || equipment.category}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
-                  <option value="bcd">BCD</option>
-                  <option value="regulator">Regulator</option>
-                  <option value="wetsuit">Wetsuit</option>
-                  <option value="mask">Mask</option>
-                  <option value="fins">Fins</option>
-                  <option value="tank">Tank</option>
-                  <option value="computer">Dive Computer</option>
-                  <option value="other">Other</option>
+                  <option value="bcd">{t("tenant.equipment.category.bcd")}</option>
+                  <option value="regulator">{t("tenant.equipment.category.regulator")}</option>
+                  <option value="wetsuit">{t("tenant.equipment.category.wetsuit")}</option>
+                  <option value="mask">{t("tenant.equipment.category.mask")}</option>
+                  <option value="fins">{t("tenant.equipment.category.fins")}</option>
+                  <option value="tank">{t("tenant.equipment.category.tank")}</option>
+                  <option value="computer">{t("tenant.equipment.category.computer")}</option>
+                  <option value="other">{t("tenant.equipment.category.other")}</option>
                 </select>
               </div>
 
@@ -318,10 +318,10 @@ export default function EditEquipmentPage() {
                 defaultValue={actionData?.values?.status || equipment.status}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
-                <option value="available">Available</option>
-                <option value="rented">Rented</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="retired">Retired</option>
+                <option value="available">{t("tenant.equipment.status.available")}</option>
+                <option value="rented">{t("tenant.equipment.status.rented")}</option>
+                <option value="maintenance">{t("tenant.equipment.status.maintenance")}</option>
+                <option value="retired">{t("tenant.equipment.status.retired")}</option>
               </select>
             </div>
 
@@ -336,10 +336,10 @@ export default function EditEquipmentPage() {
                 defaultValue={actionData?.values?.condition || equipment.condition || ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
-                <option value="excellent">Excellent</option>
-                <option value="good">Good</option>
-                <option value="fair">Fair</option>
-                <option value="poor">Poor</option>
+                <option value="excellent">{t("tenant.equipment.condition.excellent")}</option>
+                <option value="good">{t("tenant.equipment.condition.good")}</option>
+                <option value="fair">{t("tenant.equipment.condition.fair")}</option>
+                <option value="poor">{t("tenant.equipment.condition.poor")}</option>
               </select>
             </div>
           </div>

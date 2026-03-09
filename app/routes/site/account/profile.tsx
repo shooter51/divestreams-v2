@@ -443,7 +443,7 @@ export default function AccountProfile() {
               <p className="mt-1 text-sm text-danger">{actionData.error}</p>
             )}
             <p className="mt-1.5 text-xs opacity-60">
-              Must be at least 8 characters with uppercase, lowercase, and a number
+              {t("site.setPassword.passwordRequirements")}
             </p>
           </div>
 

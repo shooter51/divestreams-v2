@@ -262,7 +262,7 @@ export default function SetPasswordPage() {
                     required
                     minLength={8}
                     className="w-full px-4 py-2 pr-12 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                    placeholder="At least 8 characters"
+                    placeholder={t("site.register.min8Chars")}
                   />
                   <button
                     type="button"
@@ -283,7 +283,7 @@ export default function SetPasswordPage() {
                   </button>
                 </div>
                 <p className="text-xs text-foreground-muted mt-1">
-                  Must be at least 8 characters with uppercase, lowercase, and a number
+                  {t("site.setPassword.passwordRequirements")}
                 </p>
               </div>
 
@@ -300,7 +300,7 @@ export default function SetPasswordPage() {
                     required
                     minLength={8}
                     className="w-full px-4 py-2 pr-12 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                    placeholder="Re-enter your password"
+                    placeholder={t("site.setPassword.confirmPlaceholder")}
                   />
                   <button
                     type="button"
