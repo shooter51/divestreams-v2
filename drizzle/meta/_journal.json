@@ -358,6 +358,13 @@
       "when": 1772909595126,
       "tag": "0050_add_session_type_column",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1741564800000,
+      "tag": "0051_add_equipment_gas_type",
+      "breakpoints": true
     }
   ]
 }

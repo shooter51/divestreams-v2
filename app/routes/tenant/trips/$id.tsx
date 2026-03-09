@@ -7,6 +7,7 @@ import {
   getTripBookings,
   getTripRevenue,
   getTripBookedParticipants,
+  getTripEquipmentRentals,
   updateTripStatus,
 } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
@@ -22,6 +23,7 @@ import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatRecurrencePattern, formatCapacity, formatTime } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { aggregateEquipmentRentals, type BookingRentalData } from "../../../lib/rental-list";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
@@ -35,11 +37,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Fetch all trip data from database in parallel
-  const [trip, bookings, revenue, bookedParticipants] = await Promise.all([
+  const [trip, bookings, revenue, bookedParticipants, equipmentRentals] = await Promise.all([
     getTripWithFullDetails(organizationId, tripId),
     getTripBookings(organizationId, tripId),
     getTripRevenue(organizationId, tripId),
     getTripBookedParticipants(organizationId, tripId),
+    getTripEquipmentRentals(organizationId, tripId),
   ]);
 
   if (!trip) {
@@ -113,7 +116,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     createdAt: formatDate(trip.createdAt),
   };
 
-  return { trip: tripWithBookedCount, bookings, revenue, recurringInfo };
+  return { trip: tripWithBookedCount, bookings, revenue, recurringInfo, equipmentRentals };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -244,7 +247,7 @@ const messageTemplates = [
 export default function TripDetailPage() {
   useNotification();
 
-  const { trip, bookings, revenue, recurringInfo } = useLoaderData<typeof loader>();
+  const { trip, bookings, revenue, recurringInfo, equipmentRentals } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; seriesCancelled?: boolean }>();
   const t = useT();
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -404,6 +407,159 @@ export default function TripDetailPage() {
     `;
 
     printWindow.document.write(manifestHtml);
+    printWindow.document.close();
+  };
+
+  const handlePrintRentalList = () => {
+    const rentalData = aggregateEquipmentRentals(equipmentRentals as BookingRentalData[]);
+
+    if (rentalData.totalItems === 0) {
+      alert(t("tenant.trips.noRentals"));
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const gasTypeLabel = (gt: string) => {
+      const labels: Record<string, string> = {
+        air: t("tenant.equipment.gasType.air"),
+        nitrox32: t("tenant.equipment.gasType.nitrox32"),
+        nitrox36: t("tenant.equipment.gasType.nitrox36"),
+        trimix: t("tenant.equipment.gasType.trimix"),
+        oxygen: t("tenant.equipment.gasType.oxygen"),
+      };
+      return labels[gt] || gt || t("tenant.equipment.gasType.air");
+    };
+
+    const tankSummaryHtml = rentalData.tankSummary.length > 0
+      ? `
+        <div class="tank-highlight">
+          <h2>${t("tenant.trips.tankSummary")}</h2>
+          <div class="tank-grid">
+            ${rentalData.tankSummary.map(ts => `
+              <div class="tank-card">
+                <span class="tank-count">${ts.count}</span>
+                <span class="tank-label">${gasTypeLabel(ts.gasType)}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `
+      : "";
+
+    const summaryTableHtml = `
+      <h2>${t("tenant.trips.equipmentSummary")} (${rentalData.totalItems} ${t("tenant.trips.totalItems")})</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>${t("tenant.trips.equipment")}</th>
+            <th>Size</th>
+            <th>${t("tenant.equipment.gasType")}</th>
+            <th>${t("tenant.trips.qty")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rentalData.summary.map(s => `
+            <tr>
+              <td>${s.item}</td>
+              <td>${s.size || "—"}</td>
+              <td>${s.gasType ? gasTypeLabel(s.gasType) : "—"}</td>
+              <td><strong>${s.count}</strong></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    const detailTableHtml = `
+      <h2>${t("tenant.trips.customerRentals")}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>${t("tenant.trips.customer")}</th>
+            <th>${t("tenant.trips.equipment")}</th>
+            <th>Size</th>
+            <th>${t("tenant.equipment.gasType")}</th>
+            <th>${t("tenant.trips.qty")}</th>
+            <th style="width:60px">✓</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rentalData.details.map((d, i) =>
+            d.items.map((item, j) => `
+              <tr>
+                ${j === 0 ? `<td rowspan="${d.items.length}">${i + 1}</td><td rowspan="${d.items.length}"><strong>${d.customerName}</strong><br><span style="font-size:11px;color:#666">${d.bookingNumber}</span></td>` : ""}
+                <td>${item.item}</td>
+                <td>${item.size || "—"}</td>
+                <td>${item.gasType ? gasTypeLabel(item.gasType) : "—"}</td>
+                <td>${item.quantity}</td>
+                <td></td>
+              </tr>
+            `).join("")
+          ).join("")}
+        </tbody>
+      </table>
+    `;
+
+    const rentalListHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${t("tenant.trips.rentalListTitle")} - ${trip.tour.name}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+          h1 { font-size: 24px; margin-bottom: 5px; }
+          .subtitle { color: #666; margin-bottom: 20px; }
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+          .info-item label { font-size: 12px; color: #666; display: block; }
+          .info-item span { font-weight: bold; }
+          .tank-highlight { background: #e0f2fe; border: 2px solid #0284c7; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+          .tank-highlight h2 { margin: 0 0 10px 0; color: #0369a1; }
+          .tank-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+          .tank-card { text-align: center; background: white; border-radius: 8px; padding: 10px 20px; }
+          .tank-count { display: block; font-size: 28px; font-weight: bold; color: #0369a1; }
+          .tank-label { font-size: 14px; color: #666; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 30px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background: #f0f0f0; font-weight: bold; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <h1>${trip.tour.name}</h1>
+        <p class="subtitle">${t("tenant.trips.rentalListTitle")}</p>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Date</label>
+            <span>${tripDate}</span>
+          </div>
+          <div class="info-item">
+            <label>Time</label>
+            <span>${trip.startTime} - ${trip.endTime}</span>
+          </div>
+          <div class="info-item">
+            <label>Boat</label>
+            <span>${trip.boat?.name || "Not assigned"}</span>
+          </div>
+          <div class="info-item">
+            <label>Passengers</label>
+            <span>${trip.bookedParticipants}</span>
+          </div>
+        </div>
+
+        ${tankSummaryHtml}
+        ${summaryTableHtml}
+        ${detailTableHtml}
+
+        <script>window.onload = function() { window.print(); }</script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(rentalListHtml);
     printWindow.document.close();
   };
 
@@ -703,6 +859,12 @@ export default function TripDetailPage() {
                 className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 📋 {t("tenant.trips.printManifest")}
+              </button>
+              <button
+                onClick={handlePrintRentalList}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
+              >
+                🤿 {t("tenant.trips.printRentalList")}
               </button>
               <button
                 onClick={() => setShowEmailModal(true)}

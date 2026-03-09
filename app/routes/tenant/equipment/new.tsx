@@ -37,6 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
     serialNumber: (formData.get("serialNumber") as string) || undefined,
     barcode: (formData.get("barcode") as string) || undefined,
     size: (formData.get("size") as string) || undefined,
+    gasType: (formData.get("gasType") as string) || undefined,
     status: (formData.get("status") as string) || undefined,
     condition: (formData.get("condition") as string) || undefined,
     rentalPrice: formData.get("rentalPrice") ? Number(formData.get("rentalPrice")) : undefined,
@@ -59,6 +60,7 @@ export default function NewEquipmentPage() {
   const isSubmitting = navigation.state === "submitting";
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState(actionData?.values?.barcode || "");
+  const [selectedCategory, setSelectedCategory] = useState(actionData?.values?.category || "");
 
   return (
     <div className="max-w-2xl">
@@ -85,6 +87,7 @@ export default function NewEquipmentPage() {
                   name="category"
                   required
                   defaultValue={actionData?.values?.category || ""}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">{t("tenant.equipment.selectCategory")}</option>
@@ -213,6 +216,25 @@ export default function NewEquipmentPage() {
                   <option value="XXL">XXL</option>
                 </select>
               </div>
+              {selectedCategory === "tank" && (
+                <div>
+                  <label htmlFor="gasType" className="block text-sm font-medium mb-1">
+                    {t("tenant.equipment.gasType")}
+                  </label>
+                  <select
+                    id="gasType"
+                    name="gasType"
+                    defaultValue={actionData?.values?.gasType || "air"}
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+                  >
+                    <option value="air">{t("tenant.equipment.gasType.air")}</option>
+                    <option value="nitrox32">{t("tenant.equipment.gasType.nitrox32")}</option>
+                    <option value="nitrox36">{t("tenant.equipment.gasType.nitrox36")}</option>
+                    <option value="trimix">{t("tenant.equipment.gasType.trimix")}</option>
+                    <option value="oxygen">{t("tenant.equipment.gasType.oxygen")}</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         </div>

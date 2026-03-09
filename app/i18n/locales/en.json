@@ -19,7 +19,6 @@
   "nav.pos": "POS",
   "nav.reports": "Reports",
   "nav.settings": "Settings",
-
   "auth.login": "Log In",
   "auth.signup": "Sign Up",
   "auth.logout": "Log Out",
@@ -28,7 +27,6 @@
   "auth.forgotPassword": "Forgot Password",
   "auth.resetPassword": "Reset Password",
   "auth.setPassword": "Set Password",
-
   "auth.login.enterEmailToFind": "Enter your email to find your account",
   "auth.login.emailAddress": "Email Address",
   "auth.login.searching": "Searching...",
@@ -42,28 +40,23 @@
   "auth.login.signingIn": "Signing in...",
   "auth.login.signIn": "Sign In",
   "auth.login.forgotYourPassword": "Forgot your password?",
-
   "auth.forgotPassword.checkYourEmail": "Check Your Email",
   "auth.forgotPassword.resetEmailSent": "If an account exists with that email, we've sent password reset instructions.",
   "auth.forgotPassword.backToLogin": "Back to login",
   "auth.forgotPassword.resetYourPassword": "Reset your password",
   "auth.forgotPassword.sendResetLink": "Send Reset Link",
-
   "auth.resetPassword.createNewPassword": "Create a new password",
   "auth.resetPassword.newPassword": "New Password",
   "auth.resetPassword.confirmPassword": "Confirm Password",
   "auth.resetPassword.hidePassword": "Hide password",
   "auth.resetPassword.showPassword": "Show password",
   "auth.resetPassword.resetting": "Resetting...",
-
   "site.footer.quickLinks": "Quick Links",
   "site.footer.contact": "Contact",
   "site.footer.allRightsReserved": "All rights reserved.",
   "site.footer.poweredBy": "Powered by DiveStreams",
-
   "site.hero.explore": "Explore Our Trips",
   "site.hero.book": "Book Now",
-
   "site.trips.title": "Upcoming Trips",
   "site.trips.noTrips": "No trips available at this time.",
   "site.trips.bookNow": "Book Now",
@@ -74,7 +67,6 @@
   "site.trips.maxParticipants": "Max Participants",
   "site.trips.included": "What's Included",
   "site.trips.requirements": "Requirements",
-
   "site.courses.title": "Courses",
   "site.courses.noCourses": "No courses available at this time.",
   "site.courses.enroll": "Enroll",
@@ -114,7 +106,6 @@
   "site.courses.checkBackSoon": "Check back soon for new courses!",
   "site.courses.notSure": "Not sure which course to take?",
   "site.courses.notSureDescription": "Contact us and we'll help you find the right course for your experience level.",
-
   "site.equipment.title": "Equipment",
   "site.equipment.noEquipment": "No equipment available for rental.",
   "site.equipment.rent": "Rent",
@@ -153,7 +144,6 @@
   "site.equipment.rentalTerm3": "Late returns may incur additional charges",
   "site.equipment.rentalTerm4": "Valid ID required at time of rental",
   "site.equipment.backToEquipment": "Back to Equipment",
-
   "site.contact.title": "Contact Us",
   "site.contact.subtitle": "We'd love to hear from you. Get in touch with us.",
   "site.contact.sendUsMessage": "Send Us a Message",
@@ -170,7 +160,6 @@
   "site.contact.address": "Address",
   "site.contact.businessHours": "Business Hours",
   "site.contact.fallbackMessage": "Have questions? Send us a message and we'll get back to you shortly.",
-
   "site.book.title": "Book Your Trip",
   "site.book.participants": "x {{count}} participant(s)",
   "site.book.total": "Total",
@@ -202,7 +191,6 @@
   "site.book.processing": "Processing...",
   "site.book.proceedToPayment": "Proceed to Payment",
   "site.book.termsNotice": "By clicking above, you agree to our terms and conditions.",
-
   "site.confirm.enrollmentConfirmed": "Enrollment Confirmed!",
   "site.confirm.bookingConfirmed": "Booking Confirmed!",
   "site.confirm.thankYouEnrollment": "Thank you for enrolling with {{org}}.",
@@ -225,7 +213,6 @@
   "site.confirm.createAccountManage": "Create Account to Manage Bookings",
   "site.confirm.printConfirmation": "Print Confirmation",
   "site.confirm.backToHomepage": "Back to Homepage",
-
   "site.about.title": "About Us",
   "site.about.aboutOrg": "About {{name}}",
   "site.about.subtitle": "Learn more about who we are and what we do.",
@@ -247,7 +234,6 @@
   "site.gallery.photographer": "Photographer",
   "site.gallery.date": "Date",
   "site.gallery.album": "Album",
-
   "common.loading": "Loading...",
   "common.error": "An error occurred",
   "common.save": "Save",
@@ -270,13 +256,11 @@
   "common.optional": "Optional",
   "common.tryAgain": "Try Again",
   "common.backToHome": "Back to Home",
-
   "error.notFound": "Page Not Found",
   "error.notFoundMessage": "The page you're looking for doesn't exist or has been moved.",
   "error.unexpected": "Unexpected Error",
   "error.unexpectedMessage": "An unexpected error occurred. Please try again later.",
   "error.somethingWentWrong": "Something Went Wrong",
-
   "tenant.trial.daysLeft": "You have {{days}} days left in your free trial.",
   "tenant.trial.upgradeNow": "Upgrade now",
   "tenant.nav.toggleMenu": "Toggle navigation menu",
@@ -301,10 +285,8 @@
   "tenant.dashboard.usage.unlimited": "Unlimited",
   "tenant.dashboard.upgrade.viewOptions": "View Upgrade Options",
   "tenant.dashboard.upgrade.maybeLater": "Maybe Later",
-
   "common.view": "View",
   "common.pageOf": "Page {{page}} of {{total}}",
-
   "tenant.bookings.totalBookings": "{{count}} total bookings",
   "tenant.bookings.usageThisMonth": "({{usage}}/{{limit}} this month)",
   "tenant.bookings.newBooking": "New Booking",
@@ -327,7 +309,6 @@
   "tenant.bookings.paid": "Paid",
   "tenant.bookings.noBookings": "No bookings yet. Create your first booking to get started.",
   "tenant.bookings.noBookingsFiltered": "No bookings found matching your filters.",
-
   "tenant.tours.tourTemplates": "{{count}} tour templates",
   "tenant.tours.usageOf": "({{usage}}/{{limit}} used)",
   "tenant.tours.createTour": "Create Tour",
@@ -345,7 +326,6 @@
   "tenant.tours.type.snorkel": "Snorkel",
   "tenant.tours.type.nightDive": "Night Dive",
   "tenant.tours.type.other": "Other",
-
   "tenant.customers.totalCustomers": "{{count}} total customers",
   "tenant.customers.usageOf": "({{usage}}/{{limit}} used)",
   "tenant.customers.addCustomer": "Add Customer",
@@ -360,7 +340,6 @@
   "tenant.customers.neverDived": "Never",
   "tenant.customers.noCustomers": "No customers yet. Add your first customer to get started.",
   "tenant.customers.noCustomersFiltered": "No customers found matching your search.",
-
   "tenant.trips.title": "Scheduled Trips",
   "tenant.trips.totalTrips": "{{count}} trips",
   "tenant.trips.scheduleTrip": "Schedule Trip",
@@ -371,8 +350,7 @@
   "tenant.trips.noPast": "No past trips.",
   "tenant.trips.noTrips": "No trips found.",
   "tenant.trips.scheduleFirstTrip": "Schedule your first trip",
-  "tenant.trips.booked": "{{capacity}} booked",
-
+  "tenant.trips.booked": "Booked",
   "format.unlimited": "Unlimited",
   "format.na": "N/A",
   "format.recurrence.daily": "Daily",
@@ -387,11 +365,9 @@
   "format.payment.card": "Card",
   "format.payment.stripe": "Stripe",
   "format.payment.bankTransfer": "Bank Transfer",
-
   "language.switch": "Language",
   "language.en": "English",
   "language.es": "Español",
-
   "site.home.tagline": "Discover amazing underwater adventures and dive experiences",
   "site.home.exploreTrips": "Explore Trips",
   "site.home.viewCourses": "View Courses",
@@ -411,7 +387,6 @@
   "site.home.diveTrip": "Dive Trip",
   "site.home.oneDay": "1 day",
   "site.home.xDays": "{{count}} days",
-
   "site.trips.upcomingTitle": "Upcoming Dive Trips",
   "site.trips.upcomingDescription": "Explore our scheduled dive adventures. Book your spot today and dive into an unforgettable experience.",
   "site.trips.fromDate": "From Date",
@@ -452,7 +427,6 @@
   "site.trips.availability": "Availability",
   "site.trips.includedInPrice": "INCLUDED IN PRICE",
   "site.trips.haveQuestions": "Have questions?",
-
   "site.login.welcomeBack": "Welcome Back",
   "site.login.signInTo": "Sign in to your {{name}} account",
   "site.login.signInToAccount": "Sign in to your account",
@@ -470,7 +444,6 @@
   "site.login.passwordSetSuccess": "Password set successfully! You can now sign in with your new password.",
   "site.login.emailPlaceholder": "you@example.com",
   "site.login.passwordPlaceholder": "Enter your password",
-
   "site.register.title": "Sign Up",
   "site.register.createAccount": "Create an Account",
   "site.register.joinToBook": "Join {{name}} to book trips and manage your dive experience.",
@@ -492,7 +465,6 @@
   "site.register.oneUppercase": "One uppercase letter",
   "site.register.oneLowercase": "One lowercase letter",
   "site.register.oneNumber": "One number",
-
   "site.account.myAccount": "My Account",
   "site.account.welcomeBack": "Welcome back, {{name}}!",
   "site.account.dashboard": "Dashboard",
@@ -513,7 +485,6 @@
   "site.account.discoverAdventures": "Discover new diving adventures",
   "site.account.browseCourses": "Browse Courses",
   "site.account.exploreCertifications": "Explore certifications and courses",
-
   "site.account.bookings.title": "My Bookings",
   "site.account.bookings.subtitle": "View and manage all your bookings",
   "site.account.bookings.all": "All Bookings",
@@ -524,7 +495,6 @@
   "site.account.bookings.people": "people",
   "site.account.bookings.noBookings": "No bookings found",
   "site.account.bookings.browseTrips": "Browse Trips",
-
   "site.account.profile.title": "Profile Settings",
   "site.account.profile.subtitle": "Manage your personal information and account settings",
   "site.account.profile.personalInfo": "Personal Information",
@@ -542,7 +512,6 @@
   "site.account.profile.changePasswordButton": "Change Password",
   "site.account.profile.signOut": "Sign Out",
   "site.account.profile.signingOut": "Signing out...",
-
   "site.setPassword.title": "Set Your Password",
   "site.setPassword.emailAddress": "Email Address",
   "site.setPassword.password": "Password",
@@ -555,7 +524,6 @@
   "site.setPassword.passwordRequirements": "Must be at least 8 characters with uppercase, lowercase, and a number",
   "site.setPassword.mustHaveUppercase": "Password must contain at least one uppercase letter",
   "site.setPassword.mustHaveLowercase": "Password must contain at least one lowercase letter",
-
   "tenant.translations.title": "Content Translations",
   "tenant.translations.description": "Manage auto-generated and manual translations for your content.",
   "tenant.translations.empty": "No translations yet. Create or edit a tour to trigger auto-translation.",
@@ -570,7 +538,6 @@
   "tenant.translations.translateAll": "Translate All Content",
   "tenant.translations.translating": "Translating...",
   "tenant.translations.enqueued": "{{count}} translation jobs enqueued. Translations will appear shortly.",
-
   "common.saving": "Saving...",
   "common.creating": "Creating...",
   "common.actions": "Actions",
@@ -611,7 +578,6 @@
   "common.scheduling": "Scheduling...",
   "common.sending": "Sending...",
   "common.recording": "Recording...",
-
   "tenant.tours.backToTours": "← Back to Tours",
   "tenant.tours.backToTour": "← Back to Tour",
   "tenant.tours.editTour": "Edit Tour",
@@ -671,7 +637,6 @@
   "tenant.tours.updateDetails": "Update tour details and images.",
   "tenant.tours.limitWarning": "{{remaining}} of {{max}} tours per month remaining.",
   "tenant.tours.upgradeForMore": "Upgrade for more",
-
   "tenant.trips.backToTrips": "← Back to Trips",
   "tenant.trips.backToTrip": "← Back to Trip",
   "tenant.trips.editTrip": "Edit Trip",
@@ -682,7 +647,6 @@
   "tenant.trips.cancelSeries": "Cancel Series",
   "tenant.trips.confirmCancel": "Are you sure you want to cancel this trip? All bookings will be affected.",
   "tenant.trips.confirmCancelSeries": "Are you sure you want to cancel ALL future trips in this series?",
-  "tenant.trips.booked": "Booked",
   "tenant.trips.spotsLeft": "Spots Left",
   "tenant.trips.totalRevenue": "Total Revenue",
   "tenant.trips.pendingPayment": "Pending Payment",
@@ -765,7 +729,6 @@
   "tenant.trips.statusCancelled": "Cancelled",
   "tenant.trips.created": "Created {{date}}",
   "tenant.trips.tripId": "Trip ID: {{id}}",
-
   "tenant.bookings.backToBookings": "← Back to Bookings",
   "tenant.bookings.backToBooking": "← Back to Booking",
   "tenant.bookings.editBooking": "Edit Booking",
@@ -851,7 +814,6 @@
   "tenant.bookings.updateBooking": "Update Booking",
   "tenant.bookings.totalAmount": "Total Amount",
   "tenant.bookings.smtpNote": "Note: Email delivery requires SMTP configuration in settings. This message will be logged to communication history.",
-
   "tenant.customers.backToCustomers": "← Back to Customers",
   "tenant.customers.backToCustomer": "← Back to Customer",
   "tenant.customers.editCustomer": "Edit Customer",
@@ -907,7 +869,6 @@
   "tenant.customers.optInMarketing": "Opt in to marketing emails",
   "tenant.customers.never": "Never",
   "tenant.customers.smtpNote": "Note: Email delivery requires SMTP configuration in settings. This message will be logged to communication history.",
-
   "tenant.boats.title": "Boats & Vessels",
   "tenant.boats.addBoat": "Add Boat",
   "tenant.boats.editBoat": "Edit Boat",
@@ -980,7 +941,6 @@
   "tenant.boats.type.rigidInflatable": "Rigid Inflatable",
   "tenant.boats.type.diveBoat": "Dive Boat",
   "tenant.boats.type.other": "Other",
-
   "tenant.diveSites.title": "Dive Sites",
   "tenant.diveSites.addSite": "Add Site",
   "tenant.diveSites.editSite": "Edit Dive Site",
@@ -1035,7 +995,6 @@
   "tenant.diveSites.difficulty.intermediate": "Intermediate",
   "tenant.diveSites.difficulty.advanced": "Advanced",
   "tenant.diveSites.difficulty.expert": "Expert",
-
   "tenant.equipment.title": "Equipment Inventory",
   "tenant.equipment.addEquipment": "Add Equipment",
   "tenant.equipment.editEquipment": "Edit Equipment",
@@ -1131,7 +1090,6 @@
   "tenant.equipment.serviceCertification": "Certification",
   "tenant.equipment.serviceCleaning": "Cleaning",
   "tenant.equipment.serviceReplacement": "Replacement",
-
   "tenant.equipment.rentals.title": "Rental Management",
   "tenant.equipment.rentals.totalRentals": "total rentals",
   "tenant.equipment.rentals.backToEquipment": "Back to Equipment",
@@ -1176,7 +1134,6 @@
   "tenant.equipment.condition.good": "Good",
   "tenant.equipment.condition.fair": "Fair",
   "tenant.equipment.condition.poor": "Poor",
-
   "tenant.pos.title": "Point of Sale",
   "tenant.pos.newSale": "New Sale",
   "tenant.pos.newSaleAria": "Start new sale and clear cart",
@@ -1190,7 +1147,6 @@
   "tenant.pos.barcodeNotFound": "Product not found for barcode: {{barcode}}",
   "tenant.pos.saleComplete": "Sale complete! Receipt #{{receipt}}",
   "tenant.pos.refundComplete": "Refund processed successfully! ${{amount}} refunded to customer.",
-
   "tenant.pos.products.title": "Products",
   "tenant.pos.products.count": "{{count}} products",
   "tenant.pos.products.backToPOS": "Back to POS",
@@ -1268,7 +1224,6 @@
   "tenant.pos.products.categoryComputer": "Dive Computer",
   "tenant.pos.products.categoryTorch": "Torch",
   "tenant.pos.products.categoryOther": "Other",
-
   "tenant.pos.transactions.title": "Transactions",
   "tenant.pos.transactions.count": "{{count}} transactions",
   "tenant.pos.transactions.backToPOS": "Back to POS",
@@ -1297,7 +1252,6 @@
   "tenant.pos.transactions.paymentCard": "Card",
   "tenant.pos.transactions.paymentStripe": "Stripe",
   "tenant.pos.transactions.paymentBankTransfer": "Bank Transfer",
-
   "tenant.reports.title": "Reports",
   "tenant.reports.exportCsv": "Export CSV",
   "tenant.reports.exportPdf": "Export PDF",
@@ -1355,7 +1309,6 @@
   "tenant.reports.eqDiveComputer": "Dive Computer",
   "tenant.reports.eqTorch": "Torch",
   "tenant.reports.eqOther": "Other",
-
   "tenant.calendar.title": "Calendar",
   "tenant.calendar.month": "Month",
   "tenant.calendar.week": "Week",
@@ -1368,10 +1321,8 @@
   "tenant.calendar.booked": "booked",
   "tenant.calendar.viewTrip": "View Trip",
   "tenant.calendar.addBooking": "Add Booking",
-
   "tenant.checkout.processing": "Processing checkout...",
   "tenant.checkout.pleaseWait": "Please wait while we redirect you.",
-
   "tenant.gallery.title": "Gallery",
   "tenant.gallery.subtitle": "Manage your photo albums and images",
   "tenant.gallery.newAlbum": "+ New Album",
@@ -1440,7 +1391,6 @@
   "tenant.gallery.tagsPlaceholder": "scuba, diving, reef (comma-separated)",
   "tenant.gallery.tagsHint": "Separate multiple tags with commas",
   "tenant.gallery.uploading": "Uploading...",
-
   "tenant.training.day": "day",
   "tenant.training.days": "days",
   "tenant.training.actions": "Actions",
@@ -1457,7 +1407,6 @@
   "tenant.training.courses.noImage": "No image",
   "tenant.training.courses.public": "Public",
   "tenant.training.courses.makePublic": "Make Public",
-
   "tenant.training.dashboard.title": "Training",
   "tenant.training.dashboard.importCourses": "Import Courses",
   "tenant.training.dashboard.manageCourses": "Manage Courses",
@@ -1474,7 +1423,6 @@
   "tenant.training.dashboard.recentEnrollments": "Recent Enrollments",
   "tenant.training.dashboard.noRecentEnrollments": "No recent enrollments.",
   "tenant.training.dashboard.viewAllEnrollments": "View All Enrollments",
-
   "tenant.training.series.title": "Training Series",
   "tenant.training.series.totalCount": "{{count}} series",
   "tenant.training.series.newSeries": "New Series",
@@ -1546,7 +1494,6 @@
   "tenant.training.series.noSessionsAddedYet": "No sessions added yet. You can add sessions after creating the series, or add them now.",
   "tenant.training.series.sessionNumber": "Session {{number}}",
   "tenant.training.series.createSeries": "Create Series",
-
   "tenant.settings.backToSettings": "← Back to Settings",
   "tenant.settings.myProfile": "My Profile",
   "tenant.settings.myProfileDesc": "Manage your personal information and password",
@@ -1574,7 +1521,6 @@
   "tenant.settings.deleteAccountDesc": "Permanently delete your account and all data. This cannot be undone.",
   "tenant.settings.submitting": "Submitting...",
   "tenant.settings.requestDeletion": "Request Account Deletion",
-
   "tenant.settings.profile.subtitle": "Manage your dive shop's public information",
   "tenant.settings.profile.businessName": "Business Name",
   "tenant.settings.profile.urlSlug": "URL Slug",
@@ -1610,7 +1556,6 @@
   "tenant.settings.profile.taxIncluded": "Tax Included in Price",
   "tenant.settings.profile.taxIncludedHelp": "When enabled, listed prices already include tax",
   "tenant.settings.profile.saveTaxSettings": "Save Tax Settings",
-
   "tenant.settings.password.title": "Change Password",
   "tenant.settings.password.changeRequired": "Password Change Required",
   "tenant.settings.password.currentPassword": "Current Password",
@@ -1626,14 +1571,12 @@
   "tenant.settings.password.reqMix": "Mix of uppercase, lowercase, numbers, and symbols recommended",
   "tenant.settings.password.reqAvoidCommon": "Avoid common words and patterns",
   "tenant.settings.password.changing": "Changing...",
-
   "tenant.settings.userProfile.subtitle": "Manage your personal account information",
   "tenant.settings.userProfile.personalInfo": "Personal Information",
   "tenant.settings.userProfile.fullName": "Full Name",
   "tenant.settings.userProfile.emailAddress": "Email Address",
   "tenant.settings.userProfile.emailCannotChange": "Email cannot be changed. Contact support if needed.",
   "tenant.settings.userProfile.role": "Role",
-
   "tenant.settings.team.membersUnlimited": "{{count}} team members (Unlimited)",
   "tenant.settings.team.membersUsed": "{{count}} of {{limit}} team members used",
   "tenant.settings.team.upgradeToInvite": "Upgrade to invite team members",
@@ -1663,7 +1606,6 @@
   "tenant.settings.roles.ownerDesc": "Full access to everything",
   "tenant.settings.roles.adminDesc": "Manage bookings, customers, and staff",
   "tenant.settings.roles.memberDesc": "View and manage daily operations",
-
   "tenant.settings.billing.freeTrialActive": "Free Trial Active",
   "tenant.settings.billing.trialDaysLeft": "You have {{days}} days left in your trial. Add a payment method to continue after the trial ends.",
   "tenant.settings.billing.currentPlan": "Current Plan",
@@ -1704,7 +1646,6 @@
   "tenant.settings.billing.status.canceled": "Canceled",
   "tenant.settings.billing.status.pastDue": "Past Due",
   "tenant.settings.billing.status.incomplete": "Incomplete",
-
   "tenant.settings.notifications.title": "Notification Settings",
   "tenant.settings.notifications.subtitle": "Configure how you receive notifications",
   "tenant.settings.notifications.savedSuccess": "Settings saved successfully!",
@@ -1736,7 +1677,6 @@
   "tenant.settings.notifications.weeklyReport": "Weekly Report",
   "tenant.settings.notifications.weeklyReportDesc": "Receive weekly analytics and performance reports",
   "tenant.settings.notifications.saveSettings": "Save Settings",
-
   "tenant.training.sessions.title": "Training Sessions",
   "tenant.training.sessions.sessionCount": "{{count}} session(s)",
   "tenant.training.sessions.newSession": "New Session",
@@ -1830,7 +1770,6 @@
   "tenant.training.sessions.internalNotes": "Internal Notes",
   "tenant.training.sessions.notesPlaceholder": "Any additional notes for this session...",
   "tenant.training.sessions.createSession": "Create Session",
-
   "tenant.settings.publicSite.appearance.heroImage": "Hero Image",
   "tenant.settings.publicSite.appearance.heroImageDescription": "Set the hero image URL for your public site landing page",
   "tenant.settings.publicSite.appearance.heroImageUrl": "Hero Image URL",
@@ -1863,7 +1802,6 @@
   "tenant.settings.publicSite.appearance.fontPoppins": "Friendly and rounded",
   "tenant.settings.publicSite.appearance.fontRoboto": "Professional and balanced",
   "tenant.settings.publicSite.appearance.fontOpenSans": "Neutral and readable",
-
   "tenant.settings.publicSite.content.branding": "Branding",
   "tenant.settings.publicSite.content.logoUrl": "Logo URL",
   "tenant.settings.publicSite.content.logoHint": "Recommended size: 200x60px, PNG or SVG",
@@ -1884,7 +1822,6 @@
   "tenant.settings.publicSite.content.googleMapsHint": "Get embed code from Google Maps → Share → Embed a map",
   "tenant.settings.publicSite.content.mapPreview": "Map Preview",
   "tenant.settings.publicSite.content.saveContent": "Save Content Settings",
-
   "tenant.settings.publicSite.team.title": "Team Member Profiles",
   "tenant.settings.publicSite.team.description": "Manage team member profiles that appear on your public About page",
   "tenant.settings.publicSite.team.addTeamMember": "Add Team Member",
@@ -1903,7 +1840,6 @@
   "tenant.settings.publicSite.team.specialties": "Specialties (comma-separated)",
   "tenant.settings.publicSite.team.separateSpecialtiesWithCommas": "Separate multiple specialties with commas",
   "tenant.settings.publicSite.team.showOnAboutPage": "Show on public About page",
-
   "tenant.settings.publicSite.pages.title": "Page Content",
   "tenant.settings.publicSite.pages.subtitle": "Manage your public site pages and content",
   "tenant.settings.publicSite.pages.createNewPage": "Create New Page",
@@ -1942,7 +1878,6 @@
   "tenant.settings.publicSite.pages.restoring": "Restoring...",
   "tenant.settings.publicSite.pages.restore": "Restore",
   "tenant.settings.publicSite.pages.contentBlockTypes": "Content Block Types",
-
   "tenant.training.enrollments.title": "Training Enrollments",
   "tenant.training.enrollments.totalEnrollments": "{{count}} total enrollments",
   "tenant.training.enrollments.newEnrollment": "New Enrollment",
@@ -2021,7 +1956,6 @@
   "tenant.training.enrollments.selectStudent": "Select a student...",
   "tenant.training.enrollments.paymentStatusLabel": "Payment Status",
   "tenant.training.enrollments.createEnrollment": "Create Enrollment",
-
   "tenant.training.import.title": "Import Training Courses",
   "tenant.training.import.subtitle": "Import course templates from certification agencies to quickly populate your course catalog",
   "tenant.training.import.csvTitle": "Import Custom Courses via CSV",
@@ -2071,9 +2005,7 @@
   "tenant.training.import.nextStep4": "Create training sessions to start accepting enrollments",
   "tenant.training.import.viewCourses": "View Courses",
   "tenant.training.import.importMore": "Import More",
-
   "common.backToSettings": "Back to Settings",
-
   "tenant.settings.integrations.title": "Integrations",
   "tenant.settings.integrations.subtitle": "Connect third-party services to enhance DiveStreams",
   "tenant.settings.integrations.connected": "Connected",
@@ -2090,7 +2022,6 @@
   "tenant.settings.integrations.requiresPlan": "Requires {{plan}} plan",
   "tenant.settings.integrations.notAvailableOnPlan": "Not available on your plan",
   "tenant.settings.integrations.upgradeToUnlock": "Upgrade to unlock",
-
   "tenant.settings.integrations.stripe.description": "Process payments, deposits, and refunds",
   "tenant.settings.integrations.stripe.featureOnlinePayments": "Online payments",
   "tenant.settings.integrations.stripe.featureCardProcessing": "Card processing",
@@ -2116,7 +2047,6 @@
   "tenant.settings.integrations.xero.featureInvoiceSync": "Invoice sync",
   "tenant.settings.integrations.xero.featureBankReconciliation": "Bank reconciliation",
   "tenant.settings.integrations.xero.featureMultiCurrency": "Multi-currency",
-
   "tenant.settings.integrations.quickbooks.backToIntegrations": "Back to Integrations",
   "tenant.settings.integrations.quickbooks.title": "QuickBooks Integration",
   "tenant.settings.integrations.quickbooks.subtitle": "Sync invoices, customers, and payments with QuickBooks Online",
@@ -2145,7 +2075,6 @@
   "tenant.settings.integrations.quickbooks.setupStep2": "Create a new app and get your OAuth credentials",
   "tenant.settings.integrations.quickbooks.setupStep3": "Configure environment variables:",
   "tenant.settings.integrations.quickbooks.setupStep4": "Click \"Connect QuickBooks\" above to authorize DiveStreams",
-
   "tenant.settings.integrations.zapier.title": "Zapier Integration",
   "tenant.settings.integrations.zapier.subtitle": "Connect DiveStreams to 5000+ apps using Zapier workflow automation.",
   "tenant.settings.integrations.zapier.setupInstructions": "Setup Instructions",
@@ -2175,7 +2104,6 @@
   "tenant.settings.integrations.zapier.recentDeliveries": "Recent Deliveries",
   "tenant.settings.integrations.zapier.needHelp": "Need help?",
   "tenant.settings.integrations.zapier.viewDocumentation": "View Zapier Integration Documentation",
-
   "tenant.settings.bookingWidget.title": "Booking Widget",
   "tenant.settings.bookingWidget.subtitle": "Customize and embed your booking widget on any website",
   "tenant.settings.bookingWidget.settingsSaved": "Settings saved successfully!",
@@ -2202,7 +2130,6 @@
   "tenant.settings.bookingWidget.preview": "Preview",
   "tenant.settings.bookingWidget.previewDescription": "Use the link above to preview your widget in a new tab. The embed code shown above is ready to paste into your website.",
   "tenant.settings.bookingWidget.widgetAvailableAt": "Your widget is available at",
-
   "tenant.settings.publicSite.title": "Public Site Settings",
   "tenant.settings.publicSite.configureAt": "Configure your public-facing website at",
   "tenant.settings.publicSite.siteEnabled": "Site Enabled",
@@ -2210,7 +2137,6 @@
   "tenant.settings.publicSite.tabGeneral": "General",
   "tenant.settings.publicSite.tabContent": "Content",
   "tenant.settings.publicSite.tabAppearance": "Appearance",
-
   "tenant.settings.publicSite.general.siteStatus": "Public Site Status",
   "tenant.settings.publicSite.general.siteStatusDescription": "Enable or disable your public-facing website",
   "tenant.settings.publicSite.general.customDomain": "Custom Domain",
@@ -2238,7 +2164,6 @@
   "tenant.settings.publicSite.general.defaultSiteUrlDescription": "Your public site is always available at this URL:",
   "tenant.settings.publicSite.general.visitSite": "Visit Site",
   "tenant.settings.publicSite.general.saveGeneralSettings": "Save General Settings",
-
   "tenant.settings.training.code": "Code",
   "tenant.settings.training.agencies.title": "Certification Agencies",
   "tenant.settings.training.agencies.subtitle": "Manage diving certification agencies (PADI, SSI, NAUI, etc.)",
@@ -2254,7 +2179,6 @@
   "tenant.settings.training.agencies.addAgency": "Add Agency",
   "tenant.settings.training.agencies.noAgencies": "No certification agencies configured yet.",
   "tenant.settings.training.agencies.noAgenciesHint": "Add agencies like PADI, SSI, or NAUI to organize your courses.",
-
   "tenant.settings.training.levels.title": "Certification Levels",
   "tenant.settings.training.levels.subtitle": "Manage certification levels (Open Water, Advanced, Rescue, Divemaster, etc.)",
   "tenant.settings.training.levels.noAgenciesWarning": "No certification agencies configured",
@@ -2294,7 +2218,6 @@
   "common.selectPlaceholder": "Select...",
   "tenant.customers.emergencyRelationPlaceholder": "e.g., Spouse, Parent",
   "tenant.customers.medicalNotesPlaceholder": "Any conditions we should know about...",
-
   "tenant.integrations.stripe.viewSettings": "View Settings",
   "tenant.integrations.stripe.connectStripe": "Connect Stripe",
   "tenant.integrations.stripe.enterApiKeys": "Enter your Stripe API keys to enable payment processing",
@@ -2321,7 +2244,6 @@
   "tenant.integrations.stripe.dashboardAccess": "Dashboard Access",
   "tenant.integrations.stripe.manageAccount": "Manage your Stripe account at",
   "tenant.integrations.stripe.close": "Close",
-
   "tenant.integrations.google.syncNow": "Sync Now",
   "tenant.integrations.google.syncing": "Syncing...",
   "tenant.integrations.google.connectGoogleCalendar": "Connect Google Calendar",
@@ -2336,7 +2258,6 @@
   "tenant.integrations.google.step3AddRedirect": "Add redirect URI",
   "tenant.integrations.google.cancel": "Cancel",
   "tenant.integrations.google.continueToGoogle": "Continue to Google",
-
   "tenant.integrations.mailchimp.connectMailchimp": "Connect Mailchimp",
   "tenant.integrations.mailchimp.enterOAuthCredentials": "Enter your Mailchimp OAuth credentials to enable email marketing",
   "tenant.integrations.mailchimp.clientId": "Client ID",
@@ -2351,7 +2272,6 @@
   "tenant.integrations.mailchimp.cancel": "Cancel",
   "tenant.integrations.mailchimp.connecting": "Connecting...",
   "tenant.integrations.mailchimp.continueToMailchimp": "Continue to Mailchimp",
-
   "tenant.integrations.quickbooks.manageSettings": "Manage Settings",
   "tenant.integrations.quickbooks.connectQuickBooks": "Connect QuickBooks",
   "tenant.integrations.quickbooks.enterOAuthCredentials": "Enter your QuickBooks OAuth credentials to enable accounting sync",
@@ -2367,7 +2287,6 @@
   "tenant.integrations.quickbooks.cancel": "Cancel",
   "tenant.integrations.quickbooks.connecting": "Connecting...",
   "tenant.integrations.quickbooks.continueToQuickBooks": "Continue to QuickBooks",
-
   "tenant.integrations.xero.configure": "Configure",
   "tenant.integrations.xero.connectXero": "Connect Xero",
   "tenant.integrations.xero.enterOAuthCredentials": "Enter your Xero OAuth credentials to enable accounting sync",
@@ -2410,7 +2329,6 @@
   "tenant.integrations.xero.syncSettingsNote": "Changes to sync settings will apply to new bookings and transactions. Existing records will not be automatically synced.",
   "tenant.integrations.xero.saving": "Saving...",
   "tenant.integrations.xero.saveSettings": "Save Settings",
-
   "tenant.integrations.zapier.testWebhookSuccess": "Test webhook sent successfully!",
   "tenant.integrations.zapier.configure": "Configure",
   "tenant.integrations.zapier.connectZapier": "Connect Zapier",
@@ -2502,7 +2420,6 @@
   "tenant.discounts.status.expired": "Expired",
   "tenant.discounts.status.notYetActive": "Not Yet Active",
   "tenant.discounts.status.active": "Active",
-
   "common.backToLogin": "Back to login",
   "common.confirmNewPassword": "Confirm New Password",
   "common.confirmPassword": "Confirm Password",
@@ -2516,11 +2433,9 @@
   "common.passwordRequirements": "Password requirements:",
   "common.passwordUppercase": "One uppercase letter",
   "common.requestNewResetLink": "Request a new reset link",
-
   "error.404.contactOrg": "Contact {{name}}",
   "error.404.description": "The page you're looking for doesn't exist or has been moved.",
   "error.404.trySuggestions": "Try one of these instead:",
-
   "tenant.auth.forgotPassword.checkEmail": "Check Your Email",
   "tenant.auth.forgotPassword.linkExpiry": "The link will expire in 1 hour.",
   "tenant.auth.forgotPassword.rememberPassword": "Remember your password?",
@@ -2530,9 +2445,7 @@
   "tenant.auth.forgotPassword.subtitle": "Enter your email and we'll send you a reset link.",
   "tenant.auth.forgotPassword.title": "Forgot Password",
   "tenant.auth.forgotPassword.tryAgain": "Try again",
-
   "tenant.forgotPassword.emailPlaceholder": "Enter your email",
-
   "tenant.auth.login.accessDenied": "Access Denied",
   "tenant.auth.login.createAccount": "Create an account",
   "tenant.auth.login.emailSkippedNote": "Note: Email verification was skipped. You can sign in immediately.",
@@ -2552,16 +2465,13 @@
   "tenant.auth.login.signInToAccount": "Sign in to your account",
   "tenant.auth.login.signupSuccess": "Account created successfully! You can now sign in.",
   "tenant.auth.login.welcomeBack": "Welcome back! Enter your credentials to continue.",
-
   "tenant.resetPassword.newPasswordPlaceholder": "Enter new password",
   "tenant.resetPassword.confirmPasswordPlaceholder": "Confirm new password",
-
   "tenant.auth.resetPassword.continueToLogin": "Continue to Login",
   "tenant.auth.resetPassword.subtitle": "Enter a new password for your account.",
   "tenant.auth.resetPassword.success": "Password Reset!",
   "tenant.auth.resetPassword.successMessage": "Your password has been successfully reset. You can now sign in with your new password.",
   "tenant.auth.resetPassword.title": "Reset Password",
-
   "tenant.auth.signup.alreadyHaveAccount": "Already have an account?",
   "tenant.auth.signup.and": "and",
   "tenant.auth.signup.byCreatingAccount": "By creating an account, you agree to our",
@@ -2575,7 +2485,6 @@
   "tenant.auth.signup.privacyPolicy": "Privacy Policy",
   "tenant.auth.signup.signIn": "Sign in",
   "tenant.auth.signup.termsOfService": "Terms of Service",
-
   "tenant.bookings.boat": "Boat",
   "tenant.bookings.change": "Change",
   "tenant.bookings.internalNotesPlaceholder": "Internal notes (not visible to customer)...",
@@ -2586,10 +2495,8 @@
   "tenant.bookings.statusConfirmed": "Confirmed",
   "tenant.bookings.statusNoShow": "No Show",
   "tenant.bookings.statusPending": "Pending",
-
   "tenant.customers.message": "Message",
   "tenant.customers.subject": "Subject",
-
   "tenant.tours.advancedOpenWater": "Advanced Open Water",
   "tenant.tours.course": "Course",
   "tenant.tours.descriptionPlaceholder": "Describe the tour experience...",
@@ -2605,7 +2512,6 @@
   "tenant.tours.singleDive": "Single Dive",
   "tenant.tours.snorkel": "Snorkel",
   "tenant.tours.tourNamePlaceholder": "e.g., Morning Reef Dive",
-
   "tenant.training.allStatuses": "All Statuses",
   "tenant.training.backToDashboard": "Back to Dashboard",
   "tenant.training.backToTraining": "Back to Training",
@@ -2661,7 +2567,6 @@
   "tenant.training.students": "Students",
   "tenant.training.view": "View",
   "tenant.training.viewAll": "View All",
-
   "tenant.trips.change": "Change",
   "tenant.trips.close": "Close",
   "tenant.trips.unlimited": "Unlimited",
@@ -2670,7 +2575,6 @@
   "tenant.diveSites.imagesOptional": "Images (Optional)",
   "tenant.diveSites.uploadUpTo": "Upload up to 5 images",
   "tenant.diveSites.imageFormats": "JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.",
-
   "tenant.pos.cart.title": "Cart",
   "tenant.pos.cart.empty": "Cart is empty",
   "tenant.pos.cart.days": "days",
@@ -2685,7 +2589,6 @@
   "tenant.pos.cart.card": "Card",
   "tenant.pos.cart.cash": "Cash",
   "tenant.pos.cart.split": "Split",
-
   "tenant.pos.checkout.cardPayment": "Card Payment",
   "tenant.pos.checkout.totalDue": "Total Due",
   "tenant.pos.checkout.stripeNotConnected": "Stripe Not Connected",
@@ -2751,7 +2654,6 @@
   "tenant.pos.checkout.noCustomersFound": "No customers found",
   "tenant.pos.checkout.typeToSearch": "Type to search...",
   "tenant.pos.checkout.newCustomer": "New Customer",
-
   "tenant.pos.transactions.receipt": "Receipt",
   "tenant.pos.transactions.receiptNumber": "Receipt Number",
   "tenant.pos.transactions.date": "Date",
@@ -2777,7 +2679,6 @@
   "tenant.pos.transactions.receiptHash": "Receipt #",
   "tenant.pos.transactions.sending": "Sending...",
   "tenant.pos.transactions.sendEmail": "Send Email",
-
   "tenant.training.courses.namePlaceholder": "e.g., Open Water Diver",
   "tenant.training.courses.prerequisitesPlaceholder": "e.g., Open Water Diver certification, minimum 10 logged dives",
   "tenant.training.courses.codePlaceholder": "e.g., OWD, AOWD, EFR",
@@ -2787,5 +2688,21 @@
   "tenant.training.courses.minAgePlaceholder": "e.g., 10",
   "tenant.training.courses.includedItemsPlaceholder": "Logbook, Certification card, Photos (comma-separated)",
   "tenant.training.courses.studentsMustBringPlaceholder": "Swimsuit, Towel, Sunscreen (comma-separated)",
-  "tenant.training.courses.medicalPlaceholder": "e.g., Medical questionnaire required, physician clearance if over 45"
+  "tenant.training.courses.medicalPlaceholder": "e.g., Medical questionnaire required, physician clearance if over 45",
+  "tenant.trips.printRentalList": "Print Rental List",
+  "tenant.trips.rentalListTitle": "Equipment Rental List",
+  "tenant.trips.tankSummary": "Tank Summary",
+  "tenant.trips.equipmentSummary": "Equipment Summary",
+  "tenant.trips.customerRentals": "Customer Rentals",
+  "tenant.trips.noRentals": "No equipment rentals for this trip",
+  "tenant.trips.totalItems": "Total Items",
+  "tenant.trips.customer": "Customer",
+  "tenant.trips.equipment": "Equipment",
+  "tenant.trips.qty": "Qty",
+  "tenant.equipment.gasType": "Gas Type",
+  "tenant.equipment.gasType.air": "Air",
+  "tenant.equipment.gasType.nitrox32": "Nitrox 32%",
+  "tenant.equipment.gasType.nitrox36": "Nitrox 36%",
+  "tenant.equipment.gasType.trimix": "Trimix",
+  "tenant.equipment.gasType.oxygen": "Oxygen"
 }

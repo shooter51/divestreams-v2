@@ -941,7 +941,6 @@
   "tenant.boats.type.rigidInflatable": "Semirrígida",
   "tenant.boats.type.diveBoat": "Barco de Buceo",
   "tenant.boats.type.other": "Otro",
-
   "tenant.diveSites.title": "Sitios de Buceo",
   "tenant.diveSites.addSite": "Agregar Sitio",
   "tenant.diveSites.editSite": "Editar Sitio de Buceo",
@@ -996,7 +995,6 @@
   "tenant.diveSites.difficulty.intermediate": "Intermedio",
   "tenant.diveSites.difficulty.advanced": "Avanzado",
   "tenant.diveSites.difficulty.expert": "Experto",
-
   "tenant.equipment.title": "Inventario de Equipos",
   "tenant.equipment.addEquipment": "Agregar Equipo",
   "tenant.equipment.editEquipment": "Editar Equipo",
@@ -1136,7 +1134,6 @@
   "tenant.equipment.condition.good": "Bueno",
   "tenant.equipment.condition.fair": "Regular",
   "tenant.equipment.condition.poor": "Malo",
-
   "tenant.pos.title": "Punto de Venta",
   "tenant.pos.newSale": "Nueva Venta",
   "tenant.pos.newSaleAria": "Iniciar nueva venta y vaciar carrito",
@@ -1150,7 +1147,6 @@
   "tenant.pos.barcodeNotFound": "Producto no encontrado para el código de barras: {{barcode}}",
   "tenant.pos.saleComplete": "¡Venta completada! Recibo #{{receipt}}",
   "tenant.pos.refundComplete": "¡Reembolso procesado exitosamente! ${{amount}} reembolsado al cliente.",
-
   "tenant.pos.products.title": "Productos",
   "tenant.pos.products.count": "{{count}} productos",
   "tenant.pos.products.backToPOS": "Volver al POS",
@@ -1411,7 +1407,6 @@
   "tenant.training.courses.noImage": "Sin imagen",
   "tenant.training.courses.public": "Público",
   "tenant.training.courses.makePublic": "Hacer Público",
-
   "tenant.training.dashboard.title": "Capacitación",
   "tenant.training.dashboard.importCourses": "Importar Cursos",
   "tenant.training.dashboard.manageCourses": "Gestionar Cursos",
@@ -1428,7 +1423,6 @@
   "tenant.training.dashboard.recentEnrollments": "Inscripciones Recientes",
   "tenant.training.dashboard.noRecentEnrollments": "No hay inscripciones recientes.",
   "tenant.training.dashboard.viewAllEnrollments": "Ver Todas las Inscripciones",
-
   "tenant.training.series.title": "Series de Capacitación",
   "tenant.training.series.totalCount": "{{count}} series",
   "tenant.training.series.newSeries": "Nueva Serie",
@@ -1612,7 +1606,6 @@
   "tenant.settings.roles.ownerDesc": "Acceso completo a todo",
   "tenant.settings.roles.adminDesc": "Gestionar reservas, clientes y personal",
   "tenant.settings.roles.memberDesc": "Ver y gestionar operaciones diarias",
-
   "tenant.settings.billing.freeTrialActive": "Prueba Gratuita Activa",
   "tenant.settings.billing.trialDaysLeft": "Te quedan {{days}} días de prueba. Agrega un método de pago para continuar después de que termine la prueba.",
   "tenant.settings.billing.currentPlan": "Plan Actual",
@@ -1653,7 +1646,6 @@
   "tenant.settings.billing.status.canceled": "Cancelado",
   "tenant.settings.billing.status.pastDue": "Pago Vencido",
   "tenant.settings.billing.status.incomplete": "Incompleto",
-
   "tenant.settings.notifications.title": "Configuración de Notificaciones",
   "tenant.settings.notifications.subtitle": "Configura cómo recibes las notificaciones",
   "tenant.settings.notifications.savedSuccess": "¡Configuración guardada exitosamente!",
@@ -2030,7 +2022,6 @@
   "tenant.settings.integrations.requiresPlan": "Requiere plan {{plan}}",
   "tenant.settings.integrations.notAvailableOnPlan": "No disponible en tu plan",
   "tenant.settings.integrations.upgradeToUnlock": "Actualizar para desbloquear",
-
   "tenant.settings.integrations.stripe.description": "Procesa pagos, depósitos y reembolsos",
   "tenant.settings.integrations.stripe.featureOnlinePayments": "Pagos en línea",
   "tenant.settings.integrations.stripe.featureCardProcessing": "Procesamiento de tarjetas",
@@ -2056,7 +2047,6 @@
   "tenant.settings.integrations.xero.featureInvoiceSync": "Sincronización de facturas",
   "tenant.settings.integrations.xero.featureBankReconciliation": "Conciliación bancaria",
   "tenant.settings.integrations.xero.featureMultiCurrency": "Multi-moneda",
-
   "tenant.settings.integrations.quickbooks.backToIntegrations": "Volver a Integraciones",
   "tenant.settings.integrations.quickbooks.title": "Integración con QuickBooks",
   "tenant.settings.integrations.quickbooks.subtitle": "Sincroniza facturas, clientes y pagos con QuickBooks Online",
@@ -2228,7 +2218,6 @@
   "common.selectPlaceholder": "Seleccionar...",
   "tenant.customers.emergencyRelationPlaceholder": "ej. Cónyuge, Padre/Madre",
   "tenant.customers.medicalNotesPlaceholder": "¿Alguna condición que debamos saber?",
-
   "tenant.integrations.stripe.viewSettings": "Ver Configuración",
   "tenant.integrations.stripe.connectStripe": "Conectar Stripe",
   "tenant.integrations.stripe.enterApiKeys": "Ingresa tus claves API de Stripe para habilitar el procesamiento de pagos",
@@ -2255,7 +2244,6 @@
   "tenant.integrations.stripe.dashboardAccess": "Acceso al Panel",
   "tenant.integrations.stripe.manageAccount": "Administra tu cuenta de Stripe en",
   "tenant.integrations.stripe.close": "Cerrar",
-
   "tenant.integrations.google.syncNow": "Sincronizar Ahora",
   "tenant.integrations.google.syncing": "Sincronizando...",
   "tenant.integrations.google.connectGoogleCalendar": "Conectar Google Calendar",
@@ -2270,7 +2258,6 @@
   "tenant.integrations.google.step3AddRedirect": "Agrega URI de redirección",
   "tenant.integrations.google.cancel": "Cancelar",
   "tenant.integrations.google.continueToGoogle": "Continuar a Google",
-
   "tenant.integrations.mailchimp.connectMailchimp": "Conectar Mailchimp",
   "tenant.integrations.mailchimp.enterOAuthCredentials": "Ingresa tus credenciales OAuth de Mailchimp para habilitar email marketing",
   "tenant.integrations.mailchimp.clientId": "ID de Cliente",
@@ -2285,7 +2272,6 @@
   "tenant.integrations.mailchimp.cancel": "Cancelar",
   "tenant.integrations.mailchimp.connecting": "Conectando...",
   "tenant.integrations.mailchimp.continueToMailchimp": "Continuar a Mailchimp",
-
   "tenant.integrations.quickbooks.manageSettings": "Administrar Configuración",
   "tenant.integrations.quickbooks.connectQuickBooks": "Conectar QuickBooks",
   "tenant.integrations.quickbooks.enterOAuthCredentials": "Ingresa tus credenciales OAuth de QuickBooks para habilitar la sincronización contable",
@@ -2301,7 +2287,6 @@
   "tenant.integrations.quickbooks.cancel": "Cancelar",
   "tenant.integrations.quickbooks.connecting": "Conectando...",
   "tenant.integrations.quickbooks.continueToQuickBooks": "Continuar a QuickBooks",
-
   "tenant.integrations.xero.configure": "Configurar",
   "tenant.integrations.xero.connectXero": "Conectar Xero",
   "tenant.integrations.xero.enterOAuthCredentials": "Ingresa tus credenciales OAuth de Xero para habilitar la sincronización contable",
@@ -2344,7 +2329,6 @@
   "tenant.integrations.xero.syncSettingsNote": "Los cambios en la configuración de sincronización se aplicarán a nuevas reservas y transacciones. Los registros existentes no se sincronizarán automáticamente.",
   "tenant.integrations.xero.saving": "Guardando...",
   "tenant.integrations.xero.saveSettings": "Guardar Configuración",
-
   "tenant.integrations.zapier.testWebhookSuccess": "¡Webhook de prueba enviado exitosamente!",
   "tenant.integrations.zapier.configure": "Configurar",
   "tenant.integrations.zapier.connectZapier": "Conectar Zapier",
@@ -2436,7 +2420,6 @@
   "tenant.discounts.status.expired": "Vencido",
   "tenant.discounts.status.notYetActive": "Aún No Activo",
   "tenant.discounts.status.active": "Activo",
-
   "common.backToLogin": "Volver al inicio de sesión",
   "common.confirmNewPassword": "Confirmar Nueva Contraseña",
   "common.confirmPassword": "Confirmar Contraseña",
@@ -2450,11 +2433,9 @@
   "common.passwordRequirements": "Requisitos de contraseña:",
   "common.passwordUppercase": "Una letra mayúscula",
   "common.requestNewResetLink": "Solicitar un nuevo enlace de restablecimiento",
-
   "error.404.contactOrg": "Contactar a {{name}}",
   "error.404.description": "La página que buscas no existe o ha sido movida.",
   "error.404.trySuggestions": "Prueba una de estas opciones:",
-
   "tenant.auth.forgotPassword.checkEmail": "Revisa Tu Correo",
   "tenant.auth.forgotPassword.linkExpiry": "El enlace expirará en 1 hora.",
   "tenant.auth.forgotPassword.rememberPassword": "¿Recuerdas tu contraseña?",
@@ -2464,9 +2445,7 @@
   "tenant.auth.forgotPassword.subtitle": "Ingresa tu correo y te enviaremos un enlace de restablecimiento.",
   "tenant.auth.forgotPassword.title": "Olvidé mi Contraseña",
   "tenant.auth.forgotPassword.tryAgain": "Intentar de nuevo",
-
   "tenant.forgotPassword.emailPlaceholder": "Ingresa tu correo electrónico",
-
   "tenant.auth.login.accessDenied": "Acceso Denegado",
   "tenant.auth.login.createAccount": "Crear una cuenta",
   "tenant.auth.login.emailSkippedNote": "Nota: Se omitió la verificación de correo. Puedes iniciar sesión inmediatamente.",
@@ -2486,16 +2465,13 @@
   "tenant.auth.login.signInToAccount": "Inicia sesión en tu cuenta",
   "tenant.auth.login.signupSuccess": "¡Cuenta creada exitosamente! Ya puedes iniciar sesión.",
   "tenant.auth.login.welcomeBack": "¡Bienvenido de nuevo! Ingresa tus credenciales para continuar.",
-
   "tenant.resetPassword.newPasswordPlaceholder": "Ingresa nueva contraseña",
   "tenant.resetPassword.confirmPasswordPlaceholder": "Confirma nueva contraseña",
-
   "tenant.auth.resetPassword.continueToLogin": "Continuar al Inicio de Sesión",
   "tenant.auth.resetPassword.subtitle": "Ingresa una nueva contraseña para tu cuenta.",
   "tenant.auth.resetPassword.success": "¡Contraseña Restablecida!",
   "tenant.auth.resetPassword.successMessage": "Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.",
   "tenant.auth.resetPassword.title": "Restablecer Contraseña",
-
   "tenant.auth.signup.alreadyHaveAccount": "¿Ya tienes una cuenta?",
   "tenant.auth.signup.and": "y",
   "tenant.auth.signup.byCreatingAccount": "Al crear una cuenta, aceptas nuestros",
@@ -2509,7 +2485,6 @@
   "tenant.auth.signup.privacyPolicy": "Política de Privacidad",
   "tenant.auth.signup.signIn": "Iniciar sesión",
   "tenant.auth.signup.termsOfService": "Términos de Servicio",
-
   "tenant.bookings.boat": "Embarcación",
   "tenant.bookings.change": "Cambiar",
   "tenant.bookings.internalNotesPlaceholder": "Notas internas (no visibles para el cliente)...",
@@ -2520,10 +2495,8 @@
   "tenant.bookings.statusConfirmed": "Confirmada",
   "tenant.bookings.statusNoShow": "No se Presentó",
   "tenant.bookings.statusPending": "Pendiente",
-
   "tenant.customers.message": "Mensaje",
   "tenant.customers.subject": "Asunto",
-
   "tenant.tours.advancedOpenWater": "Advanced Open Water",
   "tenant.tours.course": "Curso",
   "tenant.tours.descriptionPlaceholder": "Describe la experiencia del tour...",
@@ -2539,7 +2512,6 @@
   "tenant.tours.singleDive": "Buceo Individual",
   "tenant.tours.snorkel": "Snorkel",
   "tenant.tours.tourNamePlaceholder": "ej., Buceo Matutino en el Arrecife",
-
   "tenant.training.allStatuses": "Todos los Estados",
   "tenant.training.backToDashboard": "Volver al Panel",
   "tenant.training.backToTraining": "Volver a Capacitación",
@@ -2595,7 +2567,6 @@
   "tenant.training.students": "Estudiantes",
   "tenant.training.view": "Ver",
   "tenant.training.viewAll": "Ver Todo",
-
   "tenant.trips.change": "Cambiar",
   "tenant.trips.close": "Cerrar",
   "tenant.trips.unlimited": "Ilimitado",
@@ -2604,7 +2575,6 @@
   "tenant.diveSites.imagesOptional": "Imágenes (Opcional)",
   "tenant.diveSites.uploadUpTo": "Sube hasta 5 imágenes",
   "tenant.diveSites.imageFormats": "JPEG, PNG, WebP o GIF. Máx 10MB cada una. Puedes agregar más imágenes después.",
-
   "tenant.pos.cart.title": "Carrito",
   "tenant.pos.cart.empty": "El carrito está vacío",
   "tenant.pos.cart.days": "días",
@@ -2619,7 +2589,6 @@
   "tenant.pos.cart.card": "Tarjeta",
   "tenant.pos.cart.cash": "Efectivo",
   "tenant.pos.cart.split": "Dividir",
-
   "tenant.pos.checkout.cardPayment": "Pago con Tarjeta",
   "tenant.pos.checkout.totalDue": "Total a Pagar",
   "tenant.pos.checkout.stripeNotConnected": "Stripe No Conectado",
@@ -2685,7 +2654,6 @@
   "tenant.pos.checkout.noCustomersFound": "No se encontraron clientes",
   "tenant.pos.checkout.typeToSearch": "Escribe para buscar...",
   "tenant.pos.checkout.newCustomer": "Nuevo Cliente",
-
   "tenant.pos.transactions.receipt": "Recibo",
   "tenant.pos.transactions.receiptNumber": "Número de Recibo",
   "tenant.pos.transactions.date": "Fecha",
@@ -2711,7 +2679,6 @@
   "tenant.pos.transactions.receiptHash": "Recibo #",
   "tenant.pos.transactions.sending": "Enviando...",
   "tenant.pos.transactions.sendEmail": "Enviar Email",
-
   "tenant.training.courses.namePlaceholder": "ej. Open Water Diver",
   "tenant.training.courses.prerequisitesPlaceholder": "ej. Certificación Open Water Diver, mínimo 10 inmersiones registradas",
   "tenant.training.courses.codePlaceholder": "ej. OWD, AOWD, EFR",
@@ -2721,5 +2688,21 @@
   "tenant.training.courses.minAgePlaceholder": "ej. 10",
   "tenant.training.courses.includedItemsPlaceholder": "Bitácora, Tarjeta de certificación, Fotos (separados por comas)",
   "tenant.training.courses.studentsMustBringPlaceholder": "Traje de baño, Toalla, Protector solar (separados por comas)",
-  "tenant.training.courses.medicalPlaceholder": "ej. Cuestionario médico requerido, certificado médico si es mayor de 45 años"
+  "tenant.training.courses.medicalPlaceholder": "ej. Cuestionario médico requerido, certificado médico si es mayor de 45 años",
+  "tenant.trips.printRentalList": "Imprimir Lista de Alquileres",
+  "tenant.trips.rentalListTitle": "Lista de Alquiler de Equipo",
+  "tenant.trips.tankSummary": "Resumen de Tanques",
+  "tenant.trips.equipmentSummary": "Resumen de Equipo",
+  "tenant.trips.customerRentals": "Alquileres por Cliente",
+  "tenant.trips.noRentals": "No hay alquileres de equipo para este viaje",
+  "tenant.trips.totalItems": "Total de Artículos",
+  "tenant.trips.customer": "Cliente",
+  "tenant.trips.equipment": "Equipo",
+  "tenant.trips.qty": "Cant.",
+  "tenant.equipment.gasType": "Tipo de Gas",
+  "tenant.equipment.gasType.air": "Aire",
+  "tenant.equipment.gasType.nitrox32": "Nitrox 32%",
+  "tenant.equipment.gasType.nitrox36": "Nitrox 36%",
+  "tenant.equipment.gasType.trimix": "Trimix",
+  "tenant.equipment.gasType.oxygen": "Oxígeno"
 }
