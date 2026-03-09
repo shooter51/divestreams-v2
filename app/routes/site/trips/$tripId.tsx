@@ -149,7 +149,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       and(
         eq(trips.organizationId, org.id),
         eq(trips.id, tripId),
-        eq(trips.isPublic, true),
         eq(trips.status, "scheduled"),
         eq(tours.isActive, true)
       )
