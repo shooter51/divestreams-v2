@@ -63,6 +63,7 @@ vi.mock("../../../../lib/db/index", () => ({
   db: dbMock,
 }));
 
+
 vi.mock("../../../../lib/db/schema", () => ({
   organization: {
     id: "id",
@@ -1106,6 +1107,19 @@ describe("Server Queries Module", () => {
         updatedAt: new Date(),
       }]);
 
+      // Mock capacity validation dependencies
+      const tripsModule = await import("../../../../lib/db/queries/trips.server");
+      vi.spyOn(tripsModule, "getTripById").mockResolvedValue({
+        id: "trip-1", maxParticipants: null, tourId: "tour-1", boatId: null,
+        date: "2026-03-10", startTime: "08:00", endTime: null, status: "scheduled",
+        price: null, notes: null, weatherNotes: null, isPublic: false,
+        isRecurring: false, recurrencePattern: null, recurringTemplateId: null,
+        recurrenceDays: null, recurrenceEndDate: null, recurrenceCount: null,
+        tourName: "Test", tourType: "dive", boatName: null, bookedParticipants: 0,
+        staffIds: null, createdAt: new Date(), updatedAt: new Date(),
+      });
+      vi.spyOn(tripsModule, "getTripBookedParticipants").mockResolvedValue(0);
+
       const { createBooking } = await import("../../../../lib/db/queries.server");
       const booking = await createBooking("org-1", {
         tripId: "trip-1",
@@ -1115,6 +1129,8 @@ describe("Server Queries Module", () => {
       });
 
       expect(booking).toBeDefined();
+
+      vi.restoreAllMocks();
     });
   });
 
