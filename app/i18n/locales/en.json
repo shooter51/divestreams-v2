@@ -2820,6 +2820,17 @@
   "tenant.pos.transactions.receiptHash": "Receipt #",
   "tenant.pos.transactions.sending": "Sending...",
   "tenant.pos.transactions.sendEmail": "Send Email",
+  "tenant.pos.grid.noProducts": "No products found",
+  "tenant.pos.grid.noEquipment": "No equipment available",
+  "tenant.pos.grid.noTrips": "No trips scheduled today",
+  "tenant.pos.grid.size": "Size",
+  "tenant.pos.grid.day": "day",
+  "tenant.pos.grid.days": "days",
+  "tenant.pos.grid.addRental": "Add Rental",
+  "tenant.pos.grid.add": "Add",
+  "tenant.pos.grid.spotsLeft": "{{count}} spots left",
+  "tenant.pos.grid.fullyBooked": "Fully booked",
+  "tenant.pos.grid.bookNow": "Book Now",
   "tenant.training.courses.namePlaceholder": "e.g., Open Water Diver",
   "tenant.training.courses.prerequisitesPlaceholder": "e.g., Open Water Diver certification, minimum 10 logged dives",
   "tenant.training.courses.codePlaceholder": "e.g., OWD, AOWD, EFR",
@@ -2930,30 +2941,23 @@
   "tenant.diveSites.currentStrength.mild": "Mild",
   "tenant.diveSites.currentStrength.moderate": "Moderate",
   "tenant.diveSites.currentStrength.strong": "Strong",
-
   "tenant.customers.subjectPlaceholder": "e.g., Your upcoming dive trip",
   "tenant.customers.messagePlaceholder": "Write your message here...",
-
   "tenant.discounts.percentagePlaceholder": "e.g., 10",
   "tenant.discounts.fixedPlaceholder": "e.g., 25.00",
-
   "tenant.settings.team.emailPlaceholder": "colleague@example.com",
-
   "tenant.settings.training.levels.namePlaceholder": "e.g., Open Water Diver",
   "tenant.settings.training.levels.codePlaceholder": "e.g., OW",
   "tenant.settings.training.levels.levelOrderPlaceholder": "1",
   "tenant.settings.training.levels.prerequisitesPlaceholder": "e.g., Open Water certification required",
   "tenant.settings.training.levels.minAgePlaceholder": "e.g., 10",
   "tenant.settings.training.levels.minDivesPlaceholder": "e.g., 4",
-
   "tenant.settings.training.agencies.namePlaceholder": "e.g., PADI",
   "tenant.settings.training.agencies.codePlaceholder": "e.g., PADI",
   "tenant.settings.training.agencies.websitePlaceholder": "https://www.example.com",
-
   "tenant.settings.publicSite.pages.metaTitlePlaceholder": "Page title for search engines",
   "tenant.settings.publicSite.pages.metaDescriptionPlaceholder": "Brief description for search engines",
   "tenant.settings.publicSite.pages.changeDescriptionPlaceholder": "Describe what you changed...",
-
   "tenant.settings.publicSite.content.logoUrlPlaceholder": "https://example.com/logo.png",
   "tenant.settings.publicSite.content.heroImagePlaceholder": "https://example.com/hero.jpg",
   "tenant.settings.publicSite.content.heroVideoPlaceholder": "https://example.com/video.mp4",
@@ -2963,20 +2967,21 @@
   "tenant.settings.publicSite.content.emailPlaceholder": "info@yourdiveshop.com",
   "tenant.settings.publicSite.content.hoursPlaceholder": "Mon-Fri: 8am-6pm, Sat-Sun: 7am-7pm",
   "tenant.settings.publicSite.content.mapEmbedPlaceholder": "<iframe src=\"https://www.google.com/maps/embed?...\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>",
-
   "tenant.settings.publicSite.team.namePlaceholder": "John Smith",
   "tenant.settings.publicSite.team.rolePlaceholder": "Owner & Lead Instructor",
-
   "tenant.settings.profile.taxPlaceholder": "Tax",
-
   "tenant.settings.publicSite.appearance.heroImagePlaceholder": "https://images.unsplash.com/photo-...",
   "tenant.settings.publicSite.appearance.primaryColorPlaceholder": "#0ea5e9",
   "tenant.settings.publicSite.appearance.secondaryColorPlaceholder": "#06b6d4",
-
   "tenant.settings.publicSite.general.customDomainPlaceholder": "www.yourdiveshop.com",
-
   "components.resetPasswordModal.cancelAriaLabel": "Cancel password reset",
   "components.resetPasswordModal.resettingAriaLabel": "Resetting password",
   "components.resetPasswordModal.resetAriaLabel": "Reset password",
-
-  "components.toast.dismissAriaLabel": "Dismiss notification"}
+  "components.toast.dismissAriaLabel": "Dismiss notification",
+  "tenant.pos.grid.searchRetail": "Search products...",
+  "tenant.pos.grid.searchRentals": "Search equipment...",
+  "tenant.pos.grid.searchTrips": "Search trips...",
+  "tenant.pos.grid.all": "All",
+  "tenant.pos.grid.sale": "SALE",
+  "tenant.pos.grid.inStock": "{{count}} in stock"
+}

@@ -24,6 +24,8 @@ import {
   type GalleryAlbumWithImages,
 } from "../../../lib/db/gallery.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { resolveLocale } from "../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../lib/db/translations.server";
 import { useT } from "../../i18n/use-t";
 
 // ============================================================================
@@ -88,6 +90,19 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
     getGalleryCategories(organizationId),
     getGalleryTags(organizationId),
   ]);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && albums.length > 0) {
+    const translations = await bulkGetContentTranslations(organizationId, "gallery_album", albums.map(a => a.id), locale);
+    for (const album of albums) {
+      const tr = translations.get(album.id);
+      if (tr) {
+        if (tr.name) album.name = tr.name;
+        if (tr.description) album.description = tr.description;
+      }
+    }
+  }
 
   return {
     images,

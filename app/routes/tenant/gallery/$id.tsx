@@ -13,6 +13,10 @@ import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Clien
 import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
@@ -35,6 +39,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Get images in this album
   const images = await getAllGalleryImages(organizationId, { albumId });
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "gallery_album", albumId, locale);
+    if (tr.name) album.name = tr.name;
+    if (tr.description) album.description = tr.description;
+  }
 
   return { album, images };
 }
@@ -107,6 +119,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
 
     await updateGalleryAlbum(organizationId, albumId, updateData);
+
+    // Enqueue translation for name and description
+    const fieldsToTranslate = [
+      { field: "name", text: name },
+      ...(description?.trim() ? [{ field: "description", text: description }] : []),
+    ];
+    for (const locale of SUPPORTED_LOCALES) {
+      if (locale === DEFAULT_LOCALE) continue;
+      await enqueueTranslation({
+        orgId: organizationId,
+        entityType: "gallery_album",
+        entityId: albumId!,
+        fields: fieldsToTranslate,
+        targetLocale: locale,
+      });
+    }
 
     return { updated: true };
   }

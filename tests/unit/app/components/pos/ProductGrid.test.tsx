@@ -80,14 +80,14 @@ describe("ProductGrid", () => {
   // Search input
   // ---------------------------------------------------------------------------
   describe("search input", () => {
-    it("renders a search input with 'retail' in the placeholder on the retail tab", () => {
+    it("renders a search input with translated placeholder on the retail tab", () => {
       render(<ProductGrid {...baseProps} tab="retail" />);
-      expect(screen.getByPlaceholderText("Search retail...")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Search products...")).toBeInTheDocument();
     });
 
-    it("renders a search input with 'rentals' in the placeholder on the rentals tab", () => {
+    it("renders a search input with translated placeholder on the rentals tab", () => {
       render(<ProductGrid {...baseProps} tab="rentals" />);
-      expect(screen.getByPlaceholderText("Search rentals...")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Search equipment...")).toBeInTheDocument();
     });
 
     it("renders a search input with 'trips' in the placeholder on the trips tab", () => {
@@ -98,7 +98,7 @@ describe("ProductGrid", () => {
     it("calls onSearchChange with the typed value", () => {
       const onSearchChange = vi.fn();
       render(<ProductGrid {...baseProps} onSearchChange={onSearchChange} />);
-      fireEvent.change(screen.getByPlaceholderText("Search retail..."), {
+      fireEvent.change(screen.getByPlaceholderText("Search products..."), {
         target: { value: "mask" },
       });
       expect(onSearchChange).toHaveBeenCalledWith("mask");

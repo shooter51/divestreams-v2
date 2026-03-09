@@ -124,9 +124,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Enqueue auto-translation for non-default locales
+  const inclusionsArr = inclusionsStr ? inclusionsStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const exclusionsArr = exclusionsStr ? exclusionsStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const requirementsArr = requirementsStr ? requirementsStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
   const fieldsToTranslate = [
     { field: "name", text: formData.get("name") as string },
     { field: "description", text: formData.get("description") as string },
+    { field: "inclusions", text: inclusionsArr.join("\n") },
+    { field: "exclusions", text: exclusionsArr.join("\n") },
+    { field: "requirements", text: requirementsArr.join("\n") },
   ].filter((f) => f.text?.trim());
 
   for (const locale of SUPPORTED_LOCALES) {
