@@ -72,6 +72,22 @@ interface LoaderData {
 // ============================================================================
 
 /**
+ * Extract unique, sorted agency names from a list of courses.
+ * Used to populate the agency dropdown with only agencies that have active courses.
+ */
+export function extractActiveAgencies(
+  courses: Array<{ agencyName: string | null }>
+): string[] {
+  const agencySet = new Set<string>();
+  for (const course of courses) {
+    if (course.agencyName) {
+      agencySet.add(course.agencyName);
+    }
+  }
+  return Array.from(agencySet).sort();
+}
+
+/**
  * Format duration in days to readable string
  */
 function formatDuration(days: number): string {
@@ -138,8 +154,12 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   const agency = url.searchParams.get("agency");
   const level = url.searchParams.get("level");
 
-  // Get all public courses
-  const result = await getPublicCourses(org.id, { page, limit: 100 });
+  // Get only public courses that have upcoming training sessions
+  const result = await getPublicCourses(org.id, {
+    page,
+    limit: 100,
+    onlyWithUpcomingSessions: true,
+  });
 
   // Extract unique agencies from actual courses (before filtering)
   const availableAgencies = Array.from(
