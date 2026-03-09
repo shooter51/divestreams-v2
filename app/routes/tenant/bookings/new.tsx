@@ -137,7 +137,7 @@ export async function action({ request }: ActionFunctionArgs) {
       source: data.source || "direct",
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes("spots")) {
+    if (error instanceof Error && (error.message.includes("spots") || error.message.includes("Trip not found"))) {
       return { errors: { tripId: error.message }, values: getFormValues(formData) };
     }
     throw error;

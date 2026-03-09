@@ -1093,6 +1093,45 @@ describe("Server Queries Module", () => {
 
   describe("createBooking", () => {
     it("creates booking and returns object", async () => {
+      // getTripById query resolves via limit() — return trip data with null
+      // maxParticipants so capacity validation is skipped (unlimited)
+      const tripResult = createThenable([{
+        trip: {
+          id: "trip-1",
+          organizationId: "org-1",
+          tourId: "tour-1",
+          boatId: null,
+          date: "2026-06-15",
+          startTime: "09:00",
+          endTime: "12:00",
+          status: "scheduled",
+          maxParticipants: null,
+          price: "99.00",
+          notes: null,
+          weatherNotes: null,
+          isPublic: false,
+          isRecurring: false,
+          recurrencePattern: null,
+          recurringTemplateId: null,
+          recurrenceDays: null,
+          recurrenceEndDate: null,
+          recurrenceCount: null,
+          staffIds: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        tourName: "Test Tour",
+        tourType: "dive",
+        tourPrice: "99.00",
+        tourMaxParticipants: null,
+        boatName: null,
+      }]);
+      mockLimit.mockReturnValueOnce(tripResult);
+
+      // getNextBookingNumber query also uses limit — return empty for
+      // "no previous bookings" so it generates BK-1000
+      mockLimit.mockReturnValueOnce(createThenable([]));
+
       mockReturning.mockResolvedValueOnce([{
         id: "booking-1",
         organizationId: "org-1",
@@ -1111,6 +1150,7 @@ describe("Server Queries Module", () => {
         tripId: "trip-1",
         customerId: "cust-1",
         participants: 2,
+        subtotal: 198,
         total: 198,
       });
 

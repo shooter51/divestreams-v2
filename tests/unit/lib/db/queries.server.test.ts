@@ -598,6 +598,21 @@ describe("queries.server database functions", () => {
     it("should create new booking", async () => {
       // Reset db.where to return the chain (previous tests may have overridden it)
       (dbMock.where as unknown as Mock).mockReturnValue(dbMock);
+
+      // Mock getTripById and getTripBookedParticipants used by createBooking
+      // for capacity validation. Use vi.spyOn on the trips module.
+      const tripsModule = await import("../../../../lib/db/queries/trips.server");
+      vi.spyOn(tripsModule, "getTripById").mockResolvedValue({
+        id: "trip-1",
+        tourId: "tour-1",
+        maxParticipants: null, // unlimited — skips capacity check
+        price: 100,
+      } as Awaited<ReturnType<typeof tripsModule.getTripById>>);
+
+      // getNextBookingNumber: chain.limit + chain.then
+      mockLimit.mockResolvedValueOnce([]);
+      mockLimit.mockResolvedValueOnce([]);
+
       mockReturning.mockResolvedValueOnce([{ id: "book-1" }]);
 
       const { createBooking } = await import("../../../../lib/db/queries.server");
@@ -616,6 +631,9 @@ describe("queries.server database functions", () => {
       expect(dbMock.insert).toHaveBeenCalled();
       expect(dbMock.values).toHaveBeenCalled();
       expect(mockReturning).toHaveBeenCalled();
+
+      // Clean up spy
+      vi.mocked(tripsModule.getTripById).mockRestore();
     });
   });
 
