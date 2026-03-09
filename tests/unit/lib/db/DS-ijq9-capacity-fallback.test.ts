@@ -1,15 +1,91 @@
 /**
  * DS-ijq9: Trip capacity does not fall back to tour default when trip capacity is unset
  *
- * When a trip has no maxParticipants set (null), mapTrip() should use
- * the tour's maxParticipants as the effective capacity.
- *
- * Currently mapTrip() ignores tour_max_participants and returns null,
- * making trips appear to have unlimited capacity.
+ * Tests two aspects of the fix:
+ * 1. mapTrip() correctly falls back to tour maxParticipants when trip has none
+ * 2. createBooking() validates capacity (including tour fallback) before inserting
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mapTrip } from "../../../../lib/db/queries/mappers";
+
+// Mock trips.server to control getTripById and getTripBookedParticipants
+const mockGetTripById = vi.fn();
+const mockGetTripBookedParticipants = vi.fn();
+vi.mock("../../../../lib/db/queries/trips.server", () => ({
+  getTripById: (...args: unknown[]) => mockGetTripById(...args),
+  getTripBookedParticipants: (...args: unknown[]) => mockGetTripBookedParticipants(...args),
+}));
+
+// Mock the db module
+vi.mock("../../../../lib/db/index", () => ({
+  db: {
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    innerJoin: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    values: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    set: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]),
+    returning: vi.fn().mockResolvedValue([]),
+    transaction: vi.fn(),
+  },
+}));
+
+vi.mock("../../../../lib/db/schema", () => ({
+  bookings: {
+    id: "id",
+    organizationId: "organizationId",
+    bookingNumber: "bookingNumber",
+    tripId: "tripId",
+    customerId: "customerId",
+    participants: "participants",
+    status: "status",
+    subtotal: "subtotal",
+    discount: "discount",
+    tax: "tax",
+    total: "total",
+    currency: "currency",
+    paidAmount: "paidAmount",
+    paymentStatus: "paymentStatus",
+    specialRequests: "specialRequests",
+    source: "source",
+    participantDetails: "participantDetails",
+    equipmentRental: "equipmentRental",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  },
+  customers: { id: "id", email: "email", firstName: "firstName", lastName: "lastName" },
+  tours: { id: "id", name: "name", maxParticipants: "maxParticipants", price: "price" },
+  trips: { id: "id", organizationId: "organizationId", tourId: "tourId", maxParticipants: "maxParticipants", date: "date", startTime: "startTime", price: "price", status: "status" },
+  boats: { id: "id", name: "name" },
+  transactions: { id: "id", organizationId: "organizationId", bookingId: "bookingId", type: "type", amount: "amount", paymentMethod: "paymentMethod", notes: "notes", createdAt: "createdAt" },
+}));
+
+// Mock logger
+vi.mock("../../../../lib/logger", () => ({
+  dbLogger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
+}));
+
+// Mock google calendar integration (must return a promise for .catch() chain)
+vi.mock("../../../../lib/integrations/google-calendar-bookings.server", () => ({
+  syncBookingToCalendar: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../../../lib/db/queries/reports.server", () => ({
+  getOrganizationById: vi.fn().mockResolvedValue({ timezone: "UTC" }),
+}));
+
+import { db } from "../../../../lib/db/index";
+import { createBooking } from "../../../../lib/db/queries/bookings.server";
+
+// ============================================================================
+// Part 1: mapTrip() fallback logic (pure function, no mocks needed)
+// ============================================================================
 
 describe("DS-ijq9: Trip capacity fallback to tour default", () => {
   const baseRow = {
@@ -76,5 +152,135 @@ describe("DS-ijq9: Trip capacity fallback to tour default", () => {
     };
     const result = mapTrip(row as Parameters<typeof mapTrip>[0]);
     expect(result.maxParticipants).toBe(8);
+  });
+});
+
+// ============================================================================
+// Part 2: createBooking() capacity validation (server-side enforcement)
+// ============================================================================
+
+describe("DS-ijq9: createBooking capacity validation", () => {
+  const orgId = "org-1";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Default: getNextBookingNumber mock via db chain
+    const mockDb = db as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    mockDb.select.mockReturnValue(db);
+    mockDb.from.mockReturnValue(db);
+    mockDb.where.mockReturnValue(db);
+    mockDb.orderBy.mockReturnValue(db);
+    mockDb.limit.mockResolvedValue([]);
+    mockDb.insert.mockReturnValue(db);
+    mockDb.values.mockReturnValue(db);
+    mockDb.returning.mockResolvedValue([
+      {
+        id: "booking-1",
+        bookingNumber: "BK-1000-ABCD",
+        tripId: "trip-1",
+        customerId: "cust-1",
+        participants: 2,
+        total: "200.00",
+      },
+    ]);
+  });
+
+  it("rejects booking when trip has no explicit capacity but tour capacity is exceeded", async () => {
+    // Trip has null maxParticipants, tour has 10 — getTripById returns
+    // the effective maxParticipants=10 via mapTrip fallback
+    mockGetTripById.mockResolvedValue({
+      id: "trip-1",
+      tourId: "tour-1",
+      maxParticipants: 10, // effective (from tour fallback)
+      price: 100,
+    });
+    mockGetTripBookedParticipants.mockResolvedValue(9); // 9 already booked
+
+    await expect(
+      createBooking(orgId, {
+        tripId: "trip-1",
+        customerId: "cust-1",
+        participants: 2, // requesting 2, only 1 available
+        subtotal: 200,
+        total: 200,
+      })
+    ).rejects.toThrow("Only 1 spots available on this trip");
+  });
+
+  it("rejects booking when trip is at full capacity", async () => {
+    mockGetTripById.mockResolvedValue({
+      id: "trip-1",
+      tourId: "tour-1",
+      maxParticipants: 8,
+      price: 100,
+    });
+    mockGetTripBookedParticipants.mockResolvedValue(8); // fully booked
+
+    await expect(
+      createBooking(orgId, {
+        tripId: "trip-1",
+        customerId: "cust-1",
+        participants: 1,
+        subtotal: 100,
+        total: 100,
+      })
+    ).rejects.toThrow("Only 0 spots available on this trip");
+  });
+
+  it("allows booking when capacity has room", async () => {
+    mockGetTripById.mockResolvedValue({
+      id: "trip-1",
+      tourId: "tour-1",
+      maxParticipants: 10,
+      price: 100,
+    });
+    mockGetTripBookedParticipants.mockResolvedValue(5); // 5 booked, 5 available
+
+    const result = await createBooking(orgId, {
+      tripId: "trip-1",
+      customerId: "cust-1",
+      participants: 3, // requesting 3, 5 available
+      subtotal: 300,
+      total: 300,
+    });
+
+    expect(result).toBeDefined();
+    expect(result.id).toBe("booking-1");
+  });
+
+  it("allows booking when no capacity limit is set (null maxParticipants)", async () => {
+    mockGetTripById.mockResolvedValue({
+      id: "trip-1",
+      tourId: "tour-1",
+      maxParticipants: null, // no limit on trip or tour
+      price: 100,
+    });
+
+    // getTripBookedParticipants should NOT be called when there's no limit
+    const result = await createBooking(orgId, {
+      tripId: "trip-1",
+      customerId: "cust-1",
+      participants: 50,
+      subtotal: 5000,
+      total: 5000,
+    });
+
+    expect(result).toBeDefined();
+    expect(mockGetTripBookedParticipants).not.toHaveBeenCalled();
+  });
+
+  it("throws when trip is not found", async () => {
+    mockGetTripById.mockResolvedValue(null);
+
+    await expect(
+      createBooking(orgId, {
+        tripId: "nonexistent",
+        customerId: "cust-1",
+        participants: 1,
+        subtotal: 100,
+        total: 100,
+      })
+    ).rejects.toThrow("Trip not found");
   });
 });

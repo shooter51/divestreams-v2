@@ -28,6 +28,7 @@ import {
 export interface PaginationOptions {
   limit?: number;
   page?: number;
+  onlyWithUpcomingSessions?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -306,8 +307,31 @@ export async function getPublicCourses(
   organizationId: string,
   options: PaginationOptions = {}
 ): Promise<PaginatedCoursesResult> {
-  const { limit = 20, page = 1 } = options;
+  const { limit = 20, page = 1, onlyWithUpcomingSessions = false } = options;
   const offset = (page - 1) * limit;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  // Build WHERE conditions
+  const baseConditions = and(
+    eq(trainingCourses.organizationId, organizationId),
+    eq(trainingCourses.isPublic, true),
+    eq(trainingCourses.isActive, true)
+  );
+
+  // When filtering by upcoming sessions, use EXISTS subquery
+  const whereCondition = onlyWithUpcomingSessions
+    ? and(
+        baseConditions,
+        sql`EXISTS (
+          SELECT 1 FROM training_sessions ts
+          WHERE ts.course_id = ${trainingCourses.id}
+            AND ts.organization_id = ${trainingCourses.organizationId}
+            AND ts.start_date >= ${today}
+            AND ts.status IN ('scheduled', 'open')
+        )`
+      )
+    : baseConditions;
 
   // Query from trainingCourses table with agency and level joins
   const coursesData = await db
@@ -330,13 +354,7 @@ export async function getPublicCourses(
     .from(trainingCourses)
     .leftJoin(certificationAgencies, eq(trainingCourses.agencyId, certificationAgencies.id))
     .leftJoin(certificationLevels, eq(trainingCourses.levelId, certificationLevels.id))
-    .where(
-      and(
-        eq(trainingCourses.organizationId, organizationId),
-        eq(trainingCourses.isPublic, true),
-        eq(trainingCourses.isActive, true)
-      )
-    )
+    .where(whereCondition)
     .orderBy(trainingCourses.sortOrder, trainingCourses.name)
     .limit(limit)
     .offset(offset);
@@ -345,13 +363,7 @@ export async function getPublicCourses(
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(trainingCourses)
-    .where(
-      and(
-        eq(trainingCourses.organizationId, organizationId),
-        eq(trainingCourses.isPublic, true),
-        eq(trainingCourses.isActive, true)
-      )
-    );
+    .where(whereCondition);
 
   const total = Number(countResult[0]?.count ?? 0);
 
