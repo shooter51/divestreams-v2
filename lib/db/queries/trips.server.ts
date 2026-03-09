@@ -413,3 +413,26 @@ export async function getTripBookedParticipants(organizationId: string, tripId: 
 
   return Number(result[0]?.total || 0);
 }
+
+/**
+ * Get equipment rental data for all bookings on a trip.
+ * Returns customer names and their equipmentRental JSONB for aggregation.
+ */
+export async function getTripEquipmentRentals(organizationId: string, tripId: string) {
+  const rows = await db
+    .select({
+      bookingNumber: schema.bookings.bookingNumber,
+      firstName: schema.customers.firstName,
+      lastName: schema.customers.lastName,
+      equipmentRental: schema.bookings.equipmentRental,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.customers, eq(schema.bookings.customerId, schema.customers.id))
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.tripId, tripId),
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'refunded', 'no_show')`
+    ));
+
+  return rows;
+}

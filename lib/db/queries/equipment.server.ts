@@ -59,6 +59,7 @@ export async function createEquipment(organizationId: string, data: {
   serialNumber?: string;
   barcode?: string;
   size?: string;
+  gasType?: string;
   status?: string;
   condition?: string;
   rentalPrice?: number;
@@ -76,6 +77,7 @@ export async function createEquipment(organizationId: string, data: {
       serialNumber: data.serialNumber || null,
       barcode: data.barcode || null,
       size: data.size || null,
+      gasType: data.gasType || null,
       status: data.status || "available",
       condition: data.condition || "good",
       rentalPrice: data.rentalPrice ? String(data.rentalPrice) : null,

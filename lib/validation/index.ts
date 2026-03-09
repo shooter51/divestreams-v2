@@ -249,6 +249,7 @@ export const equipmentSchema = z.object({
   model: z.string().optional(),
   serialNumber: z.string().optional(),
   size: z.string().optional(),
+  gasType: z.enum(["air", "nitrox32", "nitrox36", "trimix", "oxygen"]).optional(),
   status: z.enum(["available", "rented", "maintenance", "retired"]).default("available"),
   condition: z.enum(["excellent", "good", "fair", "poor"]).default("good"),
   rentalPrice: optionalNumber, // Rental prices must be >= $1
