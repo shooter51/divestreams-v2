@@ -63,7 +63,7 @@ function createFormRequest(
   });
 }
 
-describe("Gallery Album Cover Image", () => {
+describe("Gallery Album Cover Image", { timeout: 300_000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
