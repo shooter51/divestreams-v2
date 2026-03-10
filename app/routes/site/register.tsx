@@ -179,7 +179,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   });
 
   if (!rateLimitResult.allowed) {
-    return { error: "Too many registration attempts. Please try again later." };
+    return { error: "auth.register.tooManyAttempts" };
   }
 
   const formData = await request.formData();
@@ -187,7 +187,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   // CSRF validation (DS-30f)
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (!validateAnonCsrfToken(csrfToken)) {
-    return { error: "Invalid CSRF token. Please refresh the page and try again." };
+    return { error: "auth.register.invalidCsrf" };
   }
 
   const url = new URL(request.url);
@@ -213,7 +213,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   }
 
   if (!subdomain) {
-    return { error: "Unable to determine organization" };
+    return { error: "auth.register.noOrganization" };
   }
 
   // Import db and organization schema
@@ -229,7 +229,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     .limit(1);
 
   if (!org) {
-    return { error: "Organization not found" };
+    return { error: "auth.register.orgNotFound" };
   }
 
   // Extract form fields
@@ -246,39 +246,39 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   // First name validation
   if (!firstName || firstName.trim().length < 1) {
-    errors.firstName = "First name is required";
+    errors.firstName = "auth.register.firstNameRequired";
   } else if (firstName.trim().length > 100) {
-    errors.firstName = "First name must be 100 characters or less";
+    errors.firstName = "auth.register.firstNameTooLong";
   }
 
   // Last name validation
   if (!lastName || lastName.trim().length < 1) {
-    errors.lastName = "Last name is required";
+    errors.lastName = "auth.register.lastNameRequired";
   } else if (lastName.trim().length > 100) {
-    errors.lastName = "Last name must be 100 characters or less";
+    errors.lastName = "auth.register.lastNameTooLong";
   }
 
   // Email validation
   if (!email || !email.includes("@") || !email.includes(".")) {
-    errors.email = "Please enter a valid email address";
+    errors.email = "auth.register.invalidEmail";
   } else if (email.length > 255) {
-    errors.email = "Email must be 255 characters or less";
+    errors.email = "auth.register.emailTooLong";
   }
 
   // Phone validation (optional)
   if (phone && phone.trim()) {
     const phoneRegex = /^[\d\s().+-]+$/;
     if (!phoneRegex.test(phone)) {
-      errors.phone = "Please enter a valid phone number";
+      errors.phone = "auth.register.invalidPhone";
     } else if (phone.length > 20) {
-      errors.phone = "Phone number must be 20 characters or less";
+      errors.phone = "auth.register.phoneTooLong";
     }
   }
 
   // Password validation
   const passwordValidation = validatePassword(password || "");
   if (!password) {
-    errors.password = "Password is required";
+    errors.password = "auth.register.passwordRequired";
   } else if (!passwordValidation.isValid) {
     const missing: string[] = [];
     if (!passwordValidation.hasMinLength) missing.push("at least 8 characters");
@@ -290,14 +290,14 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   // Confirm password validation
   if (!confirmPassword) {
-    errors.confirmPassword = "Please confirm your password";
+    errors.confirmPassword = "auth.register.confirmPasswordRequired";
   } else if (password !== confirmPassword) {
-    errors.confirmPassword = "Passwords do not match";
+    errors.confirmPassword = "auth.register.passwordsDoNotMatch";
   }
 
   // Terms acceptance validation
   if (terms !== "on") {
-    errors.terms = "You must accept the Terms of Service";
+    errors.terms = "auth.register.acceptTerms";
   }
 
   // Return validation errors
@@ -352,12 +352,12 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       if (error.message === "Email already registered") {
         return {
           success: false,
-          errors: { email: "Unable to create account with this email. Please try a different email or contact support." },
+          errors: { email: "auth.register.emailTaken" },
         };
       }
       return { success: false, error: error.message };
     }
-    return { success: false, error: "Registration failed. Please try again." };
+    return { success: false, error: "auth.register.registrationFailed" };
   }
 }
 
@@ -493,7 +493,7 @@ export default function SiteRegisterPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.firstName}
+                    {t(actionData.errors.firstName)}
                   </p>
                 )}
               </div>
@@ -532,7 +532,7 @@ export default function SiteRegisterPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.lastName}
+                    {t(actionData.errors.lastName)}
                   </p>
                 )}
               </div>
@@ -572,7 +572,7 @@ export default function SiteRegisterPage() {
                   className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
-                  {actionData.errors.email}
+                  {t(actionData.errors.email)}
                 </p>
               )}
             </div>
@@ -610,7 +610,7 @@ export default function SiteRegisterPage() {
                   className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
-                  {actionData.errors.phone}
+                  {t(actionData.errors.phone)}
                 </p>
               )}
             </div>
@@ -657,7 +657,7 @@ export default function SiteRegisterPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-50 hover:opacity-100 transition-opacity"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                 >
                   {showPassword ? (
                     <EyeSlashIcon className="w-5 h-5" />
@@ -669,7 +669,7 @@ export default function SiteRegisterPage() {
               {actionData?.errors?.password && !clearedErrors.has("password") && (
                 <p className="mt-1 text-sm text-danger flex items-center gap-1">
                   <ExclamationCircleIcon className="w-4 h-4" />
-                  {actionData.errors.password}
+                  {t(actionData.errors.password)}
                 </p>
               )}
               <div id="password-requirements">
@@ -715,7 +715,7 @@ export default function SiteRegisterPage() {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-50 hover:opacity-100 transition-opacity"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={showConfirmPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                 >
                   {showConfirmPassword ? (
                     <EyeSlashIcon className="w-5 h-5" />
@@ -730,7 +730,7 @@ export default function SiteRegisterPage() {
                   className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
-                  {actionData.errors.confirmPassword}
+                  {t(actionData.errors.confirmPassword)}
                 </p>
               )}
             </div>
@@ -778,7 +778,7 @@ export default function SiteRegisterPage() {
                   className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
-                  {actionData.errors.terms}
+                  {t(actionData.errors.terms)}
                 </p>
               )}
             </div>
@@ -787,7 +787,7 @@ export default function SiteRegisterPage() {
             {actionData?.error && (
               <div className="p-4 rounded-lg bg-danger-muted text-danger flex items-center gap-2">
                 <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
-                <p>{actionData.error}</p>
+                <p>{t(actionData.error)}</p>
               </div>
             )}
 

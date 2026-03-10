@@ -54,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (!rateLimitResult.allowed) {
-    return { error: "Too many attempts. Please try again later." };
+    return { error: "auth.resetPassword.tooManyAttempts" };
   }
 
   const formData = await request.formData();
@@ -63,15 +63,15 @@ export async function action({ request }: ActionFunctionArgs) {
   const token = formData.get("token") as string;
 
   if (!password || password.length < 8) {
-    return { error: "Password must be at least 8 characters" };
+    return { error: "auth.resetPassword.passwordMinLength" };
   }
 
   if (password !== confirmPassword) {
-    return { error: "Passwords do not match" };
+    return { error: "auth.resetPassword.passwordsDoNotMatch" };
   }
 
   if (!token) {
-    return { error: "Invalid reset token" };
+    return { error: "auth.resetPassword.invalidToken" };
   }
 
   try {
@@ -81,7 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return redirect("/auth/login?reset=success");
   } catch {
-    return { error: "Invalid or expired reset token" };
+    return { error: "auth.resetPassword.invalidOrExpiredToken" };
   }
 }
 
@@ -177,7 +177,7 @@ export default function ResetPasswordPage() {
           </div>
 
           {actionData?.error && (
-            <p className="text-danger text-sm mt-4">{actionData.error}</p>
+            <p className="text-danger text-sm mt-4">{t(actionData.error)}</p>
           )}
 
           <button
