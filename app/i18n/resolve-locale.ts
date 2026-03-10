@@ -20,7 +20,8 @@ export function resolveLocale(request: Request): Locale {
     .split(",")
     .map((part) => {
       const [lang, q] = part.trim().split(";q=");
-      return { lang: lang.trim().split("-")[0].toLowerCase(), q: q ? parseFloat(q) : 1 };
+      const langPart = lang.trim().split("-")[0]?.toLowerCase();
+      return { lang: langPart || "en", q: q ? parseFloat(q) : 1 };
     })
     .sort((a, b) => b.q - a.q);
 

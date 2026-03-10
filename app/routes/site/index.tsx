@@ -48,6 +48,7 @@ interface HomeLoaderData {
     price: string;
     currency: string;
     durationDays: number;
+    images: string[] | null;
   }>;
 }
 
@@ -142,6 +143,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
       price: course.price,
       currency: course.currency,
       durationDays: course.durationDays,
+      images: course.images,
     })),
   };
 }
@@ -294,22 +296,26 @@ function CourseCard({
         borderColor: "var(--color-border)",
       }}
     >
-      {/* Course Image Placeholder */}
+      {/* Course Image */}
       <div
-        className="h-48 relative"
-        style={{
-          background: `linear-gradient(135deg, var(--secondary-color), var(--primary-color))`,
-        }}
+        className="h-48 relative bg-cover bg-center"
+        style={
+          course.images && course.images.length > 0
+            ? { backgroundImage: `url(${course.images[0]})` }
+            : { background: `linear-gradient(135deg, var(--secondary-color), var(--primary-color))` }
+        }
       >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg
-            className="w-16 h-16 text-white/30"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
-          </svg>
-        </div>
+        {!(course.images && course.images.length > 0) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg
+              className="w-16 h-16 text-white/30"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+            </svg>
+          </div>
+        )}
         {durationText && (
           <div
             className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold"

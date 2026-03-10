@@ -153,7 +153,7 @@ describe("auth/forgot-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Email is required" });
+      expect(result).toEqual({ error: "auth.forgotPassword.emailRequired" });
     });
 
     it("returns success after sending reset email", async () => {

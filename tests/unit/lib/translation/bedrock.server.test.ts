@@ -30,6 +30,149 @@ function makeConverseResponse(text: string) {
   };
 }
 
+// ============================================================================
+// stripHtmlTags
+// ============================================================================
+
+describe("stripHtmlTags", () => {
+  it("strips <p> tags from text", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("<p>Snorkel Safari</p>")).toBe("Snorkel Safari");
+  });
+
+  it("strips nested and multiple HTML tags", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("<div><p>Hello <strong>World</strong></p></div>")).toBe(
+      "Hello World"
+    );
+  });
+
+  it("strips self-closing tags like <br/>", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("Line one<br/>Line two")).toBe("Line oneLine two");
+  });
+
+  it("strips <br> tags without closing slash", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("Line one<br>Line two")).toBe("Line oneLine two");
+  });
+
+  it("strips tags with attributes", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      stripHtmlTags('<span class="bold">Texto</span>')
+    ).toBe("Texto");
+  });
+
+  it("passes plain text through unchanged", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("Just plain text")).toBe("Just plain text");
+  });
+
+  it("handles empty string", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("")).toBe("");
+  });
+
+  it("handles malformed/unclosed HTML", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("<p>Unclosed paragraph")).toBe("Unclosed paragraph");
+  });
+
+  it("trims whitespace after stripping tags", async () => {
+    const { stripHtmlTags } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(stripHtmlTags("  <p> Safari </p>  ")).toBe("Safari");
+  });
+});
+
+// ============================================================================
+// removeSourceContamination
+// ============================================================================
+
+describe("removeSourceContamination", () => {
+  it("removes original text appended as suffix", async () => {
+    const { removeSourceContamination } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      removeSourceContamination(
+        "Descubre el Buceo Discovery Scuba Diving",
+        "Discovery Scuba Diving"
+      )
+    ).toBe("Descubre el Buceo");
+  });
+
+  it("removes original text prepended as prefix", async () => {
+    const { removeSourceContamination } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      removeSourceContamination(
+        "Discovery Scuba Diving Descubre el Buceo",
+        "Discovery Scuba Diving"
+      )
+    ).toBe("Descubre el Buceo");
+  });
+
+  it("returns translated text unchanged when no contamination", async () => {
+    const { removeSourceContamination } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      removeSourceContamination("Descubre el Buceo", "Discovery Scuba Diving")
+    ).toBe("Descubre el Buceo");
+  });
+
+  it("returns translated text unchanged when same as original", async () => {
+    const { removeSourceContamination } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      removeSourceContamination("PADI", "PADI")
+    ).toBe("PADI");
+  });
+
+  it("handles empty original text", async () => {
+    const { removeSourceContamination } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      removeSourceContamination("Translated text", "")
+    ).toBe("Translated text");
+  });
+
+  it("handles empty translated text", async () => {
+    const { removeSourceContamination } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    expect(
+      removeSourceContamination("", "Original text")
+    ).toBe("");
+  });
+});
+
+// ============================================================================
+// translateText
+// ============================================================================
+
 describe("translateText", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,6 +189,57 @@ describe("translateText", () => {
 
     expect(result).toBe("Hola mundo");
     expect(mockSend).toHaveBeenCalledTimes(1);
+  });
+
+  it("strips HTML tags from Bedrock response", async () => {
+    mockSend.mockResolvedValueOnce(
+      makeConverseResponse("<p>Snorkel Safari</p>")
+    );
+
+    const { translateText } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    const result = await translateText("Snorkel Safari", "en", "es");
+
+    expect(result).toBe("Snorkel Safari");
+  });
+
+  it("strips HTML and removes source contamination together", async () => {
+    mockSend.mockResolvedValueOnce(
+      makeConverseResponse(
+        "<p>Descubre el Buceo Discovery Scuba Diving</p>"
+      )
+    );
+
+    const { translateText } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    const result = await translateText(
+      "Discovery Scuba Diving",
+      "en",
+      "es"
+    );
+
+    expect(result).toBe("Descubre el Buceo");
+  });
+
+  it("removes source text concatenated as suffix", async () => {
+    mockSend.mockResolvedValueOnce(
+      makeConverseResponse(
+        "Descubre el Buceo Discovery Scuba Diving"
+      )
+    );
+
+    const { translateText } = await import(
+      "../../../../lib/translation/bedrock.server"
+    );
+    const result = await translateText(
+      "Discovery Scuba Diving",
+      "en",
+      "es"
+    );
+
+    expect(result).toBe("Descubre el Buceo");
   });
 
   it("retries on throttling error and succeeds on second attempt", async () => {

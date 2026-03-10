@@ -107,13 +107,13 @@ describe("BarcodeScanner", () => {
       });
     });
 
-    it("renders a 'Retry' button in the error state", async () => {
+    it("renders a 'Try Again' button in the error state", async () => {
       mockScannerError("Hardware failure");
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
       });
     });
 
@@ -150,7 +150,7 @@ describe("BarcodeScanner", () => {
       // On retry, decodeFromConstraints hangs so we go back to loading state
       mockDecodeFromConstraints.mockReturnValue(new Promise(() => {}));
 
-      const retryButton = screen.getByRole("button", { name: /retry/i });
+      const retryButton = screen.getByRole("button", { name: /try again/i });
       fireEvent.click(retryButton);
 
       await waitFor(() => {

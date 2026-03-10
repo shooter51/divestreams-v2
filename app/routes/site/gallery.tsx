@@ -24,6 +24,8 @@ import {
   type GalleryAlbumWithImages,
 } from "../../../lib/db/gallery.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { resolveLocale } from "../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../lib/db/translations.server";
 import { useT } from "../../i18n/use-t";
 
 // ============================================================================
@@ -88,6 +90,19 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
     getGalleryCategories(organizationId),
     getGalleryTags(organizationId),
   ]);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && albums.length > 0) {
+    const translations = await bulkGetContentTranslations(organizationId, "gallery_album", albums.map(a => a.id), locale);
+    for (const album of albums) {
+      const tr = translations.get(album.id);
+      if (tr) {
+        if (tr.name) album.name = tr.name;
+        if (tr.description) album.description = tr.description;
+      }
+    }
+  }
 
   return {
     images,
@@ -214,7 +229,9 @@ export default function GalleryPage() {
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="text-lg font-semibold mb-1">{album.name}</h3>
                       <p className="text-sm text-white/80">
-                        {album.imageCount} {album.imageCount === 1 ? "photo" : "photos"}
+                        {album.imageCount === 1
+                          ? t("site.gallery.photoCountSingular")
+                          : t("site.gallery.photoCount", { count: String(album.imageCount) })}
                       </p>
                     </div>
                   </div>
@@ -300,7 +317,9 @@ export default function GalleryPage() {
           <>
             <div className="mb-6">
               <p style={{ color: "var(--text-color)", opacity: 0.7 }}>
-                Showing {images.length} {images.length === 1 ? "photo" : "photos"}
+                {images.length === 1
+                  ? t("site.gallery.showingPhoto")
+                  : t("site.gallery.showingPhotos", { count: String(images.length) })}
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -373,7 +392,7 @@ export default function GalleryPage() {
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 text-white hover:opacity-80 z-10"
-            aria-label="Close lightbox"
+            aria-label={t("site.gallery.closeLightbox")}
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -388,7 +407,7 @@ export default function GalleryPage() {
                 navigateLightbox(-1);
               }}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:opacity-80 z-10"
-              aria-label="Previous image"
+              aria-label={t("site.gallery.previousImage")}
             >
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -404,7 +423,7 @@ export default function GalleryPage() {
                 navigateLightbox(1);
               }}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:opacity-80 z-10"
-              aria-label="Next image"
+              aria-label={t("site.gallery.nextImage")}
             >
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

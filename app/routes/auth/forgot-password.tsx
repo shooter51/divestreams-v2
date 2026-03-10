@@ -65,13 +65,13 @@ export async function action({ request }: ActionFunctionArgs) {
   // Validate CSRF token
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
-    return { error: "Invalid form submission. Please refresh and try again." };
+    return { error: "auth.forgotPassword.invalidForm" };
   }
 
   const email = formData.get("email") as string;
 
   if (!email) {
-    return { error: "Email is required" };
+    return { error: "auth.forgotPassword.emailRequired" };
   }
 
   try {
@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
               required
             />
             {actionData?.error && (
-              <p className="text-danger text-sm mt-1">{actionData.error}</p>
+              <p className="text-danger text-sm mt-1">{t(actionData.error)}</p>
             )}
           </div>
 

@@ -1,5 +1,6 @@
 import { useFetcher } from "react-router";
 import { useState, useEffect } from "react";
+import { useT } from "../../i18n/use-t";
 
 interface ChangePasswordFormProps {
   userId: string;
@@ -7,6 +8,7 @@ interface ChangePasswordFormProps {
 }
 
 export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [showForm, setShowForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -22,17 +24,17 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
 
     // Validate passwords
     if (newPassword.length < 8) {
-      setValidationError("New password must be at least 8 characters");
+      setValidationError(t("tenant.settings.password.minLength"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setValidationError("Passwords do not match");
+      setValidationError(t("tenant.settings.password.passwordsDoNotMatch"));
       return;
     }
 
     if (currentPassword === newPassword) {
-      setValidationError("New password must be different from current password");
+      setValidationError(t("tenant.settings.password.mustBeDifferent"));
       return;
     }
 
@@ -63,7 +65,7 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
         onClick={() => setShowForm(true)}
         className="px-4 py-2 text-sm border border-border-strong rounded-lg hover:bg-surface-inset transition-colors"
       >
-        Change Password
+        {t("tenant.settings.password.changePassword")}
       </button>
     );
   }
@@ -71,7 +73,7 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-lg font-semibold mb-4">Change Password</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("tenant.settings.password.changePassword")}</h2>
 
         {fetcher.data?.error && (
           <div className="bg-danger-muted text-danger border border-danger rounded-lg p-3 mb-4 text-sm max-w-4xl break-words">
@@ -89,7 +91,7 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
           <div className="space-y-4">
             <div>
               <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
-                Current Password
+                {t("tenant.settings.password.currentPassword")}
               </label>
               <input
                 type="password"
@@ -104,7 +106,7 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
 
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
-                New Password
+                {t("tenant.settings.password.newPassword")}
               </label>
               <input
                 type="password"
@@ -117,13 +119,13 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand disabled:opacity-50"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Must be at least 8 characters
+                {t("tenant.settings.password.minLengthHint")}
               </p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-                Confirm New Password
+                {t("tenant.settings.password.confirmNewPassword")}
               </label>
               <input
                 type="password"
@@ -144,7 +146,7 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
               disabled={isSubmitting}
               className="flex-1 bg-brand text-white py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Changing..." : "Change Password"}
+              {isSubmitting ? t("tenant.settings.password.changing") : t("tenant.settings.password.changePassword")}
             </button>
             <button
               type="button"
@@ -158,7 +160,7 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
               disabled={isSubmitting}
               className="flex-1 border py-2 rounded-lg hover:bg-surface-inset disabled:opacity-50"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </form>

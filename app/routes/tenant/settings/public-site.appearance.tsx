@@ -147,7 +147,7 @@ export default function PublicSiteAppearanceSettings() {
               id="heroImageUrl"
               name="heroImageUrl"
               value={heroImageUrl}
-              placeholder="https://images.unsplash.com/photo-..."
+              placeholder={t("tenant.settings.publicSite.appearance.heroImagePlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               onChange={(e) => setHeroImageUrl(e.target.value)}
             />
@@ -250,7 +250,7 @@ export default function PublicSiteAppearanceSettings() {
                   id="primaryColor"
                   name="primaryColor"
                   value={primaryColor}
-                  placeholder="#0ea5e9"
+                  placeholder={t("tenant.settings.publicSite.appearance.primaryColorPlaceholder")}
                   pattern="^#[0-9A-Fa-f]{6}$"
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
                   onChange={(e) => {
@@ -280,7 +280,7 @@ export default function PublicSiteAppearanceSettings() {
                   id="secondaryColor"
                   name="secondaryColor"
                   value={secondaryColor}
-                  placeholder="#06b6d4"
+                  placeholder={t("tenant.settings.publicSite.appearance.secondaryColorPlaceholder")}
                   pattern="^#[0-9A-Fa-f]{6}$"
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
                   onChange={(e) => {

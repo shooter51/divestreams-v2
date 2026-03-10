@@ -16,6 +16,10 @@ import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { CsrfInput } from "../../components/CsrfInput";
+import { enqueueTranslation } from "../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../i18n/types";
+import { resolveLocale } from "../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../lib/db/translations.server";
 import { useT } from "../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
@@ -32,6 +36,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .from(discountCodes)
     .where(eq(discountCodes.organizationId, ctx.org.id))
     .orderBy(discountCodes.createdAt);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && discountCodesList.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "discount", discountCodesList.map(d => d.id), locale);
+    for (const discount of discountCodesList) {
+      const tr = translations.get(discount.id);
+      if (tr) {
+        if (tr.description) discount.description = tr.description;
+      }
+    }
+  }
 
   return {
     discountCodes: discountCodesList,
@@ -88,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "A discount code with this code already exists" };
     }
 
-    await db.insert(discountCodes).values({
+    const [newDiscount] = await db.insert(discountCodes).values({
       organizationId: ctx.org.id,
       code,
       description,
@@ -100,7 +116,24 @@ export async function action({ request }: ActionFunctionArgs) {
       validTo: validTo ? new Date(validTo) : null,
       applicableTo,
       isActive: true,
-    });
+    }).returning();
+
+    // Enqueue translation for description
+    if (description?.trim()) {
+      const fieldsToTranslate = [
+        { field: "description", text: description },
+      ];
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "discount",
+          entityId: newDiscount.id,
+          fields: fieldsToTranslate,
+          targetLocale: locale,
+        });
+      }
+    }
 
     return { success: true, message: `Discount code "${code}" has been successfully created` };
   }
@@ -180,6 +213,23 @@ export async function action({ request }: ActionFunctionArgs) {
           eq(discountCodes.id, id)
         )
       );
+
+    // Enqueue translation for description
+    if (description?.trim()) {
+      const fieldsToTranslate = [
+        { field: "description", text: description },
+      ];
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "discount",
+          entityId: id,
+          fields: fieldsToTranslate,
+          targetLocale: locale,
+        });
+      }
+    }
 
     return { success: true, message: `Discount code "${code}" has been successfully updated` };
   }
@@ -629,7 +679,7 @@ export default function DiscountsPage() {
                       max={discountType === "percentage" ? "100" : "100000"}
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
-                      placeholder={discountType === "percentage" ? "e.g., 10" : "e.g., 25.00"}
+                      placeholder={discountType === "percentage" ? t("tenant.discounts.percentagePlaceholder") : t("tenant.discounts.fixedPlaceholder")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                     <p className="text-xs text-foreground-muted mt-1">

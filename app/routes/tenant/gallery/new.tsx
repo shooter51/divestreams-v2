@@ -5,6 +5,8 @@ import { createGalleryAlbum, getAllGalleryAlbums } from "../../../../lib/db/gall
 import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
@@ -83,6 +85,22 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic,
     coverImageUrl,
   });
+
+  // Enqueue translation for name and description
+  const fieldsToTranslate = [
+    { field: "name", text: name },
+    ...(description?.trim() ? [{ field: "description", text: description }] : []),
+  ];
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: ctx.org.id,
+      entityType: "gallery_album",
+      entityId: album.id,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   return redirect(`/tenant/gallery/${album.id}`);
 }

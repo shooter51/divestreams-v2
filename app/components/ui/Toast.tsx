@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useT } from "../../i18n/use-t";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -15,6 +16,7 @@ interface ToastItemProps {
 }
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
+  const t = useT();
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -83,7 +85,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <button
         onClick={handleDismiss}
         className="flex-shrink-0 text-lg font-bold hover:opacity-70 transition-opacity min-h-[44px] min-w-[44px] flex items-center justify-center"
-        aria-label="Dismiss notification"
+        aria-label={t("components.toast.dismissAriaLabel")}
       >
         ×
       </button>

@@ -2,6 +2,8 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { useNotification } from "../../../../lib/use-notification";
 import { useT } from "../../../i18n/use-t";
 
@@ -10,6 +12,20 @@ export const meta: MetaFunction = () => [{ title: "Gallery - DiveStreams" }];
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
   const albums = await getAllGalleryAlbums(ctx.org.id);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && albums.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "gallery_album", albums.map(a => a.id), locale);
+    for (const album of albums) {
+      const tr = translations.get(album.id);
+      if (tr) {
+        if (tr.name) album.name = tr.name;
+        if (tr.description) album.description = tr.description;
+      }
+    }
+  }
+
   return { albums };
 }
 

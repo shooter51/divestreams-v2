@@ -145,7 +145,7 @@ export default function NewEquipmentPage() {
                   id="name"
                   name="name"
                   required
-                  placeholder="e.g., Aqualung Pro HD"
+                  placeholder={t("tenant.equipment.namePlaceholder")}
                   defaultValue={val("name")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
@@ -164,7 +164,7 @@ export default function NewEquipmentPage() {
                   type="text"
                   id="brand"
                   name="brand"
-                  placeholder="e.g., Aqualung"
+                  placeholder={t("tenant.equipment.brandPlaceholder")}
                   defaultValue={val("brand")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
@@ -178,7 +178,7 @@ export default function NewEquipmentPage() {
                   type="text"
                   id="model"
                   name="model"
-                  placeholder="e.g., Pro HD"
+                  placeholder={t("tenant.equipment.modelPlaceholder")}
                   defaultValue={val("model")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />

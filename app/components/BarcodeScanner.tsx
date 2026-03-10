@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { NotFoundException } from "@zxing/library";
+import { useT } from "../i18n/use-t";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -23,6 +24,7 @@ export function BarcodeScanner({
   enabled = true,
   className = "",
 }: BarcodeScannerProps) {
+  const t = useT();
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
@@ -133,15 +135,15 @@ export function BarcodeScanner({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="font-semibold text-foreground mb-2">Camera Access Denied</h3>
+        <h3 className="font-semibold text-foreground mb-2">{t("common.scanner.cameraAccessDenied")}</h3>
         <p className="text-sm text-foreground-muted mb-4">
-          Please allow camera access in your browser settings to use the barcode scanner.
+          {t("common.scanner.cameraAccessMessage")}
         </p>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
         >
-          Try Again
+          {t("common.scanner.tryAgain")}
         </button>
       </div>
     );
@@ -155,7 +157,7 @@ export function BarcodeScanner({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="font-semibold text-foreground mb-2">Scanner Error</h3>
+        <h3 className="font-semibold text-foreground mb-2">{t("common.scanner.scannerError")}</h3>
         <p className="text-sm text-foreground-muted mb-4">{error}</p>
         <button
           onClick={() => {
@@ -164,7 +166,7 @@ export function BarcodeScanner({
           }}
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
         >
-          Retry
+          {t("common.scanner.tryAgain")}
         </button>
       </div>
     );
@@ -183,7 +185,7 @@ export function BarcodeScanner({
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
           <div className="text-center">
             <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2" />
-            <p className="text-white text-sm">Starting camera...</p>
+            <p className="text-white text-sm">{t("common.scanner.startingCamera")}</p>
           </div>
         </div>
       )}
@@ -204,7 +206,7 @@ export function BarcodeScanner({
           </div>
           <div className="absolute bottom-4 left-0 right-0 text-center">
             <p className="text-white text-sm bg-black/50 px-4 py-2 rounded-full inline-block">
-              Position barcode within the frame
+              {t("common.scanner.positionBarcode")}
             </p>
           </div>
         </div>

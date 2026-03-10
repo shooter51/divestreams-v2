@@ -659,7 +659,7 @@ export default function ProfileSettingsPage() {
                   id="taxName"
                   name="taxName"
                   defaultValue={taxSettings.taxName}
-                  placeholder="Tax"
+                  placeholder={t("tenant.settings.profile.taxPlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-foreground-muted mt-1">

@@ -274,10 +274,10 @@ export default function NewDiveSitePage() {
                 defaultValue={actionData?.values?.difficulty || "intermediate"}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-                <option value="expert">Expert</option>
+                <option value="beginner">{t("tenant.diveSites.difficulty.beginner")}</option>
+                <option value="intermediate">{t("tenant.diveSites.difficulty.intermediate")}</option>
+                <option value="advanced">{t("tenant.diveSites.difficulty.advanced")}</option>
+                <option value="expert">{t("tenant.diveSites.difficulty.expert")}</option>
               </select>
             </div>
 
@@ -289,7 +289,7 @@ export default function NewDiveSitePage() {
                 type="text"
                 id="conditions"
                 name="conditions"
-                placeholder="e.g., Strong currents, calm waters, tidal dependent"
+                placeholder={t("tenant.diveSites.conditionsPlaceholder")}
                 defaultValue={actionData?.values?.conditions}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -350,7 +350,7 @@ export default function NewDiveSitePage() {
               type="text"
               id="highlights"
               name="highlights"
-              placeholder="e.g., Sharks, Corals, Wall dive, Wreck (comma-separated)"
+              placeholder={t("tenant.diveSites.highlightsPlaceholder")}
               defaultValue={actionData?.values?.highlights}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />

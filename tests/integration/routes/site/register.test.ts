@@ -91,7 +91,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.firstName).toBe("First name is required");
+      expect((result as unknown).errors?.firstName).toBe("auth.register.firstNameRequired");
     });
 
     it("validates first name max length", async () => {
@@ -102,7 +102,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.firstName).toBe("First name must be 100 characters or less");
+      expect((result as unknown).errors?.firstName).toBe("auth.register.firstNameTooLong");
     });
 
     it("validates required last name", async () => {
@@ -113,7 +113,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.lastName).toBe("Last name is required");
+      expect((result as unknown).errors?.lastName).toBe("auth.register.lastNameRequired");
     });
 
     it("validates email format", async () => {
@@ -124,7 +124,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.email).toBe("Please enter a valid email address");
+      expect((result as unknown).errors?.email).toBe("auth.register.invalidEmail");
     });
 
     it("validates email max length", async () => {
@@ -135,7 +135,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.email).toBe("Email must be 255 characters or less");
+      expect((result as unknown).errors?.email).toBe("auth.register.emailTooLong");
     });
 
     it("validates phone format when provided", async () => {
@@ -146,7 +146,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.phone).toBe("Please enter a valid phone number");
+      expect((result as unknown).errors?.phone).toBe("auth.register.invalidPhone");
     });
 
     it("validates password requirements - minimum length", async () => {
@@ -190,7 +190,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.confirmPassword).toBe("Passwords do not match");
+      expect((result as unknown).errors?.confirmPassword).toBe("auth.register.passwordsDoNotMatch");
     });
 
     it("validates terms acceptance", async () => {
@@ -201,7 +201,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.terms).toBe("You must accept the Terms of Service");
+      expect((result as unknown).errors?.terms).toBe("auth.register.acceptTerms");
     });
 
     it("registers customer and auto-logs in on success", async () => {
@@ -241,7 +241,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors?.email).toContain("Unable to create account");
+      expect((result as unknown).errors?.email).toBe("auth.register.emailTaken");
     });
 
     it("handles generic registration errors", async () => {
@@ -270,7 +270,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).error).toBe("Unable to determine organization");
+      expect((result as unknown).error).toBe("auth.register.noOrganization");
     });
 
     it("returns error when organization not found", async () => {
@@ -283,7 +283,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).error).toBe("Organization not found");
+      expect((result as unknown).error).toBe("auth.register.orgNotFound");
     });
 
     it("redirects to login if auto-login fails after registration", async () => {
@@ -333,7 +333,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).error).toContain("CSRF");
+      expect((result as unknown).error).toBe("auth.register.invalidCsrf");
     });
   });
 });

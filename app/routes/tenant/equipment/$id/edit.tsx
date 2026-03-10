@@ -219,7 +219,7 @@ export default function EditEquipmentPage() {
                   type="text"
                   id="size"
                   name="size"
-                  placeholder="e.g., M, L, XL"
+                  placeholder={t("tenant.equipment.sizePlaceholder")}
                   defaultValue={actionData?.values?.size || equipment.size}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
