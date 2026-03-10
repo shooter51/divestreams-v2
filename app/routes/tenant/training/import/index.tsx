@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
 import React, { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
+import { getAgencies, createAgency, createCourse, getCourses, updateCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 import { escapeHtml } from "../../../../../lib/security/sanitize";
 import { CsrfInput } from "../../../../components/CsrfInput";
@@ -360,6 +360,39 @@ export async function action({ request }: ActionFunctionArgs) {
     };
   }
 
+  // Step: Refresh images for existing courses from catalog templates
+  if (step === "refresh-images") {
+    const organizationId = orgContext.org.id;
+    const existingCourses = await getCourses(organizationId);
+    const agencies = await getAgencies(organizationId);
+
+    let updatedCount = 0;
+    for (const course of existingCourses) {
+      if (!course.code) continue;
+      // Find which agency this course belongs to
+      const agency = agencies.find(a => a.id === course.agencyId);
+      if (!agency?.code) continue;
+
+      const templates = await getGlobalAgencyCourseTemplates(agency.code);
+      const template = templates?.find(t => t.code === course.code);
+      if (template?.images && template.images.length > 0) {
+        const currentImages = course.images as string[] | null;
+        const templateFirst = template.images[0];
+        // Update if images are missing or different from template
+        if (!currentImages || currentImages.length === 0 || currentImages[0] !== templateFirst) {
+          await updateCourse(organizationId, course.id, { images: template.images });
+          updatedCount++;
+        }
+      }
+    }
+
+    return {
+      success: true,
+      step: "refresh-complete",
+      refreshedCount: updatedCount,
+    };
+  }
+
   return {
     error: "An unexpected error occurred during the import process.",
     suggestion: "Please start over and try again. If the problem continues, contact support."
@@ -426,6 +459,29 @@ export default function TrainingImportPage() {
           <p className="text-xs text-brand mt-2 italic">
             {t("tenant.training.import.csvFormat")}
           </p>
+        </div>
+        {/* Refresh Images */}
+        <div className="mt-4 p-4 bg-surface-raised border border-border rounded-lg">
+          <h3 className="font-medium mb-2">{t("tenant.training.import.refreshImagesTitle")}</h3>
+          <p className="text-sm text-foreground-muted mb-3">
+            {t("tenant.training.import.refreshImagesDescription")}
+          </p>
+          <Form method="post">
+            <CsrfInput />
+            <input type="hidden" name="step" value="refresh-images" />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 border border-brand text-brand rounded-lg hover:bg-brand-muted transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? t("common.loading") : t("tenant.training.import.refreshImages")}
+            </button>
+          </Form>
+          {actionData?.step === "refresh-complete" && (
+            <p className="mt-2 text-sm text-success">
+              {t("tenant.training.import.refreshImagesResult", { count: actionData.refreshedCount ?? 0 })}
+            </p>
+          )}
         </div>
       </div>
 
