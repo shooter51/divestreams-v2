@@ -103,7 +103,7 @@ describe("site/contact route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect(result.errors?.name).toBe("Name must be at least 2 characters");
+      expect(result.errors?.name).toBe("site.contact.nameMinLength");
     });
 
     it("validates required email field", async () => {
@@ -114,7 +114,7 @@ describe("site/contact route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect(result.errors?.email).toBe("Please enter a valid email address");
+      expect(result.errors?.email).toBe("site.contact.invalidEmail");
     });
 
     it("validates message minimum length", async () => {
@@ -125,7 +125,7 @@ describe("site/contact route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect(result.errors?.message).toBe("Message must be at least 10 characters");
+      expect(result.errors?.message).toBe("site.contact.messageMinLength");
     });
 
     it("validates message maximum length", async () => {
@@ -136,7 +136,7 @@ describe("site/contact route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect(result.errors?.message).toBe("Message must be less than 5000 characters");
+      expect(result.errors?.message).toBe("site.contact.messageTooLong");
     });
 
     it("silently accepts honeypot submissions (spam protection)", async () => {
@@ -169,7 +169,7 @@ describe("site/contact route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect(result.error).toContain("Too many submissions");
+      expect(result.error).toBe("site.contact.tooManySubmissions");
     });
 
     it("stores message and returns success on valid submission", async () => {
@@ -209,7 +209,7 @@ describe("site/contact route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect(result.error).toContain("Unable to process");
+      expect(result.error).toBe("site.contact.processingError");
     });
   });
 });

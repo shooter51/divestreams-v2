@@ -208,7 +208,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Please enter a valid email address", email: expect.any(String) });
+        expect(response).toEqual({ error: "auth.login.invalidEmail", email: expect.any(String) });
       });
 
       it("returns error when email is invalid format", async () => {
@@ -223,7 +223,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Please enter a valid email address", email: expect.any(String) });
+        expect(response).toEqual({ error: "auth.login.invalidEmail", email: expect.any(String) });
       });
 
       it("returns error when password is empty", async () => {
@@ -441,7 +441,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "You must be logged in to join an organization" });
+        expect(response).toEqual({ error: "auth.login.mustBeLoggedIn" });
       });
 
       it("returns error when org not found from subdomain", async () => {
