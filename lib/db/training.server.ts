@@ -395,6 +395,164 @@ export async function deleteCourse(organizationId: string, courseId: string) {
 }
 
 // ============================================================================
+// Series Queries (DS-phdj: Multi-week course series)
+// ============================================================================
+
+export async function getSeries(
+  organizationId: string,
+  options?: { courseId?: string; status?: string }
+) {
+  const conditions = [eq(schema.trainingSessionSeries.organizationId, organizationId)];
+
+  if (options?.courseId) {
+    conditions.push(eq(schema.trainingSessionSeries.courseId, options.courseId));
+  }
+  if (options?.status) {
+    conditions.push(eq(schema.trainingSessionSeries.status, options.status));
+  }
+
+  return db
+    .select({
+      id: schema.trainingSessionSeries.id,
+      name: schema.trainingSessionSeries.name,
+      courseId: schema.trainingSessionSeries.courseId,
+      courseName: schema.trainingCourses.name,
+      maxStudents: schema.trainingSessionSeries.maxStudents,
+      priceOverride: schema.trainingSessionSeries.priceOverride,
+      status: schema.trainingSessionSeries.status,
+      instructorId: schema.trainingSessionSeries.instructorId,
+      agencyName: schema.certificationAgencies.name,
+      createdAt: schema.trainingSessionSeries.createdAt,
+      updatedAt: schema.trainingSessionSeries.updatedAt,
+    })
+    .from(schema.trainingSessionSeries)
+    .innerJoin(
+      schema.trainingCourses,
+      eq(schema.trainingSessionSeries.courseId, schema.trainingCourses.id)
+    )
+    .leftJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .where(and(...conditions))
+    .orderBy(desc(schema.trainingSessionSeries.createdAt));
+}
+
+export async function getSeriesById(organizationId: string, seriesId: string) {
+  const [series] = await db
+    .select({
+      id: schema.trainingSessionSeries.id,
+      name: schema.trainingSessionSeries.name,
+      courseId: schema.trainingSessionSeries.courseId,
+      courseName: schema.trainingCourses.name,
+      maxStudents: schema.trainingSessionSeries.maxStudents,
+      priceOverride: schema.trainingSessionSeries.priceOverride,
+      status: schema.trainingSessionSeries.status,
+      instructorId: schema.trainingSessionSeries.instructorId,
+      agencyName: schema.certificationAgencies.name,
+      createdAt: schema.trainingSessionSeries.createdAt,
+      updatedAt: schema.trainingSessionSeries.updatedAt,
+    })
+    .from(schema.trainingSessionSeries)
+    .innerJoin(
+      schema.trainingCourses,
+      eq(schema.trainingSessionSeries.courseId, schema.trainingCourses.id)
+    )
+    .leftJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    );
+  return series;
+}
+
+export async function getSeriesByCourse(organizationId: string, courseId: string) {
+  return getSeries(organizationId, { courseId });
+}
+
+export async function createSeries(data: {
+  organizationId: string;
+  courseId: string;
+  name: string;
+  maxStudents?: number;
+  priceOverride?: string;
+  instructorId?: string;
+}) {
+  const [series] = await db
+    .insert(schema.trainingSessionSeries)
+    .values(data)
+    .returning();
+  return series;
+}
+
+export async function updateSeries(
+  organizationId: string,
+  seriesId: string,
+  data: Partial<{
+    name: string;
+    maxStudents: number | null;
+    priceOverride: string | null;
+    status: string;
+    instructorId: string | null;
+  }>
+) {
+  const [series] = await db
+    .update(schema.trainingSessionSeries)
+    .set({ ...data, updatedAt: new Date() })
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    )
+    .returning();
+  return series;
+}
+
+export async function deleteSeries(organizationId: string, seriesId: string) {
+  await db
+    .delete(schema.trainingSessionSeries)
+    .where(
+      and(
+        eq(schema.trainingSessionSeries.organizationId, organizationId),
+        eq(schema.trainingSessionSeries.id, seriesId)
+      )
+    );
+}
+
+export async function getSessionsBySeries(organizationId: string, seriesId: string) {
+  return db
+    .select({
+      id: schema.trainingSessions.id,
+      seriesIndex: schema.trainingSessions.seriesIndex,
+      sessionType: schema.trainingSessions.sessionType,
+      startDate: schema.trainingSessions.startDate,
+      endDate: schema.trainingSessions.endDate,
+      startTime: schema.trainingSessions.startTime,
+      location: schema.trainingSessions.location,
+      instructorName: schema.trainingSessions.instructorName,
+      maxStudents: schema.trainingSessions.maxStudents,
+      status: schema.trainingSessions.status,
+      enrolledCount: schema.trainingSessions.enrolledCount,
+      notes: schema.trainingSessions.notes,
+      createdAt: schema.trainingSessions.createdAt,
+    })
+    .from(schema.trainingSessions)
+    .where(
+      and(
+        eq(schema.trainingSessions.organizationId, organizationId),
+        eq(schema.trainingSessions.seriesId, seriesId)
+      )
+    )
+    .orderBy(asc(schema.trainingSessions.seriesIndex), asc(schema.trainingSessions.startDate));
+}
+
+// ============================================================================
 // Session Queries
 // ============================================================================
 
