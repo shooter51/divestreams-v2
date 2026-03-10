@@ -3,7 +3,7 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
-import { createEquipment } from "../../../../lib/db/queries.server";
+import { createEquipment, getEquipmentById } from "../../../../lib/db/queries.server";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
@@ -14,7 +14,33 @@ export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireRole(ctx, ["owner", "admin"]);
-  return {};
+
+  const url = new URL(request.url);
+  const fromId = url.searchParams.get("from");
+
+  if (fromId) {
+    const source = await getEquipmentById(ctx.org.id, fromId);
+    if (source) {
+      return {
+        prefill: {
+          category: source.category,
+          name: source.name,
+          brand: source.brand ?? "",
+          model: source.model ?? "",
+          size: source.size ?? "",
+          gasType: source.gasType ?? "",
+          status: source.status ?? "available",
+          condition: source.condition ?? "good",
+          isRentable: source.isRentable,
+          rentalPrice: source.rentalPrice ? String(source.rentalPrice) : "",
+          isPublic: source.isPublic,
+          notes: source.notes ?? "",
+        },
+      };
+    }
+  }
+
+  return { prefill: null };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -54,13 +80,18 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewEquipmentPage() {
+  const { prefill } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const t = useT();
   const isSubmitting = navigation.state === "submitting";
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState(actionData?.values?.barcode || "");
-  const [selectedCategory, setSelectedCategory] = useState(actionData?.values?.category || "");
+  const val = (field: string): string => {
+    const v = actionData?.values?.[field] || prefill?.[field as keyof NonNullable<typeof prefill>];
+    return v != null ? String(v) : "";
+  };
+  const [selectedCategory, setSelectedCategory] = useState(actionData?.values?.category || prefill?.category || "");
 
   return (
     <div className="max-w-2xl">
@@ -86,7 +117,7 @@ export default function NewEquipmentPage() {
                   id="category"
                   name="category"
                   required
-                  defaultValue={actionData?.values?.category || ""}
+                  defaultValue={val("category")}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
@@ -115,7 +146,7 @@ export default function NewEquipmentPage() {
                   name="name"
                   required
                   placeholder="e.g., Aqualung Pro HD"
-                  defaultValue={actionData?.values?.name}
+                  defaultValue={val("name")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 {actionData?.errors?.name && (
@@ -134,7 +165,7 @@ export default function NewEquipmentPage() {
                   id="brand"
                   name="brand"
                   placeholder="e.g., Aqualung"
-                  defaultValue={actionData?.values?.brand}
+                  defaultValue={val("brand")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -148,7 +179,7 @@ export default function NewEquipmentPage() {
                   id="model"
                   name="model"
                   placeholder="e.g., Pro HD"
-                  defaultValue={actionData?.values?.model}
+                  defaultValue={val("model")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -204,7 +235,7 @@ export default function NewEquipmentPage() {
                 <select
                   id="size"
                   name="size"
-                  defaultValue={actionData?.values?.size || ""}
+                  defaultValue={val("size")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">{t("tenant.equipment.na")}</option>
@@ -224,7 +255,7 @@ export default function NewEquipmentPage() {
                   <select
                     id="gasType"
                     name="gasType"
-                    defaultValue={actionData?.values?.gasType || "air"}
+                    defaultValue={val("gasType") || "air"}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   >
                     <option value="air">{t("tenant.equipment.gasType.air")}</option>
@@ -250,7 +281,7 @@ export default function NewEquipmentPage() {
               <select
                 id="status"
                 name="status"
-                defaultValue={actionData?.values?.status || "available"}
+                defaultValue={val("status") || "available"}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="available">{t("tenant.equipment.status.available")}</option>
@@ -267,7 +298,7 @@ export default function NewEquipmentPage() {
               <select
                 id="condition"
                 name="condition"
-                defaultValue={actionData?.values?.condition || "good"}
+                defaultValue={val("condition") || "good"}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="excellent">{t("tenant.equipment.condition.excellent")}</option>
@@ -288,7 +319,7 @@ export default function NewEquipmentPage() {
                 type="checkbox"
                 name="isRentable"
                 value="true"
-                defaultChecked={actionData?.values?.isRentable !== "false"}
+                defaultChecked={actionData?.values?.isRentable !== "false" && (prefill?.isRentable !== false)}
                 className="rounded"
                 id="isRentableCheckbox"
               />
@@ -312,7 +343,7 @@ export default function NewEquipmentPage() {
                   step="0.01"
                   min="0.01"
                   placeholder="10.00"
-                  defaultValue={actionData?.values?.rentalPrice}
+                  defaultValue={val("rentalPrice")}
                   className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
@@ -417,7 +448,7 @@ export default function NewEquipmentPage() {
             id="notes"
             name="notes"
             rows={3}
-            defaultValue={actionData?.values?.notes}
+            defaultValue={val("notes")}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
           <div className="mt-4">
@@ -426,7 +457,7 @@ export default function NewEquipmentPage() {
                 type="checkbox"
                 name="isPublic"
                 value="true"
-                defaultChecked={actionData?.values?.isPublic !== "false"}
+                defaultChecked={actionData?.values?.isPublic !== "false" && (prefill?.isPublic !== false)}
                 className="rounded"
               />
               <span className="text-sm font-medium">{t("tenant.equipment.showOnPublicSite")}</span>
