@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router";
 import type { PlanFeatureKey, PlanLimits } from "../../lib/plan-features";
 import { FEATURE_UPGRADE_INFO, LIMIT_LABELS } from "../../lib/plan-features";
+import { useT } from "../i18n/use-t";
 
 interface UpgradeModalProps {
   feature?: PlanFeatureKey | null;
@@ -10,6 +11,8 @@ interface UpgradeModalProps {
 }
 
 export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps) {
+  const t = useT();
+
   // Keyboard escape handler for accessibility
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -32,8 +35,8 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
     requiredPlan = info.requiredPlan;
   } else if (limitType) {
     const limitLabel = LIMIT_LABELS[limitType as keyof PlanLimits] ?? limitType;
-    title = `${limitLabel} Limit Reached`;
-    description = `You've reached your plan's limit for ${limitLabel.toLowerCase()}. Upgrade to add more.`;
+    title = t("tenant.dashboard.upgrade.limitReachedTitle", { label: limitLabel });
+    description = t("tenant.dashboard.upgrade.limitReachedDescription", { label: limitLabel.toLowerCase() });
     requiredPlan = "a higher plan";
   } else {
     return null;

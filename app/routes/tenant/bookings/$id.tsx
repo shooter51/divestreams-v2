@@ -306,7 +306,7 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
             <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
-          <p className="text-foreground-muted">{t("tenant.bookings.created")} {formatDate(booking.createdAt)}</p>
+          <p className="text-foreground-muted">{t("tenant.bookings.created", { date: formatDate(booking.createdAt) })}</p>
         </div>
         <div className="flex gap-2">
           {booking.status === "pending" && (
@@ -460,7 +460,7 @@ export default function BookingDetailPage() {
                   onClick={() => setShowPaymentModal(true)}
                   className="text-sm text-brand hover:underline"
                 >
-                  + {t("tenant.bookings.recordPayment")}
+                  {t("tenant.bookings.recordPayment")}
                 </button>
               )}
             </div>
@@ -496,7 +496,7 @@ export default function BookingDetailPage() {
               <div className="space-y-4 text-sm">
                 {booking.specialRequests && (
                   <div>
-                    <p className="text-foreground-muted mb-1">{t("tenant.bookings.specialRequests")}:</p>
+                    <p className="text-foreground-muted mb-1">{t("tenant.bookings.specialRequests")}</p>
                     <p>{booking.specialRequests}</p>
                   </div>
                 )}
