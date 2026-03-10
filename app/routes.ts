@@ -216,6 +216,7 @@ export default [
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
+    route("coupons", "routes/admin/coupons.tsx"),
     route("settings", "routes/admin/settings.tsx"),
     route("settings/team", "routes/admin/settings.team.tsx"),
     route("contact-messages", "routes/admin/contact-messages.tsx"),
