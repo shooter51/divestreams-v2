@@ -270,6 +270,12 @@ export default function EquipmentDetailPage() {
         </div>
         <div className="flex gap-2">
           <Link
+            to={`/tenant/equipment/new?from=${equipment.id}`}
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
+          >
+            {t("tenant.equipment.duplicate")}
+          </Link>
+          <Link
             to={`/tenant/equipment/${equipment.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
