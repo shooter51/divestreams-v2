@@ -3,8 +3,9 @@ import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
-import { formatLabel, formatTime, formatDisplayDate } from "../../../lib/format";
-import { useT } from "../../../i18n/use-t";
+import { formatLabel } from "../../../lib/format";
+import { useT, useLocale } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 import {
   getTrainingDashboardStats,
   getUpcomingTrainingSessions,
@@ -56,6 +57,8 @@ export default function TrainingDashboardPage() {
   const { stats, upcomingSessions, recentEnrollments, orgName } =
     useLoaderData<typeof loader>();
   const t = useT();
+  const locale = useLocale();
+  const { formatDisplayDate, formatTime } = useFormat();
 
   return (
     <div>
@@ -149,7 +152,7 @@ export default function TrainingDashboardPage() {
                     <p className="font-medium">{session.courseName}</p>
                     <p className="text-sm text-foreground-muted">
                       {session.startDate
-                        ? new Date(session.startDate + "T00:00:00").toLocaleDateString("en-US", {
+                        ? new Date(session.startDate + "T00:00:00").toLocaleDateString(locale, {
                             month: "long",
                             day: "numeric",
                             year: "numeric",

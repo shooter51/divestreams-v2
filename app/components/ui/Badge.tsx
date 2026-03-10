@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useT } from "../../i18n/use-t";
 
 /**
  * Badge variant types that determine the color scheme.
@@ -105,61 +106,56 @@ export type BadgeStatus =
   // Integration sync
   | "success";
 
-interface StatusConfig {
-  variant: BadgeVariant;
-  label: string;
-}
-
-const STATUS_MAP: Record<BadgeStatus, StatusConfig> = {
+const STATUS_VARIANTS: Record<BadgeStatus, BadgeVariant> = {
   // Booking statuses
-  pending: { variant: "warning", label: "Pending" },
-  confirmed: { variant: "success", label: "Confirmed" },
-  checked_in: { variant: "info", label: "Checked In" },
-  completed: { variant: "default", label: "Completed" },
-  cancelled: { variant: "error", label: "Cancelled" },
-  canceled: { variant: "error", label: "Cancelled" },  // US spelling maps to UK label
-  no_show: { variant: "info", label: "No Show" },
+  pending: "warning",
+  confirmed: "success",
+  checked_in: "info",
+  completed: "default",
+  cancelled: "error",
+  canceled: "error",
+  no_show: "info",
   // Trip statuses
-  scheduled: { variant: "info", label: "Scheduled" },
-  in_progress: { variant: "warning", label: "In Progress" },
-  open: { variant: "info", label: "Open" },
-  full: { variant: "warning", label: "Full" },
+  scheduled: "info",
+  in_progress: "warning",
+  open: "info",
+  full: "warning",
   // Availability statuses
-  available: { variant: "success", label: "Available" },
-  unavailable: { variant: "error", label: "Unavailable" },
+  available: "success",
+  unavailable: "error",
   // Equipment statuses
-  rented: { variant: "info", label: "Rented" },
-  maintenance: { variant: "warning", label: "Maintenance" },
-  retired: { variant: "default", label: "Retired" },
+  rented: "info",
+  maintenance: "warning",
+  retired: "default",
   // Rental statuses
-  overdue: { variant: "error", label: "Overdue" },
-  returned: { variant: "success", label: "Returned" },
+  overdue: "error",
+  returned: "success",
   // Active/Inactive
-  active: { variant: "success", label: "Active" },
-  inactive: { variant: "default", label: "Inactive" },
-  archived: { variant: "default", label: "Archived" },
+  active: "success",
+  inactive: "default",
+  archived: "default",
   // Payment statuses
-  paid: { variant: "success", label: "Paid" },
-  unpaid: { variant: "warning", label: "Unpaid" },
-  refunded: { variant: "default", label: "Refunded" },
-  partial: { variant: "warning", label: "Partial" },
-  failed: { variant: "error", label: "Failed" },
-  succeeded: { variant: "success", label: "Succeeded" },
+  paid: "success",
+  unpaid: "warning",
+  refunded: "default",
+  partial: "warning",
+  failed: "error",
+  succeeded: "success",
   // Training enrollment
-  enrolled: { variant: "success", label: "Enrolled" },
-  dropped: { variant: "error", label: "Dropped" },
+  enrolled: "success",
+  dropped: "error",
   // Content/messaging
-  new: { variant: "warning", label: "New" },
-  read: { variant: "info", label: "Read" },
-  replied: { variant: "success", label: "Replied" },
-  draft: { variant: "warning", label: "Draft" },
-  published: { variant: "success", label: "Published" },
-  spam: { variant: "error", label: "Spam" },
+  new: "warning",
+  read: "info",
+  replied: "success",
+  draft: "warning",
+  published: "success",
+  spam: "error",
   // Subscription
-  trialing: { variant: "info", label: "Trial" },
-  past_due: { variant: "error", label: "Past Due" },
+  trialing: "info",
+  past_due: "error",
   // Integration sync
-  success: { variant: "success", label: "Success" },
+  success: "success",
 };
 
 /**
@@ -190,11 +186,13 @@ export function StatusBadge({
   size?: "sm" | "md";
   className?: string;
 }) {
-  const config = STATUS_MAP[status];
+  const t = useT();
+  const variant = STATUS_VARIANTS[status];
+  const label = t(`common.status.${status}`);
 
   return (
-    <Badge variant={config.variant} size={size} className={className}>
-      {config.label}
+    <Badge variant={variant} size={size} className={className}>
+      {label}
     </Badge>
   );
 }

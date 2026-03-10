@@ -6,7 +6,7 @@ import { db } from "../../../lib/db";
 import { trips, bookings, customers, tours } from "../../../lib/db/schema";
 import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
-import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
+import { DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 import { StatusBadge, type BadgeStatus } from "../../components/ui";
 import { formatTime, formatCurrency, formatCapacity, formatLabel, formatDisplayDate } from "../../lib/format";
@@ -406,17 +406,17 @@ interface UsageCardProps {
 function UsageCard({ planName, limitChecks, usage, planLimits, isPremium, hasWarning }: UsageCardProps) {
   const t = useT();
   const usageItems: Array<{
-    key: keyof typeof LIMIT_LABELS;
+    key: keyof PlanLimits;
     label: string;
     current: number;
     limit: number;
     check: LimitCheck;
     unit?: string;
   }> = [
-    { key: "users", label: LIMIT_LABELS.users, current: usage.users, limit: planLimits.users, check: limitChecks.users },
-    { key: "customers", label: LIMIT_LABELS.customers, current: usage.customers, limit: planLimits.customers, check: limitChecks.customers },
-    { key: "toursPerMonth", label: LIMIT_LABELS.toursPerMonth, current: usage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
-    { key: "storageGb", label: LIMIT_LABELS.storageGb, current: usage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
+    { key: "users", label: t("tenant.dashboard.limits.users"), current: usage.users, limit: planLimits.users, check: limitChecks.users },
+    { key: "customers", label: t("tenant.dashboard.limits.customers"), current: usage.customers, limit: planLimits.customers, check: limitChecks.customers },
+    { key: "toursPerMonth", label: t("tenant.dashboard.limits.toursPerMonth"), current: usage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
+    { key: "storageGb", label: t("tenant.dashboard.limits.storageGb"), current: usage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
   ];
 
   return (

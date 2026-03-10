@@ -492,7 +492,7 @@ export default function TourDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>{t("tenant.tours.created")} {tour.createdAt}</p>
+            <p>{t("tenant.tours.created", { date: tour.createdAt })}</p>
             <p>{t("tenant.tours.tourId")}: {tour.id}</p>
           </div>
         </div>
