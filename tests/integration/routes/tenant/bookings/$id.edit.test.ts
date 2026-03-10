@@ -26,6 +26,10 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
   });
 
   describe("loader", () => {
+    beforeEach(() => {
+      vi.mocked(queries.getEquipment).mockResolvedValue([]);
+    });
+
     it("should fetch booking details for editing", async () => {
       const mockBooking = {
         id: mockBookingId,
