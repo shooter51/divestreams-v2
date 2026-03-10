@@ -149,16 +149,15 @@ export default [
       route("training/courses/new", "routes/tenant/training/courses/new.tsx"),
       route("training/courses/:id/edit", "routes/tenant/training/courses/$id/edit.tsx"),
       route("training/courses/:id", "routes/tenant/training/courses/$id.tsx"),
+      route("training/series", "routes/tenant/training/series/index.tsx"),
+      route("training/series/new", "routes/tenant/training/series/new.tsx"),
+      route("training/series/:id", "routes/tenant/training/series/$id.tsx"),
       route("training/sessions", "routes/tenant/training/sessions/index.tsx"),
       route("training/sessions/new", "routes/tenant/training/sessions/new.tsx"),
       route("training/sessions/:id", "routes/tenant/training/sessions/$id.tsx"),
       route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
       route("training/enrollments/new", "routes/tenant/training/enrollments/new.tsx"),
       route("training/enrollments/:id", "routes/tenant/training/enrollments/$id.tsx"),
-      route("training/series", "routes/tenant/training/series/index.tsx"),
-      route("training/series/new", "routes/tenant/training/series/new.tsx"),
-      route("training/series/:id", "routes/tenant/training/series/$id.tsx"),
-
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
 
