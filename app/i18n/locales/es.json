@@ -2929,4 +2929,54 @@
   "tenant.diveSites.currentStrength.none": "Ninguna",
   "tenant.diveSites.currentStrength.mild": "Leve",
   "tenant.diveSites.currentStrength.moderate": "Moderada",
-  "tenant.diveSites.currentStrength.strong": "Fuerte"}
+  "tenant.diveSites.currentStrength.strong": "Fuerte",
+
+  "tenant.customers.subjectPlaceholder": "ej., Tu próximo viaje de buceo",
+  "tenant.customers.messagePlaceholder": "Escribe tu mensaje aquí...",
+
+  "tenant.discounts.percentagePlaceholder": "ej., 10",
+  "tenant.discounts.fixedPlaceholder": "ej., 25.00",
+
+  "tenant.settings.team.emailPlaceholder": "colega@ejemplo.com",
+
+  "tenant.settings.training.levels.namePlaceholder": "ej., Open Water Diver",
+  "tenant.settings.training.levels.codePlaceholder": "ej., OW",
+  "tenant.settings.training.levels.levelOrderPlaceholder": "1",
+  "tenant.settings.training.levels.prerequisitesPlaceholder": "ej., Certificación Open Water requerida",
+  "tenant.settings.training.levels.minAgePlaceholder": "ej., 10",
+  "tenant.settings.training.levels.minDivesPlaceholder": "ej., 4",
+
+  "tenant.settings.training.agencies.namePlaceholder": "ej., PADI",
+  "tenant.settings.training.agencies.codePlaceholder": "ej., PADI",
+  "tenant.settings.training.agencies.websitePlaceholder": "https://www.example.com",
+
+  "tenant.settings.publicSite.pages.metaTitlePlaceholder": "Título de página para motores de búsqueda",
+  "tenant.settings.publicSite.pages.metaDescriptionPlaceholder": "Descripción breve para motores de búsqueda",
+  "tenant.settings.publicSite.pages.changeDescriptionPlaceholder": "Describe qué cambiaste...",
+
+  "tenant.settings.publicSite.content.logoUrlPlaceholder": "https://example.com/logo.png",
+  "tenant.settings.publicSite.content.heroImagePlaceholder": "https://example.com/hero.jpg",
+  "tenant.settings.publicSite.content.heroVideoPlaceholder": "https://example.com/video.mp4",
+  "tenant.settings.publicSite.content.aboutPlaceholder": "Cuéntale a los visitantes sobre tu centro de buceo, tu historia, tu equipo y qué te hace único...",
+  "tenant.settings.publicSite.content.addressPlaceholder": "123 Ocean Drive, Key Largo, FL 33037",
+  "tenant.settings.publicSite.content.phonePlaceholder": "+1 (305) 555-0123",
+  "tenant.settings.publicSite.content.emailPlaceholder": "info@tucentrodebuceo.com",
+  "tenant.settings.publicSite.content.hoursPlaceholder": "Lun-Vie: 8am-6pm, Sáb-Dom: 7am-7pm",
+  "tenant.settings.publicSite.content.mapEmbedPlaceholder": "<iframe src=\"https://www.google.com/maps/embed?...\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\"></iframe>",
+
+  "tenant.settings.publicSite.team.namePlaceholder": "Juan Pérez",
+  "tenant.settings.publicSite.team.rolePlaceholder": "Propietario e instructor principal",
+
+  "tenant.settings.profile.taxPlaceholder": "Impuesto",
+
+  "tenant.settings.publicSite.appearance.heroImagePlaceholder": "https://images.unsplash.com/photo-...",
+  "tenant.settings.publicSite.appearance.primaryColorPlaceholder": "#0ea5e9",
+  "tenant.settings.publicSite.appearance.secondaryColorPlaceholder": "#06b6d4",
+
+  "tenant.settings.publicSite.general.customDomainPlaceholder": "www.tucentrodebuceo.com",
+
+  "components.resetPasswordModal.cancelAriaLabel": "Cancelar restablecimiento de contraseña",
+  "components.resetPasswordModal.resettingAriaLabel": "Restableciendo contraseña",
+  "components.resetPasswordModal.resetAriaLabel": "Restablecer contraseña",
+
+  "components.toast.dismissAriaLabel": "Descartar notificación"}

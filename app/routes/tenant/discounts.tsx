@@ -629,7 +629,7 @@ export default function DiscountsPage() {
                       max={discountType === "percentage" ? "100" : "100000"}
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
-                      placeholder={discountType === "percentage" ? "e.g., 10" : "e.g., 25.00"}
+                      placeholder={discountType === "percentage" ? t("tenant.discounts.percentagePlaceholder") : t("tenant.discounts.fixedPlaceholder")}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                     <p className="text-xs text-foreground-muted mt-1">

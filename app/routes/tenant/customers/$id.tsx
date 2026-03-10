@@ -468,7 +468,7 @@ export default function CustomerDetailPage() {
                   name="subject"
                   required
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                  placeholder="e.g., Your upcoming dive trip"
+                  placeholder={t("tenant.customers.subjectPlaceholder")}
                 />
               </div>
 
@@ -479,7 +479,7 @@ export default function CustomerDetailPage() {
                   required
                   rows={6}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                  placeholder="Write your message here..."
+                  placeholder={t("tenant.customers.messagePlaceholder")}
                 />
               </div>
 

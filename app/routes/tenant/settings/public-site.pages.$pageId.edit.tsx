@@ -203,7 +203,7 @@ export default function PageEditPage() {
                 id="metaTitle"
                 name="metaTitle"
                 defaultValue={page.metaTitle || ""}
-                placeholder="Page title for search engines"
+                placeholder={t("tenant.settings.publicSite.pages.metaTitlePlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
@@ -223,7 +223,7 @@ export default function PageEditPage() {
                 name="metaDescription"
                 rows={3}
                 defaultValue={page.metaDescription || ""}
-                placeholder="Brief description for search engines"
+                placeholder={t("tenant.settings.publicSite.pages.metaDescriptionPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand resize-y"
               />
               <p className="text-xs text-foreground-muted mt-1">
@@ -270,7 +270,7 @@ export default function PageEditPage() {
             type="text"
             id="changeDescription"
             name="changeDescription"
-            placeholder="Describe what you changed..."
+            placeholder={t("tenant.settings.publicSite.pages.changeDescriptionPlaceholder")}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
         </div>

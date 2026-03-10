@@ -280,7 +280,7 @@ export default function PublicSiteTeamPage() {
                     name="name"
                     required
                     defaultValue={editingMember?.name}
-                    placeholder="John Smith"
+                    placeholder={t("tenant.settings.publicSite.team.namePlaceholder")}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
@@ -296,7 +296,7 @@ export default function PublicSiteTeamPage() {
                     name="role"
                     required
                     defaultValue={editingMember?.role}
-                    placeholder="Owner & Lead Instructor"
+                    placeholder={t("tenant.settings.publicSite.team.rolePlaceholder")}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>

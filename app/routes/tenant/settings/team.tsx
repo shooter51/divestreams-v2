@@ -859,7 +859,7 @@ export default function TeamPage() {
                     id="email"
                     name="email"
                     required
-                    placeholder="colleague@example.com"
+                    placeholder={t("tenant.settings.team.emailPlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>

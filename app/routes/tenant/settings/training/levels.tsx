@@ -230,7 +230,7 @@ export default function LevelsPage() {
                     name="name"
                     required
                     defaultValue={editingLevel?.name || ""}
-                    placeholder="e.g., Open Water Diver"
+                    placeholder={t("tenant.settings.training.levels.namePlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
@@ -244,7 +244,7 @@ export default function LevelsPage() {
                     name="code"
                     required
                     defaultValue={editingLevel?.code || ""}
-                    placeholder="e.g., OW"
+                    placeholder={t("tenant.settings.training.levels.codePlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
@@ -258,7 +258,7 @@ export default function LevelsPage() {
                     name="levelNumber"
                     min="0"
                     defaultValue={editingLevel?.levelNumber || 0}
-                    placeholder="1"
+                    placeholder={t("tenant.settings.training.levels.levelOrderPlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.training.levels.levelOrderHint")}</p>
@@ -307,7 +307,7 @@ export default function LevelsPage() {
                   name="prerequisites"
                   rows={2}
                   defaultValue={editingLevel?.prerequisites || ""}
-                  placeholder="e.g., Open Water certification required"
+                  placeholder={t("tenant.settings.training.levels.prerequisitesPlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -323,7 +323,7 @@ export default function LevelsPage() {
                     name="minAge"
                     min="0"
                     defaultValue={editingLevel?.minAge || ""}
-                    placeholder="e.g., 10"
+                    placeholder={t("tenant.settings.training.levels.minAgePlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
@@ -337,7 +337,7 @@ export default function LevelsPage() {
                     name="minDives"
                     min="0"
                     defaultValue={editingLevel?.minDives || ""}
-                    placeholder="e.g., 4"
+                    placeholder={t("tenant.settings.training.levels.minDivesPlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
