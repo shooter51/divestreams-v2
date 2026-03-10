@@ -232,13 +232,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // COMPONENT
 // ============================================================================
 
-const tourTypes: Record<string, { label: string; icon: string }> = {
-  single_dive: { label: "Single Dive", icon: "diving-mask" },
-  multi_dive: { label: "Multi-Dive", icon: "waves" },
-  course: { label: "Course", icon: "book" },
-  snorkel: { label: "Snorkel", icon: "sun" },
-  night_dive: { label: "Night Dive", icon: "moon" },
-  other: { label: "Dive Trip", icon: "anchor" },
+const tourTypeKeys: Record<string, { key: string; icon: string }> = {
+  single_dive: { key: "site.trips.type.singleDive", icon: "diving-mask" },
+  multi_dive: { key: "site.trips.type.multiDive", icon: "waves" },
+  course: { key: "site.trips.type.course", icon: "book" },
+  snorkel: { key: "site.trips.type.snorkel", icon: "sun" },
+  night_dive: { key: "site.trips.type.nightDive", icon: "moon" },
+  other: { key: "site.trips.type.diveTrip", icon: "anchor" },
 };
 
 function formatDate(dateString: string): string {
@@ -497,7 +497,7 @@ export default function SiteTripsPage() {
 
 function TripCard({ trip }: { trip: TripCard }) {
   const t = useT();
-  const typeInfo = tourTypes[trip.tourType] || tourTypes.other;
+  const typeInfo = tourTypeKeys[trip.tourType] || tourTypeKeys.other;
   const isFull = trip.availableSpots === 0;
 
   return (
@@ -568,7 +568,7 @@ function TripCard({ trip }: { trip: TripCard }) {
               color: "var(--primary-color)",
             }}
           >
-            {typeInfo.label}
+            {t(typeInfo.key)}
           </span>
           <span className="text-sm opacity-60">{formatDate(trip.date)}</span>
         </div>
