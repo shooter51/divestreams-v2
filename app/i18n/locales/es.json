@@ -159,6 +159,7 @@
   "site.courses.duration.day": "{{count}} día",
   "site.courses.duration.days": "{{count}} días",
   "site.courses.contactToSchedule": "Contáctenos para programar",
+  "site.courses.contactForPricing": "Consultar precio",
   "site.equipment.title": "Equipo",
   "site.equipment.noEquipment": "No hay equipo disponible para alquiler.",
   "site.equipment.rent": "Alquilar",
