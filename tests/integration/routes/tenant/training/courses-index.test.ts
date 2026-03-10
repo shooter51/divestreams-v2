@@ -1,6 +1,44 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
 
+// Mock drizzle-orm operators
+vi.mock("drizzle-orm", () => ({
+  eq: vi.fn((...args: unknown[]) => args),
+  and: vi.fn((...args: unknown[]) => args),
+  asc: vi.fn((col: unknown) => col),
+  inArray: vi.fn((...args: unknown[]) => args),
+}));
+
+// Mock the tenant DB module
+vi.mock("../../../../../lib/db/tenant.server", () => ({
+  getTenantDb: vi.fn().mockReturnValue({
+    db: {
+      select: vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      }),
+    },
+    schema: {
+      images: {
+        entityId: "entityId",
+        url: "url",
+        isPrimary: "isPrimary",
+        sortOrder: "sortOrder",
+        organizationId: "organizationId",
+        entityType: "entityType",
+      },
+    },
+  }),
+}));
+
+// Mock content translations
+vi.mock("../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+}));
+
 // Mock the org-context module
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
@@ -181,7 +219,7 @@ describe("tenant/training/courses/index route", () => {
     it("transforms courses with default values for missing fields", async () => {
       const coursesWithNulls = [
         {
-          id: "course-4",
+          id: "00000000-0000-0000-0000-000000000004",
           name: "Basic Course",
           code: null,
           description: null,
@@ -203,7 +241,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses[0]).toMatchObject({
-        id: "course-4",
+        id: "00000000-0000-0000-0000-000000000004",
         name: "Basic Course",
         code: "",
         description: "",
