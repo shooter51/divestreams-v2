@@ -158,10 +158,6 @@ export default [
       route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
       route("training/enrollments/new", "routes/tenant/training/enrollments/new.tsx"),
       route("training/enrollments/:id", "routes/tenant/training/enrollments/$id.tsx"),
-      route("training/series", "routes/tenant/training/series/index.tsx"),
-      route("training/series/new", "routes/tenant/training/series/new.tsx"),
-      route("training/series/:id", "routes/tenant/training/series/$id.tsx"),
-
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
 
