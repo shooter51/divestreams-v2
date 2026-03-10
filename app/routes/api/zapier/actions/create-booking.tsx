@@ -180,7 +180,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Calculate pricing server-side (DS-ubet)
-    const pricePerPerson = parseFloat(tripData.tripPrice || tripData.tourPrice || "0");
+    const parsedPrice = parseFloat(tripData.tripPrice || tripData.tourPrice || "0");
+    const pricePerPerson = isNaN(parsedPrice) ? 0 : parsedPrice;
     const subtotal = pricePerPerson * body.participants;
     const total = subtotal;
 
