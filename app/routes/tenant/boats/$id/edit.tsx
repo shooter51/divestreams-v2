@@ -162,18 +162,20 @@ export default function EditBoatPage() {
 
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialAmenities);
 
-  const commonAmenities = [
-    "Dive platform",
-    "Sun deck",
-    "Toilet",
-    "Freshwater shower",
-    "Camera station",
-    "Storage lockers",
-    "Shade cover",
-    "First aid kit",
-    "Sound system",
-    "BBQ grill",
-  ];
+  const amenityTranslations: Record<string, string> = {
+    "Dive platform": t("tenant.boats.amenity.divePlatform"),
+    "Sun deck": t("tenant.boats.amenity.sunDeck"),
+    "Toilet": t("tenant.boats.amenity.toilet"),
+    "Freshwater shower": t("tenant.boats.amenity.freshwaterShower"),
+    "Camera station": t("tenant.boats.amenity.cameraStation"),
+    "Storage lockers": t("tenant.boats.amenity.storageLockers"),
+    "Shade cover": t("tenant.boats.amenity.shadeCover"),
+    "First aid kit": t("tenant.boats.amenity.firstAidKit"),
+    "Sound system": t("tenant.boats.amenity.soundSystem"),
+    "BBQ grill": t("tenant.boats.amenity.bbqGrill"),
+  };
+
+  const commonAmenities = Object.keys(amenityTranslations);
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
@@ -231,12 +233,12 @@ export default function EditBoatPage() {
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">{t("tenant.boats.selectType")}</option>
-                  <option value="Dive Boat">Dive Boat</option>
-                  <option value="Speed Boat">Speed Boat</option>
-                  <option value="Catamaran">Catamaran</option>
-                  <option value="Yacht">Yacht</option>
-                  <option value="RIB">RIB (Rigid Inflatable)</option>
-                  <option value="Other">Other</option>
+                  <option value="Dive Boat">{t("tenant.boats.type.diveBoat")}</option>
+                  <option value="Speed Boat">{t("tenant.boats.type.speedBoat")}</option>
+                  <option value="Catamaran">{t("tenant.boats.type.catamaran")}</option>
+                  <option value="Yacht">{t("tenant.boats.type.yacht")}</option>
+                  <option value="RIB">{t("tenant.boats.type.rib")}</option>
+                  <option value="Other">{t("tenant.boats.type.other")}</option>
                 </select>
               </div>
 
@@ -323,12 +325,12 @@ export default function EditBoatPage() {
                     key={amenity}
                     className="inline-flex items-center gap-1 bg-brand-muted text-brand px-3 py-1 rounded-full text-sm"
                   >
-                    {amenity}
+                    {amenityTranslations[amenity] || amenity}
                     <button
                       type="button"
                       onClick={() => removeAmenity(amenity)}
                       className="hover:text-brand-hover"
-                      aria-label={`Remove ${amenity}`}
+                      aria-label={`Remove ${amenityTranslations[amenity] || amenity}`}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -353,7 +355,7 @@ export default function EditBoatPage() {
                     onClick={() => toggleAmenity(amenity)}
                     className="text-xs bg-surface-inset hover:bg-brand hover:text-white px-3 py-1 rounded transition-colors"
                   >
-                    + {amenity}
+                    + {amenityTranslations[amenity] || amenity}
                   </button>
                 ))}
               {commonAmenities.every((amenity) => selectedAmenities.includes(amenity)) && (

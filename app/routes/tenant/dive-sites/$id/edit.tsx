@@ -239,10 +239,10 @@ export default function EditDiveSitePage() {
                 defaultValue={actionData?.values?.difficulty || site.difficulty}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-                <option value="expert">Expert</option>
+                <option value="beginner">{t("tenant.diveSites.difficulty.beginner")}</option>
+                <option value="intermediate">{t("tenant.diveSites.difficulty.intermediate")}</option>
+                <option value="advanced">{t("tenant.diveSites.difficulty.advanced")}</option>
+                <option value="expert">{t("tenant.diveSites.difficulty.expert")}</option>
               </select>
             </div>
 
@@ -254,7 +254,7 @@ export default function EditDiveSitePage() {
                 type="text"
                 id="visibility"
                 name="visibility"
-                placeholder="e.g., 15-25m"
+                placeholder={t("tenant.diveSites.visibilityPlaceholder")}
                 defaultValue={actionData?.values?.visibility || site.visibility}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -270,11 +270,11 @@ export default function EditDiveSitePage() {
                 defaultValue={actionData?.values?.currentStrength || site.currentStrength}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
-                <option value="">Select...</option>
-                <option value="none">None</option>
-                <option value="mild">Mild</option>
-                <option value="moderate">Moderate</option>
-                <option value="strong">Strong</option>
+                <option value="">{t("tenant.diveSites.currentStrength.select")}</option>
+                <option value="none">{t("tenant.diveSites.currentStrength.none")}</option>
+                <option value="mild">{t("tenant.diveSites.currentStrength.mild")}</option>
+                <option value="moderate">{t("tenant.diveSites.currentStrength.moderate")}</option>
+                <option value="strong">{t("tenant.diveSites.currentStrength.strong")}</option>
               </select>
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function EditDiveSitePage() {
               type="text"
               id="highlights"
               name="highlights"
-              placeholder="e.g., Sharks, Corals, Wall dive (comma-separated)"
+              placeholder={t("tenant.diveSites.highlightsEditPlaceholder")}
               defaultValue={actionData?.values?.highlights || site.highlights?.join(", ")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />

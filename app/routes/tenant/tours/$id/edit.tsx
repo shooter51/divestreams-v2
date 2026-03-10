@@ -453,7 +453,7 @@ export default function EditTourPage() {
                 id="minAge"
                 name="minAge"
                 min="1"
-                placeholder="e.g., 10"
+                placeholder={t("tenant.tours.minAgePlaceholder")}
                 defaultValue={actionData?.values?.minAge || tour.minAge || ""}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
