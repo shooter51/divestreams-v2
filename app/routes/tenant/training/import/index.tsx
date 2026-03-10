@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
+import { useLoaderData, Form, useActionData, useNavigation, Link } from "react-router";
 import React, { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getAgencies, createAgency, createCourse, getCourses, updateCourse } from "../../../../../lib/db/training.server";
@@ -411,6 +411,11 @@ export default function TrainingImportPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-4">
+        <Link to="/tenant/training" className="text-brand hover:underline text-sm">
+          &larr; {t("tenant.training.backToTraining")}
+        </Link>
+      </div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{t("tenant.training.import.title")}</h1>
         <p className="text-foreground-muted">

@@ -2,8 +2,9 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher } from "react-router";
 import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { tours, products, diveSites, boats } from "../../../../lib/db/schema";
+import { tours, products, diveSites, boats, discountCodes } from "../../../../lib/db/schema";
 import { trainingCourses } from "../../../../lib/db/schema/training";
+import { galleryAlbums } from "../../../../lib/db/schema/gallery";
 import { contentTranslations } from "../../../../lib/db/schema/translations";
 import { eq, and } from "drizzle-orm";
 import { upsertContentTranslation } from "../../../../lib/db/translations.server";
@@ -52,11 +53,19 @@ async function getEntitySourceTexts(
 ): Promise<Record<string, string | null>> {
   if (entityType === "tour") {
     const [row] = await db
-      .select({ name: tours.name, description: tours.description })
+      .select({ name: tours.name, description: tours.description, inclusions: tours.inclusions, exclusions: tours.exclusions, requirements: tours.requirements })
       .from(tours)
       .where(and(eq(tours.id, entityId), eq(tours.organizationId, orgId)))
       .limit(1);
-    return row ? { name: row.name, description: row.description } : {};
+    if (!row) return {};
+    const texts: Record<string, string | null> = { name: row.name, description: row.description };
+    const tourInclusions = row.inclusions as string[] | null;
+    const tourExclusions = row.exclusions as string[] | null;
+    const tourRequirements = row.requirements as string[] | null;
+    texts.inclusions = tourInclusions?.join("\n") || "";
+    texts.exclusions = tourExclusions?.join("\n") || "";
+    texts.requirements = tourRequirements?.join("\n") || "";
+    return texts;
   }
   if (entityType === "course") {
     const [row] = await db
@@ -87,6 +96,22 @@ async function getEntitySourceTexts(
       .select({ name: boats.name, description: boats.description })
       .from(boats)
       .where(and(eq(boats.id, entityId), eq(boats.organizationId, orgId)))
+      .limit(1);
+    return row ? { name: row.name, description: row.description } : {};
+  }
+  if (entityType === "discount") {
+    const [row] = await db
+      .select({ description: discountCodes.description })
+      .from(discountCodes)
+      .where(and(eq(discountCodes.id, entityId), eq(discountCodes.organizationId, orgId)))
+      .limit(1);
+    return row ? { description: row.description } : {};
+  }
+  if (entityType === "gallery_album") {
+    const [row] = await db
+      .select({ name: galleryAlbums.name, description: galleryAlbums.description })
+      .from(galleryAlbums)
+      .where(and(eq(galleryAlbums.id, entityId), eq(galleryAlbums.organizationId, orgId)))
       .limit(1);
     return row ? { name: row.name, description: row.description } : {};
   }
@@ -199,7 +224,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "translate-all") {
     // Fetch all translatable entities for this org
     const allTours = await db
-      .select({ id: tours.id, name: tours.name, description: tours.description })
+      .select({ id: tours.id, name: tours.name, description: tours.description, inclusions: tours.inclusions, exclusions: tours.exclusions, requirements: tours.requirements })
       .from(tours)
       .where(eq(tours.organizationId, ctx.org.id));
 
@@ -223,6 +248,16 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(boats)
       .where(eq(boats.organizationId, ctx.org.id));
 
+    const allDiscounts = await db
+      .select({ id: discountCodes.id, description: discountCodes.description })
+      .from(discountCodes)
+      .where(eq(discountCodes.organizationId, ctx.org.id));
+
+    const allGalleryAlbums = await db
+      .select({ id: galleryAlbums.id, name: galleryAlbums.name, description: galleryAlbums.description })
+      .from(galleryAlbums)
+      .where(eq(galleryAlbums.organizationId, ctx.org.id));
+
     let enqueued = 0;
 
     const enqueueEntity = async (entityType: string, entity: { id: string; name: string; description: string | null }) => {
@@ -244,11 +279,54 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     };
 
-    for (const tour of allTours) await enqueueEntity("tour", tour);
+    for (const tour of allTours) {
+      const tourInclusions = tour.inclusions as string[] | null;
+      const tourExclusions = tour.exclusions as string[] | null;
+      const tourRequirements = tour.requirements as string[] | null;
+      const tourFields = [
+        { field: "name", text: tour.name },
+        ...(tour.description?.trim() ? [{ field: "description", text: tour.description }] : []),
+        ...(tourInclusions?.length ? [{ field: "inclusions", text: tourInclusions.join("\n") }] : []),
+        ...(tourExclusions?.length ? [{ field: "exclusions", text: tourExclusions.join("\n") }] : []),
+        ...(tourRequirements?.length ? [{ field: "requirements", text: tourRequirements.join("\n") }] : []),
+      ];
+      if (tourFields.length === 0) continue;
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "tour",
+          entityId: tour.id,
+          fields: tourFields,
+          targetLocale: locale,
+        });
+        enqueued++;
+      }
+    }
     for (const course of allCourses) await enqueueEntity("course", course);
     for (const product of allProducts) await enqueueEntity("product", product);
     for (const site of allDiveSites) await enqueueEntity("dive_site", site);
     for (const boat of allBoats) await enqueueEntity("boat", boat);
+
+    // Enqueue discount code translations (description only)
+    for (const discount of allDiscounts) {
+      if (!discount.description?.trim()) continue;
+      const fields = [{ field: "description", text: discount.description }];
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "discount",
+          entityId: discount.id,
+          fields,
+          targetLocale: locale,
+        });
+        enqueued++;
+      }
+    }
+
+    // Enqueue gallery album translations
+    for (const album of allGalleryAlbums) await enqueueEntity("gallery_album", album);
 
     return { success: true, enqueued };
   }

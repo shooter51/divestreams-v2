@@ -17,7 +17,7 @@ import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, boats, diveSites, tourDiveSites } from "../../../../lib/db/schema";
 import { organization } from "../../../../lib/db/schema/auth";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
-import { getTranslatedEntity } from "../../../../lib/db/translations.server";
+import { getTranslatedEntity, getContentTranslations } from "../../../../lib/db/translations.server";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useState } from "react";
 import { useT } from "../../../i18n/use-t";
@@ -234,6 +234,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const locale = resolveLocale(request);
   let translatedTourName = tripData.tourName;
   let translatedTourDescription = tripData.tourDescription;
+  let translatedInclusions = (tripData.inclusions as string[]) || [];
+  let translatedExclusions = (tripData.exclusions as string[]) || [];
+  let translatedRequirements = (tripData.requirements as string[]) || [];
   if (locale !== "en") {
     const translatedTour = await getTranslatedEntity(
       org.id,
@@ -245,6 +248,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
     translatedTourName = translatedTour.name;
     translatedTourDescription = translatedTour.description;
+
+    // Apply translations for array fields (stored as newline-joined strings)
+    const tourTranslations = await getContentTranslations(org.id, "tour", tripData.tourId, locale);
+    if (tourTranslations.inclusions) {
+      translatedInclusions = tourTranslations.inclusions.split("\n").filter(Boolean);
+    }
+    if (tourTranslations.exclusions) {
+      translatedExclusions = tourTranslations.exclusions.split("\n").filter(Boolean);
+    }
+    if (tourTranslations.requirements) {
+      translatedRequirements = tourTranslations.requirements.split("\n").filter(Boolean);
+    }
   }
 
   const trip: TripDetail = {
@@ -268,9 +283,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     includesEquipment: tripData.includesEquipment || false,
     includesMeals: tripData.includesMeals || false,
     includesTransport: tripData.includesTransport || false,
-    inclusions: (tripData.inclusions as string[]) || [],
-    exclusions: (tripData.exclusions as string[]) || [],
-    requirements: (tripData.requirements as string[]) || [],
+    inclusions: translatedInclusions,
+    exclusions: translatedExclusions,
+    requirements: translatedRequirements,
     boatName: boatInfo?.name || null,
     boatCapacity: boatInfo?.capacity || null,
     weatherNotes: tripData.weatherNotes,
