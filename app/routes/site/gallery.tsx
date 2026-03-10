@@ -377,7 +377,7 @@ export default function GalleryPage() {
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 text-white hover:opacity-80 z-10"
-            aria-label="Close lightbox"
+            aria-label={t("site.gallery.closeLightbox")}
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -392,7 +392,7 @@ export default function GalleryPage() {
                 navigateLightbox(-1);
               }}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:opacity-80 z-10"
-              aria-label="Previous image"
+              aria-label={t("site.gallery.previousImage")}
             >
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -408,7 +408,7 @@ export default function GalleryPage() {
                 navigateLightbox(1);
               }}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:opacity-80 z-10"
-              aria-label="Next image"
+              aria-label={t("site.gallery.nextImage")}
             >
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

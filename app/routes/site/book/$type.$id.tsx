@@ -1023,7 +1023,7 @@ export async function action({
       return { errors: { _form: "Cannot book past trips" } };
     }
     if (message.startsWith("INSUFFICIENT_SPOTS:")) {
-      const spots = message.split(":")[1];
+      const spots = message.split(":")[1] || "0";
       return {
         errors: {
           participants: `Only ${spots} spots available`,
@@ -1105,7 +1105,7 @@ export default function BookingPage() {
 
   const equipmentTotal = selectedEquipment.reduce((total, eqId) => {
     const eq = data.equipment.find((e) => e.id === eqId);
-    return total + (eq ? parseFloat(eq.rentalPrice) * participants : 0);
+    return total + (eq && eq.rentalPrice ? parseFloat(eq.rentalPrice) * participants : 0);
   }, 0);
 
   const subtotal = basePrice * participants + equipmentTotal;
