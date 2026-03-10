@@ -1,13 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { useT } from "../../../i18n/use-t";
+import { useT, useLocale } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/schema";
 import { eq, and, gte, sql, lt } from "drizzle-orm";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
-import { formatTime, formatRecurrencePattern, formatCapacity } from "../../../lib/format";
+import { formatRecurrencePattern, formatCapacity } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Trips - DiveStreams" }];
 
@@ -128,6 +129,8 @@ function mapTripStatus(status: string): BadgeStatus {
 export default function TripsPage() {
   useNotification();
   const t = useT();
+  const locale = useLocale();
+  const { formatTime } = useFormat();
 
   const { trips, tripsByDate, total, view } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -205,7 +208,7 @@ export default function TripsPage() {
             .map(([date, dateTrips]) => (
               <div key={date}>
                 <h3 className="font-semibold text-foreground mb-3">
-                  {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+                  {new Date(date + "T00:00:00").toLocaleDateString(locale, {
                     weekday: "long",
                     year: "numeric",
                     month: "long",

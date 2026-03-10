@@ -921,7 +921,7 @@ export default function TripDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>{t("tenant.trips.created")} {trip.createdAt}</p>
+            <p>{t("tenant.trips.created", { date: trip.createdAt ?? "" })}</p>
             <p>{t("tenant.trips.tripId")}: {trip.id}</p>
           </div>
         </div>
