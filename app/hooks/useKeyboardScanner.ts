@@ -6,6 +6,7 @@ interface UseKeyboardScannerOptions {
   minLength?: number;
   maxDelay?: number;
   totalTimeout?: number;
+  prefix?: string;
 }
 
 /**
@@ -24,6 +25,7 @@ export function useKeyboardScanner({
   minLength = 4,
   maxDelay = 50,
   totalTimeout = 500,
+  prefix,
 }: UseKeyboardScannerOptions) {
   const bufferRef = useRef("");
   const lastKeystrokeRef = useRef(0);
@@ -52,13 +54,14 @@ export function useKeyboardScanner({
 
       const now = Date.now();
 
-      if (e.key === "Enter") {
+      if (e.key === "Enter" || e.key === "Tab") {
         const buffer = bufferRef.current;
-        const elapsed = now - startTimeRef.current;
+        const elapsed = lastKeystrokeRef.current - startTimeRef.current;
 
         if (buffer.length >= minLength && elapsed <= totalTimeout) {
           e.preventDefault();
-          onScan(buffer);
+          const result = prefix && buffer.startsWith(prefix) ? buffer.slice(prefix.length) : buffer;
+          onScan(result);
         }
         resetBuffer();
         return;
@@ -88,5 +91,5 @@ export function useKeyboardScanner({
       document.removeEventListener("keydown", handleKeyDown);
       resetBuffer();
     };
-  }, [enabled, minLength, maxDelay, totalTimeout, onScan, resetBuffer]);
+  }, [enabled, minLength, maxDelay, totalTimeout, onScan, resetBuffer, prefix]);
 }
