@@ -33,71 +33,106 @@ describe("admin/tenants.$id — updateFeatureOverrides intent", () => {
   // ------------------------------------------------------------------
 
   describe("updateFeatureOverrides intent logic", () => {
-    it("parses enabled features from form data correctly", () => {
-      // Simulate the server-side parsing of checkbox form fields
-      const formEntries: [string, string][] = [
-        ["intent", "updateFeatureOverrides"],
-        [`feature_${PLAN_FEATURES.HAS_TRAINING}`, "on"],
-        [`feature_${PLAN_FEATURES.HAS_POS}`, "on"],
-      ];
+    it("only saves overrides that differ from the plan default", () => {
+      // Simulate the action logic: compare submitted (parsed JSON) values against plan defaults.
+      // Only include a key in overrides when the submitted value differs from the plan default.
+      const planFeatures: Record<string, boolean> = {
+        [PLAN_FEATURES.HAS_TOURS_BOOKINGS]: true,  // plan: true
+        [PLAN_FEATURES.HAS_TRAINING]: false,         // plan: false
+        [PLAN_FEATURES.HAS_POS]: false,              // plan: false
+      };
 
-      const formData = new Map(formEntries);
-      const overrides: Record<string, boolean> = {};
+      // Submitted JSON: HAS_TRAINING=true (Force On), HAS_TOURS_BOOKINGS=false (Force Off), HAS_POS=null (Plan Default)
+      const parsedOverrides: Record<string, boolean | null> = {
+        [PLAN_FEATURES.HAS_TRAINING]: true,
+        [PLAN_FEATURES.HAS_TOURS_BOOKINGS]: false,
+        [PLAN_FEATURES.HAS_POS]: null,
+      };
 
-      for (const key of Object.values(PLAN_FEATURES)) {
-        const val = formData.get(`feature_${key}`);
-        if (val !== undefined) {
-          overrides[key] = val === "on";
-        }
-      }
+      const filtered = Object.fromEntries(
+        Object.entries(parsedOverrides).filter(([key, v]) => {
+          if (v === null) return false; // "Plan Default" — no override needed
+          const planDefault = planFeatures[key] ?? false;
+          return v !== planDefault; // only keep if it actually differs
+        })
+      );
+      const overrides = Object.keys(filtered).length > 0 ? filtered as Record<string, boolean> : null;
 
-      expect(overrides[PLAN_FEATURES.HAS_TRAINING]).toBe(true);
-      expect(overrides[PLAN_FEATURES.HAS_POS]).toBe(true);
-      // Keys not in the form are absent (not false)
-      expect(overrides[PLAN_FEATURES.HAS_EQUIPMENT_BOATS]).toBeUndefined();
+      // HAS_TRAINING: submitted=true, plan=false → differs → save override
+      expect(overrides![PLAN_FEATURES.HAS_TRAINING]).toBe(true);
+      // HAS_TOURS_BOOKINGS: submitted=false, plan=true → differs → save override
+      expect(overrides![PLAN_FEATURES.HAS_TOURS_BOOKINGS]).toBe(false);
+      // HAS_POS: submitted=null ("Plan Default") → not included
+      expect(overrides![PLAN_FEATURES.HAS_POS]).toBeUndefined();
     });
 
-    it("treats missing checkbox as false override when included in clearing", () => {
-      // When a checkbox is not submitted it means false
-      const allFeatureKeys = Object.values(PLAN_FEATURES);
-      const submittedOn = new Set([PLAN_FEATURES.HAS_TRAINING]);
+    it("produces null overrides when submitted value matches plan default (Force On for already-enabled feature)", () => {
+      // The bug case: Force On a feature that's already enabled by the plan.
+      // This should NOT be saved as an override.
+      const planFeatures: Record<string, boolean> = {
+        [PLAN_FEATURES.HAS_TOURS_BOOKINGS]: true,
+      };
 
-      const overrides: Record<string, boolean> = {};
-      for (const key of allFeatureKeys) {
-        overrides[key] = submittedOn.has(key);
-      }
+      const parsedOverrides: Record<string, boolean | null> = {
+        [PLAN_FEATURES.HAS_TOURS_BOOKINGS]: true, // same as plan default
+      };
 
-      expect(overrides[PLAN_FEATURES.HAS_TRAINING]).toBe(true);
-      expect(overrides[PLAN_FEATURES.HAS_POS]).toBe(false);
-      expect(overrides[PLAN_FEATURES.HAS_TOURS_BOOKINGS]).toBe(false);
+      const filtered = Object.fromEntries(
+        Object.entries(parsedOverrides).filter(([key, v]) => {
+          if (v === null) return false;
+          const planDefault = planFeatures[key] ?? false;
+          return v !== planDefault;
+        })
+      );
+      const overrides = Object.keys(filtered).length > 0 ? filtered as Record<string, boolean> : null;
+
+      expect(overrides).toBeNull();
     });
 
-    it("produces correct overrides when all features are unchecked", () => {
-      const allFeatureKeys = Object.values(PLAN_FEATURES);
-      const submittedOn = new Set<string>();
+    it("produces null when all submitted values match plan defaults or are null", () => {
+      const planFeatures: Record<string, boolean> = {
+        [PLAN_FEATURES.HAS_TOURS_BOOKINGS]: true,
+        [PLAN_FEATURES.HAS_TRAINING]: false,
+        [PLAN_FEATURES.HAS_POS]: false,
+      };
 
-      const overrides: Record<string, boolean> = {};
-      for (const key of allFeatureKeys) {
-        overrides[key] = submittedOn.has(key);
-      }
+      // Submitted: everything matches plan defaults or is "Plan Default"
+      const parsedOverrides: Record<string, boolean | null> = {
+        [PLAN_FEATURES.HAS_TOURS_BOOKINGS]: true,  // same as plan → no override
+        [PLAN_FEATURES.HAS_TRAINING]: null,          // "Plan Default" → no override
+        [PLAN_FEATURES.HAS_POS]: false,              // same as plan → no override
+      };
 
-      for (const key of allFeatureKeys) {
-        expect(overrides[key]).toBe(false);
-      }
+      const filtered = Object.fromEntries(
+        Object.entries(parsedOverrides).filter(([key, v]) => {
+          if (v === null) return false;
+          const planDefault = planFeatures[key] ?? false;
+          return v !== planDefault;
+        })
+      );
+      const overrides = Object.keys(filtered).length > 0 ? filtered as Record<string, boolean> : null;
+
+      expect(overrides).toBeNull();
     });
 
-    it("produces correct overrides when all features are checked", () => {
-      const allFeatureKeys = Object.values(PLAN_FEATURES);
-      const submittedOn = new Set(allFeatureKeys);
+    it("null entries in submitted JSON mean 'use plan default' and are excluded", () => {
+      const planFeatures: Record<string, boolean> = {
+        [PLAN_FEATURES.HAS_TRAINING]: false,
+      };
 
-      const overrides: Record<string, boolean> = {};
-      for (const key of allFeatureKeys) {
-        overrides[key] = submittedOn.has(key);
-      }
+      const parsedOverrides: Record<string, boolean | null> = {
+        [PLAN_FEATURES.HAS_TRAINING]: null, // user chose "Plan Default"
+      };
 
-      for (const key of allFeatureKeys) {
-        expect(overrides[key]).toBe(true);
-      }
+      const filtered = Object.fromEntries(
+        Object.entries(parsedOverrides).filter(([key, v]) => {
+          if (v === null) return false;
+          const planDefault = planFeatures[key] ?? false;
+          return v !== planDefault;
+        })
+      );
+
+      expect(Object.keys(filtered)).toHaveLength(0);
     });
   });
 
@@ -108,40 +143,41 @@ describe("admin/tenants.$id — updateFeatureOverrides intent", () => {
   describe("loader data shape", () => {
     it("subscription includes featureOverrides field", () => {
       const loaderResponse = {
+        featureOverrides: { has_training: true, has_pos: false },
+        planFeatures: {
+          has_tours_bookings: true,
+          has_equipment_boats: false,
+          has_training: false,
+          has_pos: false,
+        },
         subscription: {
           ...mockSubscription,
-          featureOverrides: { has_training: true, has_pos: false },
           planDetails: {
             id: "plan-uuid-1",
             name: "standard",
             displayName: "Standard",
             monthlyPrice: 3000,
-            features: {
-              has_tours_bookings: true,
-              has_equipment_boats: false,
-              has_training: false,
-              has_pos: false,
-            },
           },
         },
       };
 
-      expect(loaderResponse.subscription.featureOverrides).toBeDefined();
-      expect(loaderResponse.subscription.featureOverrides?.has_training).toBe(true);
+      expect(loaderResponse.featureOverrides).toBeDefined();
+      expect(loaderResponse.featureOverrides?.has_training).toBe(true);
     });
 
-    it("subscription featureOverrides is null when no overrides set", () => {
+    it("featureOverrides is empty object when no overrides set", () => {
       const loaderResponse = {
+        featureOverrides: {},
+        planFeatures: {},
         subscription: {
           ...mockSubscription,
-          featureOverrides: null,
         },
       };
 
-      expect(loaderResponse.subscription.featureOverrides).toBeNull();
+      expect(loaderResponse.featureOverrides).toEqual({});
     });
 
-    it("loader includes plan features for display", () => {
+    it("loader includes planFeatures for display", () => {
       const planFeatures = {
         has_tours_bookings: true,
         has_equipment_boats: false,
@@ -151,6 +187,8 @@ describe("admin/tenants.$id — updateFeatureOverrides intent", () => {
       };
 
       const loaderResponse = {
+        planFeatures,
+        featureOverrides: {},
         subscription: {
           ...mockSubscription,
           planDetails: {
@@ -158,13 +196,11 @@ describe("admin/tenants.$id — updateFeatureOverrides intent", () => {
             name: "standard",
             displayName: "Standard",
             monthlyPrice: 3000,
-            features: planFeatures,
           },
-          featureOverrides: null,
         },
       };
 
-      expect(loaderResponse.subscription.planDetails?.features).toEqual(planFeatures);
+      expect(loaderResponse.planFeatures).toEqual(planFeatures);
     });
   });
 
@@ -240,15 +276,19 @@ describe("admin/tenants.$id — updateFeatureOverrides intent", () => {
       expect(knownIntents).toContain("updateFeatureOverrides");
     });
 
-    it("form data for updateFeatureOverrides includes intent and feature flags", () => {
+    it("form data for updateFeatureOverrides includes intent and JSON overrides", () => {
+      const overrides = {
+        [PLAN_FEATURES.HAS_TRAINING]: true,
+        [PLAN_FEATURES.HAS_POS]: null,
+      };
       const formData = {
         intent: "updateFeatureOverrides",
-        [`feature_${PLAN_FEATURES.HAS_TRAINING}`]: "on",
-        [`feature_${PLAN_FEATURES.HAS_POS}`]: "on",
+        overrides: JSON.stringify(overrides),
       };
 
       expect(formData.intent).toBe("updateFeatureOverrides");
-      expect(formData[`feature_${PLAN_FEATURES.HAS_TRAINING}`]).toBe("on");
+      expect(JSON.parse(formData.overrides)[PLAN_FEATURES.HAS_TRAINING]).toBe(true);
+      expect(JSON.parse(formData.overrides)[PLAN_FEATURES.HAS_POS]).toBeNull();
     });
   });
 });

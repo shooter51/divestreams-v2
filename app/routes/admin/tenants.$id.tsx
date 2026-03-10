@@ -264,15 +264,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "updateFeatureOverrides") {
     const overridesJson = formData.get("overrides") as string;
-    let overrides: Record<string, boolean | null> | null = null;
+    let parsedOverrides: Record<string, boolean | null> = {};
 
     try {
-      const parsed = JSON.parse(overridesJson || "{}");
-      // Filter out null values to clean up - null means "use plan default"
-      const filtered = Object.fromEntries(
-        Object.entries(parsed).filter(([, v]) => v !== null)
-      );
-      overrides = Object.keys(filtered).length > 0 ? filtered as Record<string, boolean | null> : null;
+      parsedOverrides = JSON.parse(overridesJson || "{}");
     } catch {
       return { error: "Invalid overrides data" };
     }
@@ -283,20 +278,46 @@ export async function action({ request, params }: ActionFunctionArgs) {
       .where(eq(subscription.organizationId, org.id))
       .limit(1);
 
-    if (existingSub) {
-      await db
-        .update(subscription)
-        .set({
-          featureOverrides: overrides,
-          updatedAt: new Date(),
-        })
-        .where(eq(subscription.id, existingSub.id));
-
-      await invalidateSubscriptionCache(org.id);
-      return { success: true, message: "Feature overrides updated" };
+    if (!existingSub) {
+      return { error: "No subscription found for this tenant" };
     }
 
-    return { error: "No subscription found for this tenant" };
+    // Fetch the plan's default features so we can compare against them.
+    // Only save overrides where the value differs from the plan default.
+    // This lets mergeFeatureOverrides fall through to plan defaults for matching values.
+    let planFeatures: Record<string, boolean> = {};
+    if (existingSub.planId) {
+      const [plan] = await db
+        .select({ features: subscriptionPlans.features })
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, existingSub.planId))
+        .limit(1);
+      if (plan?.features) {
+        planFeatures = plan.features as Record<string, boolean>;
+      }
+    }
+
+    // Filter out: (1) null values (user chose "Plan Default"), and
+    // (2) explicit values that match the plan default (no meaningful override).
+    const filtered = Object.fromEntries(
+      Object.entries(parsedOverrides).filter(([key, v]) => {
+        if (v === null) return false; // "Plan Default" — no override needed
+        const planDefault = planFeatures[key] ?? false;
+        return v !== planDefault; // only keep if it actually differs
+      })
+    );
+    const overrides = Object.keys(filtered).length > 0 ? filtered as Record<string, boolean> : null;
+
+    await db
+      .update(subscription)
+      .set({
+        featureOverrides: overrides,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscription.id, existingSub.id));
+
+    await invalidateSubscriptionCache(org.id);
+    return { success: true, message: "Feature overrides updated" };
   }
 
   if (intent === "removeMember") {
