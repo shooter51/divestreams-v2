@@ -536,10 +536,10 @@ interface UpgradeModalProps {
 function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
   const t = useT();
   const limitLabels: Record<string, string> = {
-    users: "team members",
-    customers: "customers",
-    toursPerMonth: "tours this month",
-    storageGb: "storage",
+    users: t("tenant.dashboard.limits.users"),
+    customers: t("tenant.dashboard.limits.customers"),
+    toursPerMonth: t("tenant.dashboard.limits.toursPerMonth"),
+    storageGb: t("tenant.dashboard.limits.storageGb"),
   };
 
   // Get feature label from centralized FEATURE_LABELS, with fallback formatting
@@ -555,14 +555,16 @@ function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
       .replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
+  const limitLabel = limitExceeded ? (limitLabels[limitExceeded] || limitExceeded) : "";
+
   const title = limitExceeded
-    ? `${limitLabels[limitExceeded] || limitExceeded} Limit Reached`
+    ? t("tenant.dashboard.upgrade.limitReachedTitle", { label: limitLabel })
     : feature
       ? `Upgrade to Access ${getFeatureLabel(feature)}`
       : "Upgrade Your Plan";
 
   const description = limitExceeded
-    ? `You've reached the maximum number of ${limitLabels[limitExceeded] || limitExceeded} for your current plan. Upgrade to get more.`
+    ? t("tenant.dashboard.upgrade.limitReachedDescription", { label: limitLabel })
     : feature
       ? `The ${getFeatureLabel(feature)} feature requires a higher tier plan.`
       : "Unlock more features and higher limits with an upgraded plan.";

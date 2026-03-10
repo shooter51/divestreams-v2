@@ -924,7 +924,7 @@
   "tenant.bookings.participantName": "Nombre del participante {{num}}",
   "tenant.bookings.equipmentRentalTitle": "Alquiler de Equipo",
   "tenant.bookings.selectEquipment": "Selecciona equipo para alquilar en esta reserva",
-  "tenant.bookings.availableCount": "{{count}} disponibles",
+  "tenant.bookings.availableCount": "({{count}} disponibles)",
   "tenant.bookings.equipmentNote": "Los precios del equipo son por persona por día.",
   "tenant.bookings.specialRequestsLabel": "Solicitudes Especiales",
   "tenant.bookings.internalNotesLabel": "Notas Internas",
