@@ -66,7 +66,7 @@ describe("site/courses/index route", () => {
       expect(result.filters.agency).toBeNull();
       expect(result.filters.level).toBeNull();
       expect(result.page).toBe(1);
-      expect(getPublicCourses).toHaveBeenCalledWith("org-1", { page: 1, limit: 100, onlyWithUpcomingSessions: true });
+      expect(getPublicCourses).toHaveBeenCalledWith("org-1", { page: 1, limit: 100, onlyWithUpcomingSessions: false });
     });
 
     it("applies agency and level filters", async () => {
