@@ -238,7 +238,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Password is required", email: expect.any(String) });
+        expect(response).toEqual({ error: "auth.login.passwordRequired", email: expect.any(String) });
       });
     });
 
@@ -462,7 +462,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Organization not found", email: "" });
+        expect(response).toEqual({ error: "auth.login.orgNotFound", email: "" });
       });
 
       it("does not create duplicate membership", async () => {
@@ -521,7 +521,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "An error occurred during login. Please try again.", email: "user@example.com" });
+        expect(response).toEqual({ error: "auth.login.genericError", email: "user@example.com" });
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();

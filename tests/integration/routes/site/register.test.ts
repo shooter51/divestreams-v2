@@ -283,7 +283,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).error).toBe("Organization not found");
+      expect((result as unknown).error).toBe("auth.register.orgNotFound");
     });
 
     it("redirects to login if auto-login fails after registration", async () => {
