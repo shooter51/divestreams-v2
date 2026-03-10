@@ -782,7 +782,7 @@ export default function BillingPage() {
                           : "bg-warning-muted text-warning"
                       }`}
                     >
-                      {invoice.status === "paid" ? t("tenant.settings.billing.paid") : invoice.status === "pending" ? t("tenant.settings.billing.pending") : invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                      {invoice.status === "paid" ? t("tenant.settings.billing.paid") : invoice.status === "pending" ? t("tenant.settings.billing.pending") : invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : ""}
                     </span>
                   </td>
                   <td className="py-3 text-sm text-right">${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>

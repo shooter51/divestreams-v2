@@ -581,8 +581,8 @@ export default function TransactionsPage() {
               })) || [],
               createdAt: selectedTransaction.createdAt.toString(),
               customer: selectedTransaction.customerName && selectedTransaction.customerEmail ? {
-                firstName: selectedTransaction.customerName.split(" ")[0],
-                lastName: selectedTransaction.customerName.split(" ").slice(1).join(" "),
+                firstName: selectedTransaction.customerName?.split(" ")?.[0] ?? "",
+                lastName: selectedTransaction.customerName?.split(" ")?.slice(1)?.join(" ") ?? "",
                 email: selectedTransaction.customerEmail,
               } : null,
             }}

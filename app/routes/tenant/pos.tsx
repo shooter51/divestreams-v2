@@ -84,7 +84,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .where(eq(organizationSettings.organizationId, organizationId))
     .limit(1);
 
-  const taxRate = settings?.taxRate ? parseFloat(settings.taxRate) : 0;
+  const parsedTaxRate = parseFloat(settings?.taxRate ?? "");
+  const taxRate = !isNaN(parsedTaxRate) ? parsedTaxRate : 0;
   const taxName = settings?.taxName || "Tax";
   const currency = settings?.currency || "USD";
 
