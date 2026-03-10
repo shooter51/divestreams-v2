@@ -3,7 +3,9 @@ import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { resolveLocale } from "../../../../i18n/resolve-locale";
 import { bulkGetContentTranslations } from "../../../../../lib/db/translations.server";
+import { eq, and, asc, inArray } from "drizzle-orm";
 import { getCourses, getAgencies, getCourseById, updateCourse } from "../../../../../lib/db/training.server";
+import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../../lib/use-notification";
 import { useT } from "../../../../i18n/use-t";
 import { CsrfInput } from "../../../../components/CsrfInput";
@@ -61,13 +63,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
     filteredCourses = filteredCourses.filter((c) => !c.isActive);
   }
 
+  // Fetch images from the images table for all courses
+  const courseIds = filteredCourses.map((c) => c.id);
+  const { db: tenantDb, schema: tenantSchema } = getTenantDb(ctx.org.slug);
+  const imageMap = new Map<string, string>();
+  if (courseIds.length > 0) {
+    const courseImages = await tenantDb
+      .select({
+        entityId: tenantSchema.images.entityId,
+        url: tenantSchema.images.url,
+        isPrimary: tenantSchema.images.isPrimary,
+        sortOrder: tenantSchema.images.sortOrder,
+      })
+      .from(tenantSchema.images)
+      .where(
+        and(
+          eq(tenantSchema.images.organizationId, ctx.org.id),
+          eq(tenantSchema.images.entityType, "course"),
+          inArray(tenantSchema.images.entityId, courseIds)
+        )
+      )
+      .orderBy(asc(tenantSchema.images.sortOrder));
+
+    for (const img of courseImages) {
+      // Keep only the first (primary/lowest sort order) image per course
+      if (!imageMap.has(img.entityId)) {
+        imageMap.set(img.entityId, img.url);
+      }
+    }
+  }
+
   // Transform to UI format
   const courses = filteredCourses.map((c) => ({
     id: c.id,
     name: c.name,
     code: c.code || "",
     description: c.description || "",
-    imageUrl: (c.images && Array.isArray(c.images) && c.images.length > 0) ? c.images[0] : null,
+    imageUrl: imageMap.get(c.id) || (c.images && Array.isArray(c.images) && c.images.length > 0 ? c.images[0] : null),
     agencyName: c.agencyName || "No Agency",
     levelName: c.levelName || "No Level",
     durationDays: c.durationDays || 0,
