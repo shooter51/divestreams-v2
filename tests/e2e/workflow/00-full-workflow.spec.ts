@@ -1,6 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import { getTenantUrl as _getTenantUrl, getAdminUrl as _getAdminUrl, getBaseUrl, getEmbedUrl as _getEmbedUrl } from "../helpers/urls";
 
+// Force all blocks in this file to run sequentially.
+// Block A creates the e2etest tenant via signup — Blocks C/D/E/F/H depend on it.
+// Without this, fullyParallel mode runs blocks concurrently, causing Blocks C-H
+// to fail on remote environments where global-setup (direct DB) is skipped.
+test.describe.configure({ mode: "serial" });
+
 /**
  * Full E2E Workflow Tests - DiveStreams
  *
