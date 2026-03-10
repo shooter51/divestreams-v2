@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import type { ReactNode } from "react";
+import { useT } from "../../i18n/use-t";
 
 type UpgradePromptVariant = "banner" | "inline" | "overlay";
 
@@ -40,15 +41,16 @@ function CrownIcon() {
   );
 }
 
-function getMessage(feature: string, currentCount?: number, limit?: number): string {
+function getMessage(t: (key: string, params?: Record<string, string | number>) => string, feature: string, currentCount?: number, limit?: number): string {
   if (currentCount !== undefined && limit !== undefined) {
-    return `You've reached ${currentCount}/${limit} ${feature} on the Free plan`;
+    return t("common.upgrade.limitReached", { current: currentCount, limit, feature });
   }
-  return `${feature} is a Premium feature`;
+  return t("common.upgrade.featureIsPremium", { feature });
 }
 
 function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps, "variant">) {
-  const message = getMessage(feature, currentCount, limit);
+  const t = useT();
+  const message = getMessage(t, feature, currentCount, limit);
 
   return (
     <div className="rounded-lg px-4 py-3 text-white shadow-sm" style={{ backgroundImage: 'linear-gradient(to right, var(--brand), var(--brand-hover))' }}>
@@ -58,7 +60,7 @@ function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
           <div>
             <p className="font-medium">{message}</p>
             <p className="text-sm text-white/80">
-              Upgrade to Premium to unlock unlimited access
+              {t("common.upgrade.unlockAccess")}
             </p>
           </div>
         </div>
@@ -67,7 +69,7 @@ function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
           className="flex items-center gap-2 bg-surface-raised text-brand px-4 py-2 rounded-lg font-medium hover:bg-brand-muted transition-colors whitespace-nowrap"
         >
           <UpgradeIcon />
-          Upgrade Now
+          {t("common.upgrade.upgradeNow")}
         </Link>
       </div>
     </div>
@@ -75,7 +77,8 @@ function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
 }
 
 function InlinePrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps, "variant">) {
-  const message = getMessage(feature, currentCount, limit);
+  const t = useT();
+  const message = getMessage(t, feature, currentCount, limit);
 
   return (
     <div className="bg-warning-muted border border-border rounded-lg px-3 py-2 text-warning text-sm">
@@ -88,7 +91,7 @@ function InlinePrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
           to="/tenant/settings/billing"
           className="text-warning font-medium hover:underline whitespace-nowrap"
         >
-          Upgrade
+          {t("common.upgrade.upgrade")}
         </Link>
       </div>
     </div>
@@ -96,7 +99,8 @@ function InlinePrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
 }
 
 function OverlayPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps, "variant">) {
-  const message = getMessage(feature, currentCount, limit);
+  const t = useT();
+  const message = getMessage(t, feature, currentCount, limit);
 
   return (
     <div className="absolute inset-0 bg-gray-900/60 dark:bg-black/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
@@ -104,17 +108,17 @@ function OverlayPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps
         <div className="w-12 h-12 bg-brand-muted rounded-full flex items-center justify-center mx-auto mb-4 text-brand">
           <CrownIcon />
         </div>
-        <h3 className="font-semibold text-lg mb-2">Premium Feature</h3>
+        <h3 className="font-semibold text-lg mb-2">{t("common.upgrade.premiumFeature")}</h3>
         <p className="text-foreground-muted mb-4">{message}</p>
         <p className="text-sm text-foreground-muted mb-4">
-          Upgrade your plan to unlock this feature and more
+          {t("common.upgrade.upgradePlan")}
         </p>
         <Link
           to="/tenant/settings/billing"
           className="inline-flex items-center gap-2 bg-brand text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-hover transition-colors"
         >
           <UpgradeIcon />
-          Upgrade to Premium
+          {t("common.upgrade.upgradeToPremium")}
         </Link>
       </div>
     </div>

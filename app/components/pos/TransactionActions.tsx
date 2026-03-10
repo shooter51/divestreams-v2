@@ -2,6 +2,8 @@
  * POS Transaction Action Buttons
  */
 
+import { useT } from "../../i18n/use-t";
+
 interface TransactionActionsProps {
   transaction: {
     id: string;
@@ -22,6 +24,7 @@ export function TransactionActions({
   onEmailReceipt,
   onRefund,
 }: TransactionActionsProps) {
+  const t = useT();
   const canEmail = !!transaction.customerEmail;
   const canRefund = transaction.type !== "refund" && !transaction.refundedTransactionId;
 
@@ -31,8 +34,8 @@ export function TransactionActions({
       <button
         onClick={onViewReceipt}
         className="p-2 hover:bg-surface-overlay rounded-lg transition-colors"
-        title="View Receipt"
-        aria-label="View Receipt"
+        title={t("tenant.pos.transactions.viewReceipt")}
+        aria-label={t("tenant.pos.transactions.viewReceipt")}
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -43,8 +46,8 @@ export function TransactionActions({
       <button
         onClick={onViewDetails}
         className="p-2 hover:bg-surface-overlay rounded-lg transition-colors"
-        title="View Details"
-        aria-label="View Details"
+        title={t("tenant.pos.transactions.viewDetails")}
+        aria-label={t("tenant.pos.transactions.viewDetails")}
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -60,8 +63,8 @@ export function TransactionActions({
             ? "hover:bg-surface-overlay"
             : "opacity-40 cursor-not-allowed"
         }`}
-        title={canEmail ? "Email Receipt" : "No customer email"}
-        aria-label="Email Receipt"
+        title={canEmail ? t("tenant.pos.transactions.emailReceipt") : t("tenant.pos.transactions.noCustomerEmail")}
+        aria-label={t("tenant.pos.transactions.emailReceipt")}
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -79,12 +82,12 @@ export function TransactionActions({
         }`}
         title={
           transaction.type === "refund"
-            ? "Cannot refund a refund"
+            ? t("tenant.pos.transactions.cannotRefundRefund")
             : transaction.refundedTransactionId
-            ? "Already refunded"
-            : "Refund Transaction"
+            ? t("tenant.pos.transactions.alreadyRefunded")
+            : t("tenant.pos.transactions.refundTransaction")
         }
-        aria-label="Refund Transaction"
+        aria-label={t("tenant.pos.transactions.refundTransaction")}
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />

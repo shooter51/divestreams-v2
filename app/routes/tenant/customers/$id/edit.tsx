@@ -342,7 +342,7 @@ export default function EditCustomerPage() {
                   type="text"
                   id="emergencyContactRelation"
                   name="emergencyContactRelation"
-                  placeholder="e.g., Spouse, Parent"
+                  placeholder={t("tenant.customers.emergencyRelationPlaceholderEdit")}
                   defaultValue={actionData?.values?.emergencyContactRelation || customer.emergencyContactRelation}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />

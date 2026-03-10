@@ -227,16 +227,16 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(redirectWithNotification("/tenant/trips", "Trip has been successfully created", "success"));
 }
 
-// Day names for weekly selection
-const DAYS_OF_WEEK = [
-  { value: 0, label: "Sun" },
-  { value: 1, label: "Mon" },
-  { value: 2, label: "Tue" },
-  { value: 3, label: "Wed" },
-  { value: 4, label: "Thu" },
-  { value: 5, label: "Fri" },
-  { value: 6, label: "Sat" },
-];
+// Day translation keys for weekly selection
+const DAY_KEYS = [
+  "tenant.trips.day.sun",
+  "tenant.trips.day.mon",
+  "tenant.trips.day.tue",
+  "tenant.trips.day.wed",
+  "tenant.trips.day.thu",
+  "tenant.trips.day.fri",
+  "tenant.trips.day.sat",
+] as const;
 
 export default function NewTripPage() {
   const { tours, boats, staff, selectedTour, diveSitesForTour } = useLoaderData<typeof loader>();
@@ -434,10 +434,10 @@ export default function NewTripPage() {
                   onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Every 2 Weeks</option>
-                  <option value="monthly">Monthly</option>
+                  <option value="daily">{t("tenant.trips.recurrencePattern.daily")}</option>
+                  <option value="weekly">{t("tenant.trips.recurrencePattern.weekly")}</option>
+                  <option value="biweekly">{t("tenant.trips.recurrencePattern.biweekly")}</option>
+                  <option value="monthly">{t("tenant.trips.recurrencePattern.monthly")}</option>
                 </select>
               </div>
 
@@ -448,18 +448,18 @@ export default function NewTripPage() {
                     {t("tenant.trips.onTheseDays")}
                   </label>
                   <div className="flex gap-2">
-                    {DAYS_OF_WEEK.map((day) => (
+                    {DAY_KEYS.map((dayKey, idx) => (
                       <button
-                        key={day.value}
+                        key={idx}
                         type="button"
-                        onClick={() => toggleDay(day.value)}
+                        onClick={() => toggleDay(idx)}
                         className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
-                          selectedDays.includes(day.value)
+                          selectedDays.includes(idx)
                             ? "bg-brand text-white"
                             : "bg-surface-inset text-foreground hover:bg-surface-overlay"
                         }`}
                       >
-                        {day.label}
+                        {t(dayKey)}
                       </button>
                     ))}
                     {/* Hidden inputs for selected days */}
@@ -468,7 +468,7 @@ export default function NewTripPage() {
                     ))}
                   </div>
                   <p className="text-xs text-foreground-muted mt-1">
-                    {selectedDays.length === 0 ? t("tenant.trips.willUseStartDay") : `${t("tenant.trips.selectedDays")}: ${selectedDays.map(d => DAYS_OF_WEEK[d].label).join(", ")}`}
+                    {selectedDays.length === 0 ? t("tenant.trips.willUseStartDay") : `${t("tenant.trips.selectedDays")}: ${selectedDays.map(d => t(DAY_KEYS[d])).join(", ")}`}
                   </p>
                 </div>
               )}
@@ -666,7 +666,7 @@ export default function NewTripPage() {
                 type="text"
                 id="weatherNotes"
                 name="weatherNotes"
-                placeholder="e.g., Light wind expected, good visibility"
+                placeholder={t("tenant.trips.weatherPlaceholder")}
                 defaultValue={actionData?.values?.weatherNotes}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />

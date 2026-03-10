@@ -189,10 +189,9 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   });
 
   if (!rateLimitResult.allowed) {
-    const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
     return {
       success: false,
-      error: `Too many submissions. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+      error: "site.contact.tooManySubmissions",
     };
   }
 
@@ -200,26 +199,26 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   const errors: ActionData["errors"] = {};
 
   if (!name || name.trim().length < 2) {
-    errors.name = "Name must be at least 2 characters";
+    errors.name = "site.contact.nameMinLength";
   }
 
   if (!email || !email.includes("@") || !email.includes(".")) {
-    errors.email = "Please enter a valid email address";
+    errors.email = "site.contact.invalidEmail";
   }
 
   if (!message || message.trim().length < 10) {
-    errors.message = "Message must be at least 10 characters";
+    errors.message = "site.contact.messageMinLength";
   }
 
   if (message && message.length > 5000) {
-    errors.message = "Message must be less than 5000 characters";
+    errors.message = "site.contact.messageTooLong";
   }
 
   // Phone is optional but validate format if provided
   if (phone && phone.trim()) {
     const phoneRegex = /^[\d\s().+-]+$/;
     if (!phoneRegex.test(phone)) {
-      errors.phone = "Please enter a valid phone number";
+      errors.phone = "site.contact.invalidPhone";
     }
   }
 
@@ -235,7 +234,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   if (!subdomain) {
     return {
       success: false,
-      error: "Unable to process your request. Please try again later.",
+      error: "site.contact.processingError",
     };
   }
 
@@ -248,7 +247,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   if (!org) {
     return {
       success: false,
-      error: "Unable to process your request. Please try again later.",
+      error: "site.contact.processingError",
     };
   }
 
@@ -332,7 +331,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     console.error("Error processing contact form:", error);
     return {
       success: false,
-      error: "Failed to send your message. Please try again later.",
+      error: "site.contact.sendFailed",
     };
   }
 }
@@ -460,7 +459,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.name}
+                    {t(actionData.errors.name)}
                   </p>
                 )}
               </div>
@@ -499,7 +498,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.email}
+                    {t(actionData.errors.email)}
                   </p>
                 )}
               </div>
@@ -537,7 +536,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.phone}
+                    {t(actionData.errors.phone)}
                   </p>
                 )}
               </div>
@@ -575,7 +574,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.message}
+                    {t(actionData.errors.message)}
                   </p>
                 )}
               </div>
@@ -584,7 +583,7 @@ export default function SiteContactPage() {
               {actionData?.error && (
                 <div className="p-4 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
                   <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
-                  <p>{actionData.error}</p>
+                  <p>{t(actionData.error)}</p>
                 </div>
               )}
 

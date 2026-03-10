@@ -521,7 +521,7 @@ describe("Auth Forgot Password Route", () => {
       });
 
       const result = await authForgotAction(makeArgs(request));
-      expect((result as unknown).error).toBe("Email is required");
+      expect((result as unknown).error).toBe("auth.forgotPassword.emailRequired");
     });
 
     it("returns success for valid email", async () => {

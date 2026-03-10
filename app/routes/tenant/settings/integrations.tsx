@@ -145,7 +145,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
 
   // Parse metadata if it exists
-  const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+  let metadata: Record<string, unknown> = {};
+  try { metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {}; } catch { /* invalid JSON */ }
 
   // Get connected integrations from database
   const dbIntegrations = await listActiveIntegrations(ctx.org.id);

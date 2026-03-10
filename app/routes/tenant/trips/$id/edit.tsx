@@ -379,7 +379,7 @@ export default function EditTripPage() {
                 id="weatherNotes"
                 name="weatherNotes"
                 rows={2}
-                placeholder="Weather conditions, forecast..."
+                placeholder={t("tenant.trips.weatherConditionsPlaceholder")}
                 defaultValue={trip.weatherNotes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -393,7 +393,7 @@ export default function EditTripPage() {
                 id="notes"
                 name="notes"
                 rows={3}
-                placeholder="Notes visible only to staff..."
+                placeholder={t("tenant.trips.notesStaffOnlyPlaceholder")}
                 defaultValue={trip.notes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
