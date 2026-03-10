@@ -138,7 +138,10 @@ export default function TenantLayout() {
           {/* Sidebar */}
           <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="p-4 border-b border-border flex-shrink-0">
-              <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
+              <div className="flex items-center gap-2 mb-1">
+                <img src="/logo-icon.png" alt="DiveStreams" className="h-8 w-8" />
+                <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
+              </div>
               <p className="text-sm text-foreground-muted">{tenant.subdomain}.{tenant.baseDomain}</p>
             </div>
 
