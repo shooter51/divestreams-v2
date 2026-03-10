@@ -221,7 +221,7 @@ export default function AgenciesPage() {
                     name="name"
                     required
                     defaultValue={editingAgency?.name || ""}
-                    placeholder="e.g., PADI"
+                    placeholder={t("tenant.settings.training.agencies.namePlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
@@ -235,7 +235,7 @@ export default function AgenciesPage() {
                     name="code"
                     required
                     defaultValue={editingAgency?.code || ""}
-                    placeholder="e.g., PADI"
+                    placeholder={t("tenant.settings.training.agencies.codePlaceholder")}
                     className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.training.agencies.codeHint")}</p>
@@ -265,7 +265,7 @@ export default function AgenciesPage() {
                   id="website"
                   name="website"
                   defaultValue={editingAgency?.website || ""}
-                  placeholder="https://www.example.com"
+                  placeholder={t("tenant.settings.training.agencies.websitePlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>

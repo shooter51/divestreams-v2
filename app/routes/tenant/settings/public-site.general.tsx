@@ -132,7 +132,7 @@ export default function PublicSiteGeneralSettings() {
               id="customDomain"
               name="customDomain"
               defaultValue={customDomain || ""}
-              placeholder="www.yourdiveshop.com"
+              placeholder={t("tenant.settings.publicSite.general.customDomainPlaceholder")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>

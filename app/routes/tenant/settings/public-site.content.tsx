@@ -80,7 +80,7 @@ export default function PublicSiteContentSettings() {
                 id="logoUrl"
                 name="logoUrl"
                 defaultValue={settings.logoUrl || ""}
-                placeholder="https://example.com/logo.png"
+                placeholder={t("tenant.settings.publicSite.content.logoUrlPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
@@ -97,7 +97,7 @@ export default function PublicSiteContentSettings() {
                 id="heroImageUrl"
                 name="heroImageUrl"
                 defaultValue={settings.heroImageUrl || ""}
-                placeholder="https://example.com/hero.jpg"
+                placeholder={t("tenant.settings.publicSite.content.heroImagePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
@@ -115,7 +115,7 @@ export default function PublicSiteContentSettings() {
               id="heroVideoUrl"
               name="heroVideoUrl"
               defaultValue={settings.heroVideoUrl || ""}
-              placeholder="https://example.com/video.mp4"
+              placeholder={t("tenant.settings.publicSite.content.heroVideoPlaceholder")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
             <p className="text-xs text-foreground-muted mt-1">
@@ -188,7 +188,7 @@ export default function PublicSiteContentSettings() {
               name="aboutContent"
               rows={8}
               defaultValue={settings.aboutContent || ""}
-              placeholder="Tell visitors about your dive shop, your history, your team, and what makes you unique..."
+              placeholder={t("tenant.settings.publicSite.content.aboutPlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand resize-y"
             />
             <p className="text-xs text-foreground-muted mt-1">
@@ -214,7 +214,7 @@ export default function PublicSiteContentSettings() {
                 name="contactAddress"
                 rows={2}
                 defaultValue={settings.contactInfo?.address || ""}
-                placeholder="123 Ocean Drive, Key Largo, FL 33037"
+                placeholder={t("tenant.settings.publicSite.content.addressPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -229,7 +229,7 @@ export default function PublicSiteContentSettings() {
                   id="contactPhone"
                   name="contactPhone"
                   defaultValue={settings.contactInfo?.phone || ""}
-                  placeholder="+1 (305) 555-0123"
+                  placeholder={t("tenant.settings.publicSite.content.phonePlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -243,7 +243,7 @@ export default function PublicSiteContentSettings() {
                   id="contactEmail"
                   name="contactEmail"
                   defaultValue={settings.contactInfo?.email || ""}
-                  placeholder="info@yourdiveshop.com"
+                  placeholder={t("tenant.settings.publicSite.content.emailPlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -258,7 +258,7 @@ export default function PublicSiteContentSettings() {
                 name="contactHours"
                 rows={3}
                 defaultValue={settings.contactInfo?.hours || ""}
-                placeholder="Mon-Fri: 8am-6pm, Sat-Sun: 7am-7pm"
+                placeholder={t("tenant.settings.publicSite.content.hoursPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -272,7 +272,7 @@ export default function PublicSiteContentSettings() {
                 name="mapEmbed"
                 rows={4}
                 defaultValue={settings.contactInfo?.mapEmbed || ""}
-                placeholder='<iframe src="https://www.google.com/maps/embed?..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'
+                placeholder={t("tenant.settings.publicSite.content.mapEmbedPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
               />
               <p className="text-xs text-foreground-muted mt-1">
