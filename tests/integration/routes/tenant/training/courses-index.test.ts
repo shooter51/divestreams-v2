@@ -219,7 +219,7 @@ describe("tenant/training/courses/index route", () => {
     it("transforms courses with default values for missing fields", async () => {
       const coursesWithNulls = [
         {
-          id: "course-4",
+          id: "00000000-0000-0000-0000-000000000004",
           name: "Basic Course",
           code: null,
           description: null,
@@ -241,7 +241,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses[0]).toMatchObject({
-        id: "course-4",
+        id: "00000000-0000-0000-0000-000000000004",
         name: "Basic Course",
         code: "",
         description: "",
