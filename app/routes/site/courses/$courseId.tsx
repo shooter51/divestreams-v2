@@ -153,13 +153,15 @@ function formatDuration(days: number): string {
 }
 
 /**
- * Format price for display
+ * Format price for display.
+ * Returns the i18n key "site.courses.contactForPricing" when price is zero,
+ * null, or unparseable — so callers can pass it through t() for translation.
  */
-function formatPrice(price: string | null, currency = "USD"): string {
-  if (!price) return "Price on request";
+export function formatCourseDetailPrice(price: string | null, currency = "USD"): string {
+  if (!price) return "site.courses.contactForPricing";
 
   const numericPrice = parseFloat(price);
-  if (isNaN(numericPrice)) return "Price on request";
+  if (isNaN(numericPrice) || numericPrice === 0) return "site.courses.contactForPricing";
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -558,7 +560,7 @@ function SessionCard({
       </div>
       <div className="flex items-center gap-4">
         <span className="text-lg font-bold" style={{ color: "var(--primary-color)" }}>
-          {formatPrice(price, currency)}
+          {t(formatCourseDetailPrice(price, currency))}
         </span>
         <Link
           to={`/embed/${organizationSlug}/courses/${courseId}/enroll?sessionId=${session.id}`}
@@ -864,7 +866,7 @@ export default function SiteCourseDetailPage() {
                 className="text-4xl font-bold"
                 style={{ color: "var(--primary-color)" }}
               >
-                {formatPrice(course.price, course.currency)}
+                {t(formatCourseDetailPrice(course.price, course.currency))}
               </div>
               <span className="text-sm opacity-75">{t("site.trips.perPerson")}</span>
             </div>
