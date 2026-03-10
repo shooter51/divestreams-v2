@@ -19,6 +19,7 @@ import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { getTranslatedEntity } from "../../../../lib/db/translations.server";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -169,18 +170,6 @@ function formatPrice(price: string | null, currency = "USD"): string {
   }).format(numericPrice);
 }
 
-/**
- * Format date for display
- */
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 /**
  * Format time for display
@@ -500,6 +489,7 @@ function SessionCard({
   onSelect?: (sessionId: string) => void;
 }) {
   const t = useT();
+  const { formatDisplayDate: formatDate } = useFormat();
   const price = session.price || defaultPrice;
 
   const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {

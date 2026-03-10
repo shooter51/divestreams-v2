@@ -251,7 +251,7 @@ export default function EditBookingPage() {
                     />
                     <span className="text-sm font-medium">
                       {item.name}
-                      <span className="text-foreground-muted font-normal"> ({t("tenant.bookings.availableCount", { count: item.count })})</span>
+                      <span className="text-foreground-muted font-normal"> {t("tenant.bookings.availableCount", { count: item.count })}</span>
                     </span>
                   </div>
                   <span className="text-sm text-foreground-muted">${item.price}</span>
