@@ -214,7 +214,9 @@ export default function GalleryPage() {
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="text-lg font-semibold mb-1">{album.name}</h3>
                       <p className="text-sm text-white/80">
-                        {album.imageCount} {album.imageCount === 1 ? "photo" : "photos"}
+                        {album.imageCount === 1
+                          ? t("site.gallery.photoCountSingular")
+                          : t("site.gallery.photoCount", { count: String(album.imageCount) })}
                       </p>
                     </div>
                   </div>
@@ -300,7 +302,9 @@ export default function GalleryPage() {
           <>
             <div className="mb-6">
               <p style={{ color: "var(--text-color)", opacity: 0.7 }}>
-                Showing {images.length} {images.length === 1 ? "photo" : "photos"}
+                {images.length === 1
+                  ? t("site.gallery.showingPhoto")
+                  : t("site.gallery.showingPhotos", { count: String(images.length) })}
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -41,19 +41,19 @@ interface EquipmentCard {
   primaryImage: string | null;
 }
 
-// Equipment categories
+// Equipment categories — labels are i18n keys, resolved in the component via t()
 const EQUIPMENT_CATEGORIES = [
-  { value: "bcd", label: "BCDs", icon: "⚓" },
-  { value: "regulator", label: "Regulators", icon: "🌬️" },
-  { value: "wetsuit", label: "Wetsuits", icon: "🦈" },
-  { value: "mask", label: "Masks", icon: "👓" },
-  { value: "fins", label: "Fins", icon: "🦵" },
-  { value: "computer", label: "Computers", icon: "💻" },
-  { value: "tank", label: "Tanks", icon: "⛽" },
-  { value: "snorkel", label: "Snorkels", icon: "🤿" },
-  { value: "camera", label: "Cameras", icon: "📷" },
-  { value: "light", label: "Lights", icon: "💡" },
-  { value: "other", label: "Other", icon: "🔧" },
+  { value: "bcd", labelKey: "site.equipment.category.bcd", icon: "⚓" },
+  { value: "regulator", labelKey: "site.equipment.category.regulator", icon: "🌬️" },
+  { value: "wetsuit", labelKey: "site.equipment.category.wetsuit", icon: "🦈" },
+  { value: "mask", labelKey: "site.equipment.category.mask", icon: "👓" },
+  { value: "fins", labelKey: "site.equipment.category.fins", icon: "🦵" },
+  { value: "computer", labelKey: "site.equipment.category.computer", icon: "💻" },
+  { value: "tank", labelKey: "site.equipment.category.tank", icon: "⛽" },
+  { value: "snorkel", labelKey: "site.equipment.category.snorkel", icon: "🤿" },
+  { value: "camera", labelKey: "site.equipment.category.camera", icon: "📷" },
+  { value: "light", labelKey: "site.equipment.category.light", icon: "💡" },
+  { value: "other", labelKey: "site.equipment.category.other", icon: "🔧" },
 ];
 
 // ============================================================================
@@ -384,7 +384,7 @@ export default function SiteEquipmentPage() {
                         <span className="flex items-center justify-between">
                           <span>
                             <span className="mr-2">{cat.icon}</span>
-                            {cat.label}
+                            {t(cat.labelKey)}
                           </span>
                           <span className="text-sm opacity-60">{count}</span>
                         </span>
@@ -471,7 +471,7 @@ export default function SiteEquipmentPage() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {category && (
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
-                      Category: {EQUIPMENT_CATEGORIES.find(c => c.value === category)?.label}
+                      {t("site.equipment.categoryFilter", { category: t(EQUIPMENT_CATEGORIES.find(c => c.value === category)?.labelKey || "site.equipment.category.other") })}
                       <button
                         onClick={() => handleCategoryFilter(null)}
                         className="hover:opacity-70"
@@ -482,7 +482,7 @@ export default function SiteEquipmentPage() {
                   )}
                   {search && (
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
-                      Search: "{search}"
+                      {t("site.equipment.searchFilter", { search })}
                       <button
                         onClick={() => {
                           const params = new URLSearchParams(searchParams);
@@ -646,7 +646,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
         {/* Condition Badge */}
         {equipment.condition && (
           <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium ${conditionColor}`}>
-            {equipment.condition.charAt(0).toUpperCase() + equipment.condition.slice(1)}
+            {t(`site.equipment.condition.${equipment.condition}`)}
           </div>
         )}
       </div>
@@ -662,7 +662,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
               color: "var(--primary-color)",
             }}
           >
-            {categoryInfo?.label || equipment.category}
+            {categoryInfo ? t(categoryInfo.labelKey) : equipment.category}
           </span>
         </div>
 
@@ -680,7 +680,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
         {equipment.size && (
           <div className="mb-3">
             <span className="text-sm" style={{ color: "var(--text-color)" }}>
-              <span className="opacity-60">Size:</span> <span className="font-medium">{equipment.size}</span>
+              {t("site.equipment.sizeLabel", { size: equipment.size })}
             </span>
           </div>
         )}
