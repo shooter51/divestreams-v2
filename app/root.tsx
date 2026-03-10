@@ -55,7 +55,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* eslint-disable-next-line no-restricted-syntax -- browser meta tags require hex */}
         <meta name="theme-color" content="#0f2b4a" />
+        {/* eslint-disable-next-line no-restricted-syntax -- browser meta tags require hex */}
         <meta name="msapplication-TileColor" content="#0f2b4a" />
         <Meta />
         <Links />
