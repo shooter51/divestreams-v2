@@ -99,7 +99,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Validate CSRF token (log warning if missing, reject if present but invalid)
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
-    return { error: "Invalid form submission. Please refresh and try again." };
+    return { error: "auth.login.invalidFormSubmission" };
   }
 
   // Rate limit login attempts
@@ -108,7 +108,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent !== "join" && loginEmail) {
     const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 30, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.allowed) {
-      return { error: "Too many login attempts. Please try again later." };
+      return { error: "auth.login.tooManyAttempts" };
     }
   }
 
@@ -126,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     if (!joinSession?.user) {
-      return { error: "You must be logged in to join an organization" };
+      return { error: "auth.login.mustBeLoggedIn" };
     }
 
     const userId = joinSession.user.id;
@@ -134,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Derive orgId from subdomain, NOT from form data (prevents joining arbitrary orgs)
     const joinSubdomain = getSubdomainFromRequest(request);
     if (!joinSubdomain) {
-      return { error: "Unable to determine organization", email: "" };
+      return { error: "auth.login.unableToDetermineOrg", email: "" };
     }
 
     const [joinOrg] = await db
@@ -144,7 +144,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .limit(1);
 
     if (!joinOrg) {
-      return { error: "Organization not found", email: "" };
+      return { error: "auth.login.orgNotFound", email: "" };
     }
 
     const orgId = joinOrg.id;
@@ -178,7 +178,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(validatedRedirectTo);
     } catch (error) {
       console.error("Join error:", error);
-      return { error: "Failed to join organization. Please try again.", email: "" };
+      return { error: "auth.login.joinFailed", email: "" };
     }
   }
 
@@ -189,11 +189,11 @@ export async function action({ request }: ActionFunctionArgs) {
   // Per-email rate limit is already checked above.
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
-    return { error: "Please enter a valid email address", email: email || "" };
+    return { error: "auth.login.invalidEmail", email: email || "" };
   }
 
   if (typeof password !== "string" || !password) {
-    return { error: "Password is required", email: email || "" };
+    return { error: "auth.login.passwordRequired", email: email || "" };
   }
 
   try {
@@ -210,7 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
-      return { error: userData.message || "Invalid email or password", email };
+      return { error: userData.message || "auth.login.invalidCredentials", email };
     }
 
     const userId = userData?.user?.id;
@@ -264,7 +264,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return { error: "An error occurred during login. Please try again.", email: email || "" };
+    return { error: "auth.login.genericError", email: email || "" };
   }
 }
 
@@ -402,7 +402,7 @@ export default function LoginPage() {
           {/* Error Message */}
           {actionData?.error && (
             <div className="mb-4 p-3 bg-danger-muted border border-danger rounded-lg">
-              <p className="text-sm text-danger">{actionData.error}</p>
+              <p className="text-sm text-danger">{t(actionData.error)}</p>
             </div>
           )}
 

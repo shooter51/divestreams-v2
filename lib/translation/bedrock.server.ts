@@ -5,6 +5,54 @@ import {
 
 const MODEL_ID = process.env.TRANSLATION_MODEL_ID || "amazon.nova-micro-v1:0";
 
+/**
+ * Strip HTML tags from text. Bedrock sometimes wraps plain-text translations
+ * in <p>, <br>, <span>, etc. tags that should not appear in entity names.
+ */
+export function stripHtmlTags(text: string): string {
+  // Remove all HTML tags (opening, closing, self-closing)
+  return text.replace(/<\/?[^>]+(>|$)/g, "").trim();
+}
+
+/**
+ * Remove the original source text if the model concatenated it with the
+ * translation (e.g. "Descubre el Buceo Discovery Scuba Diving" when
+ * translating "Discovery Scuba Diving" → "Descubre el Buceo").
+ *
+ * Detects cases where the original text appears as a suffix or prefix
+ * of the translated output and removes it.
+ */
+export function removeSourceContamination(
+  translated: string,
+  original: string
+): string {
+  if (!original || !translated) return translated;
+
+  const trimmedOriginal = original.trim();
+  const trimmedTranslated = translated.trim();
+
+  // If they're the same, assume no translation was needed
+  if (trimmedTranslated === trimmedOriginal) return trimmedTranslated;
+
+  // Check if original appears as a suffix (most common pattern)
+  if (
+    trimmedTranslated.length > trimmedOriginal.length &&
+    trimmedTranslated.endsWith(trimmedOriginal)
+  ) {
+    return trimmedTranslated.slice(0, -trimmedOriginal.length).trim();
+  }
+
+  // Check if original appears as a prefix
+  if (
+    trimmedTranslated.length > trimmedOriginal.length &&
+    trimmedTranslated.startsWith(trimmedOriginal)
+  ) {
+    return trimmedTranslated.slice(trimmedOriginal.length).trim();
+  }
+
+  return trimmedTranslated;
+}
+
 let cachedClient: BedrockRuntimeClient | null = null;
 
 function getClient(): BedrockRuntimeClient {
@@ -65,7 +113,12 @@ export async function translateText(
       if (!outputContent || outputContent.length === 0) {
         throw new Error("Empty response from Bedrock");
       }
-      return outputContent[0].text as string;
+      let result = outputContent[0].text as string;
+      // Post-process: strip HTML tags that Bedrock may have added
+      result = stripHtmlTags(result);
+      // Post-process: remove source text contamination (concatenation)
+      result = removeSourceContamination(result, text);
+      return result;
     } catch (error) {
       const err = error as { name?: string; message?: string };
       const isThrottling =

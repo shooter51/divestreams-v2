@@ -161,6 +161,34 @@ describe("translations.server", () => {
       expect(result.name).toBe("Translated Name");
     });
 
+    it("replaces (not concatenates) translated field values", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "Safari de Snorkel" },
+        { field: "description", value: "Descripción traducida" },
+      ]);
+      const entity = {
+        id: "tour-1",
+        name: "Snorkel Safari",
+        description: "Original description",
+      };
+      const { getTranslatedEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const result = await getTranslatedEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        "es",
+        entity,
+        ["name", "description"]
+      );
+      // Must fully replace, not concatenate
+      expect(result.name).toBe("Safari de Snorkel");
+      expect(result.name).not.toContain("Snorkel Safari");
+      expect(result.description).toBe("Descripción traducida");
+      expect(result.description).not.toContain("Original description");
+    });
+
     it("only overrides fields listed in translatableFields", async () => {
       selectChain = buildSelectChain([
         { field: "name", value: "Translated" },

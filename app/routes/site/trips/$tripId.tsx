@@ -310,13 +310,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 // HELPER FUNCTIONS
 // ============================================================================
 
-const tourTypes: Record<string, string> = {
-  single_dive: "Single Dive",
-  multi_dive: "Multi-Dive",
-  course: "Course",
-  snorkel: "Snorkel",
-  night_dive: "Night Dive",
-  other: "Dive Trip",
+const tourTypeKeys: Record<string, string> = {
+  single_dive: "site.trips.type.singleDive",
+  multi_dive: "site.trips.type.multiDive",
+  course: "site.trips.type.course",
+  snorkel: "site.trips.type.snorkel",
+  night_dive: "site.trips.type.nightDive",
+  other: "site.trips.type.diveTrip",
 };
 
 function formatDate(dateString: string): string {
@@ -329,8 +329,8 @@ function formatDate(dateString: string): string {
   });
 }
 
-function formatTime(timeString: string | null): string {
-  if (!timeString) return "Time TBA";
+function formatTime(timeString: string | null, tba?: string): string {
+  if (!timeString) return tba || "Time TBA";
   const [hours, minutes] = timeString.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -338,12 +338,12 @@ function formatTime(timeString: string | null): string {
   return `${displayHour}:${minutes} ${ampm}`;
 }
 
-function formatDuration(minutes: number | null): string {
+function formatDuration(minutes: number | null, t: (key: string, params?: Record<string, string | number>) => string): string {
   if (!minutes) return "";
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  if (hours === 0) return `${mins} minutes`;
-  if (mins === 0) return `${hours} hours`;
+  if (hours === 0) return t("site.trips.detail.minutes", { count: mins });
+  if (mins === 0) return t("site.trips.detail.hours", { count: hours });
   return `${hours}h ${mins}min`;
 }
 
@@ -460,7 +460,7 @@ export default function SiteTripDetailPage() {
               className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3"
               style={{ backgroundColor: "var(--primary-color)", color: "white" }}
             >
-              {tourTypes[trip.tourType] || trip.tourType}
+              {t(tourTypeKeys[trip.tourType] || "site.trips.type.diveTrip")}
             </span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
               {trip.tourName}
@@ -501,24 +501,24 @@ export default function SiteTripDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>{t("site.trips.startTime")}</p>
-                  <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.startTime)}</p>
+                  <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.startTime, t("site.trips.timeTba"))}</p>
                 </div>
                 {trip.endTime && (
                   <div>
                     <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>{t("site.trips.endTime")}</p>
-                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.endTime)}</p>
+                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.endTime, t("site.trips.timeTba"))}</p>
                   </div>
                 )}
                 {trip.duration && (
                   <div>
                     <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>{t("site.trips.duration")}</p>
-                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatDuration(trip.duration)}</p>
+                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatDuration(trip.duration, t)}</p>
                   </div>
                 )}
                 <div>
                   <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>{t("site.trips.groupSize")}</p>
                   <p className="font-medium" style={{ color: "var(--text-color)" }}>
-                    {trip.minParticipants}-{trip.maxParticipants} divers
+                    {t("site.trips.detail.divers", { min: trip.minParticipants, max: trip.maxParticipants })}
                   </p>
                 </div>
                 {trip.boatName && (
@@ -550,7 +550,7 @@ export default function SiteTripDetailPage() {
                         </div>
                         {site.difficulty && (
                           <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}>
-                            {site.difficulty}
+                            {t(`site.trips.detail.difficulty.${site.difficulty}`)}
                           </span>
                         )}
                       </div>
@@ -559,11 +559,11 @@ export default function SiteTripDetailPage() {
                       )}
                       <div className="mt-2 flex flex-wrap gap-3 text-sm">
                         {site.maxDepth && (
-                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>Max Depth: {site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</span>
+                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>{t("site.trips.detail.maxDepth", { depth: `${site.maxDepth}m / ${Math.round(site.maxDepth * 3.28084)}ft` })}</span>
                         )}
                         {site.highlights.length > 0 && (
                           <span className="opacity-60" style={{ color: "var(--text-color)" }}>
-                            Highlights: {site.highlights.slice(0, 3).join(", ")}
+                            {t("site.trips.detail.highlights", { items: site.highlights.slice(0, 3).join(", ") })}
                           </span>
                         )}
                       </div>
@@ -648,7 +648,7 @@ export default function SiteTripDetailPage() {
                       </svg>
                       <div>
                         <p className="font-medium" style={{ color: "var(--text-color)" }}>{t("site.trips.minimumCertification")}</p>
-                        <p className="text-sm opacity-70" style={{ color: "var(--text-color)" }}>{trip.minCertLevel} or equivalent</p>
+                        <p className="text-sm opacity-70" style={{ color: "var(--text-color)" }}>{t("site.trips.detail.orEquivalent", { level: trip.minCertLevel })}</p>
                       </div>
                     </div>
                   )}
@@ -659,7 +659,7 @@ export default function SiteTripDetailPage() {
                       </svg>
                       <div>
                         <p className="font-medium" style={{ color: "var(--text-color)" }}>{t("site.trips.minimumAge")}</p>
-                        <p className="text-sm opacity-70" style={{ color: "var(--text-color)" }}>{trip.minAge} years old</p>
+                        <p className="text-sm opacity-70" style={{ color: "var(--text-color)" }}>{t("site.trips.detail.yearsOld", { age: trip.minAge })}</p>
                       </div>
                     </div>
                   )}
@@ -720,7 +720,7 @@ export default function SiteTripDetailPage() {
                   />
                 </div>
                 <p className="text-xs opacity-60 mt-2 text-center" style={{ color: "var(--text-color)" }}>
-                  {trip.bookedCount} of {trip.maxParticipants} booked
+                  {t("site.trips.detail.booked", { booked: trip.bookedCount, total: trip.maxParticipants })}
                 </p>
               </div>
 
@@ -732,12 +732,12 @@ export default function SiteTripDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="opacity-60" style={{ color: "var(--text-color)" }}>{t("common.time")}</span>
-                  <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.startTime)}</span>
+                  <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.startTime, t("site.trips.timeTba"))}</span>
                 </div>
                 {trip.duration && (
                   <div className="flex justify-between">
                     <span className="opacity-60" style={{ color: "var(--text-color)" }}>{t("site.trips.duration")}</span>
-                    <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatDuration(trip.duration)}</span>
+                    <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatDuration(trip.duration, t)}</span>
                   </div>
                 )}
               </div>
@@ -764,13 +764,13 @@ export default function SiteTripDetailPage() {
                   <p className="text-xs font-medium opacity-60 mb-3" style={{ color: "var(--text-color)" }}>{t("site.trips.includedInPrice")}</p>
                   <div className="flex flex-wrap gap-2">
                     {trip.includesEquipment && (
-                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>Equipment</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>{t("site.trips.includesEquipment")}</span>
                     )}
                     {trip.includesMeals && (
-                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>Meals</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>{t("site.trips.includesMeals")}</span>
                     )}
                     {trip.includesTransport && (
-                      <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">Transport</span>
+                      <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">{t("site.trips.includesTransport")}</span>
                     )}
                   </div>
                 </div>

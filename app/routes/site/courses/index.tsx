@@ -30,11 +30,11 @@ const CERTIFICATION_AGENCIES = [
 ];
 
 const COURSE_LEVELS = [
-  { id: "beginner", name: "Beginner", description: "No experience required" },
-  { id: "open-water", name: "Open Water", description: "Entry-level certification" },
-  { id: "advanced", name: "Advanced", description: "For certified divers" },
-  { id: "specialty", name: "Specialty", description: "Focused skill courses" },
-  { id: "professional", name: "Professional", description: "Instructor-level training" },
+  { id: "beginner", nameKey: "site.courses.level.beginner" },
+  { id: "open-water", nameKey: "site.courses.level.openWater" },
+  { id: "advanced", nameKey: "site.courses.level.advanced" },
+  { id: "specialty", nameKey: "site.courses.level.specialty" },
+  { id: "professional", nameKey: "site.courses.level.professional" },
 ];
 
 // ============================================================================
@@ -91,11 +91,11 @@ export function extractActiveAgencies(
 }
 
 /**
- * Format duration in days to readable string
+ * Format duration in days to readable string using i18n
  */
-function formatDuration(days: number): string {
-  if (days === 1) return "1 day";
-  return `${days} days`;
+function formatDuration(days: number, t: (key: string, params?: Record<string, string>) => string): string {
+  if (days === 1) return t("site.courses.duration.day", { count: "1" });
+  return t("site.courses.duration.days", { count: String(days) });
 }
 
 /**
@@ -160,8 +160,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   // Get locale for translations
   const locale = resolveLocale(request);
 
-  // Get only public courses that have upcoming training sessions
-  const result = await getPublicCourses(org.id, { page, limit: 100, onlyWithUpcomingSessions: true });
+  // Get all public courses (not just those with upcoming sessions)
+  const result = await getPublicCourses(org.id, { page, limit: 100, onlyWithUpcomingSessions: false });
 
   // Apply content translations
   if (locale !== "en" && result.courses.length > 0) {
@@ -351,7 +351,7 @@ function CourseCard({ course }: { course: Course }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>{formatDuration(course.durationDays)}</span>
+            <span>{formatDuration(course.durationDays, t)}</span>
           </div>
 
           {/* Price */}
@@ -448,7 +448,7 @@ function FilterSection({
             <option value="">{t("site.courses.allLevels")}</option>
             {COURSE_LEVELS.map((level) => (
               <option key={level.id} value={level.id}>
-                {level.name}
+                {t(level.nameKey)}
               </option>
             ))}
           </select>
