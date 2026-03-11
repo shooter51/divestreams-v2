@@ -296,6 +296,7 @@ export const tours = pgTable("tours", {
 
   images: jsonb("images").$type<string[]>(),
   isActive: boolean("is_active").notNull().default(true),
+  requiresTankSelection: boolean("requires_tank_selection").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => [
@@ -383,6 +384,8 @@ export const bookings = pgTable("bookings", {
     name: string;
     certLevel?: string;
     equipment?: string[];
+    bringOwnTanks?: boolean;
+    tanks?: { type: string; gasType: string; quantity: number }[];
   }[]>(),
 
   status: text("status").notNull().default("pending"), // pending, confirmed, checked_in, completed, cancelled, no_show
@@ -409,6 +412,7 @@ export const bookings = pgTable("bookings", {
     size?: string;
     quantity?: number;
     price: number;
+    gasType?: string;
   }[]>(),
 
   // Waivers and forms

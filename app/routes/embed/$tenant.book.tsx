@@ -12,6 +12,8 @@ import { getOrganizationBySlug, getPublicTripById } from "../../../lib/db/querie
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../lib/email/triggers";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { getTankTypes } from "../../../lib/db/queries/equipment.server";
+import { TankGasSelector } from "../../components/tank-gas-selector";
 import { useState } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Complete Your Booking" }];
@@ -33,7 +35,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const trip = await getPublicTripById(org.id, tripId);
+  const [trip, tankTypes] = await Promise.all([
+    getPublicTripById(org.id, tripId),
+    getTankTypes(org.id),
+  ]);
+
   if (!trip) {
     throw new Response("Trip not found or no longer available", { status: 404 });
   }
@@ -44,6 +50,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   return {
     trip,
+    tankTypes,
     tenantSlug: subdomain,
     organizationId: org.id,
   };
@@ -75,6 +82,28 @@ export async function action({ params, request }: ActionFunctionArgs) {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const phone = (formData.get("phone") as string)?.trim();
   const specialRequests = (formData.get("specialRequests") as string)?.trim();
+
+  // Parse tank selections
+  const participantDetails: { name: string; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[] = [];
+  for (let i = 0; i < participants; i++) {
+    const bringOwn = formData.get(`participantTanks[${i}].bringOwn`) === "true";
+    const tankSelections: { type: string; gasType: string; quantity: number }[] = [];
+    for (let j = 0; j < 4; j++) {
+      const tankType = formData.get(`participantTanks[${i}].tanks[${j}].type`) as string | null;
+      const gasType = formData.get(`participantTanks[${i}].tanks[${j}].gasType`) as string | null;
+      const qty = formData.get(`participantTanks[${i}].tanks[${j}].quantity`) as string | null;
+      if (tankType && gasType && qty) {
+        tankSelections.push({ type: tankType, gasType, quantity: parseInt(qty, 10) || 1 });
+      }
+    }
+    if (tankSelections.length > 0 || bringOwn) {
+      participantDetails.push({
+        name: `Participant ${i + 1}`,
+        bringOwnTanks: bringOwn,
+        tanks: bringOwn ? undefined : tankSelections,
+      });
+    }
+  }
 
   // Validation
   const errors: Record<string, string> = {};
@@ -123,6 +152,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
       email,
       phone: phone || undefined,
       specialRequests: specialRequests || undefined,
+      participantDetails: participantDetails.length > 0 ? participantDetails : undefined,
     });
 
     // Send booking confirmation email if notification settings allow it
@@ -194,7 +224,7 @@ function formatPrice(price: string | number, currency: string): string {
 }
 
 export default function BookingFormPage() {
-  const { trip, tenantSlug } = useLoaderData<typeof loader>();
+  const { trip, tankTypes, tenantSlug } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { branding } = useOutletContext<{
@@ -204,6 +234,8 @@ export default function BookingFormPage() {
 
   const [participants, setParticipants] = useState(1);
   const isSubmitting = navigation.state === "submitting";
+  const showTankSelection = tankTypes.length > 0;
+  const requiresTankSelection = trip.requiresTankSelection === true;
 
   const pricePerPerson = parseFloat(trip.price);
   const total = pricePerPerson * participants;
@@ -258,6 +290,36 @@ export default function BookingFormPage() {
                 <p className="text-danger text-sm mt-1">{actionData.errors.participants}</p>
               )}
             </div>
+
+            {/* Tank & Gas Selection */}
+            {showTankSelection && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {requiresTankSelection ? "Tank & Gas Selection *" : "Tank & Gas Selection (Optional)"}
+                </label>
+                {requiresTankSelection && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    This tour requires tank and gas selection.
+                  </p>
+                )}
+                <div className="space-y-3">
+                  {Array.from({ length: participants }, (_, i) => (
+                    <div key={i} className="p-3 border border-border rounded-lg bg-surface-inset">
+                      {participants > 1 && (
+                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Participant {i + 1}
+                        </p>
+                      )}
+                      <TankGasSelector
+                        tankTypes={tankTypes}
+                        participantIndex={i}
+                        required={requiresTankSelection}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Contact Details */}
             <fieldset>

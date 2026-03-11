@@ -168,6 +168,7 @@ export function mapTour(row: TourInput) {
     exclusions: row.exclusions || [],
     requirements: row.requirements || [],
     isActive: pick(row.isActive, r.is_active) as boolean,
+    requiresTankSelection: (pick(row.requiresTankSelection, r.requires_tank_selection) ?? false) as boolean,
     createdAt: pick(row.createdAt, r.created_at) as Date,
     updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };

@@ -70,6 +70,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     minAge: tourData.minAge || null,
     requirements: tourData.requirements || [],
     isActive: tourData.isActive,
+    requiresTankSelection: tourData.requiresTankSelection || false,
   };
 
   const images: Image[] = tourImages.map((img) => ({
@@ -143,6 +144,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       minAge: validation.data.minAge as number | undefined,
       requirements: validation.data.requirements,
       isActive: validation.data.isActive,
+      requiresTankSelection: validation.data.requiresTankSelection,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.tours.organizationId, organizationId), eq(schema.tours.id, tourId)));
@@ -368,6 +370,16 @@ export default function EditTourPage() {
                   className="rounded"
                 />
                 <span className="text-sm">Transport</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="requiresTankSelection"
+                  value="true"
+                  defaultChecked={actionData?.values?.requiresTankSelection === "true" || tour.requiresTankSelection}
+                  className="rounded"
+                />
+                <span className="text-sm">Require tank &amp; gas selection</span>
               </label>
             </div>
 

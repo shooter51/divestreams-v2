@@ -240,6 +240,73 @@ export async function deleteEquipment(organizationId: string, id: string) {
 }
 
 // ============================================================================
+// Tank Type Queries
+// ============================================================================
+
+const GAS_TYPES = ["air", "nitrox32", "nitrox36", "trimix", "oxygen"] as const;
+
+export interface TankType {
+  name: string;
+  gasTypes: string[];
+  rentalPrice: string;
+  availableCount: number;
+}
+
+/**
+ * Returns tank types available for rental, grouped by name.
+ * Gas types are read from the tank's model field (comma-separated gas type codes),
+ * defaulting to ["air"] if not specified.
+ */
+export async function getTankTypes(organizationId: string): Promise<TankType[]> {
+  const tanks = await db
+    .select({
+      name: schema.equipment.name,
+      model: schema.equipment.model,
+      rentalPrice: schema.equipment.rentalPrice,
+      status: schema.equipment.status,
+    })
+    .from(schema.equipment)
+    .where(
+      and(
+        eq(schema.equipment.organizationId, organizationId),
+        eq(schema.equipment.category, "tank"),
+        eq(schema.equipment.isRentable, true),
+        sql`${schema.equipment.rentalPrice} IS NOT NULL AND CAST(${schema.equipment.rentalPrice} AS DECIMAL) > 0`
+      )
+    )
+    .orderBy(schema.equipment.name);
+
+  // Group by name
+  const groups = new Map<string, { gasTypes: Set<string>; rentalPrice: string; total: number; available: number }>();
+
+  for (const tank of tanks) {
+    const name = tank.name;
+    if (!groups.has(name)) {
+      groups.set(name, { gasTypes: new Set(["air"]), rentalPrice: tank.rentalPrice ?? "0", total: 0, available: 0 });
+    }
+    const group = groups.get(name)!;
+    group.total++;
+    if (tank.status === "available") group.available++;
+
+    // Parse gas types from model field (comma-separated)
+    if (tank.model) {
+      const modelGasTypes = tank.model.split(",").map(g => g.trim()).filter(g => GAS_TYPES.includes(g as typeof GAS_TYPES[number]));
+      if (modelGasTypes.length > 0) {
+        group.gasTypes.clear();
+        for (const g of modelGasTypes) group.gasTypes.add(g);
+      }
+    }
+  }
+
+  return Array.from(groups.entries()).map(([name, group]) => ({
+    name,
+    gasTypes: Array.from(group.gasTypes),
+    rentalPrice: group.rentalPrice,
+    availableCount: group.available,
+  }));
+}
+
+// ============================================================================
 // Equipment Utilization Report
 // ============================================================================
 

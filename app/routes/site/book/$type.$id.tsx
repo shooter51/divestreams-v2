@@ -46,10 +46,19 @@ import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { getNextBookingNumber } from "../../../../lib/db/queries/bookings.server";
+import { getTankTypes } from "../../../../lib/db/queries/equipment.server";
+import { TankGasSelector } from "../../../components/tank-gas-selector";
 
 // ============================================================================
 // TYPES
 // ============================================================================
+
+interface TankTypeOption {
+  name: string;
+  gasTypes: string[];
+  rentalPrice: string;
+  availableCount: number;
+}
 
 interface TripDetails {
   id: string;
@@ -68,6 +77,7 @@ interface TripDetails {
   includesEquipment: boolean;
   includesMeals: boolean;
   includesTransport: boolean;
+  requiresTankSelection: boolean;
 }
 
 interface CourseDetails {
@@ -114,6 +124,7 @@ interface LoaderData {
   course?: CourseDetails;
   selectedSessionId?: string;
   equipment: RentalEquipment[];
+  tankTypes: TankTypeOption[];
   customer: CustomerData | null;
   organizationName: string;
   organizationId: string;
@@ -196,7 +207,11 @@ export async function loader({
     ? await getCustomerBySession(sessionToken)
     : null;
 
-  // Get rentable equipment
+  // Get rentable equipment and tank types in parallel
+  const [tankTypesData] = await Promise.all([
+    getTankTypes(org.id),
+  ]);
+
   const rentableEquipment = await db
     .select({
       id: equipment.id,
@@ -254,6 +269,7 @@ export async function loader({
         includesEquipment: tours.includesEquipment,
         includesMeals: tours.includesMeals,
         includesTransport: tours.includesTransport,
+        requiresTankSelection: tours.requiresTankSelection,
       })
       .from(trips)
       .innerJoin(tours, eq(trips.tourId, tours.id))
@@ -314,6 +330,7 @@ export async function loader({
       includesEquipment: tripData.includesEquipment || false,
       includesMeals: tripData.includesMeals || false,
       includesTransport: tripData.includesTransport || false,
+      requiresTankSelection: tripData.requiresTankSelection || false,
     };
 
     if (trip.availableSpots === 0) {
@@ -324,6 +341,7 @@ export async function loader({
       type: "trip",
       trip,
       equipment: tripData.includesEquipment ? [] : equipmentList,
+      tankTypes: tankTypesData,
       customer: customerData,
       organizationName: org.name,
       organizationId: org.id,
@@ -510,6 +528,7 @@ export async function loader({
       course,
       selectedSessionId: sessionParam || undefined,
       equipment: courseData.includesEquipment ? [] : equipmentList,
+      tankTypes: [],
       customer: customerData,
       organizationName: org.name,
       organizationId: org.id,
@@ -582,6 +601,28 @@ export async function action({
   const specialRequests = (formData.get("specialRequests") as string)?.trim();
   const rawCustomerId = formData.get("customerId") as string;
   const selectedEquipment = formData.getAll("equipment") as string[];
+
+  // Parse tank selections for each participant
+  const participantDetails: { name: string; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[] = [];
+  for (let i = 0; i < participants; i++) {
+    const bringOwn = formData.get(`participantTanks[${i}].bringOwn`) === "true";
+    const tankSelections: { type: string; gasType: string; quantity: number }[] = [];
+    for (let j = 0; j < 4; j++) {
+      const tankType = formData.get(`participantTanks[${i}].tanks[${j}].type`) as string | null;
+      const gasType = formData.get(`participantTanks[${i}].tanks[${j}].gasType`) as string | null;
+      const qty = formData.get(`participantTanks[${i}].tanks[${j}].quantity`) as string | null;
+      if (tankType && gasType && qty) {
+        tankSelections.push({ type: tankType, gasType, quantity: parseInt(qty, 10) || 1 });
+      }
+    }
+    if (tankSelections.length > 0 || bringOwn) {
+      participantDetails.push({
+        name: `Participant ${i + 1}`,
+        bringOwnTanks: bringOwn,
+        tanks: bringOwn ? undefined : tankSelections,
+      });
+    }
+  }
 
   // Verify customerId ownership: if a session exists, customerId must match the
   // session's customer; if no session, reject any supplied customerId (guest
@@ -997,6 +1038,8 @@ export async function action({
           equipmentRental:
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             equipmentRental.length > 0 ? (equipmentRental as any) : null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          participantDetails: participantDetails.length > 0 ? (participantDetails as any) : null,
           source: "website",
         })
         .returning({
@@ -1080,6 +1123,9 @@ export default function BookingPage() {
     data.selectedSessionId || ""
   );
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+
+  const requiresTankSelection = data.type === "trip" && data.trip?.requiresTankSelection === true;
+  const showTankSelection = data.type === "trip" && data.tankTypes.length > 0;
 
   // For course, find the selected session details
   const session =
@@ -1361,6 +1407,44 @@ export default function BookingPage() {
                 </p>
               )}
             </div>
+
+            {/* Tank & Gas Selection */}
+            {showTankSelection && (
+              <div
+                className="rounded-xl p-6 shadow-sm"
+                style={{
+                  backgroundColor: "var(--color-card-bg)",
+                  borderColor: "var(--color-border)",
+                  borderWidth: "1px",
+                }}
+              >
+                <h2
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: "var(--text-color)" }}
+                >
+                  {requiresTankSelection ? "Tank & Gas Selection" : "Tank & Gas Selection (Optional)"}
+                </h2>
+                {requiresTankSelection && (
+                  <p className="text-sm opacity-75 mb-4">
+                    This tour requires tank and gas selection for each participant.
+                  </p>
+                )}
+                <div className="space-y-4">
+                  {Array.from({ length: participants }, (_, i) => (
+                    <div key={i} className="p-3 rounded-lg" style={{ backgroundColor: "var(--accent-color)" }}>
+                      <p className="text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
+                        Participant {i + 1}
+                      </p>
+                      <TankGasSelector
+                        tankTypes={data.tankTypes}
+                        participantIndex={i}
+                        required={requiresTankSelection}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Equipment Rental */}
             {data.equipment.length > 0 && (
