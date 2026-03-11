@@ -93,12 +93,6 @@ export default function TrainingDashboardPage() {
           >
             {t("tenant.training.dashboard.viewSeries")}
           </Link>
-          <Link
-            to="/tenant/training/series"
-            className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
-          >
-            View Series
-          </Link>
         </div>
       </div>
 
@@ -272,13 +266,6 @@ export default function TrainingDashboardPage() {
           >
             <span className="text-xl">+</span>
             <span>{t("tenant.training.series.createSeries")}</span>
-          </Link>
-          <Link
-            to="/tenant/training/series/new"
-            className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
-          >
-            <span className="text-xl">+</span>
-            <span>New Series</span>
           </Link>
         </div>
       </div>
