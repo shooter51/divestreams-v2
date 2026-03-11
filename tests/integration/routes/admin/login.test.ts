@@ -209,6 +209,7 @@ describe("admin/login route", () => {
 
       expect(auth.api.signInEmail).toHaveBeenCalledWith({
         body: { email: "admin@example.com", password: "wrongpassword" },
+        headers: expect.any(Headers),
         asResponse: true,
       });
       expect(response).toEqual({ error: "Invalid credentials", email: "admin@example.com" });
@@ -264,6 +265,7 @@ describe("admin/login route", () => {
 
       expect(auth.api.signInEmail).toHaveBeenCalledWith({
         body: { email: "admin@example.com", password: "correctpassword" },
+        headers: expect.any(Headers),
         asResponse: true,
       });
       expect(response).toBeInstanceOf(Response);
