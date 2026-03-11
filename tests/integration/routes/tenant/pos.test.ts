@@ -421,9 +421,9 @@ describe("tenant/pos route", () => {
           success: true,
           receiptNumber: "R-0002",
           transaction: expect.objectContaining({
-            id: mockTransaction.id,
-            amount: mockTransaction.amount,
-            paymentMethod: mockTransaction.paymentMethod,
+            id: "R-0002",
+            amount: 100,
+            paymentMethod: "cash",
           }),
         });
       });
