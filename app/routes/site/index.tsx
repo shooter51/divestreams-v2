@@ -17,6 +17,8 @@ import {
   getPublicTrips,
   getPublicCourses,
 } from "../../../lib/db/public-site.server";
+import { bulkGetContentTranslations, getContentTranslations } from "../../../lib/db/translations.server";
+import { resolveLocale } from "../../i18n/resolve-locale";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
 import type { SiteLoaderData } from "./_layout";
 
@@ -50,6 +52,7 @@ interface HomeLoaderData {
     durationDays: number;
     images: string[] | null;
   }>;
+  translatedAboutContent: string | null;
 }
 
 // ============================================================================
@@ -127,25 +130,74 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
 
   const imageMap = new Map(tourImages.map(img => [img.tourId, img.url]));
 
-  return {
-    featuredTrips: tripsResult.trips.map((trip) => ({
-      id: trip.id,
-      date: trip.date,
-      startTime: trip.startTime,
-      price: trip.price,
-      primaryImage: trip.tour?.id ? (imageMap.get(trip.tour.id) || null) : null,
-      tour: trip.tour,
-    })),
-    featuredCourses: coursesResult.courses.map((course) => ({
-      id: course.id,
-      name: course.name,
-      description: course.description,
-      price: course.price,
-      currency: course.currency,
-      durationDays: course.durationDays,
-      images: course.images,
-    })),
-  };
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+
+  let featuredTrips = tripsResult.trips.map((trip) => ({
+    id: trip.id,
+    date: trip.date,
+    startTime: trip.startTime,
+    price: trip.price,
+    primaryImage: trip.tour?.id ? (imageMap.get(trip.tour.id) || null) : null,
+    tour: trip.tour,
+  }));
+
+  let featuredCourses = coursesResult.courses.map((course) => ({
+    id: course.id,
+    name: course.name,
+    description: course.description,
+    price: course.price,
+    currency: course.currency,
+    durationDays: course.durationDays,
+    images: course.images,
+  }));
+
+  if (locale !== "en") {
+    // Translate tour names/descriptions
+    const tourIds = [...new Set(featuredTrips.map((t) => t.tour?.id).filter(Boolean) as string[])];
+    if (tourIds.length > 0) {
+      const tourTranslations = await bulkGetContentTranslations(org.id, "tour", tourIds, locale);
+      featuredTrips = featuredTrips.map((t) => {
+        if (!t.tour) return t;
+        const tr = tourTranslations.get(t.tour.id);
+        if (!tr) return t;
+        return {
+          ...t,
+          tour: {
+            ...t.tour,
+            name: tr.name || t.tour.name,
+            description: tr.description || t.tour.description,
+          },
+        };
+      });
+    }
+
+    // Translate course names/descriptions
+    const courseIds = featuredCourses.map((c) => c.id);
+    if (courseIds.length > 0) {
+      const courseTranslations = await bulkGetContentTranslations(org.id, "course", courseIds, locale);
+      featuredCourses = featuredCourses.map((c) => {
+        const tr = courseTranslations.get(c.id);
+        if (!tr) return c;
+        return {
+          ...c,
+          name: tr.name || c.name,
+          description: tr.description || c.description,
+        };
+      });
+    }
+  }
+
+  // Translate about content
+  let translatedAboutContent: string | null = null;
+  if (locale !== "en") {
+    const siteTranslations = await getContentTranslations(org.id, "site_settings", org.id, locale);
+    if (siteTranslations.aboutContent) {
+      translatedAboutContent = siteTranslations.aboutContent;
+    }
+  }
+
+  return { featuredTrips, featuredCourses, translatedAboutContent };
 }
 
 /**
@@ -357,7 +409,7 @@ function CourseCard({
 // ============================================================================
 
 export default function SiteHomePage() {
-  const { featuredTrips, featuredCourses } = useLoaderData<typeof loader>();
+  const { featuredTrips, featuredCourses, translatedAboutContent } = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
   const t = useT();
 
@@ -632,7 +684,7 @@ export default function SiteHomePage() {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-6">{t("site.about.title")}</h2>
             <p className="text-lg opacity-80 leading-relaxed line-clamp-4 whitespace-pre-line">
-              {settings.aboutContent}
+              {translatedAboutContent || settings.aboutContent}
             </p>
             <Link
               to="/site/about"
