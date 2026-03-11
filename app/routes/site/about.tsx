@@ -9,6 +9,8 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useRouteLoaderData, useLoaderData } from "react-router";
 import type { SiteLoaderData } from "./_layout";
 import { getPublicPageContent } from "../../../lib/db/page-content.server";
+import { getContentTranslations } from "../../../lib/db/translations.server";
+import { resolveLocale } from "../../i18n/resolve-locale";
 import { ContentBlockRenderer } from "../../components/ContentBlockRenderer";
 import { useT } from "../../i18n/use-t";
 
@@ -61,7 +63,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Try to get page content from CMS
   const pageContent = await getPublicPageContent(org.id, "about");
 
-  return { pageContent };
+  // Translate aboutContent for non-English locales
+  const locale = resolveLocale(request);
+  let translatedAboutContent: string | null = null;
+  if (locale !== "en") {
+    const translations = await getContentTranslations(org.id, "site_settings", org.id, locale);
+    if (translations.aboutContent) {
+      translatedAboutContent = translations.aboutContent;
+    }
+  }
+
+  return { pageContent, translatedAboutContent };
 }
 
 // ============================================================================
@@ -72,7 +84,7 @@ export default function SiteAboutPage() {
   const t = useT();
   // Get data from parent layout loader
   const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
-  const { pageContent } = useLoaderData<typeof loader>();
+  const { pageContent, translatedAboutContent } = useLoaderData<typeof loader>();
 
   if (!loaderData) {
     return (
@@ -85,9 +97,10 @@ export default function SiteAboutPage() {
 
   const { organization, settings } = loaderData;
 
-  // Priority: CMS content > settings.aboutContent > hardcoded fallback
+  // Priority: CMS content > translated aboutContent > settings.aboutContent > hardcoded fallback
   const useCmsContent = pageContent && pageContent.content.blocks.length > 0;
-  const useSettingsContent = !useCmsContent && settings.aboutContent;
+  const aboutText = translatedAboutContent || settings.aboutContent;
+  const useSettingsContent = !useCmsContent && aboutText;
 
   return (
     <div className="min-h-screen">
@@ -117,7 +130,7 @@ export default function SiteAboutPage() {
           // Render content from Settings → Public Site → Content
           <div className="prose prose-lg max-w-none">
             <div className="whitespace-pre-line opacity-85">
-              {settings.aboutContent}
+              {aboutText}
             </div>
           </div>
         ) : (
