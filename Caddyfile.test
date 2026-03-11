@@ -1,7 +1,7 @@
 {
     email admin@divestreams.com
     on_demand_tls {
-        ask http://app:3000/api/health
+        ask http://app:3000/api/domain-check
     }
 }
 
@@ -33,6 +33,35 @@ test.divestreams.com {
 }
 
 *.test.divestreams.com {
+    tls {
+        on_demand
+    }
+
+    encode gzip
+
+    import security_headers
+
+    header {
+        X-Frame-Options SAMEORIGIN
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data:; connect-src 'self' https://api.stripe.com; frame-src 'self' https://*.divestreams.com https://*.test.divestreams.com; frame-ancestors 'none'"
+    }
+
+    handle /embed/* {
+        header -X-Frame-Options
+        header Content-Security-Policy "frame-ancestors *"
+        reverse_proxy app:3000
+    }
+
+    reverse_proxy app:3000
+
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}
+
+# Catch-all for custom tenant domains (e.g., www.thediveshopla.com)
+:443 {
     tls {
         on_demand
     }
