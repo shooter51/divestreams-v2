@@ -1,11 +1,13 @@
+import { useState } from "react";
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
-import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
+import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById, getTankTypes } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { TankGasSelector } from "../../../components/tank-gas-selector";
 import { formatDisplayDate as sharedFormatDisplayDate, formatTime as sharedFormatTime } from "../../../lib/format";
 import { useT } from "../../../i18n/use-t";
 
@@ -23,10 +25,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const today = new Date().toISOString().split("T")[0];
 
   // Fetch real data from tenant database
-  const [customersResult, tripsData, equipmentData] = await Promise.all([
+  const [customersResult, tripsData, equipmentData, tankTypes] = await Promise.all([
     getCustomers(organizationId, { limit: 100 }),
     getTrips(organizationId, { fromDate: today, status: "scheduled", limit: 50 }),
     getEquipment(organizationId, { isRentable: true, status: "available" }),
+    getTankTypes(organizationId),
   ]);
 
   // Map customers to expected format
@@ -68,9 +71,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
 
-  // If tripId is provided, fetch it directly so it always pre-fills regardless of status/capacity
-  let selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
-  if (tripId && !selectedTrip) {
+  // If tripId is provided, fetch full trip data including requiresTankSelection from the tour
+  let selectedTrip: { id: string; tourName: string; date: string; startTime: string; spotsAvailable: number | null; price: string; requiresTankSelection: boolean } | null = null;
+  if (tripId) {
     const tripData = await getTripById(organizationId, tripId);
     if (tripData) {
       const hasCapacityLimit = (tripData.maxParticipants ?? 0) > 0;
@@ -83,11 +86,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
         startTime: tripData.startTime || "00:00",
         spotsAvailable,
         price: tripData.price ? tripData.price.toFixed(2) : "0.00",
+        requiresTankSelection: tripData.requiresTankSelection ?? false,
       };
     }
   }
 
-  return { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip };
+  return { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip, tankTypes };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -124,6 +128,24 @@ export async function action({ request }: ActionFunctionArgs) {
   const subtotal = pricePerPerson * participants;
   const total = subtotal; // Could add tax/discounts here
 
+  // Parse tank selections from form data
+  const participantDetails: { name: string; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[] = [];
+  for (let i = 0; i < participants; i++) {
+    const bringOwn = formData.get(`participantTanks[${i}].bringOwn`) === "true";
+    const tanks: { type: string; gasType: string; quantity: number }[] = [];
+    for (let j = 0; j < 4; j++) {
+      const tankType = formData.get(`participantTanks[${i}].tanks[${j}].type`) as string | null;
+      const gasType = formData.get(`participantTanks[${i}].tanks[${j}].gasType`) as string | null;
+      const qty = formData.get(`participantTanks[${i}].tanks[${j}].quantity`) as string | null;
+      if (tankType && gasType && qty) {
+        tanks.push({ type: tankType, gasType, quantity: parseInt(qty, 10) || 1 });
+      }
+    }
+    if (tanks.length > 0 || bringOwn) {
+      participantDetails.push({ name: `Participant ${i + 1}`, bringOwnTanks: bringOwn, tanks: bringOwn ? undefined : tanks });
+    }
+  }
+
   // Create the booking (transactional with availability check)
   let booking;
   try {
@@ -136,6 +158,7 @@ export async function action({ request }: ActionFunctionArgs) {
       currency: "USD",
       specialRequests: data.specialRequests,
       source: data.source || "direct",
+      participantDetails: participantDetails.length > 0 ? participantDetails : undefined,
     });
   } catch (error) {
     if (error instanceof Error && error.message.includes("spots")) {
@@ -177,11 +200,12 @@ function formatTime(t: string | null | undefined): string {
 }
 
 export default function NewBookingPage() {
-  const { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip } = useLoaderData<typeof loader>();
+  const { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip, tankTypes } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const t = useT();
+  const [participants, setParticipants] = useState(Number(actionData?.values?.participants) || 1);
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
@@ -305,7 +329,8 @@ export default function NewBookingPage() {
                 name="participants"
                 min="1"
                 max={selectedTrip?.spotsAvailable ?? undefined}
-                defaultValue={actionData?.values?.participants || "1"}
+                value={participants}
+                onChange={(e) => setParticipants(Math.max(1, parseInt(e.target.value, 10) || 1))}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
@@ -333,6 +358,32 @@ export default function NewBookingPage() {
               </div>
             </div>
           </div>
+
+          {/* Tank & Gas Selection */}
+          {selectedTrip && tankTypes.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <h3 className="text-sm font-medium mb-3">
+                {selectedTrip.requiresTankSelection ? "Tank & Gas Selection *" : "Tank & Gas Selection (optional)"}
+              </h3>
+              {selectedTrip.requiresTankSelection && (
+                <p className="text-sm text-foreground-muted mb-3">
+                  This tour requires tank and gas selection for each participant.
+                </p>
+              )}
+              <div className="space-y-4">
+                {Array.from({ length: participants }, (_, i) => (
+                  <div key={i} className="p-3 bg-surface-inset rounded-lg">
+                    <p className="text-sm font-medium mb-2">Participant {i + 1}</p>
+                    <TankGasSelector
+                      tankTypes={tankTypes}
+                      participantIndex={i}
+                      required={selectedTrip.requiresTankSelection}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Equipment Rental */}

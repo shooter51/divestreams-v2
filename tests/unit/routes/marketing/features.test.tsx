@@ -23,12 +23,14 @@ describe("FeaturesPage", () => {
         <FeaturesPage />
       </MemoryRouter>
     );
-    const images = screen.getAllByRole("img");
-    expect(images.length).toBe(5);
-    for (const img of images) {
-      const src = img.getAttribute("src") ?? "";
-      expect(src).toMatch(/placehold\.co/);
-      expect(src).not.toBe("");
+    const featureImages = screen
+      .getAllByRole("img")
+      .filter((img) =>
+        (img.getAttribute("src") ?? "").includes("/guide/screenshots/")
+      );
+    expect(featureImages.length).toBe(5);
+    for (const img of featureImages) {
+      expect(img.getAttribute("src")).not.toBe("");
     }
   });
 

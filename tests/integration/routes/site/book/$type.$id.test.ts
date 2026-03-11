@@ -60,6 +60,10 @@ vi.mock("../../../../../lib/utils/rate-limit", () => ({
   getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
 }));
 
+vi.mock("../../../../../lib/db/queries/equipment.server", () => ({
+  getTankTypes: vi.fn().mockResolvedValue([]),
+}));
+
 import { db } from "../../../../../lib/db";
 import { getSubdomainFromHost } from "../../../../../lib/utils/url";
 import { getCustomerBySession } from "../../../../../lib/auth/customer-auth.server";
