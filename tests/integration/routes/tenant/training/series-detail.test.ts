@@ -8,9 +8,11 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
 
 vi.mock("../../../../../lib/db/training.server", () => ({
   getSeriesById: vi.fn(),
-  getSessionsBySeries: vi.fn(),
+  getEnrollments: vi.fn(),
   updateSeries: vi.fn(),
   deleteSeries: vi.fn(),
+  addSessionToSeries: vi.fn(),
+  removeSessionFromSeries: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/use-notification", () => ({
@@ -31,7 +33,7 @@ vi.mock("react-router", async () => {
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
   getSeriesById,
-  getSessionsBySeries,
+  getEnrollments,
   updateSeries,
   deleteSeries,
 } from "../../../../../lib/db/training.server";
@@ -59,31 +61,22 @@ const mockSeries = {
   status: "active",
   maxStudents: 8,
   priceOverride: null,
-  instructorId: null,
+  instructorName: null,
+  notes: null,
+  sessions: [],
   createdAt: new Date("2026-01-01"),
   updatedAt: new Date("2026-01-01"),
 };
 
-const mockSessions = [
+const mockEnrollments = [
   {
-    id: "session-1",
-    seriesIndex: 1,
-    sessionType: "classroom",
-    startDate: "2026-04-01",
-    startTime: "18:00",
-    location: "Dive Center",
-    status: "scheduled",
-    enrolledCount: 3,
-  },
-  {
-    id: "session-2",
-    seriesIndex: 2,
-    sessionType: "pool",
-    startDate: "2026-04-05",
-    startTime: "10:00",
-    location: "Pool",
-    status: "scheduled",
-    enrolledCount: 3,
+    id: "enrollment-1",
+    seriesId: "series-1",
+    sessionId: "session-1",
+    customerId: "customer-1",
+    status: "enrolled",
+    amountPaid: null,
+    paymentStatus: "pending",
   },
 ];
 
@@ -92,7 +85,7 @@ describe("tenant/training/series/$id route", () => {
     vi.clearAllMocks();
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getSeriesById as Mock).mockResolvedValue(mockSeries);
-    (getSessionsBySeries as Mock).mockResolvedValue(mockSessions);
+    (getEnrollments as Mock).mockResolvedValue(mockEnrollments);
     (updateSeries as Mock).mockResolvedValue({ ...mockSeries, status: "completed" });
     (deleteSeries as Mock).mockResolvedValue(undefined);
   });
@@ -104,13 +97,13 @@ describe("tenant/training/series/$id route", () => {
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
-    it("returns series and sessions", async () => {
+    it("returns series and enrollments", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/series/series-1");
       const result = await loader({ request, params: { id: "series-1" }, context: {}, unstable_pattern: "" } as unknown);
       expect(result.series).toEqual(mockSeries);
-      expect(result.sessions).toEqual(mockSessions);
+      expect(result.enrollments).toEqual(mockEnrollments);
       expect(getSeriesById).toHaveBeenCalledWith("org-uuid", "series-1");
-      expect(getSessionsBySeries).toHaveBeenCalledWith("org-uuid", "series-1");
+      expect(getEnrollments).toHaveBeenCalledWith("org-uuid", { seriesId: "series-1" });
     });
 
     it("throws 404 when series not found", async () => {
@@ -132,9 +125,9 @@ describe("tenant/training/series/$id route", () => {
   });
 
   describe("action", () => {
-    it("handles delete intent", async () => {
+    it("handles delete-series intent", async () => {
       const formData = new FormData();
-      formData.append("intent", "delete");
+      formData.append("intent", "delete-series");
 
       const request = new Request("https://demo.divestreams.com/tenant/training/series/series-1", {
         method: "POST",
@@ -147,9 +140,9 @@ describe("tenant/training/series/$id route", () => {
       expect((result as Response).status).toBe(302);
     });
 
-    it("handles update-status intent", async () => {
+    it("handles update-series intent", async () => {
       const formData = new FormData();
-      formData.append("intent", "update-status");
+      formData.append("intent", "update-series");
       formData.append("status", "completed");
 
       const request = new Request("https://demo.divestreams.com/tenant/training/series/series-1", {
@@ -159,8 +152,13 @@ describe("tenant/training/series/$id route", () => {
 
       const result = await action({ request, params: { id: "series-1" }, context: {}, unstable_pattern: "" } as unknown);
 
-      expect(updateSeries).toHaveBeenCalledWith("org-uuid", "series-1", { status: "completed" });
-      expect(result).toEqual({ updated: true });
+      expect(updateSeries).toHaveBeenCalledWith("org-uuid", "series-1", {
+        status: "completed",
+        instructorName: null,
+        notes: null,
+        priceOverride: null,
+      });
+      expect((result as Response).status).toBe(302);
     });
 
     it("returns null for unknown intent", async () => {

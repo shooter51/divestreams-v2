@@ -71,16 +71,16 @@ describe("tenant/training/series/new route", () => {
       expect(getCourses).toHaveBeenCalledWith("org-uuid");
     });
 
-    it("returns preselected courseId from query param", async () => {
+    it("returns only courses when no courseId query param provided", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/series/new?courseId=course-1");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
-      expect(result.courseId).toBe("course-1");
+      expect(result.courses).toEqual(mockCourses);
     });
 
-    it("returns null courseId when not provided", async () => {
+    it("returns courses list regardless of query params", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/series/new");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
-      expect(result.courseId).toBeNull();
+      expect(result.courses).toEqual(mockCourses);
     });
   });
 
@@ -131,7 +131,10 @@ describe("tenant/training/series/new route", () => {
         name: "Spring 2026 OW Series",
         maxStudents: undefined,
         priceOverride: undefined,
-        instructorId: undefined,
+        instructorName: undefined,
+        notes: undefined,
+        status: "scheduled",
+        sessions: [],
       });
       expect((result as Response).status).toBe(302);
     });
@@ -157,7 +160,10 @@ describe("tenant/training/series/new route", () => {
         name: "Spring 2026 OW Series",
         maxStudents: 6,
         priceOverride: "325.00",
-        instructorId: "user-1",
+        instructorName: undefined,
+        notes: undefined,
+        status: "scheduled",
+        sessions: [],
       });
       expect((result as Response).status).toBe(302);
     });
@@ -177,7 +183,7 @@ describe("tenant/training/series/new route", () => {
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
       expect((result as Response).status).toBe(302);
       const location = (result as Response).headers.get("Location");
-      expect(location).toContain("series-1");
+      expect(location).toContain("/tenant/training/series");
     });
   });
 });

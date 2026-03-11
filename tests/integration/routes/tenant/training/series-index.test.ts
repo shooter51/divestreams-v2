@@ -7,7 +7,7 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
 }));
 
 vi.mock("../../../../../lib/db/training.server", () => ({
-  getSeries: vi.fn(),
+  getSeriesList: vi.fn(),
   getCourses: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ vi.mock("../../../../../lib/use-notification", () => ({
 }));
 
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getSeries, getCourses } from "../../../../../lib/db/training.server";
+import { getSeriesList, getCourses } from "../../../../../lib/db/training.server";
 import { loader } from "../../../../../app/routes/tenant/training/series/index";
 
 const mockOrgContext = {
@@ -33,7 +33,7 @@ const mockOrgContext = {
   isPremium: false,
 };
 
-const mockSeries = [
+const mockSeriesList = [
   {
     id: "series-1",
     name: "Open Water Spring 2026",
@@ -63,7 +63,7 @@ describe("tenant/training/series/index route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
-    (getSeries as Mock).mockResolvedValue(mockSeries);
+    (getSeriesList as Mock).mockResolvedValue(mockSeriesList);
     (getCourses as Mock).mockResolvedValue(mockCourses);
   });
 
@@ -77,8 +77,8 @@ describe("tenant/training/series/index route", () => {
     it("returns all series for the organization", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/series");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
-      expect(result.series).toEqual(mockSeries);
-      expect(getSeries).toHaveBeenCalledWith("org-uuid", { courseId: undefined });
+      expect(result.seriesList).toEqual(mockSeriesList);
+      expect(getSeriesList).toHaveBeenCalledWith("org-uuid", { courseId: undefined, status: undefined });
     });
 
     it("returns total count", async () => {
@@ -88,18 +88,18 @@ describe("tenant/training/series/index route", () => {
     });
 
     it("filters by courseId when provided", async () => {
-      (getSeries as Mock).mockResolvedValue([mockSeries[0]]);
+      (getSeriesList as Mock).mockResolvedValue([mockSeriesList[0]]);
       const request = new Request("https://demo.divestreams.com/tenant/training/series?courseId=course-1");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
-      expect(getSeries).toHaveBeenCalledWith("org-uuid", { courseId: "course-1" });
-      expect(result.series).toHaveLength(1);
+      expect(getSeriesList).toHaveBeenCalledWith("org-uuid", { courseId: "course-1", status: undefined });
+      expect(result.seriesList).toHaveLength(1);
     });
 
     it("returns empty series list when none exist", async () => {
-      (getSeries as Mock).mockResolvedValue([]);
+      (getSeriesList as Mock).mockResolvedValue([]);
       const request = new Request("https://demo.divestreams.com/tenant/training/series");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
-      expect(result.series).toEqual([]);
+      expect(result.seriesList).toEqual([]);
       expect(result.total).toBe(0);
     });
   });
