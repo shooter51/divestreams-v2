@@ -19,6 +19,11 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
+/** Strip HTML tags from a string (e.g. tour names stored with HTML markup) */
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, "").trim();
+}
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -491,7 +496,7 @@ function TripCard({ trip }: { trip: TripCard }) {
         {trip.primaryImage ? (
           <img
             src={trip.primaryImage}
-            alt={trip.tourName}
+            alt={stripHtml(trip.tourName)}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
@@ -551,7 +556,7 @@ function TripCard({ trip }: { trip: TripCard }) {
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold mb-2 line-clamp-1" style={{ color: "var(--text-color)" }}>{trip.tourName}</h3>
+        <h3 className="text-lg font-semibold mb-2 line-clamp-1" style={{ color: "var(--text-color)" }}>{stripHtml(trip.tourName)}</h3>
 
         {/* Description */}
         {trip.tourDescription && (

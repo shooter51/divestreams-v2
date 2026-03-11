@@ -31,10 +31,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 function formatPrice(price: string, currency: string): string {
+  const numericPrice = parseFloat(price);
+  if (isNaN(numericPrice) || numericPrice <= 0) return "Contact for pricing";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-  }).format(parseFloat(price));
+  }).format(numericPrice);
 }
 
 function CourseCard({
@@ -58,7 +60,7 @@ function CourseCard({
           {course.agencyLogo ? (
             <img
               src={course.agencyLogo}
-              alt={course.agencyName}
+              alt={course.agencyName ?? undefined}
               className="h-6 object-contain"
             />
           ) : (
@@ -196,7 +198,7 @@ export default function EmbedCoursesPage() {
   // Group courses by agency
   const coursesByAgency = courses.reduce(
     (acc, course) => {
-      const key = course.agencyCode;
+      const key = course.agencyCode ?? "unknown";
       if (!acc[key]) {
         acc[key] = {
           agencyName: course.agencyName,
@@ -211,8 +213,8 @@ export default function EmbedCoursesPage() {
     {} as Record<
       string,
       {
-        agencyName: string;
-        agencyCode: string;
+        agencyName: string | null;
+        agencyCode: string | null;
         agencyLogo: string | null;
         courses: PublicCourse[];
       }
@@ -229,7 +231,7 @@ export default function EmbedCoursesPage() {
             {group.agencyLogo ? (
               <img
                 src={group.agencyLogo}
-                alt={group.agencyName}
+                alt={group.agencyName ?? undefined}
                 className="h-8 object-contain"
               />
             ) : (

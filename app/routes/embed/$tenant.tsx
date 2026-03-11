@@ -131,14 +131,27 @@ export function ErrorBoundary() {
   const error = useRouteError();
 
   if (isRouteErrorResponse(error)) {
+    const isCourseNotFound =
+      error.status === 404 &&
+      typeof error.data === "string" &&
+      error.data.toLowerCase().includes("course");
+    const isShopNotFound =
+      error.status === 404 && !isCourseNotFound;
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            {error.status === 404 ? "Shop Not Found" : "Error"}
+            {isCourseNotFound
+              ? "Course Not Found"
+              : isShopNotFound
+              ? "Shop Not Found"
+              : "Error"}
           </h1>
           <p className="text-foreground-muted">
-            {error.status === 404
+            {isCourseNotFound
+              ? "This course is not available for enrollment."
+              : isShopNotFound
               ? "This booking widget is not available."
               : "Something went wrong."}
           </p>

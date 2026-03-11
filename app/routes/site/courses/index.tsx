@@ -26,14 +26,6 @@ const CERTIFICATION_AGENCIES = [
   { id: "other", name: "Other", lightColor: "var(--foreground-muted)", darkColor: "var(--foreground-subtle)" },
 ];
 
-const COURSE_LEVELS = [
-  { id: "beginner", name: "Beginner", description: "No experience required" },
-  { id: "open-water", name: "Open Water", description: "Entry-level certification" },
-  { id: "advanced", name: "Advanced", description: "For certified divers" },
-  { id: "specialty", name: "Specialty", description: "Focused skill courses" },
-  { id: "professional", name: "Professional", description: "Instructor-level training" },
-];
-
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -64,6 +56,8 @@ interface LoaderData {
     agency: string | null;
     level: string | null;
   };
+  availableAgencies: string[];
+  availableLevels: string[];
 }
 
 // ============================================================================
@@ -83,7 +77,7 @@ function formatDuration(days: number): string {
  */
 function formatPrice(price: string, currency: string): string {
   const numericPrice = parseFloat(price);
-  if (isNaN(numericPrice)) return "Price on request";
+  if (isNaN(numericPrice) || numericPrice <= 0) return "Contact for pricing";
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -140,6 +134,14 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   // Get all public courses
   const result = await getPublicCourses(org.id, { page, limit: 100 });
 
+  // Derive available agencies and levels from actual courses (only those with courses)
+  const availableAgencies = Array.from(
+    new Set(result.courses.map((c) => c.agencyName).filter((n): n is string => !!n))
+  ).sort();
+  const availableLevels = Array.from(
+    new Set(result.courses.map((c) => c.levelName).filter((n): n is string => !!n))
+  ).sort();
+
   // Apply filters by agency name and level name
   let filteredCourses = result.courses;
 
@@ -168,6 +170,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
       agency,
       level,
     },
+    availableAgencies,
+    availableLevels,
   };
 }
 
@@ -319,8 +323,12 @@ function CourseCard({ course }: { course: Course }) {
  */
 function FilterSection({
   filters,
+  availableAgencies,
+  availableLevels,
 }: {
   filters: { agency: string | null; level: string | null };
+  availableAgencies: string[];
+  availableLevels: string[];
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -345,58 +353,62 @@ function FilterSection({
     <div className="rounded-xl shadow-sm border p-4 mb-8" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
         {/* Agency Filter */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
-            Certification Agency
-          </label>
-          <select
-            value={filters.agency || ""}
-            onChange={(e) => updateFilter("agency", e.target.value || null)}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
-            style={{
-              outline: "none",
-              backgroundColor: "var(--color-card-bg)",
-              borderColor: "var(--color-border)",
-              color: "var(--text-color)",
-              // @ts-expect-error CSS custom property
-              "--tw-ring-color": "var(--primary-color)",
-            }}
-          >
-            <option value="">All Agencies</option>
-            {CERTIFICATION_AGENCIES.map((agency) => (
-              <option key={agency.id} value={agency.id}>
-                {agency.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {availableAgencies.length > 1 && (
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
+              Certification Agency
+            </label>
+            <select
+              value={filters.agency || ""}
+              onChange={(e) => updateFilter("agency", e.target.value || null)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
+              style={{
+                outline: "none",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
+                color: "var(--text-color)",
+                // @ts-expect-error CSS custom property
+                "--tw-ring-color": "var(--primary-color)",
+              }}
+            >
+              <option value="">All Agencies</option>
+              {availableAgencies.map((agencyName) => (
+                <option key={agencyName} value={agencyName}>
+                  {agencyName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Level Filter */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
-            Course Level
-          </label>
-          <select
-            value={filters.level || ""}
-            onChange={(e) => updateFilter("level", e.target.value || null)}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
-            style={{
-              outline: "none",
-              backgroundColor: "var(--color-card-bg)",
-              borderColor: "var(--color-border)",
-              color: "var(--text-color)",
-              // @ts-expect-error CSS custom property
-              "--tw-ring-color": "var(--primary-color)",
-            }}
-          >
-            <option value="">All Levels</option>
-            {COURSE_LEVELS.map((level) => (
-              <option key={level.id} value={level.id}>
-                {level.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {availableLevels.length > 1 && (
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
+              Course Level
+            </label>
+            <select
+              value={filters.level || ""}
+              onChange={(e) => updateFilter("level", e.target.value || null)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
+              style={{
+                outline: "none",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
+                color: "var(--text-color)",
+                // @ts-expect-error CSS custom property
+                "--tw-ring-color": "var(--primary-color)",
+              }}
+            >
+              <option value="">All Levels</option>
+              {availableLevels.map((levelName) => (
+                <option key={levelName} value={levelName}>
+                  {levelName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Clear Filters */}
         {hasFilters && (
@@ -518,7 +530,7 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
 // ============================================================================
 
 export default function SiteCoursesPage() {
-  const { courses, total, page, limit, filters } = useLoaderData<typeof loader>();
+  const { courses, total, page, limit, filters, availableAgencies, availableLevels } = useLoaderData<typeof loader>();
 
   const hasFilters = Boolean(filters.agency || filters.level);
 
@@ -556,7 +568,7 @@ export default function SiteCoursesPage() {
       </div>
 
       {/* Filters */}
-      <FilterSection filters={filters} />
+      <FilterSection filters={filters} availableAgencies={availableAgencies} availableLevels={availableLevels} />
 
       {/* Results Count */}
       {courses.length > 0 && (
