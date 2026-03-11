@@ -40,10 +40,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 function formatPrice(price: string, currency: string): string {
+  const numericPrice = parseFloat(price);
+  if (isNaN(numericPrice) || numericPrice <= 0) return "Contact for pricing";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-  }).format(parseFloat(price));
+  }).format(numericPrice);
 }
 
 function formatDate(dateString: string): string {
@@ -117,7 +119,7 @@ export default function CourseDetailPage() {
             {course.agencyLogo ? (
               <img
                 src={course.agencyLogo}
-                alt={course.agencyName}
+                alt={course.agencyName ?? undefined}
                 className="h-8 object-contain"
               />
             ) : (

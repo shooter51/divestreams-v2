@@ -163,9 +163,9 @@ describe("getThemeCSS", () => {
     expect(css).toContain("--color-primary-text:");
   });
 
-  it("should use white card background for non-dark themes", () => {
+  it("should use theme backgroundColor for card bg on non-dark themes", () => {
     const css = getThemeCSS("ocean");
-    expect(css).toContain("--color-card-bg: #FFFFFF");
+    expect(css).toContain("--color-card-bg: #F0F9FF");
   });
 
   it("should use dark card background for dark theme", () => {
@@ -288,9 +288,9 @@ describe("getThemeStyleBlock", () => {
     expect(css).toContain("--success-text: #6EE7B7");
   });
 
-  it("should use white card bg for non-dark themes", () => {
+  it("should use theme backgroundColor for card bg on non-dark themes", () => {
     const css = getThemeStyleBlock("ocean");
-    expect(css).toContain("--color-card-bg: #FFFFFF");
+    expect(css).toContain("--color-card-bg: #F0F9FF");
   });
 
   it("should use slate card bg for dark theme", () => {

@@ -480,11 +480,11 @@ export interface PublicCourse {
   id: string;
   name: string;
   description: string | null;
-  agencyName: string;
-  agencyCode: string;
+  agencyName: string | null;
+  agencyCode: string | null;
   agencyLogo: string | null;
-  levelName: string;
-  levelCode: string;
+  levelName: string | null;
+  levelCode: string | null;
   price: string;
   depositAmount: string | null;
   currency: string;
@@ -517,11 +517,11 @@ export async function getPublicCourses(
       openWaterDives: schema.trainingCourses.openWaterDives,
     })
     .from(schema.trainingCourses)
-    .innerJoin(
+    .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
     )
-    .innerJoin(
+    .leftJoin(
       schema.certificationLevels,
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )
@@ -598,11 +598,11 @@ export async function getPublicCourseById(
       openWaterDives: schema.trainingCourses.openWaterDives,
     })
     .from(schema.trainingCourses)
-    .innerJoin(
+    .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
     )
-    .innerJoin(
+    .leftJoin(
       schema.certificationLevels,
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )
