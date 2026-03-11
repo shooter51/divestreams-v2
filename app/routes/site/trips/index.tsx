@@ -6,10 +6,12 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useLoaderData, Link, useSearchParams, useRouteLoaderData } from "react-router";
 import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
+import { createT } from "../../../i18n";
+import type { SiteLoaderData } from "../_layout";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Trips" }];
@@ -210,18 +212,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // COMPONENT
 // ============================================================================
 
-const tourTypes: Record<string, { label: string; icon: string }> = {
-  single_dive: { label: "Single Dive", icon: "diving-mask" },
-  multi_dive: { label: "Multi-Dive", icon: "waves" },
-  course: { label: "Course", icon: "book" },
-  snorkel: { label: "Snorkel", icon: "sun" },
-  night_dive: { label: "Night Dive", icon: "moon" },
-  other: { label: "Dive Trip", icon: "anchor" },
+const tourTypeKeys: Record<string, { key: string; icon: string }> = {
+  single_dive: { key: "tripTypes.single_dive", icon: "diving-mask" },
+  multi_dive: { key: "tripTypes.multi_dive", icon: "waves" },
+  course: { key: "tripTypes.course", icon: "book" },
+  snorkel: { key: "tripTypes.snorkel", icon: "sun" },
+  night_dive: { key: "tripTypes.night_dive", icon: "moon" },
+  other: { key: "tripTypes.other", icon: "anchor" },
 };
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, intlLocale = "en-US"): string {
   const date = new Date(dateString + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(intlLocale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -247,9 +249,9 @@ function formatDuration(minutes: number | null): string {
   return `${hours}h ${mins}min`;
 }
 
-function formatPrice(price: string, currency: string): string {
+function formatPrice(price: string, currency: string, intlLocale = "en-US"): string {
   const num = parseFloat(price);
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(intlLocale, {
     style: "currency",
     currency: currency,
     minimumFractionDigits: 0,
@@ -259,6 +261,10 @@ function formatPrice(price: string, currency: string): string {
 
 export default function SiteTripsPage() {
   const { trips, total, page, totalPages, fromDate, toDate } = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
+  const language = layoutData?.language ?? "en";
+  const t = createT(language);
+  const intlLocale = language === "es" ? "es-ES" : "en-US";
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -294,11 +300,10 @@ export default function SiteTripsPage() {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ color: "var(--primary-color)" }}
           >
-            Upcoming Dive Trips
+            {t("trips.upcomingDiveTrips")}
           </h1>
           <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-            Explore our scheduled dive adventures. Book your spot today and dive into an
-            unforgettable experience.
+            {t("trips.exploreAdventures")}
           </p>
         </div>
       </section>
@@ -308,7 +313,7 @@ export default function SiteTripsPage() {
         <div className="max-w-7xl mx-auto">
           <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>From Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>{t("trips.fromDate")}</label>
               <input
                 type="date"
                 name="from"
@@ -324,7 +329,7 @@ export default function SiteTripsPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>To Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>{t("trips.toDate")}</label>
               <input
                 type="date"
                 name="to"
@@ -345,7 +350,7 @@ export default function SiteTripsPage() {
                 className="px-6 py-2 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "var(--primary-color)" }}
               >
-                Filter
+                {t("common.filter")}
               </button>
               {(searchParams.get("from") || searchParams.get("to")) && (
                 <button
@@ -358,13 +363,13 @@ export default function SiteTripsPage() {
                     backgroundColor: "var(--color-card-bg)"
                   }}
                 >
-                  Clear
+                  {t("common.clear")}
                 </button>
               )}
             </div>
           </form>
           <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
-            Showing {trips.length} of {total} trips
+            {t("trips.showingCount", { count: trips.length, total })}
           </p>
         </div>
       </section>
@@ -393,11 +398,11 @@ export default function SiteTripsPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Trips Found</h2>
+              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>{t("trips.noTripsFound")}</h2>
               <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                 {searchParams.get("from") || searchParams.get("to")
-                  ? "Try adjusting your date filters to see more trips."
-                  : "Check back soon for upcoming dive adventures!"}
+                  ? t("trips.adjustDateFilters")
+                  : t("trips.checkBackSoon")}
               </p>
               {(searchParams.get("from") || searchParams.get("to")) && (
                 <button
@@ -405,7 +410,7 @@ export default function SiteTripsPage() {
                   className="px-6 py-2 rounded-lg text-white font-medium"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
-                  Clear Filters
+                  {t("common.clearFilters")}
                 </button>
               )}
             </div>
@@ -413,7 +418,7 @@ export default function SiteTripsPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trips.map((trip) => (
-                  <TripCard key={trip.id} trip={trip} />
+                  <TripCard key={trip.id} trip={trip} t={t} intlLocale={intlLocale} />
                 ))}
               </div>
 
@@ -430,7 +435,7 @@ export default function SiteTripsPage() {
                       backgroundColor: "var(--color-card-bg)"
                     }}
                   >
-                    Previous
+                    {t("common.previous")}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -457,7 +462,7 @@ export default function SiteTripsPage() {
                       backgroundColor: "var(--color-card-bg)"
                     }}
                   >
-                    Next
+                    {t("common.next")}
                   </button>
                 </div>
               )}
@@ -473,8 +478,8 @@ export default function SiteTripsPage() {
 // TRIP CARD COMPONENT
 // ============================================================================
 
-function TripCard({ trip }: { trip: TripCard }) {
-  const typeInfo = tourTypes[trip.tourType] || tourTypes.other;
+function TripCard({ trip, t, intlLocale }: { trip: TripCard; t: ReturnType<typeof createT>; intlLocale: string }) {
+  const typeKey = tourTypeKeys[trip.tourType]?.key ?? "tripTypes.other";
   const isFull = trip.availableSpots === 0;
 
   return (
@@ -530,7 +535,7 @@ function TripCard({ trip }: { trip: TripCard }) {
               : "var(--success)",
           }}
         >
-          {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
+          {isFull ? t("common.soldOut") : t("common.spotsLeft", { count: trip.availableSpots })}
         </div>
       </div>
 
@@ -545,9 +550,9 @@ function TripCard({ trip }: { trip: TripCard }) {
               color: "var(--primary-color)",
             }}
           >
-            {typeInfo.label}
+            {t(typeKey)}
           </span>
-          <span className="text-sm opacity-60">{formatDate(trip.date)}</span>
+          <span className="text-sm opacity-60">{formatDate(trip.date, intlLocale)}</span>
         </div>
 
         {/* Title */}
@@ -603,17 +608,17 @@ function TripCard({ trip }: { trip: TripCard }) {
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>
-              Equipment
+              {t("inclusions.equipment")}
             </span>
           )}
           {trip.includesMeals && (
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>
-              Meals
+              {t("inclusions.meals")}
             </span>
           )}
           {trip.includesTransport && (
             <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">
-              Transport
+              {t("inclusions.transport")}
             </span>
           )}
         </div>
@@ -625,15 +630,15 @@ function TripCard({ trip }: { trip: TripCard }) {
               className="text-2xl font-bold"
               style={{ color: "var(--primary-color)" }}
             >
-              {formatPrice(trip.price, trip.currency)}
+              {formatPrice(trip.price, trip.currency, intlLocale)}
             </p>
-            <p className="text-xs opacity-50">per person</p>
+            <p className="text-xs opacity-50">{t("common.perPerson")}</p>
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
             style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
           >
-            {isFull ? "Join Waitlist" : "View Details"}
+            {isFull ? t("common.joinWaitlist") : t("common.viewDetails")}
           </span>
         </div>
       </div>

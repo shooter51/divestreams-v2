@@ -10,6 +10,7 @@ import { useRouteLoaderData, useLoaderData } from "react-router";
 import type { SiteLoaderData } from "./_layout";
 import { getPublicPageContent } from "../../../lib/db/page-content.server";
 import { ContentBlockRenderer } from "../../components/ContentBlockRenderer";
+import { createT } from "../../i18n";
 
 // ============================================================================
 // LOADER
@@ -72,10 +73,13 @@ export default function SiteAboutPage() {
   const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
   const { pageContent } = useLoaderData<typeof loader>();
 
+  const language = loaderData?.language ?? "en";
+  const t = createT(language);
+
   if (!loaderData) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold">About Us</h1>
+        <h1 className="text-4xl font-bold">{t("about.title")}</h1>
         <p className="mt-4 text-lg opacity-75">Loading...</p>
       </div>
     );
@@ -97,11 +101,10 @@ export default function SiteAboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-bold">
-              About {organization.name}
+              {t("about.title")} {organization.name}
             </h1>
             <p className="mt-6 text-xl opacity-75">
-              Discover our passion for diving and commitment to providing
-              unforgettable underwater experiences.
+              {t("about.passion")}
             </p>
           </div>
         </div>
@@ -122,17 +125,12 @@ export default function SiteAboutPage() {
         ) : (
           // Fallback - shown when no content has been configured
           <div className="prose prose-lg max-w-none">
-            <h2 className="text-2xl font-bold mb-6">About {organization.name}</h2>
+            <h2 className="text-2xl font-bold mb-6">{t("about.welcomeTitle", { name: organization.name })}</h2>
             <p className="opacity-75">
-              Welcome to {organization.name}! We are passionate about sharing the
-              wonders of the underwater world with divers of all experience levels.
+              {t("about.welcomeText", { name: organization.name })}
             </p>
             <p className="opacity-75">
-              Our team of experienced instructors and dive professionals is
-              dedicated to providing safe, educational, and exciting diving
-              experiences. Whether you're taking your first breath underwater or
-              exploring advanced technical diving, we're here to guide you every
-              step of the way.
+              {t("about.teamText")}
             </p>
           </div>
         )}

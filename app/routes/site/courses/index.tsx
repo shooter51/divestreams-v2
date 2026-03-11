@@ -5,12 +5,14 @@
  * Each course card shows name, agency logo, price, and duration.
  */
 
-import { Link, useLoaderData, useSearchParams } from "react-router";
+import { Link, useLoaderData, useSearchParams, useRouteLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema/auth";
 import { getPublicCourses } from "../../../../lib/db/public-site.server";
+import { createT } from "../../../i18n";
+import type { SiteLoaderData } from "../_layout";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -27,11 +29,11 @@ const CERTIFICATION_AGENCIES = [
 ];
 
 const COURSE_LEVELS = [
-  { id: "beginner", name: "Beginner", description: "No experience required" },
-  { id: "open-water", name: "Open Water", description: "Entry-level certification" },
-  { id: "advanced", name: "Advanced", description: "For certified divers" },
-  { id: "specialty", name: "Specialty", description: "Focused skill courses" },
-  { id: "professional", name: "Professional", description: "Instructor-level training" },
+  { id: "beginner", key: "courseLevels.beginner" },
+  { id: "open-water", key: "courseLevels.open-water" },
+  { id: "advanced", key: "courseLevels.advanced" },
+  { id: "specialty", key: "courseLevels.specialty" },
+  { id: "professional", key: "courseLevels.professional" },
 ];
 
 // ============================================================================
@@ -73,9 +75,9 @@ interface LoaderData {
 /**
  * Format duration in days to readable string
  */
-function formatDuration(days: number): string {
-  if (days === 1) return "1 day";
-  return `${days} days`;
+function formatDuration(days: number, t: ReturnType<typeof createT>): string {
+  if (days === 1) return `1 ${t("common.day")}`;
+  return `${days} ${t("common.days")}`;
 }
 
 /**
@@ -216,7 +218,7 @@ function LevelBadge({ levelName }: { levelName: string | null }) {
 /**
  * Course card component
  */
-function CourseCard({ course }: { course: Course }) {
+function CourseCard({ course, t }: { course: Course; t: ReturnType<typeof createT> }) {
   const hasImage = course.images && course.images.length > 0;
 
   return (
@@ -281,12 +283,12 @@ function CourseCard({ course }: { course: Course }) {
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
           {course.materialsIncluded && (
             <span className="px-2 py-1 bg-success-muted text-success rounded">
-              Materials included
+              {t("courses.materialsIncluded")}
             </span>
           )}
           {course.equipmentIncluded && (
             <span className="px-2 py-1 bg-info-muted text-info rounded">
-              Equipment included
+              {t("courses.equipmentIncluded")}
             </span>
           )}
         </div>
@@ -298,7 +300,7 @@ function CourseCard({ course }: { course: Course }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>{formatDuration(course.durationDays)}</span>
+            <span>{formatDuration(course.durationDays, t)}</span>
           </div>
 
           {/* Price */}
@@ -319,8 +321,10 @@ function CourseCard({ course }: { course: Course }) {
  */
 function FilterSection({
   filters,
+  t,
 }: {
   filters: { agency: string | null; level: string | null };
+  t: ReturnType<typeof createT>;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -347,7 +351,7 @@ function FilterSection({
         {/* Agency Filter */}
         <div className="flex-1">
           <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
-            Certification Agency
+            {t("courses.certificationAgency")}
           </label>
           <select
             value={filters.agency || ""}
@@ -362,7 +366,7 @@ function FilterSection({
               "--tw-ring-color": "var(--primary-color)",
             }}
           >
-            <option value="">All Agencies</option>
+            <option value="">{t("courses.allAgencies")}</option>
             {CERTIFICATION_AGENCIES.map((agency) => (
               <option key={agency.id} value={agency.id}>
                 {agency.name}
@@ -374,7 +378,7 @@ function FilterSection({
         {/* Level Filter */}
         <div className="flex-1">
           <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
-            Course Level
+            {t("courses.courseLevel")}
           </label>
           <select
             value={filters.level || ""}
@@ -389,10 +393,10 @@ function FilterSection({
               "--tw-ring-color": "var(--primary-color)",
             }}
           >
-            <option value="">All Levels</option>
+            <option value="">{t("courses.allLevels")}</option>
             {COURSE_LEVELS.map((level) => (
               <option key={level.id} value={level.id}>
-                {level.name}
+                {t(level.key)}
               </option>
             ))}
           </select>
@@ -410,7 +414,7 @@ function FilterSection({
                 color: "var(--text-color)",
               }}
             >
-              Clear Filters
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -460,7 +464,7 @@ function Pagination({
       </button>
 
       <span className="px-4 py-2 text-sm" style={{ color: "var(--text-color)" }}>
-        Page {page} of {totalPages}
+        {page} / {totalPages}
       </span>
 
       <button
@@ -484,7 +488,7 @@ function Pagination({
 /**
  * Empty state component
  */
-function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+function EmptyState({ hasFilters, t }: { hasFilters: boolean; t: ReturnType<typeof createT> }) {
   return (
     <div className="text-center py-16">
       <svg
@@ -502,12 +506,12 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
         />
       </svg>
       <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>
-        {hasFilters ? "No courses match your filters" : "No courses available"}
+        {hasFilters ? t("courses.noCoursesMatchFilters") : t("courses.noCoursesAvailable")}
       </h3>
       <p className="opacity-75 max-w-md mx-auto" style={{ color: "var(--text-color)" }}>
         {hasFilters
-          ? "Try adjusting your filters to find more courses."
-          : "Check back soon for upcoming training courses and certifications."}
+          ? t("courses.adjustFilters")
+          : t("courses.checkBackSoon")}
       </p>
     </div>
   );
@@ -519,6 +523,9 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
 
 export default function SiteCoursesPage() {
   const { courses, total, page, limit, filters } = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
+  const language = layoutData?.language ?? "en";
+  const t = createT(language);
 
   const hasFilters = Boolean(filters.agency || filters.level);
 
@@ -547,21 +554,20 @@ export default function SiteCoursesPage() {
           className="text-4xl font-bold mb-4"
           style={{ color: "var(--text-color)" }}
         >
-          Dive Courses
+          {t("courses.diveCourses")}
         </h1>
         <p className="text-lg opacity-75 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-          Start your underwater adventure with our professional training courses.
-          From beginner to instructor level, we have the perfect course for you.
+          {t("courses.startAdventure")}
         </p>
       </div>
 
       {/* Filters */}
-      <FilterSection filters={filters} />
+      <FilterSection filters={filters} t={t} />
 
       {/* Results Count */}
       {courses.length > 0 && (
         <p className="text-sm opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
-          Showing {courses.length} of {total} courses
+          {t("courses.showingCount", { count: courses.length, total })}
         </p>
       )}
 
@@ -569,11 +575,11 @@ export default function SiteCoursesPage() {
       {courses.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard key={course.id} course={course} t={t} />
           ))}
         </div>
       ) : (
-        <EmptyState hasFilters={hasFilters} />
+        <EmptyState hasFilters={hasFilters} t={t} />
       )}
 
       {/* Pagination */}
@@ -588,18 +594,17 @@ export default function SiteCoursesPage() {
           className="text-2xl font-bold mb-4"
           style={{ color: "var(--text-color)" }}
         >
-          Not sure which course is right for you?
+          {t("courses.notSureWhichCourse")}
         </h2>
         <p className="opacity-75 mb-6 max-w-xl mx-auto" style={{ color: "var(--text-color)" }}>
-          Our team of experienced instructors can help you choose the perfect course
-          based on your experience level and diving goals.
+          {t("courses.ourTeamCanHelp")}
         </p>
         <Link
           to="/site/contact"
           className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--primary-color)" }}
         >
-          Contact Us
+          {t("common.contactUs")}
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>

@@ -16,6 +16,7 @@ import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/theme
 import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
 import { generateAnonCsrfToken } from "../../../lib/security/csrf.server";
+import { createT } from "../../i18n";
 
 // ============================================================================
 // FONT FAMILIES
@@ -57,6 +58,7 @@ export interface SiteLoaderData {
     gallery: boolean;
   };
   contactInfo: PublicSiteSettings["contactInfo"];
+  language: "en" | "es";
   customer: Customer | null;
   csrfToken: string;
 }
@@ -161,6 +163,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     darkCSS,
     enabledPages: settings.pages,
     contactInfo: settings.contactInfo,
+    language: (settings.language ?? "en") as "en" | "es",
     customer,
     csrfToken: generateAnonCsrfToken(),
   };
@@ -190,33 +193,34 @@ function parseCookieValue(cookieHeader: string, name: string): string | null {
 // ============================================================================
 
 export default function SiteLayout() {
-  const { organization, themeVars, enabledPages, contactInfo, darkCSS, customer } =
+  const { organization, themeVars, enabledPages, contactInfo, darkCSS, customer, language } =
     useLoaderData<typeof loader>();
   const location = useLocation();
+  const t = createT(language);
 
   // Build navigation items based on enabled pages
   const navItems: { href: string; label: string }[] = [];
 
   if (enabledPages.home) {
-    navItems.push({ href: "/site", label: "Home" });
+    navItems.push({ href: "/site", label: t("nav.home") });
   }
   if (enabledPages.about) {
-    navItems.push({ href: "/site/about", label: "About" });
+    navItems.push({ href: "/site/about", label: t("nav.about") });
   }
   if (enabledPages.trips) {
-    navItems.push({ href: "/site/trips", label: "Trips" });
+    navItems.push({ href: "/site/trips", label: t("nav.trips") });
   }
   if (enabledPages.courses) {
-    navItems.push({ href: "/site/courses", label: "Courses" });
+    navItems.push({ href: "/site/courses", label: t("nav.courses") });
   }
   if (enabledPages.equipment) {
-    navItems.push({ href: "/site/equipment", label: "Equipment" });
+    navItems.push({ href: "/site/equipment", label: t("nav.equipment") });
   }
   if (enabledPages.gallery) {
-    navItems.push({ href: "/site/gallery", label: "Gallery" });
+    navItems.push({ href: "/site/gallery", label: t("nav.gallery") });
   }
   if (enabledPages.contact) {
-    navItems.push({ href: "/site/contact", label: "Contact" });
+    navItems.push({ href: "/site/contact", label: t("nav.contact") });
   }
 
   // Check if a nav item is active
@@ -304,7 +308,7 @@ export default function SiteLayout() {
                       color: "var(--primary-color)",
                     }}
                   >
-                    My Account
+                    {t("nav.myAccount")}
                   </Link>
                   <Form method="post" action="/site/account/logout">
                     <button
@@ -314,7 +318,7 @@ export default function SiteLayout() {
                         color: "var(--text-color)",
                       }}
                     >
-                      Log Out
+                      {t("nav.logOut")}
                     </button>
                   </Form>
                 </>
@@ -327,7 +331,7 @@ export default function SiteLayout() {
                       color: "var(--primary-color)",
                     }}
                   >
-                    Log In
+                    {t("nav.logIn")}
                   </Link>
                   <Link
                     to="/site/register"
@@ -336,7 +340,7 @@ export default function SiteLayout() {
                       backgroundColor: "var(--primary-color)",
                     }}
                   >
-                    Sign Up
+                    {t("nav.signUp")}
                   </Link>
                 </>
               )}
@@ -457,7 +461,7 @@ export default function SiteLayout() {
             </p>
             <div className="flex gap-4">
               <Link to="/site/account" className="hover:opacity-100">
-                My Account
+                {t("nav.myAccount")}
               </Link>
               <a
                 href="https://divestreams.com"

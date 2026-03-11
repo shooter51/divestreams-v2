@@ -10,8 +10,10 @@
  * Verification: Trigger CI/CD for staging baseline test validation
  */
 
-import { Link, useLoaderData, useSearchParams } from "react-router";
+import { Link, useLoaderData, useSearchParams, useRouteLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { createT } from "../../../i18n";
+import type { SiteLoaderData } from "../_layout";
 import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, desc, sql } from "drizzle-orm";
@@ -166,13 +168,17 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<BookingsL
 
 export default function AccountBookings() {
   const { bookings, filter } = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
+  const language = layoutData?.language ?? "en";
+  const t = createT(language);
+  const intlLocale = language === "es" ? "es-ES" : "en-US";
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filterOptions = [
-    { value: "all", label: "All Bookings" },
-    { value: "upcoming", label: "Upcoming" },
-    { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "all", label: t("bookings.allBookings") },
+    { value: "upcoming", label: t("bookings.upcoming") },
+    { value: "completed", label: t("bookings.completed") },
+    { value: "cancelled", label: t("bookings.cancelled") },
   ];
 
   const handleFilterChange = (newFilter: string) => {
@@ -190,10 +196,10 @@ export default function AccountBookings() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold" style={{ color: "var(--text-color)" }}>
-            My Bookings
+            {t("bookings.myBookings")}
           </h2>
           <p className="mt-1 opacity-75">
-            View and manage all your bookings
+            {t("bookings.viewManageBookings")}
           </p>
         </div>
       </div>
@@ -222,11 +228,11 @@ export default function AccountBookings() {
 
       {/* Bookings List */}
       {bookings.length === 0 ? (
-        <EmptyState filter={filter} />
+        <EmptyState filter={filter} t={t} />
       ) : (
         <div className="space-y-4">
           {bookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} />
+            <BookingCard key={booking.id} booking={booking} t={t} intlLocale={intlLocale} />
           ))}
         </div>
       )}
@@ -238,7 +244,7 @@ export default function AccountBookings() {
 // SUBCOMPONENTS
 // ============================================================================
 
-function BookingCard({ booking }: { booking: BookingItem }) {
+function BookingCard({ booking, t, intlLocale }: { booking: BookingItem; t: ReturnType<typeof createT>; intlLocale: string }) {
   const isUpcoming = new Date(booking.trip.date) >= new Date(new Date().toISOString().split("T")[0]);
   const isCancelled = booking.status === "cancelled" || booking.status === "canceled" || booking.status === "no_show";
 
@@ -262,7 +268,7 @@ function BookingCard({ booking }: { booking: BookingItem }) {
                 {booking.trip.tour.name}
               </h3>
               <p className="text-sm opacity-75">
-                Booking #{booking.bookingNumber}
+                {t("bookings.bookingReference", { ref: booking.bookingNumber })}
               </p>
             </div>
           </div>
@@ -271,15 +277,15 @@ function BookingCard({ booking }: { booking: BookingItem }) {
           <div className="flex flex-wrap gap-4 mt-4 text-sm">
             <span className="flex items-center gap-1.5">
               <CalendarIcon className="w-4 h-4 opacity-60" />
-              {formatDate(booking.trip.date)}
+              {formatDate(booking.trip.date, intlLocale)}
             </span>
             <span className="flex items-center gap-1.5">
               <ClockIcon className="w-4 h-4 opacity-60" />
-              {formatTime(booking.trip.startTime)}
+              {formatTime(booking.trip.startTime, intlLocale)}
             </span>
             <span className="flex items-center gap-1.5">
               <UsersIcon className="w-4 h-4 opacity-60" />
-              {booking.participants} {booking.participants === 1 ? "person" : "people"}
+              {booking.participants} {booking.participants === 1 ? t("bookings.person") : t("bookings.people")}
             </span>
           </div>
         </div>
@@ -291,14 +297,14 @@ function BookingCard({ booking }: { booking: BookingItem }) {
             <StatusBadge status={mapPaymentStatus(booking.paymentStatus)} />
           </div>
           <p className="text-lg font-semibold" style={{ color: "var(--text-color)" }}>
-            {formatCurrency(booking.total, booking.currency)}
+            {formatCurrency(booking.total, booking.currency, intlLocale)}
           </p>
           <Link
             to={`/site/account/bookings/${booking.id}`}
             className="text-sm font-medium transition-opacity hover:opacity-80"
             style={{ color: "var(--primary-color)" }}
           >
-            View Details
+            {t("equipment.viewDetails")}
           </Link>
         </div>
       </div>
@@ -306,23 +312,23 @@ function BookingCard({ booking }: { booking: BookingItem }) {
   );
 }
 
-function EmptyState({ filter }: { filter: string }) {
+function EmptyState({ filter, t }: { filter: string; t: ReturnType<typeof createT> }) {
   const messages: Record<string, { title: string; description: string }> = {
     all: {
-      title: "No bookings yet",
-      description: "Start your diving adventure by booking your first trip!",
+      title: t("bookings.noBookingsYet"),
+      description: t("bookings.startAdventure"),
     },
     upcoming: {
-      title: "No upcoming bookings",
-      description: "You don't have any upcoming trips scheduled.",
+      title: t("bookings.noUpcomingBookings"),
+      description: t("bookings.noUpcomingTrips"),
     },
     completed: {
-      title: "No completed trips",
-      description: "You haven't completed any trips yet.",
+      title: t("bookings.noCompletedTrips"),
+      description: t("bookings.noCompletedYet"),
     },
     cancelled: {
-      title: "No cancelled bookings",
-      description: "You don't have any cancelled bookings.",
+      title: t("bookings.noCancelledBookings"),
+      description: t("bookings.noCancelledDesc"),
     },
   };
 
@@ -348,7 +354,7 @@ function EmptyState({ filter }: { filter: string }) {
         className="inline-block px-6 py-2.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
         style={{ backgroundColor: "var(--primary-color)" }}
       >
-        Browse Trips
+        {t("bookings.browseTrips")}
       </Link>
     </div>
   );
@@ -397,9 +403,9 @@ function TripTypeIcon({ type }: { type: string }) {
 // HELPERS
 // ============================================================================
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, intlLocale = "en-US"): string {
   const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(intlLocale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -407,20 +413,20 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(timeStr: string | null): string {
+function formatTime(timeStr: string | null, intlLocale = "en-US"): string {
   if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const date = new Date();
   date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-  return date.toLocaleTimeString("en-US", {
+  return date.toLocaleTimeString(intlLocale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   });
 }
 
-function formatCurrency(amount: string, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
+function formatCurrency(amount: string, currency: string, intlLocale = "en-US"): string {
+  return new Intl.NumberFormat(intlLocale, {
     style: "currency",
     currency: currency || "USD",
   }).format(parseFloat(amount));

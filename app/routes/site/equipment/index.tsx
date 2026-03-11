@@ -7,10 +7,12 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useLoaderData, Link, useSearchParams, useRouteLoaderData } from "react-router";
 import { eq, and, or, like, sql, asc, desc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { equipment, images, organization } from "../../../../lib/db/schema";
+import { createT } from "../../../i18n";
+import type { SiteLoaderData } from "../_layout";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Equipment" }];
@@ -40,17 +42,17 @@ interface EquipmentCard {
 
 // Equipment categories
 const EQUIPMENT_CATEGORIES = [
-  { value: "bcd", label: "BCDs", icon: "⚓" },
-  { value: "regulator", label: "Regulators", icon: "🌬️" },
-  { value: "wetsuit", label: "Wetsuits", icon: "🦈" },
-  { value: "mask", label: "Masks", icon: "👓" },
-  { value: "fins", label: "Fins", icon: "🦵" },
-  { value: "computer", label: "Computers", icon: "💻" },
-  { value: "tank", label: "Tanks", icon: "⛽" },
-  { value: "snorkel", label: "Snorkels", icon: "🤿" },
-  { value: "camera", label: "Cameras", icon: "📷" },
-  { value: "light", label: "Lights", icon: "💡" },
-  { value: "other", label: "Other", icon: "🔧" },
+  { value: "bcd", key: "equipmentCategories.bcd", icon: "⚓" },
+  { value: "regulator", key: "equipmentCategories.regulator", icon: "🌬️" },
+  { value: "wetsuit", key: "equipmentCategories.wetsuit", icon: "🦈" },
+  { value: "mask", key: "equipmentCategories.mask", icon: "👓" },
+  { value: "fins", key: "equipmentCategories.fins", icon: "🦵" },
+  { value: "computer", key: "equipmentCategories.computer", icon: "💻" },
+  { value: "tank", key: "equipmentCategories.tank", icon: "⛽" },
+  { value: "snorkel", key: "equipmentCategories.snorkel", icon: "🤿" },
+  { value: "camera", key: "equipmentCategories.camera", icon: "📷" },
+  { value: "light", key: "equipmentCategories.light", icon: "💡" },
+  { value: "other", key: "equipmentCategories.other", icon: "🔧" },
 ];
 
 // ============================================================================
@@ -236,8 +238,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // COMPONENT
 // ============================================================================
 
-function formatPrice(price: string | null): string {
-  if (!price) return "Contact for pricing";
+function formatPrice(price: string | null, t: ReturnType<typeof createT>): string {
+  if (!price) return t("equipment.contactForPricing");
   const num = parseFloat(price);
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -250,6 +252,9 @@ function formatPrice(price: string | null): string {
 export default function SiteEquipmentPage() {
   const { equipment, total, page, totalPages, category, search, sortBy, categoryCounts } =
     useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData("routes/site/_layout") as SiteLoaderData | undefined;
+  const language = layoutData?.language ?? "en";
+  const t = createT(language);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -308,11 +313,10 @@ export default function SiteEquipmentPage() {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ color: "var(--primary-color)" }}
           >
-            Rental Equipment
+            {t("equipment.rentalEquipment")}
           </h1>
           <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-            Quality dive equipment available for rent. Choose from our wide selection
-            of BCDs, regulators, wetsuits, and more.
+            {t("equipment.qualityEquipment")}
           </p>
         </div>
       </section>
@@ -322,7 +326,7 @@ export default function SiteEquipmentPage() {
           {/* Sidebar - Categories */}
           <aside className="lg:w-64 flex-shrink-0">
             <div className="rounded-xl shadow-sm p-6 sticky top-20" style={{ backgroundColor: "var(--color-card-bg)" }}>
-              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>Categories</h2>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>{t("equipment.categories")}</h2>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -338,7 +342,7 @@ export default function SiteEquipmentPage() {
                     }}
                   >
                     <span className="flex items-center justify-between">
-                      <span>All Equipment</span>
+                      <span>{t("equipment.allEquipment")}</span>
                       <span className="text-sm opacity-60">{total}</span>
                     </span>
                   </button>
@@ -363,7 +367,7 @@ export default function SiteEquipmentPage() {
                         <span className="flex items-center justify-between">
                           <span>
                             <span className="mr-2">{cat.icon}</span>
-                            {cat.label}
+                            {t(cat.key)}
                           </span>
                           <span className="text-sm opacity-60">{count}</span>
                         </span>
@@ -387,7 +391,7 @@ export default function SiteEquipmentPage() {
                       type="text"
                       name="search"
                       defaultValue={search || ""}
-                      placeholder="Search equipment..."
+                      placeholder={t("equipment.searchEquipment")}
                       className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:outline-none"
                       style={{
                         backgroundColor: "var(--color-card-bg)",
@@ -427,9 +431,9 @@ export default function SiteEquipmentPage() {
                       "--tw-ring-color": "var(--primary-color)",
                     }}
                   >
-                    <option value="name">Sort by Name</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
+                    <option value="name">{t("common.sortByName")}</option>
+                    <option value="price-low">{t("common.priceLowHigh")}</option>
+                    <option value="price-high">{t("common.priceHighLow")}</option>
                   </select>
                 </div>
 
@@ -440,7 +444,7 @@ export default function SiteEquipmentPage() {
                     className="px-4 py-2 border rounded-lg font-medium transition-colors"
                     style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                   >
-                    Clear
+                    {t("common.clear")}
                   </button>
                 )}
               </div>
@@ -450,7 +454,7 @@ export default function SiteEquipmentPage() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {category && (
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
-                      Category: {EQUIPMENT_CATEGORIES.find(c => c.value === category)?.label}
+                      {t("equipment.categories")}: {t(EQUIPMENT_CATEGORIES.find(c => c.value === category)?.key ?? "equipmentCategories.other")}
                       <button
                         onClick={() => handleCategoryFilter(null)}
                         className="hover:opacity-70"
@@ -478,7 +482,7 @@ export default function SiteEquipmentPage() {
               )}
 
               <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
-                Showing {equipment.length} of {total} items
+                {t("equipment.showingCount", { count: equipment.length, total })}
               </p>
             </div>
 
@@ -504,11 +508,11 @@ export default function SiteEquipmentPage() {
                     />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Equipment Found</h2>
+                <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>{t("equipment.noEquipmentFound")}</h2>
                 <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                   {hasFilters
-                    ? "Try adjusting your filters or search terms."
-                    : "Check back soon for available equipment!"}
+                    ? t("equipment.adjustFiltersOrSearch")
+                    : t("equipment.checkBackSoon")}
                 </p>
                 {hasFilters && (
                   <button
@@ -516,7 +520,7 @@ export default function SiteEquipmentPage() {
                     className="px-6 py-2 rounded-lg text-white font-medium"
                     style={{ backgroundColor: "var(--primary-color)" }}
                   >
-                    Clear Filters
+                    {t("common.clearAllFilters")}
                   </button>
                 )}
               </div>
@@ -524,7 +528,7 @@ export default function SiteEquipmentPage() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {equipment.map((item) => (
-                    <EquipmentCard key={item.id} equipment={item} />
+                    <EquipmentCard key={item.id} equipment={item} t={t} />
                   ))}
                 </div>
 
@@ -537,7 +541,7 @@ export default function SiteEquipmentPage() {
                       className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                     >
-                      Previous
+                      {t("common.previous")}
                     </button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -572,7 +576,7 @@ export default function SiteEquipmentPage() {
                       className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                     >
-                      Next
+                      {t("common.next")}
                     </button>
                   </div>
                 )}
@@ -589,7 +593,7 @@ export default function SiteEquipmentPage() {
 // EQUIPMENT CARD COMPONENT
 // ============================================================================
 
-function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
+function EquipmentCard({ equipment, t }: { equipment: EquipmentCard; t: ReturnType<typeof createT> }) {
   const categoryInfo = EQUIPMENT_CATEGORIES.find(c => c.value === equipment.category);
   const conditionColor = equipment.condition === "excellent"
     ? "bg-success-muted text-success"
@@ -640,7 +644,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
               color: "var(--primary-color)",
             }}
           >
-            {categoryInfo?.label || equipment.category}
+            {categoryInfo ? t(categoryInfo.key) : equipment.category}
           </span>
         </div>
 
@@ -670,17 +674,17 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
               className="text-xl font-bold"
               style={{ color: "var(--primary-color)" }}
             >
-              {formatPrice(equipment.rentalPrice)}
+              {formatPrice(equipment.rentalPrice, t)}
             </p>
             {equipment.rentalPrice && (
-              <p className="text-xs opacity-50" style={{ color: "var(--text-color)" }}>per day</p>
+              <p className="text-xs opacity-50" style={{ color: "var(--text-color)" }}>{t("common.perDay")}</p>
             )}
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
             style={{ backgroundColor: "var(--primary-color)" }}
           >
-            View Details
+            {t("common.viewDetails")}
           </span>
         </div>
       </div>

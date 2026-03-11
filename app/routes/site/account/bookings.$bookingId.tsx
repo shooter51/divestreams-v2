@@ -12,8 +12,10 @@
  */
 
 import { useState } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { createT } from "../../../i18n";
+import type { SiteLoaderData } from "../_layout";
 import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -289,6 +291,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function BookingDetail() {
   const { booking } = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
+  const language = layoutData?.language ?? "en";
+  const t = createT(language);
+  const intlLocale = language === "es" ? "es-ES" : "en-US";
+
   const navigate = useNavigate();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -326,7 +333,7 @@ export default function BookingDetail() {
       });
 
       if (response.ok) {
-        setSuccessMessage("Your booking has been cancelled successfully.");
+        setSuccessMessage(t("bookings.cancelSuccess"));
         setShowCancelModal(false);
         // Reload the page to show updated status
         window.location.reload();
@@ -359,9 +366,9 @@ export default function BookingDetail() {
         </button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold" style={{ color: "var(--text-color)" }}>
-            Booking Details
+            {t("bookings.bookingDetails")}
           </h1>
-          <p className="mt-1 opacity-75">Booking Reference: {booking.bookingNumber}</p>
+          <p className="mt-1 opacity-75">{t("bookings.bookingReference", { ref: booking.bookingNumber })}</p>
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge status={getBookingStatus(booking.status)} size="md" />
@@ -385,30 +392,30 @@ export default function BookingDetail() {
         style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>
-          Trip Information
+          {t("bookings.tripInformation")}
         </h2>
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className="opacity-75">Trip Name:</span>
+            <span className="opacity-75">{t("bookings.tripName")}</span>
             <span className="font-medium">{booking.trip.tour.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="opacity-75">Date:</span>
-            <span className="font-medium">{formatDate(booking.trip.date)}</span>
+            <span className="opacity-75">{t("bookings.date")}</span>
+            <span className="font-medium">{formatDate(booking.trip.date, intlLocale)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="opacity-75">Time:</span>
-            <span className="font-medium">{formatTime(booking.trip.startTime)}</span>
+            <span className="opacity-75">{t("bookings.time")}</span>
+            <span className="font-medium">{formatTime(booking.trip.startTime, intlLocale)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="opacity-75">Participants:</span>
+            <span className="opacity-75">{t("bookings.participants")}</span>
             <span className="font-medium">
-              {booking.participants} {booking.participants === 1 ? "person" : "people"}
+              {booking.participants} {booking.participants === 1 ? t("bookings.person") : t("bookings.people")}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="opacity-75">Booked:</span>
-            <span className="font-medium">{formatDate(booking.createdAt.split("T")[0])}</span>
+            <span className="opacity-75">{t("bookings.bookedOn")}</span>
+            <span className="font-medium">{formatDate(booking.createdAt.split("T")[0], intlLocale)}</span>
           </div>
         </div>
       </div>
@@ -419,34 +426,34 @@ export default function BookingDetail() {
         style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>
-          Payment Summary
+          {t("bookings.paymentSummary")}
         </h2>
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className="opacity-75">Subtotal:</span>
-            <span>{formatCurrency(booking.subtotal, booking.currency)}</span>
+            <span className="opacity-75">{t("bookings.subtotal")}</span>
+            <span>{formatCurrency(booking.subtotal, booking.currency, intlLocale)}</span>
           </div>
           {parseFloat(booking.discount) > 0 && (
             <div className="flex justify-between">
-              <span className="opacity-75">Discount:</span>
+              <span className="opacity-75">{t("bookings.discount")}</span>
               <span className="text-success">
-                -{formatCurrency(booking.discount, booking.currency)}
+                -{formatCurrency(booking.discount, booking.currency, intlLocale)}
               </span>
             </div>
           )}
           {parseFloat(booking.tax) > 0 && (
             <div className="flex justify-between">
-              <span className="opacity-75">Tax:</span>
-              <span>{formatCurrency(booking.tax, booking.currency)}</span>
+              <span className="opacity-75">{t("bookings.tax")}</span>
+              <span>{formatCurrency(booking.tax, booking.currency, intlLocale)}</span>
             </div>
           )}
           <div className="border-t pt-3" style={{ borderColor: "var(--color-border)" }}>
             <div className="flex justify-between">
               <span className="font-semibold text-lg" style={{ color: "var(--text-color)" }}>
-                Total:
+                {t("bookings.total")}
               </span>
               <span className="font-semibold text-lg" style={{ color: "var(--text-color)" }}>
-                {formatCurrency(booking.total, booking.currency)}
+                {formatCurrency(booking.total, booking.currency, intlLocale)}
               </span>
             </div>
           </div>
@@ -460,18 +467,18 @@ export default function BookingDetail() {
           style={{ borderColor: "var(--danger-bg)", backgroundColor: "var(--danger-bg)" }}
         >
           <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--danger-text)" }}>
-            Cancellation Information
+            {t("bookings.cancellationInfo")}
           </h2>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="opacity-75">Cancelled on:</span>
+              <span className="opacity-75">{t("bookings.cancelledOn")}</span>
               <span className="font-medium">
-                {booking.cancelledAt ? formatDate(booking.cancelledAt.split("T")[0]) : "N/A"}
+                {booking.cancelledAt ? formatDate(booking.cancelledAt.split("T")[0], intlLocale) : "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="opacity-75">Reason:</span>
-              <span className="font-medium">{booking.cancellationReason || "No reason provided"}</span>
+              <span className="opacity-75">{t("bookings.reason")}</span>
+              <span className="font-medium">{booking.cancellationReason || t("bookings.noReasonProvided")}</span>
             </div>
           </div>
         </div>
@@ -484,7 +491,7 @@ export default function BookingDetail() {
           style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
         >
           <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>
-            Special Requests
+            {t("bookings.specialRequests")}
           </h2>
           <p className="opacity-75">{booking.specialRequests}</p>
         </div>
@@ -498,7 +505,7 @@ export default function BookingDetail() {
             className="px-6 py-2.5 rounded-lg font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}
           >
-            Cancel Booking
+            {t("bookings.cancelBooking")}
           </button>
         </div>
       )}
@@ -511,17 +518,16 @@ export default function BookingDetail() {
             style={{ backgroundColor: "var(--color-card-bg)" }}
           >
             <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-color)" }}>
-              Cancel Booking
+              {t("bookings.cancelBooking")}
             </h3>
             <p className="text-sm opacity-75 mb-4">
-              <strong>Warning:</strong> This action cannot be undone. Please select a reason for
-              cancellation.
+              <strong>Warning:</strong> {t("bookings.cancelWarning")}
             </p>
 
             <form onSubmit={handleCancelBooking} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
-                  Cancellation Reason
+                  {t("bookings.cancellationReason")}
                 </label>
                 <select
                   value={cancelReason}
@@ -534,7 +540,7 @@ export default function BookingDetail() {
                   }}
                   required
                 >
-                  <option value="">Select a reason...</option>
+                  <option value="">{t("bookings.selectReason")}</option>
                   {predefinedReasons.map((reason) => (
                     <option key={reason} value={reason}>
                       {reason}
@@ -546,7 +552,7 @@ export default function BookingDetail() {
               {cancelReason === "Other (please specify)" && (
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
-                    Please specify your reason
+                    {t("bookings.specifyReason")}
                   </label>
                   <textarea
                     value={customReason}
@@ -572,7 +578,7 @@ export default function BookingDetail() {
                   style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                   disabled={isSubmitting}
                 >
-                  Keep Booking
+                  {t("bookings.keepBooking")}
                 </button>
                 <button
                   type="submit"
@@ -580,7 +586,7 @@ export default function BookingDetail() {
                   style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}
                   disabled={confirmButtonDisabled}
                 >
-                  {isSubmitting ? "Cancelling..." : "Confirm Cancellation"}
+                  {isSubmitting ? t("bookings.cancelling") : t("bookings.confirmCancellation")}
                 </button>
               </div>
             </form>
@@ -619,9 +625,9 @@ function getPaymentStatus(status: string): BadgeStatus {
 // HELPERS
 // ============================================================================
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, intlLocale = "en-US"): string {
   const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(intlLocale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -629,19 +635,19 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string, intlLocale = "en-US"): string {
   const [hours, minutes] = timeStr.split(":");
   const date = new Date();
   date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-  return date.toLocaleTimeString("en-US", {
+  return date.toLocaleTimeString(intlLocale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   });
 }
 
-function formatCurrency(amount: string, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
+function formatCurrency(amount: string, currency: string, intlLocale = "en-US"): string {
+  return new Intl.NumberFormat(intlLocale, {
     style: "currency",
     currency: currency || "USD",
   }).format(parseFloat(amount));

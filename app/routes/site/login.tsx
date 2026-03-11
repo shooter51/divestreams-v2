@@ -34,6 +34,7 @@ import { getSubdomainFromHost } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import type { SiteLoaderData } from "./_layout";
+import { createT } from "../../i18n";
 
 // ============================================================================
 // COOKIE CONFIGURATION
@@ -89,14 +90,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (subdomain) {
     [org] = await db
-      .select({ id: organization.id })
+      .select({ id: organization.id, publicSiteSettings: organization.publicSiteSettings })
       .from(organization)
       .where(eq(organization.slug, subdomain))
       .limit(1);
   } else {
     const customDomain = host.split(":")[0];
     [org] = await db
-      .select({ id: organization.id })
+      .select({ id: organization.id, publicSiteSettings: organization.publicSiteSettings })
       .from(organization)
       .where(eq(organization.customDomain, customDomain))
       .limit(1);
@@ -122,7 +123,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  return { organizationId: org.id, csrfToken: generateAnonCsrfToken() };
+  const language = (org.publicSiteSettings?.language ?? "en") as "en" | "es";
+
+  return { organizationId: org.id, csrfToken: generateAnonCsrfToken(), language };
 }
 
 // ============================================================================
@@ -145,14 +148,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (subdomain) {
     [org] = await db
-      .select({ id: organization.id })
+      .select({ id: organization.id, publicSiteSettings: organization.publicSiteSettings })
       .from(organization)
       .where(eq(organization.slug, subdomain))
       .limit(1);
   } else {
     const customDomain = host.split(":")[0];
     [org] = await db
-      .select({ id: organization.id })
+      .select({ id: organization.id, publicSiteSettings: organization.publicSiteSettings })
       .from(organization)
       .where(eq(organization.customDomain, customDomain))
       .limit(1);
@@ -161,6 +164,8 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!org) {
     throw new Response("Organization not found", { status: 404 });
   }
+
+  const t = createT((org.publicSiteSettings?.language ?? "en") as string);
 
   // Rate limiting - 10 login attempts per 15 minutes per IP
   const clientIp = getClientIp(request);
@@ -172,7 +177,10 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!rateLimitResult.allowed) {
     const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
     const rateLimitErrors: ActionErrors = {
-      form: `Too many login attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+      form: t("auth.tooManyAttempts", {
+        minutes: minutesUntilReset,
+        plural: minutesUntilReset > 1 ? "s" : "",
+      }),
     };
     return { errors: rateLimitErrors, email: "" };
   }
@@ -182,7 +190,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // CSRF validation (DS-30f)
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (!validateAnonCsrfToken(csrfToken)) {
-    return { errors: { form: "Invalid CSRF token. Please refresh the page and try again." } as ActionErrors, email: "" };
+    return { errors: { form: t("auth.csrfError") } as ActionErrors, email: "" };
   }
 
   const email = formData.get("email") as string;
@@ -193,13 +201,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const errors: ActionErrors = {};
 
   if (!email || !email.trim()) {
-    errors.email = "Email is required";
+    errors.email = t("auth.emailRequired");
   } else if (!isValidEmail(email)) {
-    errors.email = "Please enter a valid email address";
+    errors.email = t("auth.invalidEmail");
   }
 
   if (!password) {
-    errors.password = "Password is required";
+    errors.password = t("auth.passwordRequired");
   }
 
   if (Object.keys(errors).length > 0) {
@@ -226,7 +234,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch {
     // Login failed
-    const loginErrors: ActionErrors = { form: "Invalid email or password" };
+    const loginErrors: ActionErrors = { form: t("auth.invalidCredentials") };
     return {
       errors: loginErrors,
       email,
@@ -277,15 +285,17 @@ export default function SiteLoginPage() {
   const organization = layoutData?.organization;
   const redirectTo = searchParams.get("redirect");
   const message = searchParams.get("message");
+  const language = loaderData?.language ?? layoutData?.language ?? "en";
+  const t = createT(language);
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome Back</h1>
+          <h1 className="text-3xl font-bold">{t("auth.welcomeBack")}</h1>
           <p className="mt-2 opacity-75">
-            Sign in to your {organization?.name ? `${organization.name} account` : "account"}
+            {organization?.name ? t("auth.signInToAccount", { name: organization.name }) : t("auth.signInToYourAccount")}
           </p>
         </div>
 
@@ -312,7 +322,7 @@ export default function SiteLoginPage() {
                 />
               </svg>
               <span className="font-medium">
-                Password set successfully! You can now sign in with your new password.
+                {t("auth.passwordSetSuccess")}
               </span>
             </div>
           </div>
@@ -361,7 +371,7 @@ export default function SiteLoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium mb-2"
               >
-                Email Address
+                {t("auth.emailAddress")}
               </label>
               <input
                 type="email"
@@ -395,14 +405,14 @@ export default function SiteLoginPage() {
                   htmlFor="password"
                   className="block text-sm font-medium"
                 >
-                  Password
+                  {t("auth.password")}
                 </label>
                 <Link
                   to="/auth/forgot-password"
                   className="text-sm font-medium hover:opacity-80 transition-opacity"
                   style={{ color: "var(--primary-color)" }}
                 >
-                  Forgot password?
+                  {t("auth.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -466,7 +476,7 @@ export default function SiteLoginPage() {
                 htmlFor="rememberMe"
                 className="text-sm cursor-pointer select-none"
               >
-                Remember me for 30 days
+                {t("auth.rememberMe")}
               </label>
             </div>
 
@@ -501,10 +511,10 @@ export default function SiteLoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Signing in...
+                  {t("auth.signingIn")}
                 </span>
               ) : (
-                "Sign In"
+                t("auth.signIn")
               )}
             </button>
 
@@ -527,7 +537,7 @@ export default function SiteLoginPage() {
                 className="px-4"
                 style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
               >
-                New to {organization?.name || "our site"}?
+                {organization?.name ? t("auth.newToSite", { name: organization.name }) : t("auth.newToOurSite")}
               </span>
             </div>
           </div>
@@ -541,19 +551,19 @@ export default function SiteLoginPage() {
               color: "var(--primary-color)",
             }}
           >
-            Create an Account
+            {t("auth.createAccount")}
           </Link>
         </div>
 
         {/* Help Text */}
         <p className="mt-8 text-center text-sm opacity-75">
-          Having trouble signing in?{" "}
+          {t("auth.havingTrouble")}{" "}
           <Link
             to="/site/contact"
             className="font-medium hover:opacity-80"
             style={{ color: "var(--primary-color)" }}
           >
-            Contact us
+            {t("auth.contactUs")}
           </Link>
         </p>
       </div>

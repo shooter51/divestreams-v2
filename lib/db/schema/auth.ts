@@ -128,6 +128,7 @@ export type PublicSiteSettings = {
   heroImageUrl: string | null;
   heroVideoUrl: string | null;
   fontFamily: "inter" | "poppins" | "roboto" | "open-sans";
+  language?: "en" | "es";
   pages: {
     home: boolean;
     about: boolean;
