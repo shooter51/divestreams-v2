@@ -234,8 +234,8 @@ export default function SignupPage() {
     <div className="min-h-screen bg-surface-inset">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-brand">
-          DiveStreams
+        <a href="/" className="flex items-center">
+          <img src="/logo-horizontal.png" alt="DiveStreams" className="h-8" />
         </a>
         <div className="flex gap-6 items-center">
           <a href="/features" className="text-foreground-muted hover:text-brand">

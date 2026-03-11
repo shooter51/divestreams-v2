@@ -1,11 +1,11 @@
 import type { MetaFunction } from "react-router";
 
 const FEATURE_IMAGES: Record<string, string> = {
-  "Booking Management": "https://placehold.co/800x500/1e3a5f/white?text=Booking+Management",
-  "Customer Management": "https://placehold.co/800x500/1e3a5f/white?text=Customer+Management",
-  "Tour & Trip Planning": "https://placehold.co/800x500/1e3a5f/white?text=Tour+%26+Trip+Planning",
-  "Equipment Tracking": "https://placehold.co/800x500/1e3a5f/white?text=Equipment+Tracking",
-  "Reports & Analytics": "https://placehold.co/800x500/1e3a5f/white?text=Reports+%26+Analytics",
+  "Booking Management": "/guide/screenshots/bookings-list.png",
+  "Customer Management": "/guide/screenshots/customers-list.png",
+  "Tour & Trip Planning": "/guide/screenshots/tours-list.png",
+  "Equipment Tracking": "/guide/screenshots/equipment-list.png",
+  "Reports & Analytics": "/guide/screenshots/reports.png",
 };
 
 export const meta: MetaFunction = () => {
@@ -24,8 +24,8 @@ export default function FeaturesPage() {
     <div className="min-h-screen bg-surface-raised">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-brand">
-          DiveStreams
+        <a href="/" className="flex items-center">
+          <img src="/logo-horizontal.png" alt="DiveStreams" className="h-8" />
         </a>
         <div className="flex gap-6 items-center">
           <a href="/features" className="text-brand font-medium">
