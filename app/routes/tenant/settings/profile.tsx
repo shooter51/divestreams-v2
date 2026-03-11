@@ -42,6 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const profile = {
     name: ctx.org.name,
     slug: ctx.org.slug,
+    customDomain: ctx.org.customDomain || "",
     email: metadata.email || "",
     phone: metadata.phone || "",
     website: metadata.website || "",
@@ -96,6 +97,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const timezone = formData.get("timezone") as string;
     const currency = formData.get("currency") as string;
     const depthUnit = (formData.get("depthUnit") as string) === "feet" ? "feet" : "meters";
+    const customDomain = (formData.get("customDomain") as string)?.trim().toLowerCase() || null;
 
     // Validate email is required
     if (!email) {
@@ -110,6 +112,16 @@ export async function action({ request }: ActionFunctionArgs) {
     // Validate website URL format
     if (website && !/^https?:\/\/.+\..+/.test(website)) {
       return { error: "Please enter a valid website URL (e.g., https://example.com)" };
+    }
+
+    // Validate custom domain format (no protocol, no path)
+    if (customDomain && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(customDomain)) {
+      return { error: "Please enter a valid domain (e.g., www.yourdiveshop.com)" };
+    }
+
+    // Reject divestreams.com as a custom domain
+    if (customDomain && (customDomain === "divestreams.com" || customDomain.endsWith(".divestreams.com"))) {
+      return { error: "Custom domain cannot be a divestreams.com subdomain" };
     }
 
     const address = {
@@ -137,6 +149,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .set({
         name,
         metadata: newMetadata,
+        customDomain,
       })
       .where(eq(organization.id, ctx.org.id));
 
@@ -323,6 +336,23 @@ export default function ProfileSettingsPage() {
                 </div>
                 <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.profile.contactSupportSlug")}</p>
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="customDomain" className="block text-sm font-medium mb-1">
+                Custom Domain
+              </label>
+              <input
+                type="text"
+                id="customDomain"
+                name="customDomain"
+                defaultValue={profile.customDomain}
+                placeholder="www.yourdiveshop.com"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              />
+              <p className="text-xs text-foreground-muted mt-1">
+                Enter your custom domain (e.g., www.yourdiveshop.com). Point your domain&apos;s DNS (CNAME or A record) to this server before saving.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

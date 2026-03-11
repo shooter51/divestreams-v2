@@ -22,6 +22,9 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Domain check (used by Caddy on_demand_tls to validate custom domains)
+  route("api/domain-check", "routes/api/domain-check.tsx"),
+
   // Locale switcher (works from any context — tenant, site, or admin)
   route("api/set-locale", "routes/api/set-locale.tsx"),
 
