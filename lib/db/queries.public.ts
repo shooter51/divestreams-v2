@@ -363,6 +363,7 @@ export interface PublicTripDetail {
   includesEquipment: boolean;
   includesMeals: boolean;
   includesTransport: boolean;
+  requiresTankSelection: boolean;
   minCertLevel: string | null;
   minAge: number | null;
   primaryImage: string | null;
@@ -391,6 +392,7 @@ export async function getPublicTripById(
       includesEquipment: schema.tours.includesEquipment,
       includesMeals: schema.tours.includesMeals,
       includesTransport: schema.tours.includesTransport,
+      requiresTankSelection: schema.tours.requiresTankSelection,
       minCertLevel: schema.tours.minCertLevel,
       minAge: schema.tours.minAge,
     })
@@ -466,6 +468,7 @@ export async function getPublicTripById(
     includesEquipment: trip.includesEquipment || false,
     includesMeals: trip.includesMeals || false,
     includesTransport: trip.includesTransport || false,
+    requiresTankSelection: trip.requiresTankSelection || false,
     minCertLevel: trip.minCertLevel,
     minAge: trip.minAge ? Number(trip.minAge) : null,
     primaryImage: images[0]?.url || null,
@@ -480,11 +483,11 @@ export interface PublicCourse {
   id: string;
   name: string;
   description: string | null;
-  agencyName: string;
-  agencyCode: string;
+  agencyName: string | null;
+  agencyCode: string | null;
   agencyLogo: string | null;
-  levelName: string;
-  levelCode: string;
+  levelName: string | null;
+  levelCode: string | null;
   price: string;
   depositAmount: string | null;
   currency: string;
@@ -517,11 +520,11 @@ export async function getPublicCourses(
       openWaterDives: schema.trainingCourses.openWaterDives,
     })
     .from(schema.trainingCourses)
-    .innerJoin(
+    .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
     )
-    .innerJoin(
+    .leftJoin(
       schema.certificationLevels,
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )
@@ -598,11 +601,11 @@ export async function getPublicCourseById(
       openWaterDives: schema.trainingCourses.openWaterDives,
     })
     .from(schema.trainingCourses)
-    .innerJoin(
+    .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
     )
-    .innerJoin(
+    .leftJoin(
       schema.certificationLevels,
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )

@@ -85,6 +85,7 @@ export const tourSchema = z.object({
   requirements: z.array(z.string()).optional(),
   images: z.array(z.string()).optional(),
   isActive: z.boolean().default(true),
+  requiresTankSelection: z.boolean().default(false),
 });
 
 export type TourInput = z.infer<typeof tourSchema>;
@@ -174,6 +175,12 @@ export const bookingSchema = z.object({
         name: z.string(),
         certLevel: z.string().optional(),
         equipment: z.array(z.string()).optional(),
+        bringOwnTanks: z.boolean().optional(),
+        tanks: z.array(z.object({
+          type: z.string(),
+          gasType: z.string(),
+          quantity: z.coerce.number().int().min(1).max(4),
+        })).optional(),
       })
     )
     .optional(),
@@ -183,6 +190,8 @@ export const bookingSchema = z.object({
         item: z.string(),
         size: z.string().optional(),
         price: z.coerce.number(),
+        gasType: z.string().optional(),
+        quantity: z.coerce.number().int().min(1).optional(),
       })
     )
     .optional(),

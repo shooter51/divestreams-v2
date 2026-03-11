@@ -23,13 +23,19 @@ import { useState } from "react";
 import { useT } from "../../../i18n/use-t";
 import { useFormat } from "../../../i18n/use-format";
 
+/** Strip HTML tags from a string (e.g. tour names stored with HTML markup) */
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, "").trim();
+}
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.trip) return [{ title: "Trip Not Found" }];
+  const cleanName = data.trip.tourName.replace(/<[^>]*>/g, "").trim();
   return [
-    { title: `${data.trip.tourName} - ${data.organizationName}` },
+    { title: `${cleanName} - ${data.organizationName}` },
     {
       name: "description",
-      content: data.trip.tourDescription || `Book your spot on ${data.trip.tourName}`,
+      content: data.trip.tourDescription || `Book your spot on ${cleanName}`,
     },
   ];
 };
@@ -403,7 +409,7 @@ export default function SiteTripDetailPage() {
           {primaryImage ? (
             <img
               src={primaryImage.url}
-              alt={primaryImage.alt || trip.tourName}
+              alt={primaryImage.alt || stripHtml(trip.tourName)}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -470,7 +476,7 @@ export default function SiteTripDetailPage() {
               {t(tourTypeKeys[trip.tourType] || "site.trips.type.diveTrip")}
             </span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
-              {trip.tourName}
+              {stripHtml(trip.tourName)}
             </h1>
             <p className="text-lg text-white/90">{formatDate(trip.date)}</p>
           </div>
@@ -819,7 +825,7 @@ export default function SiteTripDetailPage() {
           <div className="max-w-5xl max-h-[80vh] mx-4" onClick={(e) => e.stopPropagation()}>
             <img
               src={images[selectedImageIndex].url}
-              alt={images[selectedImageIndex].alt || trip.tourName}
+              alt={images[selectedImageIndex].alt || stripHtml(trip.tourName)}
               className="max-w-full max-h-[80vh] object-contain"
             />
           </div>

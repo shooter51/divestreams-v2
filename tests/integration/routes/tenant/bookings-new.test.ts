@@ -50,6 +50,7 @@ vi.mock("../../../../lib/db/queries.server", () => ({
   createBooking: vi.fn(),
   getCustomerById: vi.fn(),
   getTripById: vi.fn(),
+  getTankTypes: vi.fn(),
 }));
 
 vi.mock("../../../../lib/email/triggers", () => ({
@@ -71,6 +72,7 @@ import {
   createBooking,
   getCustomerById,
   getTripById,
+  getTankTypes,
 } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
 
@@ -122,6 +124,8 @@ describe("tenant/bookings/new route", () => {
     (getCustomers as Mock).mockResolvedValue({ customers: mockCustomers });
     (getTrips as Mock).mockResolvedValue(mockTrips);
     (getEquipment as Mock).mockResolvedValue(mockEquipment);
+    (getTankTypes as Mock).mockResolvedValue([]);
+    (getTripById as Mock).mockResolvedValue(null);
   });
 
   describe("loader", () => {
@@ -222,6 +226,18 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("pre-selects trip when tripId in URL", async () => {
+      const mockTripData = {
+        id: "trip-1",
+        tourName: "Morning Dive",
+        date: "2025-02-01",
+        startTime: "08:00",
+        maxParticipants: 10,
+        bookedParticipants: 2,
+        price: 99.0,
+        requiresTankSelection: false,
+      };
+      (getTripById as Mock).mockResolvedValue(mockTripData);
+
       const request = new Request("https://demo.divestreams.com/tenant/bookings/new?tripId=trip-1");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);

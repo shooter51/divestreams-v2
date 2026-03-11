@@ -18,6 +18,7 @@ export interface CreateWidgetBookingInput {
   email: string;
   phone?: string;
   specialRequests?: string;
+  participantDetails?: { name: string; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[];
 }
 
 export interface WidgetBookingResult {
@@ -157,6 +158,8 @@ export async function createWidgetBooking(
         currency: trip.currency,
         paymentStatus: "pending",
         specialRequests: input.specialRequests || null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        participantDetails: input.participantDetails && input.participantDetails.length > 0 ? (input.participantDetails as any) : null,
         source: "widget",
       })
       .returning({

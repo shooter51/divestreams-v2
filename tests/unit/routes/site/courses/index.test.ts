@@ -131,15 +131,14 @@ describe("Site Courses Loader (DS-rf2e)", () => {
 
     // availableAgencies should exist and contain only PADI and SSI (not all 7 hardcoded agencies)
     expect(result).toHaveProperty("availableAgencies");
-    const agencies = (result as { availableAgencies: Array<{ id: string; name: string }> }).availableAgencies;
+    const agencies = (result as { availableAgencies: string[] }).availableAgencies;
     expect(agencies).toHaveLength(2);
 
-    const agencyNames = agencies.map((a) => a.name);
-    expect(agencyNames).toContain("PADI");
-    expect(agencyNames).toContain("SSI");
-    expect(agencyNames).not.toContain("NAUI");
-    expect(agencyNames).not.toContain("RAID");
-    expect(agencyNames).not.toContain("GUE");
+    expect(agencies).toContain("PADI");
+    expect(agencies).toContain("SSI");
+    expect(agencies).not.toContain("NAUI");
+    expect(agencies).not.toContain("RAID");
+    expect(agencies).not.toContain("GUE");
   });
 
   it("returns empty availableAgencies when no courses exist", async () => {
@@ -150,7 +149,7 @@ describe("Site Courses Loader (DS-rf2e)", () => {
     const result = await loader(makeLoaderArgs());
 
     expect(result).toHaveProperty("availableAgencies");
-    const agencies = (result as { availableAgencies: Array<{ id: string; name: string }> }).availableAgencies;
+    const agencies = (result as { availableAgencies: string[] }).availableAgencies;
     expect(agencies).toHaveLength(0);
   });
 
@@ -168,8 +167,8 @@ describe("Site Courses Loader (DS-rf2e)", () => {
 
     const result = await loader(makeLoaderArgs());
 
-    const agencies = (result as { availableAgencies: Array<{ id: string; name: string }> }).availableAgencies;
+    const agencies = (result as { availableAgencies: string[] }).availableAgencies;
     expect(agencies).toHaveLength(1);
-    expect(agencies[0].name).toBe("PADI");
+    expect(agencies[0]).toBe("PADI");
   });
 });

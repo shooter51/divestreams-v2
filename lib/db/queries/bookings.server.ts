@@ -203,6 +203,7 @@ export async function createBooking(organizationId: string, data: {
   currency?: string;
   specialRequests?: string;
   source?: string;
+  participantDetails?: { name: string; certLevel?: string; equipment?: string[]; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[];
 }) {
   const participants = data.participants || 1;
 
@@ -242,6 +243,7 @@ export async function createBooking(organizationId: string, data: {
       currency: data.currency || "USD",
       specialRequests: data.specialRequests || null,
       source: data.source || "direct",
+      participantDetails: data.participantDetails || null,
     })
     .returning();
 

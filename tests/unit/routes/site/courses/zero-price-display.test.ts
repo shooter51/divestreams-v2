@@ -6,25 +6,25 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { formatCoursePrice } from "../../../../../app/routes/site/courses/index";
+import { formatPrice } from "../../../../../app/routes/site/courses/index";
 import { formatCourseDetailPrice } from "../../../../../app/routes/site/courses/$courseId";
 
 describe("DS-pln5: Zero price courses display 'Contact for pricing'", () => {
-  describe("formatCoursePrice (courses list)", () => {
+  describe("formatPrice (courses list)", () => {
     it("returns 'Contact for pricing' when price is '0.00'", () => {
-      expect(formatCoursePrice("0.00", "USD")).toBe("site.courses.contactForPricing");
+      expect(formatPrice("0.00", "USD")).toBe("Contact for pricing");
     });
 
     it("returns 'Contact for pricing' when price is '0'", () => {
-      expect(formatCoursePrice("0", "USD")).toBe("site.courses.contactForPricing");
+      expect(formatPrice("0", "USD")).toBe("Contact for pricing");
     });
 
     it("returns formatted price when price is greater than zero", () => {
-      expect(formatCoursePrice("450.00", "USD")).toBe("$450");
+      expect(formatPrice("450.00", "USD")).toBe("$450");
     });
 
     it("returns 'Contact for pricing' for NaN price", () => {
-      expect(formatCoursePrice("invalid", "USD")).toBe("site.courses.contactForPricing");
+      expect(formatPrice("invalid", "USD")).toBe("Contact for pricing");
     });
   });
 

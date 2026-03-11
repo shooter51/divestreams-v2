@@ -97,8 +97,10 @@ export {
   updateEquipmentStatus,
   deleteEquipment,
   getEquipmentUtilization,
+  getTankTypes,
   type EquipmentServiceRecord,
   type EquipmentUtilization,
+  type TankType,
 } from "./equipment.server";
 
 // Boat queries

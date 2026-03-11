@@ -97,6 +97,7 @@ export async function createTour(organizationId: string, data: {
   includesTransport?: boolean;
   minCertLevel?: string;
   minAge?: number;
+  requiresTankSelection?: boolean;
 }) {
   const [tour] = await db
     .insert(schema.tours)
@@ -115,6 +116,7 @@ export async function createTour(organizationId: string, data: {
       includesTransport: data.includesTransport || false,
       minCertLevel: data.minCertLevel || null,
       minAge: data.minAge || null,
+      requiresTankSelection: data.requiresTankSelection || false,
     })
     .returning();
 
