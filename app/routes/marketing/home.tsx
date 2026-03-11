@@ -30,6 +30,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect("/site");
   }
 
+  // If on a custom domain (not divestreams.com, not localhost), redirect to public site
+  const host = new URL(request.url).hostname;
+  if (!host.includes("divestreams.com") && !host.includes("localhost")) {
+    throw redirect("/site");
+  }
+
   return null;
 }
 

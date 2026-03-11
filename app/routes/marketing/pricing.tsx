@@ -1,5 +1,5 @@
-import type { MetaFunction } from "react-router";
-import { useLoaderData } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs } from "react-router";
+import { redirect, useLoaderData } from "react-router";
 import { useState } from "react";
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
@@ -83,7 +83,11 @@ export const headers = () => ({
   "Cache-Control": "public, max-age=3600, s-maxage=86400",
 });
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const host = new URL(request.url).hostname;
+  if (!host.includes("divestreams.com") && !host.includes("localhost")) {
+    throw redirect("/site");
+  }
   try {
     const plans = await db
       .select()

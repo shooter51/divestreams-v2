@@ -1,4 +1,4 @@
-import type { MetaFunction, ActionFunctionArgs } from "react-router";
+import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
 import { triggerWelcomeEmail } from "../../../lib/email/triggers";
@@ -19,7 +19,11 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export function loader() {
+export function loader({ request }: LoaderFunctionArgs) {
+  const host = new URL(request.url).hostname;
+  if (!host.includes("divestreams.com") && !host.includes("localhost")) {
+    throw redirect("/site");
+  }
   return { csrfToken: generateAnonCsrfToken() };
 }
 
