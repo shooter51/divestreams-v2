@@ -98,6 +98,20 @@ export async function action({ params, request }: ActionFunctionArgs) {
     errors.participants = `Only ${trip.availableSpots} spot(s) available`;
   }
 
+  // Validate tank & gas selection when required by the tour (DS-6wqg)
+  if (trip && trip.requiresTankSelection) {
+    const tankSelectionRaw = formData.get("tankSelection") as string | null;
+    let tankSelection: unknown[] = [];
+    try {
+      tankSelection = tankSelectionRaw ? JSON.parse(tankSelectionRaw) : [];
+    } catch {
+      tankSelection = [];
+    }
+    if (!Array.isArray(tankSelection) || tankSelection.length === 0) {
+      errors.tankSelection = "Tank and gas selection is required for this tour";
+    }
+  }
+
   if (Object.keys(errors).length > 0) {
     return {
       errors,

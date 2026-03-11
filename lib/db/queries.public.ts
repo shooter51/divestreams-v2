@@ -365,6 +365,7 @@ export interface PublicTripDetail {
   includesTransport: boolean;
   minCertLevel: string | null;
   minAge: number | null;
+  requiresTankSelection: boolean;
   primaryImage: string | null;
 }
 
@@ -393,6 +394,7 @@ export async function getPublicTripById(
       includesTransport: schema.tours.includesTransport,
       minCertLevel: schema.tours.minCertLevel,
       minAge: schema.tours.minAge,
+      requiresTankSelection: schema.tours.requiresTankSelection,
     })
     .from(schema.trips)
     .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
@@ -468,6 +470,7 @@ export async function getPublicTripById(
     includesTransport: trip.includesTransport || false,
     minCertLevel: trip.minCertLevel,
     minAge: trip.minAge ? Number(trip.minAge) : null,
+    requiresTankSelection: trip.requiresTankSelection ?? false,
     primaryImage: images[0]?.url || null,
   };
 }

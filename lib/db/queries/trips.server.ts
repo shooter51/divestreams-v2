@@ -136,6 +136,7 @@ export async function getTripById(organizationId: string, id: string) {
       tourType: schema.tours.type,
       tourPrice: schema.tours.price,
       tourMaxParticipants: schema.tours.maxParticipants,
+      requiresTankSelection: schema.tours.requiresTankSelection,
       boatName: schema.boats.name,
     })
     .from(schema.trips)
@@ -149,14 +150,17 @@ export async function getTripById(organizationId: string, id: string) {
 
   if (!result) return null;
 
-  return mapTrip({
-    ...result.trip,
-    tour_name: result.tourName,
-    tour_type: result.tourType,
-    tour_price: result.tourPrice,
-    tour_max_participants: result.tourMaxParticipants,
-    boat_name: result.boatName,
-  });
+  return {
+    ...mapTrip({
+      ...result.trip,
+      tour_name: result.tourName,
+      tour_type: result.tourType,
+      tour_price: result.tourPrice,
+      tour_max_participants: result.tourMaxParticipants,
+      boat_name: result.boatName,
+    }),
+    requiresTankSelection: result.requiresTankSelection ?? false,
+  };
 }
 
 // ============================================================================

@@ -83,6 +83,7 @@ export const tourSchema = z.object({
   minCertLevel: z.string().optional(),
   minAge: optionalIntNumber,
   requirements: z.array(z.string()).optional(),
+  requiresTankSelection: z.boolean().default(false),
   images: z.array(z.string()).optional(),
   isActive: z.boolean().default(true),
 });

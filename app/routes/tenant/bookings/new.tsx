@@ -117,6 +117,23 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: { tripId: "Trip not found" }, values: getFormValues(formData) };
   }
 
+  // Validate tank & gas selection when required by the tour (DS-6wqg)
+  if (trip.requiresTankSelection) {
+    const tankSelectionRaw = formData.get("tankSelection") as string | null;
+    let tankSelection: unknown[] = [];
+    try {
+      tankSelection = tankSelectionRaw ? JSON.parse(tankSelectionRaw) : [];
+    } catch {
+      tankSelection = [];
+    }
+    if (!Array.isArray(tankSelection) || tankSelection.length === 0) {
+      return {
+        errors: { tankSelection: "Tank and gas selection is required for this tour" },
+        values: getFormValues(formData),
+      };
+    }
+  }
+
   // Calculate pricing
   const pricePerPerson = trip.price || 0;
   const participants = data.participants || 1;

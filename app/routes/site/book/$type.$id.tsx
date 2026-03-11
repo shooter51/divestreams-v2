@@ -618,6 +618,29 @@ export async function action({
     errors.sessionId = "Please select a session date";
   }
 
+  // Validate tank & gas selection when required by the tour (DS-6wqg)
+  if (type === "trip" && id) {
+    const [tourSettings] = await db
+      .select({ requiresTankSelection: tours.requiresTankSelection })
+      .from(trips)
+      .innerJoin(tours, eq(trips.tourId, tours.id))
+      .where(and(eq(trips.organizationId, org.id), eq(trips.id, id)))
+      .limit(1);
+
+    if (tourSettings?.requiresTankSelection) {
+      const tankSelectionRaw = formData.get("tankSelection") as string | null;
+      let tankSelection: unknown[] = [];
+      try {
+        tankSelection = tankSelectionRaw ? JSON.parse(tankSelectionRaw) : [];
+      } catch {
+        tankSelection = [];
+      }
+      if (!Array.isArray(tankSelection) || tankSelection.length === 0) {
+        errors.tankSelection = "Tank and gas selection is required for this tour";
+      }
+    }
+  }
+
   if (Object.keys(errors).length > 0) {
     return {
       errors,

@@ -459,7 +459,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
       queueResults(
         // 1. Org lookup
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
-        // 2. Customer lookup - existing (no update for guest checkout)
+        // 2. Tour requiresTankSelection lookup (DS-6wqg)
+        [{ requiresTankSelection: false }],
+        // 3. Customer lookup - existing (no update for guest checkout)
         [{ id: "existing-cust-1" }],
         // --- inside transaction ---
         // 3. Trip data (SELECT ... FOR UPDATE)
@@ -506,9 +508,11 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
       queueResults(
         // 1. Org
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
-        // 2. Customer (existing, no update for guest checkout)
+        // 2. Tour requiresTankSelection lookup (DS-6wqg)
+        [{ requiresTankSelection: false }],
+        // 3. Customer (existing, no update for guest checkout)
         [{ id: "existing-cust-1" }],
-        // 3. Trip lookup in tx - NOT FOUND
+        // 4. Trip lookup in tx - NOT FOUND
         [],
       );
 
@@ -524,9 +528,11 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
       queueResults(
         // 1. Org
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
-        // 2. Customer (existing, no update for guest checkout)
+        // 2. Tour requiresTankSelection lookup (DS-6wqg)
+        [{ requiresTankSelection: false }],
+        // 3. Customer (existing, no update for guest checkout)
         [{ id: "existing-cust-1" }],
-        // 3. Trip data
+        // 4. Trip data
         [{
           id: "trip-1",
           tourId: "tour-1",

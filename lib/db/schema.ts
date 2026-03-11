@@ -293,6 +293,7 @@ export const tours = pgTable("tours", {
   minCertLevel: text("min_cert_level"),
   minAge: integer("min_age"),
   requirements: jsonb("requirements").$type<string[]>(),
+  requiresTankSelection: boolean("requires_tank_selection").notNull().default(false),
 
   images: jsonb("images").$type<string[]>(),
   isActive: boolean("is_active").notNull().default(true),
