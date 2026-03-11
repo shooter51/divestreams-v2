@@ -5,8 +5,38 @@ import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-conte
 import { getAgencies, createAgency, createCourse, getCourses, updateCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 import { escapeHtml } from "../../../../../lib/security/sanitize";
+import { uploadToS3, getImageKey, isStorageConfigured } from "../../../../../lib/storage/s3";
 import { CsrfInput } from "../../../../components/CsrfInput";
 import { useT } from "../../../../i18n/use-t";
+
+/**
+ * Download external image URLs and re-upload to S3.
+ * Skips failed downloads gracefully — returns only successfully uploaded URLs.
+ */
+async function reUploadImages(
+  orgId: string,
+  courseId: string,
+  imageUrls: string[]
+): Promise<string[]> {
+  if (!isStorageConfigured() || imageUrls.length === 0) return imageUrls;
+
+  const results = await Promise.allSettled(
+    imageUrls.map(async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const contentType = res.headers.get("content-type") || "image/jpeg";
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const filename = url.split("/").pop() || "image.jpg";
+      const key = getImageKey(orgId, "course", courseId, filename);
+      const result = await uploadToS3(key, buffer, contentType);
+      return result?.cdnUrl || result?.url || url;
+    })
+  );
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+    .map((r) => r.value);
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -324,12 +354,24 @@ export async function action({ request }: ActionFunctionArgs) {
           medicalRequirements: template.medicalRequirements ?? undefined,
           materialsIncluded: template.materialsIncluded ?? undefined,
           requiredItems: template.requiredItems ?? undefined,
-          images: template.images ?? undefined,
           price: "0.00", // Default price - user will set
           currency: "USD",
           isActive: true,
           isPublic: false, // Default to private - user will publish
         });
+
+        // Re-upload template images to S3 to avoid hotlink issues
+        if (template.images && template.images.length > 0) {
+          const uploadedImages = await reUploadImages(
+            orgContext.org.id,
+            course.id,
+            template.images
+          );
+          if (uploadedImages.length > 0) {
+            await updateCourse(orgContext.org.id, course.id, { images: uploadedImages });
+          }
+        }
+
         importedCourses.push(course.name);
       } catch (error) {
         console.error(`Failed to import ${template.name}:`, error);
@@ -380,8 +422,16 @@ export async function action({ request }: ActionFunctionArgs) {
         const templateFirst = template.images[0];
         // Update if images are missing or different from template
         if (!currentImages || currentImages.length === 0 || currentImages[0] !== templateFirst) {
-          await updateCourse(organizationId, course.id, { images: template.images });
-          updatedCount++;
+          // Re-upload to S3 to avoid hotlink issues
+          const uploadedImages = await reUploadImages(
+            organizationId,
+            course.id,
+            template.images
+          );
+          if (uploadedImages.length > 0) {
+            await updateCourse(organizationId, course.id, { images: uploadedImages });
+            updatedCount++;
+          }
         }
       }
     }
