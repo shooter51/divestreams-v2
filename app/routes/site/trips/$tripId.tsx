@@ -21,6 +21,7 @@ import { getTranslatedEntity, getContentTranslations } from "../../../../lib/db/
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useState } from "react";
 import { useT } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.trip) return [{ title: "Trip Not Found" }];
@@ -334,16 +335,6 @@ const tourTypeKeys: Record<string, string> = {
   other: "site.trips.type.diveTrip",
 };
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 function formatTime(timeString: string | null, tba?: string): string {
   if (!timeString) return tba || "Time TBA";
   const [hours, minutes] = timeString.split(":");
@@ -378,6 +369,7 @@ function formatPrice(price: string, currency: string): string {
 
 export default function SiteTripDetailPage() {
   const t = useT();
+  const { formatDisplayDate: formatDate } = useFormat();
   const { trip, images, diveSites, organizationSlug } = useLoaderData<typeof loader>();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
