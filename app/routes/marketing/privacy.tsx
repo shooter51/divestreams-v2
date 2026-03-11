@@ -4,7 +4,7 @@
  */
 
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useLoaderData } from "react-router";
+import { Link, redirect, useLoaderData } from "react-router";
 import { eq } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
@@ -12,6 +12,10 @@ import { getSubdomainFromHost } from "../../../lib/utils/url";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
+  const host = url.hostname;
+  if (!host.includes("divestreams.com") && !host.includes("localhost")) {
+    throw redirect("/site");
+  }
   const subdomain = getSubdomainFromHost(url.host);
   let orgName: string | null = null;
   if (subdomain && subdomain !== "admin" && subdomain !== "www") {
