@@ -109,6 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
       includesTransport: formData.get("includesTransport") === "true",
       minCertLevel: (formData.get("minCertLevel") as string) || undefined,
       minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
+      requiresTankSelection: formData.get("requiresTankSelection") === "true",
     });
   } catch (error: unknown) {
     // Handle unique constraint violation
@@ -475,6 +476,16 @@ export default function NewTourPage() {
                   className="rounded"
                 />
                 <span className="text-sm">{t("tenant.tours.transport")}</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="requiresTankSelection"
+                  value="true"
+                  defaultChecked={actionData?.values?.requiresTankSelection === "true"}
+                  className="rounded"
+                />
+                <span className="text-sm">Require tank &amp; gas selection</span>
               </label>
             </div>
 
