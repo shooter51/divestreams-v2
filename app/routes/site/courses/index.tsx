@@ -75,7 +75,7 @@ function formatDuration(days: number): string {
 /**
  * Format price for display
  */
-function formatPrice(price: string, currency: string): string {
+export function formatPrice(price: string, currency: string): string {
   const numericPrice = parseFloat(price);
   if (isNaN(numericPrice) || numericPrice <= 0) return "Contact for pricing";
 
