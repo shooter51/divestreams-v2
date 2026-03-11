@@ -414,7 +414,6 @@ export const bookings = pgTable("bookings", {
     gasType?: string;
     quantity?: number;
     price: number;
-    gasType?: string;
   }[]>(),
 
   // Waivers and forms
