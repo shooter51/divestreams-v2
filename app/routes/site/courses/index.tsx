@@ -87,6 +87,22 @@ export function formatPrice(price: string, currency: string): string {
   }).format(numericPrice);
 }
 
+/**
+ * Extract unique, sorted agency names from a list of courses.
+ * Courses without an agencyName are excluded.
+ */
+export function extractActiveAgencies(
+  courses: Array<{ agencyName: string | null }>
+): string[] {
+  const agencySet = new Set<string>();
+  for (const course of courses) {
+    if (course.agencyName) {
+      agencySet.add(course.agencyName);
+    }
+  }
+  return Array.from(agencySet).sort();
+}
+
 // ============================================================================
 // LOADER
 // ============================================================================
