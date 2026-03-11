@@ -7,7 +7,7 @@
  */
 
 import { redirect } from "react-router";
-import { eq, and, count, gte } from "drizzle-orm";
+import { eq, and, count, gte, sql } from "drizzle-orm";
 import { auth } from "./index";
 import { db, withOrgContext, type DbTransaction } from "../db";
 import { authLogger } from "../logger";
@@ -208,7 +208,7 @@ export async function getOrgContext(
   const subdomain = getSubdomainFromRequest(request);
 
   // No subdomain or admin subdomain - not a tenant route
-  if (!subdomain || subdomain === "admin") {
+  if (subdomain === "admin") {
     return null;
   }
 
@@ -221,12 +221,27 @@ export async function getOrgContext(
     return null;
   }
 
-  // Find organization by slug (subdomain)
-  const [org] = await db
-    .select()
-    .from(organization)
-    .where(eq(organization.slug, subdomain))
-    .limit(1);
+  let org: Organization | undefined;
+
+  if (subdomain) {
+    // Find organization by slug (subdomain)
+    const [found] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, subdomain))
+      .limit(1);
+    org = found;
+  } else {
+    // No divestreams.com subdomain — try resolving by custom domain
+    const requestUrl = new URL(request.url);
+    const hostname = requestUrl.hostname.toLowerCase();
+    const [found] = await db
+      .select()
+      .from(organization)
+      .where(sql`LOWER(${organization.customDomain}) = ${hostname}`)
+      .limit(1);
+    org = found;
+  }
 
   if (!org) {
     return null;
@@ -418,13 +433,36 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
   const subdomain = getSubdomainFromRequest(request);
 
   // Check if tenant is deactivated BEFORE trying to get context
-  if (subdomain && subdomain !== "admin") {
+  // This check works for both subdomain-based and custom-domain-based tenants
+  if ((subdomain && subdomain !== "admin") || !subdomain) {
     const { tenants } = await import("../db/schema");
-    const [tenant] = await db
-      .select({ isActive: tenants.isActive })
-      .from(tenants)
-      .where(eq(tenants.subdomain, subdomain))
-      .limit(1);
+    let tenantQuery: { isActive: boolean }[] = [];
+    if (subdomain && subdomain !== "admin") {
+      tenantQuery = await db
+        .select({ isActive: tenants.isActive })
+        .from(tenants)
+        .where(eq(tenants.subdomain, subdomain))
+        .limit(1);
+    } else {
+      // Custom domain resolution for deactivation check
+      const requestUrl = new URL(request.url);
+      const hostname = requestUrl.hostname.toLowerCase();
+      const [orgByDomain] = await db
+        .select({ slug: organization.slug })
+        .from(organization)
+        .where(sql`LOWER(${organization.customDomain}) = ${hostname}`)
+        .limit(1);
+      if (orgByDomain) {
+        tenantQuery = await db
+          .select({ isActive: tenants.isActive })
+          .from(tenants)
+          .where(eq(tenants.subdomain, orgByDomain.slug))
+          .limit(1);
+      } else {
+        tenantQuery = [];
+      }
+    }
+    const [tenant] = tenantQuery;
 
     if (tenant && !tenant.isActive) {
       // Check if this is a data fetch request (React Router .data requests)
@@ -482,8 +520,8 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
     // Get the subdomain for the redirect
     const url = new URL(request.url);
 
-    // If we have a subdomain, redirect to tenant login at /auth/login
-    if (subdomain && subdomain !== "admin") {
+    // If we have a subdomain or are on a custom domain, redirect to tenant login
+    if ((subdomain && subdomain !== "admin") || !subdomain) {
       throw redirect(`/auth/login?redirect=${encodeURIComponent(url.pathname)}`);
     }
 
