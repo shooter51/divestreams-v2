@@ -99,11 +99,13 @@ function formatDuration(days: number, t: (key: string, params?: Record<string, s
 }
 
 /**
- * Format price for display
+ * Format price for display.
+ * Returns the i18n key "site.courses.contactForPricing" when price is zero,
+ * null, or unparseable — so callers can pass it through t() for translation.
  */
-function formatPrice(price: string, currency: string): string {
+export function formatCoursePrice(price: string, currency: string): string {
   const numericPrice = parseFloat(price);
-  if (isNaN(numericPrice)) return "Price on request";
+  if (isNaN(numericPrice) || numericPrice === 0) return "site.courses.contactForPricing";
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -359,7 +361,7 @@ function CourseCard({ course }: { course: Course }) {
             className="text-lg font-bold"
             style={{ color: "var(--primary-color)" }}
           >
-            {formatPrice(course.price, course.currency)}
+            {t(formatCoursePrice(course.price, course.currency))}
           </span>
         </div>
       </div>

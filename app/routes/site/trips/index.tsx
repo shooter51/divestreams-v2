@@ -8,6 +8,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { useT } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
@@ -241,15 +242,6 @@ const tourTypeKeys: Record<string, { key: string; icon: string }> = {
   other: { key: "site.trips.type.diveTrip", icon: "anchor" },
 };
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function formatTime(timeString: string | null): string {
   if (!timeString) return "";
@@ -497,6 +489,7 @@ export default function SiteTripsPage() {
 
 function TripCard({ trip }: { trip: TripCard }) {
   const t = useT();
+  const { formatDisplayDate: formatDate } = useFormat();
   const typeInfo = tourTypeKeys[trip.tourType] || tourTypeKeys.other;
   const isFull = trip.availableSpots === 0;
 

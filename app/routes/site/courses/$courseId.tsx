@@ -19,6 +19,7 @@ import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { getTranslatedEntity } from "../../../../lib/db/translations.server";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -153,13 +154,15 @@ function formatDuration(days: number): string {
 }
 
 /**
- * Format price for display
+ * Format price for display.
+ * Returns the i18n key "site.courses.contactForPricing" when price is zero,
+ * null, or unparseable — so callers can pass it through t() for translation.
  */
-function formatPrice(price: string | null, currency = "USD"): string {
-  if (!price) return "Price on request";
+export function formatCourseDetailPrice(price: string | null, currency = "USD"): string {
+  if (!price) return "site.courses.contactForPricing";
 
   const numericPrice = parseFloat(price);
-  if (isNaN(numericPrice)) return "Price on request";
+  if (isNaN(numericPrice) || numericPrice === 0) return "site.courses.contactForPricing";
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -169,18 +172,6 @@ function formatPrice(price: string | null, currency = "USD"): string {
   }).format(numericPrice);
 }
 
-/**
- * Format date for display
- */
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 /**
  * Format time for display
@@ -500,6 +491,7 @@ function SessionCard({
   onSelect?: (sessionId: string) => void;
 }) {
   const t = useT();
+  const { formatDisplayDate: formatDate } = useFormat();
   const price = session.price || defaultPrice;
 
   const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -558,7 +550,7 @@ function SessionCard({
       </div>
       <div className="flex items-center gap-4">
         <span className="text-lg font-bold" style={{ color: "var(--primary-color)" }}>
-          {formatPrice(price, currency)}
+          {t(formatCourseDetailPrice(price, currency))}
         </span>
         <Link
           to={`/embed/${organizationSlug}/courses/${courseId}/enroll?sessionId=${session.id}`}
@@ -864,7 +856,7 @@ export default function SiteCourseDetailPage() {
                 className="text-4xl font-bold"
                 style={{ color: "var(--primary-color)" }}
               >
-                {formatPrice(course.price, course.currency)}
+                {t(formatCourseDetailPrice(course.price, course.currency))}
               </div>
               <span className="text-sm opacity-75">{t("site.trips.perPerson")}</span>
             </div>
