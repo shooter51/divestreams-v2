@@ -5,8 +5,38 @@ import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-conte
 import { getAgencies, createAgency, createCourse, getCourses, updateCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 import { escapeHtml } from "../../../../../lib/security/sanitize";
+import { uploadToS3, getImageKey, isStorageConfigured } from "../../../../../lib/storage/s3";
 import { CsrfInput } from "../../../../components/CsrfInput";
 import { useT } from "../../../../i18n/use-t";
+
+/**
+ * Download external image URLs and re-upload to S3.
+ * Skips failed downloads gracefully — returns only successfully uploaded URLs.
+ */
+async function reUploadImages(
+  orgId: string,
+  courseId: string,
+  imageUrls: string[]
+): Promise<string[]> {
+  if (!isStorageConfigured() || imageUrls.length === 0) return imageUrls;
+
+  const results = await Promise.allSettled(
+    imageUrls.map(async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const contentType = res.headers.get("content-type") || "image/jpeg";
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const filename = url.split("/").pop() || "image.jpg";
+      const key = getImageKey(orgId, "course", courseId, filename);
+      const result = await uploadToS3(key, buffer, contentType);
+      return result?.cdnUrl || result?.url || url;
+    })
+  );
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+    .map((r) => r.value);
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -296,7 +326,16 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const importedCourses: string[] = [];
+    const updatedCourses: string[] = [];
     const errors: { course: string; reason: string }[] = [];
+
+    // Fetch existing tenant courses for this agency to detect duplicates
+    const existingCourses = await getCourses(orgContext.org.id);
+    const existingByCode = new Map(
+      existingCourses
+        .filter(c => c.agencyId === agency.id && c.code)
+        .map(c => [c.code!.toLowerCase(), c])
+    );
 
     for (const code of courseCodes) {
       const template = templates.find(t => t.code === code);
@@ -308,42 +347,104 @@ export async function action({ request }: ActionFunctionArgs) {
         continue;
       }
 
+      const existing = existingByCode.get(code.toLowerCase());
+
       try {
-        const course = await createCourse({
-          organizationId: orgContext.org.id,
-          agencyId: agency.id,
-          name: template.name,
-          code: template.code || "",
-          description: template.description || "",
-          durationDays: template.durationDays,
-          classroomHours: template.classroomHours ?? undefined,
-          poolHours: template.poolHours ?? undefined,
-          openWaterDives: template.openWaterDives ?? undefined,
-          minAge: template.minAge ?? undefined,
-          prerequisites: template.prerequisites ?? undefined,
-          medicalRequirements: template.medicalRequirements ?? undefined,
-          materialsIncluded: template.materialsIncluded ?? undefined,
-          requiredItems: template.requiredItems ?? undefined,
-          images: template.images ?? undefined,
-          price: "0.00", // Default price - user will set
-          currency: "USD",
-          isActive: true,
-          isPublic: false, // Default to private - user will publish
-        });
-        importedCourses.push(course.name);
+        if (existing) {
+          // Update existing course with latest template data
+          // Preserve user-customized fields: price, currency, isPublic, isActive
+          await updateCourse(orgContext.org.id, existing.id, {
+            name: template.name,
+            description: template.description || "",
+            durationDays: template.durationDays,
+            classroomHours: template.classroomHours ?? null,
+            poolHours: template.poolHours ?? null,
+            openWaterDives: template.openWaterDives ?? null,
+            minAge: template.minAge ?? null,
+            prerequisites: template.prerequisites ?? null,
+            medicalRequirements: template.medicalRequirements ?? null,
+            materialsIncluded: template.materialsIncluded ?? null,
+            requiredItems: template.requiredItems ?? null,
+          });
+
+          // Re-upload template images to S3
+          if (template.images && template.images.length > 0) {
+            const uploadedImages = await reUploadImages(
+              orgContext.org.id,
+              existing.id,
+              template.images
+            );
+            if (uploadedImages.length > 0) {
+              await updateCourse(orgContext.org.id, existing.id, { images: uploadedImages });
+            }
+          }
+
+          updatedCourses.push(template.name);
+        } else {
+          // Create new course
+          const course = await createCourse({
+            organizationId: orgContext.org.id,
+            agencyId: agency.id,
+            name: template.name,
+            code: template.code || "",
+            description: template.description || "",
+            durationDays: template.durationDays,
+            classroomHours: template.classroomHours ?? undefined,
+            poolHours: template.poolHours ?? undefined,
+            openWaterDives: template.openWaterDives ?? undefined,
+            minAge: template.minAge ?? undefined,
+            prerequisites: template.prerequisites ?? undefined,
+            medicalRequirements: template.medicalRequirements ?? undefined,
+            materialsIncluded: template.materialsIncluded ?? undefined,
+            requiredItems: template.requiredItems ?? undefined,
+            price: "0.00",
+            currency: "USD",
+            isActive: true,
+            isPublic: false,
+          });
+
+          // Re-upload template images to S3 to avoid hotlink issues
+          if (template.images && template.images.length > 0) {
+            const uploadedImages = await reUploadImages(
+              orgContext.org.id,
+              course.id,
+              template.images
+            );
+            if (uploadedImages.length > 0) {
+              await updateCourse(orgContext.org.id, course.id, { images: uploadedImages });
+            }
+          }
+
+          importedCourses.push(course.name);
+        }
       } catch (error) {
         console.error(`Failed to import ${template.name}:`, error);
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
         errors.push({
           course: template.name,
-          reason: errorMessage.includes("duplicate") || errorMessage.includes("unique")
-            ? "This course already exists in your catalog."
-            : "There was a database error while creating this course. Please try again."
+          reason: `There was a database error while ${existing ? "updating" : "creating"} this course. Please try again.`
         });
       }
     }
 
-    if (errors.length > 0 && importedCourses.length === 0) {
+    // Deactivate stale courses: courses from this agency whose codes
+    // are no longer in the global template list
+    const allTemplateCodes = new Set(
+      templates.map(t => t.code?.toLowerCase()).filter(Boolean) as string[]
+    );
+    const deactivatedCourses: string[] = [];
+    for (const [code, course] of existingByCode) {
+      if (!allTemplateCodes.has(code) && course.isActive) {
+        try {
+          await updateCourse(orgContext.org.id, course.id, { isActive: false });
+          deactivatedCourses.push(course.name);
+        } catch {
+          console.error(`Failed to deactivate stale course: ${course.name}`);
+        }
+      }
+    }
+
+    const totalProcessed = importedCourses.length + updatedCourses.length;
+    if (errors.length > 0 && totalProcessed === 0) {
       return {
         error: "None of the selected courses could be imported. See details below for each course.",
         detailedErrors: errors,
@@ -355,7 +456,11 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       step: "complete",
       importedCount: importedCourses.length,
+      updatedCount: updatedCourses.length,
+      deactivatedCount: deactivatedCourses.length,
       importedCourses,
+      updatedCourses,
+      deactivatedCourses,
       detailedErrors: errors.length > 0 ? errors : undefined,
     };
   }
@@ -380,8 +485,16 @@ export async function action({ request }: ActionFunctionArgs) {
         const templateFirst = template.images[0];
         // Update if images are missing or different from template
         if (!currentImages || currentImages.length === 0 || currentImages[0] !== templateFirst) {
-          await updateCourse(organizationId, course.id, { images: template.images });
-          updatedCount++;
+          // Re-upload to S3 to avoid hotlink issues
+          const uploadedImages = await reUploadImages(
+            organizationId,
+            course.id,
+            template.images
+          );
+          if (uploadedImages.length > 0) {
+            await updateCourse(organizationId, course.id, { images: uploadedImages });
+            updatedCount++;
+          }
         }
       }
     }
@@ -477,8 +590,14 @@ export default function TrainingImportPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 border border-brand text-brand rounded-lg hover:bg-brand-muted transition-colors disabled:opacity-50"
+              className="px-4 py-2 border border-brand text-brand rounded-lg hover:bg-brand-muted transition-colors disabled:opacity-50 flex items-center gap-2"
             >
+              {isSubmitting && (
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              )}
               {isSubmitting ? t("common.loading") : t("tenant.training.import.refreshImages")}
             </button>
           </Form>
@@ -557,7 +676,11 @@ export default function TrainingImportPage() {
         {currentStep === "complete" && (
           <CompleteStep
             importedCount={actionData?.importedCount || 0}
+            updatedCount={actionData?.updatedCount || 0}
+            deactivatedCount={actionData?.deactivatedCount || 0}
             importedCourses={actionData?.importedCourses || []}
+            updatedCourses={actionData?.updatedCourses || []}
+            deactivatedCourses={actionData?.deactivatedCourses || []}
             detailedErrors={actionData?.detailedErrors}
           />
         )}
@@ -845,8 +968,14 @@ function PreviewStep({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-success text-white px-6 py-3 rounded-lg hover:bg-success-hover transition-colors font-medium disabled:bg-success-muted"
+            className="flex-1 bg-success text-white px-6 py-3 rounded-lg hover:bg-success-hover transition-colors font-medium disabled:bg-success-muted flex items-center justify-center gap-2"
           >
+            {isSubmitting && (
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            )}
             {isSubmitting ? t("tenant.training.import.importingCourses") : t("tenant.training.import.importCourses", { count: selectedCourses.length })}
           </button>
         </div>
@@ -857,14 +986,23 @@ function PreviewStep({
 
 function CompleteStep({
   importedCount,
+  updatedCount,
+  deactivatedCount,
   importedCourses,
+  updatedCourses,
+  deactivatedCourses,
   detailedErrors
 }: {
   importedCount: number;
+  updatedCount: number;
+  deactivatedCount: number;
   importedCourses: string[];
+  updatedCourses: string[];
+  deactivatedCourses: string[];
   detailedErrors?: Array<{ course: string; reason: string }>;
 }) {
   const t = useT();
+  const totalProcessed = importedCount + updatedCount;
   return (
     <div className="text-center">
       <div className="w-20 h-20 bg-success-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -873,7 +1011,10 @@ function CompleteStep({
 
       <h2 className="text-2xl font-semibold mb-2">{t("tenant.training.import.importComplete")}</h2>
       <p className="text-foreground-muted mb-6">
-        {t("tenant.training.import.successfullyImported", { count: importedCount })}
+        {importedCount > 0 && `${importedCount} new course${importedCount !== 1 ? "s" : ""} imported. `}
+        {updatedCount > 0 && `${updatedCount} existing course${updatedCount !== 1 ? "s" : ""} updated. `}
+        {deactivatedCount > 0 && `${deactivatedCount} stale course${deactivatedCount !== 1 ? "s" : ""} deactivated.`}
+        {totalProcessed === 0 && "No changes were needed."}
       </p>
 
       {detailedErrors && detailedErrors.length > 0 && (
@@ -893,17 +1034,47 @@ function CompleteStep({
         </div>
       )}
 
-      <div className="bg-surface-inset rounded-lg p-4 mb-6 text-left">
-        <h3 className="font-medium mb-2">{t("tenant.training.import.importedCourses")}:</h3>
-        <ul className="text-sm space-y-1">
-          {importedCourses.map((name, i) => (
-            <li key={i} className="flex items-center gap-2">
-              <span className="text-success">✓</span>
-              {name}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {importedCourses.length > 0 && (
+        <div className="bg-surface-inset rounded-lg p-4 mb-6 text-left">
+          <h3 className="font-medium mb-2">{t("tenant.training.import.importedCourses")}:</h3>
+          <ul className="text-sm space-y-1">
+            {importedCourses.map((name, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="text-success">✓</span>
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {updatedCourses.length > 0 && (
+        <div className="bg-surface-inset rounded-lg p-4 mb-6 text-left">
+          <h3 className="font-medium mb-2">Updated courses:</h3>
+          <ul className="text-sm space-y-1">
+            {updatedCourses.map((name, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="text-brand">↻</span>
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {deactivatedCourses.length > 0 && (
+        <div className="bg-warning-muted rounded-lg p-4 mb-6 text-left">
+          <h3 className="font-medium mb-2">Deactivated courses (no longer in agency catalog):</h3>
+          <ul className="text-sm space-y-1">
+            {deactivatedCourses.map((name, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="text-warning">✕</span>
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6">
         <h3 className="font-medium text-brand mb-2">{t("tenant.training.import.nextSteps")}:</h3>
