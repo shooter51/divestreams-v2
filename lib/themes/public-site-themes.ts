@@ -243,7 +243,7 @@ export function getThemeCSS(
     --color-text: ${finalColors.textColor};
     --color-header-bg: ${finalColors.headerBg};
     --color-footer-bg: ${finalColors.footerBg};
-    --color-card-bg: ${isDarkTheme(finalColors.name as ThemeName) ? "#1E293B" : "#FFFFFF"};
+    --color-card-bg: ${isDarkTheme(finalColors.name as ThemeName) ? "#1E293B" : finalColors.backgroundColor};
     --color-border: ${isDarkTheme(finalColors.name as ThemeName) ? "#334155" : "#E5E7EB"};
 
     /* Derived colors for common use cases */
@@ -320,7 +320,7 @@ export function getThemeStyleBlock(
   --background-color: ${baseTheme.backgroundColor};
   --text-color: ${baseTheme.textColor};
   --accent-color: ${finalAccent};
-  --color-card-bg: ${darkFinal ? "#1E293B" : "#FFFFFF"};
+  --color-card-bg: ${darkFinal ? "#1E293B" : baseTheme.backgroundColor};
   --color-border: ${darkFinal ? "#334155" : "#E5E7EB"};
   --color-primary-hover: ${adjustBrightness(finalPrimary, -10)};
   --color-primary-text: ${getContrastColor(finalPrimary)};
