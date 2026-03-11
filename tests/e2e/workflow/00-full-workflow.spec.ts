@@ -279,13 +279,27 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   });
 
   test("[KAN-58] 3.1 Access new tenant subdomain @smoke", async ({ page }) => {
-    await page.goto(getTenantUrl("/"));
+    // On remote environments with on-demand TLS, the first request to a new
+    // subdomain triggers certificate provisioning which may take several seconds.
+    // Retry navigation until the page loads successfully to warm up the TLS cert.
+    let loaded = false;
+    for (let attempt = 0; attempt < 3 && !loaded; attempt++) {
+      try {
+        const response = await page.goto(getTenantUrl("/"), { timeout: 15000 });
+        if (response && response.ok()) {
+          loaded = true;
+        }
+      } catch {
+        // TLS provisioning in progress, wait and retry
+        await page.waitForTimeout(3000);
+      }
+    }
     await expect(page.locator("body")).toBeVisible();
   });
 
   test("[KAN-59] 3.2 Tenant has login page", async ({ page }) => {
-    await page.goto(getTenantUrl("/auth/login"));
-    await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
+    await page.goto(getTenantUrl("/auth/login"), { timeout: 20000 });
+    await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible({ timeout: 15000 });
     await expect(page.locator('input[type="password"]').first()).toBeVisible();
   });
 

@@ -156,6 +156,42 @@ jobs:
                 FROM subscription_plans sp, organization o
                 WHERE subscription.organization_id = o.id AND o.slug IN ('"'"'e2etest'"'"', '"'"'demo'"'"') AND LOWER(sp.name) = '"'"'pro'"'"';
               " 2>/dev/null && echo "E2E org subscriptions ensured PRO" || echo "Subscription fix failed (non-fatal)"
+              # Ensure e2e-tester@demo.com user exists with membership in demo org
+              # This user is required by independent E2E tests (created by global-setup locally but not on remote)
+              docker exec "$PG_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -c "
+                DO \$\$
+                DECLARE
+                  v_user_id TEXT;
+                  v_demo_org_id TEXT;
+                BEGIN
+                  -- Find the demo org
+                  SELECT id INTO v_demo_org_id FROM organization WHERE slug = '"'"'demo'"'"' LIMIT 1;
+                  IF v_demo_org_id IS NULL THEN
+                    RAISE NOTICE '"'"'Demo org not found - skipping e2e-tester creation'"'"';
+                    RETURN;
+                  END IF;
+                  -- Check if user already exists
+                  SELECT id INTO v_user_id FROM \"user\" WHERE email = '"'"'e2e-tester@demo.com'"'"' LIMIT 1;
+                  IF v_user_id IS NULL THEN
+                    v_user_id := gen_random_uuid()::TEXT;
+                    INSERT INTO \"user\" (id, email, email_verified, name, created_at, updated_at)
+                    VALUES (v_user_id, '"'"'e2e-tester@demo.com'"'"', true, '"'"'E2E Test User'"'"', NOW(), NOW());
+                    INSERT INTO account (id, user_id, account_id, provider_id, password, created_at, updated_at)
+                    VALUES (gen_random_uuid()::TEXT, v_user_id, v_user_id, '"'"'credential'"'"',
+                      '"'"'e2e_test_fixed_salt_01:76dce6c4364bd21765ba2f45d9066e7eea88acd36d665ff8f358df77ab784af89a91389eb7cb6cd2c6efed8a2f6661e13dd1a78fe9ffff06e3f45e200a470cf7'"'"',
+                      NOW(), NOW());
+                    RAISE NOTICE '"'"'Created e2e-tester user'"'"';
+                  ELSE
+                    RAISE NOTICE '"'"'e2e-tester user already exists'"'"';
+                  END IF;
+                  -- Ensure member record exists
+                  IF NOT EXISTS (SELECT 1 FROM member WHERE user_id = v_user_id AND organization_id = v_demo_org_id) THEN
+                    INSERT INTO member (id, organization_id, user_id, role, created_at, updated_at)
+                    VALUES (gen_random_uuid()::TEXT, v_demo_org_id, v_user_id, '"'"'owner'"'"', NOW(), NOW());
+                    RAISE NOTICE '"'"'Added e2e-tester as member of demo org'"'"';
+                  END IF;
+                END \$\$;
+              " 2>/dev/null && echo "E2E tester user ensured" || echo "E2E tester creation failed (non-fatal)"
             else
               echo "Postgres container not found - skipping DB fixes"
             fi
