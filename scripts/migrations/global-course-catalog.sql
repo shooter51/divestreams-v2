@@ -31,6 +31,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS training_courses_org_template_uniq
   ON training_courses (organization_id, template_id)
   WHERE template_id IS NOT NULL;
 
+-- Step 6: Clear existing tenant course data (fresh start — no real customer data)
+-- Old courses were copies; new architecture uses template references.
+DELETE FROM training_courses;
+
 -- Note: training_courses.name, description, images, etc. remain in the table
 -- but become "custom_*" fields used only when templateId IS NULL.
 -- When templateId IS NOT NULL, the application reads from the template.

@@ -450,6 +450,22 @@ export async function enableCatalogCourse(data: {
   depositAmount?: string;
   equipmentIncluded?: boolean;
 }) {
+  // Check if this template is already enabled for this tenant
+  const existing = await db
+    .select({ id: schema.trainingCourses.id })
+    .from(schema.trainingCourses)
+    .where(
+      and(
+        eq(schema.trainingCourses.organizationId, data.organizationId),
+        eq(schema.trainingCourses.templateId, data.templateId)
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    return existing[0]; // Already enabled, skip
+  }
+
   // Use a placeholder name (will be resolved via template JOIN at read time)
   const [course] = await db
     .insert(schema.trainingCourses)
