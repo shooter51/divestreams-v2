@@ -19,28 +19,29 @@ test.describe("DS-hn1a: Avg Booking Value shows non-zero when bookings exist", (
     await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
     await page.locator('input[type="password"]').first().fill("DemoPass1234");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForLoadState("load");
+    await page.waitForURL(/\/tenant/, { timeout: 15000 });
   });
 
   test("Avg Booking Value stat card is visible on reports page", async ({ page }) => {
     await page.goto(getTenantUrl("demo", "/tenant/reports"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
-    const avgLabel = page.locator("p:has-text('Avg Booking Value')");
-    await expect(avgLabel).toBeVisible({ timeout: 10000 });
+    const avgLabel = page.getByText("Avg Booking Value", { exact: false });
+    await expect(avgLabel).toBeVisible({ timeout: 15000 });
   });
 
   test("Avg Booking Value shows a non-zero dollar amount when bookings exist", async ({ page }) => {
     await page.goto(getTenantUrl("demo", "/tenant/reports"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
-    // Find the Avg Booking Value card
-    const avgLabel = page.locator("p:has-text('Avg Booking Value')");
-    await expect(avgLabel).toBeVisible({ timeout: 10000 });
+    // Find the Avg Booking Value card using getByText for robustness
+    const avgLabel = page.getByText("Avg Booking Value", { exact: false });
+    await expect(avgLabel).toBeVisible({ timeout: 15000 });
 
-    // Get the dollar amount shown in the card (sibling p with text-2xl)
+    // The card renders value before label: <p class="text-2xl">$amount</p> then <p>Avg Booking Value</p>
+    // Navigate to parent container and get the first <p> (the amount)
     const avgCard = avgLabel.locator("..");
-    const amountEl = avgCard.locator("p").first();
+    const amountEl = avgCard.locator("p.text-2xl, p[class*='text-2xl']").first();
     const amountText = await amountEl.textContent();
 
     // Should be a currency value

@@ -19,7 +19,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // If no token, redirect to forgot password
   if (!token) {
-    throw redirect("/forgot-password");
+    throw redirect("/tenant/forgot-password");
   }
 
   // Check if already logged in

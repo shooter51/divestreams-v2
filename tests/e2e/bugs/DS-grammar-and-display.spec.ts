@@ -16,7 +16,7 @@ async function loginAsTenantUser(page: import("@playwright/test").Page) {
   await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
   await page.locator('input[type="password"]').first().fill("DemoPass1234");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForLoadState("load");
+  await page.waitForURL(/\/tenant/, { timeout: 15000 });
 }
 
 test.describe("DS-u7p6: Tours list trip count pluralization", () => {

@@ -152,20 +152,25 @@ test.describe('KAN-634: POS Split Payment', () => {
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
-    // Get total from cart
-    const totalText = await page.locator('.w-96').locator('.font-bold').filter({ hasText: /total/i }).locator('..').locator('span').last().textContent();
-    const totalAmount = parseFloat(totalText?.replace(/[^0-9.]/g, '') || '0');
+    // Verify item in cart before proceeding
+    await expect(page.locator('.w-96').getByText(/cart is empty/i)).not.toBeVisible();
 
     // Start split payment
     await page.getByRole('button', { name: /split/i }).click();
     await expect(page.getByText(/split payment/i)).toBeVisible();
 
-    // Add less than total amount (use 50% to work with any product price)
-    const partialAmount = Math.floor(totalAmount / 2);
-    await page.getByPlaceholder(/amount/i).fill(partialAmount.toString());
+    // Add a fixed partial amount ($1) which is less than any demo product price.
+    // Using a fixed amount avoids Math.floor(totalAmount/2) returning 0 for cheap products
+    // which would skip adding a payment and leave remaining === total (also disabled, but
+    // doesn't actually test the partial-payment path).
+    await page.getByPlaceholder(/amount/i).fill('1');
     await page.getByRole('button', { name: /add.*payment/i }).click();
 
-    // Complete sale button should be disabled
+    // Wait for the $1.00 payment to be reflected in the "Paid" total before asserting button state.
+    // The Paid row uses text-success styling and updates immediately when a payment is recorded.
+    await expect(page.locator('.text-success').filter({ hasText: '$1.00' })).toBeVisible();
+
+    // Complete sale button should be disabled because $1 < total
     const completeButton = page.getByRole('button', { name: /complete sale/i });
     await expect(completeButton).toBeDisabled();
   });

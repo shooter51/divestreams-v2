@@ -59,8 +59,9 @@ test.describe("Training Import Wizard", () => {
     await page.waitForLoadState("load");
     await page.waitForLoadState("load").catch(() => {});
 
-    // Check if we were redirected to dashboard (feature gate)
-    if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
+    // Check if we were redirected away from training (feature gate)
+    // requireFeature redirects to /tenant?upgrade=... when feature is missing
+    if (!page.url().includes("/training")) {
       // Feature gate redirected - skip gracefully
       test.skip(true, "Training feature not available on current plan");
       return;

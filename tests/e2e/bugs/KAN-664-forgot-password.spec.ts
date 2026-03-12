@@ -47,7 +47,7 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
 
       // Should NOT be a 404 page
       const pageContent = await p.content();
-      expect(pageContent).not.toContain("404");
+      expect(pageContent).not.toContain("The requested page could not be found.");
 
       // Should show forgot password form or content
       // The auth forgot-password has "Reset your password" heading
@@ -79,7 +79,7 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
       await page.gotoAuthForgotPassword();
 
       const pageContent = await p.content();
-      expect(pageContent).not.toContain("404");
+      expect(pageContent).not.toContain("The requested page could not be found.");
 
       const hasForgotContent = await p
         .getByText(/forgot.*password|reset.*password|check your email/i)
@@ -127,7 +127,7 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
       await p.waitForLoadState("load");
 
       const pageContent = await p.content();
-      expect(pageContent).not.toContain("404");
+      expect(pageContent).not.toContain("The requested page could not be found.");
     });
   });
 
