@@ -38,7 +38,10 @@ jobs:
         run: npm run typecheck
 
       - name: Setup database schema
-        run: yes '' | npx drizzle-kit push --force
+        run: |
+          PGPASSWORD=test psql -h ci-postgres -U test -d postgres -c "DROP DATABASE IF EXISTS testdb;"
+          PGPASSWORD=test psql -h ci-postgres -U test -d postgres -c "CREATE DATABASE testdb OWNER test;"
+          npx drizzle-kit push --force
         env:
           DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
 
