@@ -1,21 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mergeTemplateUpdates } from "../../../../lib/training/merge-templates.server";
 import { db } from "../../../../lib/db";
-import { trainingCourses, certificationAgencies, agencyCourseTemplates } from "../../../../lib/db/schema/training";
+import { trainingCourses, agencyCourseTemplates } from "../../../../lib/db/schema/training";
 import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { generateContentHash } from "../../../../lib/utils/content-hash.server";
 
 describe("mergeTemplateUpdates", () => {
   let testOrgId: string;
-  let testAgencyId: string;
   let testTemplateId: string;
   let testCourseId: string;
-  let uniqueCode: string;
 
   beforeEach(async () => {
-    uniqueCode = `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-
     // Get or create org for testing
     let existingOrg = await db.query.organization.findFirst();
     if (!existingOrg) {
@@ -27,13 +23,6 @@ describe("mergeTemplateUpdates", () => {
       existingOrg = org;
     }
     testOrgId = existingOrg.id;
-
-    // Create test agency
-    const [agency] = await db
-      .insert(certificationAgencies)
-      .values({ organizationId: testOrgId, name: "Test Agency", code: uniqueCode })
-      .returning();
-    testAgencyId = agency.id;
 
     // Create template
     const templateData = {
@@ -55,7 +44,7 @@ describe("mergeTemplateUpdates", () => {
     const [template] = await db
       .insert(agencyCourseTemplates)
       .values({
-        agencyId: testAgencyId,
+        agencyCode: "test-agency",
         ...templateData,
         contentHash: generateContentHash(templateData),
         sourceType: "static_json",
@@ -89,9 +78,6 @@ describe("mergeTemplateUpdates", () => {
     }
     if (testTemplateId) {
       await db.delete(agencyCourseTemplates).where(eq(agencyCourseTemplates.id, testTemplateId));
-    }
-    if (testAgencyId) {
-      await db.delete(certificationAgencies).where(eq(certificationAgencies.id, testAgencyId));
     }
   });
 

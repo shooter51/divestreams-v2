@@ -12,6 +12,7 @@ vi.mock("../../../../../lib/db/training.server", () => ({
   getAgencies: vi.fn(),
   createAgency: vi.fn(),
   createCourse: vi.fn(),
+  enableCatalogCourse: vi.fn(),
 }));
 
 // Mock training templates
@@ -48,7 +49,7 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
+import { getAgencies, createAgency, createCourse, enableCatalogCourse } from "../../../../../lib/db/training.server";
 import {
   getGlobalAgencyCourseTemplates,
   getAvailableAgencies,
@@ -224,6 +225,7 @@ describe("tenant/training/import route", () => {
       it("creates courses from templates", async () => {
         const mockTemplates = [
           {
+            id: "template-1",
             name: "Open Water Diver",
             code: "OWD",
             description: "Entry level",
@@ -245,9 +247,10 @@ describe("tenant/training/import route", () => {
           name: "PADI",
           code: "padi",
         });
-        (createCourse as Mock).mockResolvedValue({
+        (enableCatalogCourse as Mock).mockResolvedValue({
           id: "course-1",
-          name: "Open Water Diver",
+          name: "(from catalog)",
+          templateId: "template-1",
         });
 
         const formData = new FormData();
@@ -266,7 +269,7 @@ describe("tenant/training/import route", () => {
         expect(result.step).toBe("complete");
         expect(result.importedCount).toBe(1);
         expect(result.importedCourses).toContain("Open Water Diver");
-        expect(createCourse).toHaveBeenCalled();
+        expect(enableCatalogCourse).toHaveBeenCalled();
       });
 
       it("handles errors during import", async () => {
@@ -282,7 +285,7 @@ describe("tenant/training/import route", () => {
         (getAgencies as Mock).mockResolvedValue([
           { id: "agency-1", code: "padi", name: "PADI" },
         ]);
-        (createCourse as Mock).mockRejectedValue(new Error("duplicate key constraint"));
+        (enableCatalogCourse as Mock).mockRejectedValue(new Error("duplicate key constraint"));
 
         const formData = new FormData();
         formData.append("step", "execute-import");

@@ -2,41 +2,11 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useActionData, useNavigation, Link } from "react-router";
 import React, { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getAgencies, createAgency, createCourse, getCourses, updateCourse } from "../../../../../lib/db/training.server";
+import { getAgencies, createAgency, createCourse, enableCatalogCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 import { escapeHtml } from "../../../../../lib/security/sanitize";
-import { uploadToS3, getImageKey, isStorageConfigured } from "../../../../../lib/storage/s3";
 import { CsrfInput } from "../../../../components/CsrfInput";
 import { useT } from "../../../../i18n/use-t";
-
-/**
- * Download external image URLs and re-upload to S3.
- * Skips failed downloads gracefully — returns only successfully uploaded URLs.
- */
-async function reUploadImages(
-  orgId: string,
-  courseId: string,
-  imageUrls: string[]
-): Promise<string[]> {
-  if (!isStorageConfigured() || imageUrls.length === 0) return imageUrls;
-
-  const results = await Promise.allSettled(
-    imageUrls.map(async (url) => {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const contentType = res.headers.get("content-type") || "image/jpeg";
-      const buffer = Buffer.from(await res.arrayBuffer());
-      const filename = url.split("/").pop() || "image.jpg";
-      const key = getImageKey(orgId, "course", courseId, filename);
-      const result = await uploadToS3(key, buffer, contentType);
-      return result?.cdnUrl || result?.url || url;
-    })
-  );
-
-  return results
-    .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
-    .map((r) => r.value);
-}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -339,48 +309,26 @@ export async function action({ request }: ActionFunctionArgs) {
       }
 
       try {
-        const course = await createCourse({
+        // Create a thin reference to the global template (no data copying)
+        // Images, name, description, etc. are read from the template at display time
+        await enableCatalogCourse({
           organizationId: orgContext.org.id,
-          agencyId: agency.id,
-          name: template.name,
-          code: template.code || "",
-          description: template.description || "",
-          durationDays: template.durationDays,
-          classroomHours: template.classroomHours ?? undefined,
-          poolHours: template.poolHours ?? undefined,
-          openWaterDives: template.openWaterDives ?? undefined,
-          minAge: template.minAge ?? undefined,
-          prerequisites: template.prerequisites ?? undefined,
-          medicalRequirements: template.medicalRequirements ?? undefined,
-          materialsIncluded: template.materialsIncluded ?? undefined,
-          requiredItems: template.requiredItems ?? undefined,
+          templateId: template.id,
           price: "0.00", // Default price - user will set
           currency: "USD",
           isActive: true,
           isPublic: false, // Default to private - user will publish
         });
 
-        // Re-upload template images to S3 to avoid hotlink issues
-        if (template.images && template.images.length > 0) {
-          const uploadedImages = await reUploadImages(
-            orgContext.org.id,
-            course.id,
-            template.images
-          );
-          if (uploadedImages.length > 0) {
-            await updateCourse(orgContext.org.id, course.id, { images: uploadedImages });
-          }
-        }
-
-        importedCourses.push(course.name);
+        importedCourses.push(template.name);
       } catch (error) {
-        console.error(`Failed to import ${template.name}:`, error);
+        console.error(`Failed to enable ${template.name}:`, error);
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         errors.push({
           course: template.name,
           reason: errorMessage.includes("duplicate") || errorMessage.includes("unique")
             ? "This course already exists in your catalog."
-            : "There was a database error while creating this course. Please try again."
+            : "There was a database error while enabling this course. Please try again."
         });
       }
     }
@@ -399,47 +347,6 @@ export async function action({ request }: ActionFunctionArgs) {
       importedCount: importedCourses.length,
       importedCourses,
       detailedErrors: errors.length > 0 ? errors : undefined,
-    };
-  }
-
-  // Step: Refresh images for existing courses from catalog templates
-  if (step === "refresh-images") {
-    const organizationId = orgContext.org.id;
-    const existingCourses = await getCourses(organizationId);
-    const agencies = await getAgencies(organizationId);
-
-    let updatedCount = 0;
-    for (const course of existingCourses) {
-      if (!course.code) continue;
-      // Find which agency this course belongs to
-      const agency = agencies.find(a => a.id === course.agencyId);
-      if (!agency?.code) continue;
-
-      const templates = await getGlobalAgencyCourseTemplates(agency.code);
-      const template = templates?.find(t => t.code === course.code);
-      if (template?.images && template.images.length > 0) {
-        const currentImages = course.images as string[] | null;
-        const templateFirst = template.images[0];
-        // Update if images are missing or different from template
-        if (!currentImages || currentImages.length === 0 || currentImages[0] !== templateFirst) {
-          // Re-upload to S3 to avoid hotlink issues
-          const uploadedImages = await reUploadImages(
-            organizationId,
-            course.id,
-            template.images
-          );
-          if (uploadedImages.length > 0) {
-            await updateCourse(organizationId, course.id, { images: uploadedImages });
-            updatedCount++;
-          }
-        }
-      }
-    }
-
-    return {
-      success: true,
-      step: "refresh-complete",
-      refreshedCount: updatedCount,
     };
   }
 
@@ -515,35 +422,7 @@ export default function TrainingImportPage() {
             {t("tenant.training.import.csvFormat")}
           </p>
         </div>
-        {/* Refresh Images */}
-        <div className="mt-4 p-4 bg-surface-raised border border-border rounded-lg">
-          <h3 className="font-medium mb-2">{t("tenant.training.import.refreshImagesTitle")}</h3>
-          <p className="text-sm text-foreground-muted mb-3">
-            {t("tenant.training.import.refreshImagesDescription")}
-          </p>
-          <Form method="post">
-            <CsrfInput />
-            <input type="hidden" name="step" value="refresh-images" />
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 border border-brand text-brand rounded-lg hover:bg-brand-muted transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {isSubmitting && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              )}
-              {isSubmitting ? t("common.loading") : t("tenant.training.import.refreshImages")}
-            </button>
-          </Form>
-          {actionData?.step === "refresh-complete" && (
-            <p className="mt-2 text-sm text-success">
-              {t("tenant.training.import.refreshImagesResult", { count: actionData.refreshedCount ?? 0 })}
-            </p>
-          )}
-        </div>
+        {/* Note: Images are now managed globally on templates via admin portal */}
       </div>
 
       {/* Progress Steps */}
