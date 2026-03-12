@@ -222,6 +222,11 @@ export default [
     route("settings", "routes/admin/settings.tsx"),
     route("settings/team", "routes/admin/settings.team.tsx"),
     route("contact-messages", "routes/admin/contact-messages.tsx"),
+
+    // Course Catalog Management
+    route("course-catalog", "routes/admin/course-catalog.tsx"),
+    route("course-catalog/:agencyCode", "routes/admin/course-catalog.$agencyCode.tsx"),
+    route("course-catalog/:agencyCode/:templateId", "routes/admin/course-catalog.$agencyCode.$templateId.tsx"),
   ]),
   // Public site routes (accessed via subdomain/site)
   // These routes are for the customer-facing public website

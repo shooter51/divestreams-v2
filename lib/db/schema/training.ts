@@ -12,7 +12,7 @@ import {
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { organization } from "./auth";
 import { customers } from "../schema";
 
@@ -79,22 +79,22 @@ export const certificationLevels = pgTable(
 // AGENCY COURSE TEMPLATES (Import from certification agencies)
 // ============================================================================
 
+// Translation map type: { "es": { "name": "...", "description": "..." }, "fr": { ... } }
+export type TemplateTranslations = Record<string, Record<string, string>>;
+
 export const agencyCourseTemplates = pgTable(
   "agency_course_templates",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    // Optional FK to tenant-specific agency (for imported courses)
-    agencyId: uuid("agency_id").references(() => certificationAgencies.id, { onDelete: "cascade" }),
-    levelId: uuid("level_id").references(() => certificationLevels.id, { onDelete: "set null" }),
-    // Agency/level codes for global templates (no FK needed)
+    // Agency/level codes for global template identification
     agencyCode: text("agency_code"), // e.g., "padi", "ssi" - for global template lookup
     levelCode: text("level_code"), // e.g., "beginner", "advanced" - for display/filtering
 
-    // Agency-controlled fields
+    // Agency-controlled content fields (source of truth)
     name: text("name").notNull(),
     code: text("code"),
     description: text("description"),
-    images: jsonb("images").$type<string[]>(),
+    images: jsonb("images").$type<string[]>(), // S3 URLs (global, not per-tenant)
 
     durationDays: integer("duration_days").notNull().default(1),
     classroomHours: integer("classroom_hours").default(0),
@@ -107,6 +107,9 @@ export const agencyCourseTemplates = pgTable(
     requiredItems: jsonb("required_items").$type<string[]>(),
     materialsIncluded: boolean("materials_included").default(true),
 
+    // Global translations: { "es": { "name": "...", "description": "..." } }
+    translations: jsonb("translations").$type<TemplateTranslations>().default({}),
+
     // Tracking
     contentHash: text("content_hash").notNull(),
     sourceType: text("source_type").notNull(), // 'api', 'static_json', 'manual'
@@ -117,7 +120,6 @@ export const agencyCourseTemplates = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
-    agencyIdx: index("idx_agency_templates_agency").on(table.agencyId),
     agencyCodeIdx: index("idx_agency_templates_agency_code").on(table.agencyCode),
     hashIdx: index("idx_agency_templates_hash").on(table.contentHash),
     uniqueCode: uniqueIndex("idx_agency_templates_unique_code").on(table.agencyCode, table.code),
@@ -176,7 +178,8 @@ export const trainingCourses = pgTable(
     medicalRequirements: text("medical_requirements"),
 
     // Display
-    images: jsonb("images").$type<string[]>(),
+    images: jsonb("images").$type<string[]>(), // For custom courses (templateId=null); template courses use template.images
+    imageOverride: jsonb("image_override").$type<string[]>(), // Tenant override of template images
     isPublic: boolean("is_public").notNull().default(false), // Show on public site
     isActive: boolean("is_active").notNull().default(true),
     sortOrder: integer("sort_order").default(0),
@@ -190,6 +193,9 @@ export const trainingCourses = pgTable(
     index("training_courses_level_idx").on(table.levelId),
     index("training_courses_template_idx").on(table.templateId),
     index("training_courses_public_idx").on(table.organizationId, table.isPublic),
+    uniqueIndex("training_courses_org_template_uniq")
+      .on(table.organizationId, table.templateId)
+      .where(sql`template_id IS NOT NULL`),
   ]
 );
 
@@ -384,15 +390,7 @@ export const certificationLevelsRelations = relations(
 
 export const agencyCourseTemplatesRelations = relations(
   agencyCourseTemplates,
-  ({ one, many }) => ({
-    agency: one(certificationAgencies, {
-      fields: [agencyCourseTemplates.agencyId],
-      references: [certificationAgencies.id],
-    }),
-    level: one(certificationLevels, {
-      fields: [agencyCourseTemplates.levelId],
-      references: [certificationLevels.id],
-    }),
+  ({ many }) => ({
     tenantCourses: many(trainingCourses),
   })
 );

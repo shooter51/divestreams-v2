@@ -166,6 +166,28 @@ vi.mock("../../../../lib/db/schema", () => ({
     prerequisites: "prerequisites",
     isActive: "isActive",
   },
+  agencyCourseTemplates: {
+    id: "id",
+    agencyCode: "agencyCode",
+    name: "name",
+    description: "description",
+    images: "images",
+    durationDays: "durationDays",
+    classroomHours: "classroomHours",
+    poolHours: "poolHours",
+    openWaterDives: "openWaterDives",
+    prerequisites: "prerequisites",
+    minAge: "minAge",
+    medicalRequirements: "medicalRequirements",
+    requiredItems: "requiredItems",
+    materialsIncluded: "materialsIncluded",
+    levelCode: "levelCode",
+    translations: "translations",
+  },
+}));
+
+vi.mock("../../../../lib/db/training-templates.server", () => ({
+  AGENCY_METADATA: { padi: { name: "PADI" } },
 }));
 
 describe("Public Site Server Functions Module", () => {

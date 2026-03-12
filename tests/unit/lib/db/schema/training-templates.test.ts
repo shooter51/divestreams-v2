@@ -6,8 +6,7 @@ describe("agencyCourseTemplates schema", () => {
     const columns = Object.keys(agencyCourseTemplates);
 
     expect(columns).toContain("id");
-    expect(columns).toContain("agencyId");
-    expect(columns).toContain("levelId");
+    expect(columns).toContain("agencyCode");
     expect(columns).toContain("name");
     expect(columns).toContain("code");
     expect(columns).toContain("description");

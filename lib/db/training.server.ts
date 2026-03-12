@@ -8,6 +8,7 @@
 import { desc, eq, asc, count, and, sql, gte, lte } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
+import { AGENCY_METADATA } from "./training-templates.server";
 
 // ============================================================================
 // Agency Queries
@@ -201,14 +202,26 @@ export async function getCourses(
     isPublic?: boolean;
   }
 ) {
-  const query = db
+  const rows = await db
     .select({
       id: schema.trainingCourses.id,
-      name: schema.trainingCourses.name,
-      code: schema.trainingCourses.code,
-      description: schema.trainingCourses.description,
-      images: schema.trainingCourses.images,
-      durationDays: schema.trainingCourses.durationDays,
+      // Course fields (used for custom courses or fallback)
+      courseName: schema.trainingCourses.name,
+      courseCode: schema.trainingCourses.code,
+      courseDescription: schema.trainingCourses.description,
+      courseImages: schema.trainingCourses.images,
+      courseDurationDays: schema.trainingCourses.durationDays,
+      // Template fields (used when templateId is set)
+      templateId: schema.trainingCourses.templateId,
+      templateName: schema.agencyCourseTemplates.name,
+      templateCode: schema.agencyCourseTemplates.code,
+      templateDescription: schema.agencyCourseTemplates.description,
+      templateImages: schema.agencyCourseTemplates.images,
+      templateDurationDays: schema.agencyCourseTemplates.durationDays,
+      templateAgencyCode: schema.agencyCourseTemplates.agencyCode,
+      templateLevelCode: schema.agencyCourseTemplates.levelCode,
+      // Tenant-owned fields (always from training_courses)
+      imageOverride: schema.trainingCourses.imageOverride,
       price: schema.trainingCourses.price,
       currency: schema.trainingCourses.currency,
       maxStudents: schema.trainingCourses.maxStudents,
@@ -222,6 +235,10 @@ export async function getCourses(
     })
     .from(schema.trainingCourses)
     .leftJoin(
+      schema.agencyCourseTemplates,
+      eq(schema.trainingCourses.templateId, schema.agencyCourseTemplates.id)
+    )
+    .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
     )
@@ -230,37 +247,75 @@ export async function getCourses(
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )
     .where(eq(schema.trainingCourses.organizationId, organizationId))
-    .orderBy(asc(schema.trainingCourses.sortOrder), asc(schema.trainingCourses.name))
-    .limit(200);
+    .orderBy(asc(schema.trainingCourses.sortOrder), asc(schema.trainingCourses.name));
 
-  return query;
+  // Merge template + course data (template wins for content fields when present)
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.templateName ?? row.courseName,
+    code: row.templateCode ?? row.courseCode,
+    description: row.templateDescription ?? row.courseDescription,
+    images: row.imageOverride ?? row.templateImages ?? row.courseImages,
+    durationDays: row.templateDurationDays ?? row.courseDurationDays,
+    price: row.price,
+    currency: row.currency,
+    maxStudents: row.maxStudents,
+    isActive: row.isActive,
+    isPublic: row.isPublic,
+    agencyId: row.agencyId,
+    agencyName: row.agencyName ?? (row.templateAgencyCode ? AGENCY_METADATA[row.templateAgencyCode]?.name : null),
+    levelId: row.levelId,
+    levelName: row.levelName ?? row.templateLevelCode,
+    templateId: row.templateId,
+    createdAt: row.createdAt,
+  }));
 }
 
 export async function getCourseById(organizationId: string, courseId: string) {
-  const [course] = await db
+  const [row] = await db
     .select({
       id: schema.trainingCourses.id,
-      name: schema.trainingCourses.name,
-      code: schema.trainingCourses.code,
-      description: schema.trainingCourses.description,
-      durationDays: schema.trainingCourses.durationDays,
-      classroomHours: schema.trainingCourses.classroomHours,
-      poolHours: schema.trainingCourses.poolHours,
-      openWaterDives: schema.trainingCourses.openWaterDives,
+      // Course fields (custom courses or legacy)
+      courseName: schema.trainingCourses.name,
+      courseCode: schema.trainingCourses.code,
+      courseDescription: schema.trainingCourses.description,
+      courseImages: schema.trainingCourses.images,
+      courseDurationDays: schema.trainingCourses.durationDays,
+      courseClassroomHours: schema.trainingCourses.classroomHours,
+      coursePoolHours: schema.trainingCourses.poolHours,
+      courseOpenWaterDives: schema.trainingCourses.openWaterDives,
+      coursePrerequisites: schema.trainingCourses.prerequisites,
+      courseMinAge: schema.trainingCourses.minAge,
+      courseMedicalRequirements: schema.trainingCourses.medicalRequirements,
+      courseRequiredItems: schema.trainingCourses.requiredItems,
+      courseMaterialsIncluded: schema.trainingCourses.materialsIncluded,
+      // Template fields
+      templateId: schema.trainingCourses.templateId,
+      templateName: schema.agencyCourseTemplates.name,
+      templateCode: schema.agencyCourseTemplates.code,
+      templateDescription: schema.agencyCourseTemplates.description,
+      templateImages: schema.agencyCourseTemplates.images,
+      templateDurationDays: schema.agencyCourseTemplates.durationDays,
+      templateClassroomHours: schema.agencyCourseTemplates.classroomHours,
+      templatePoolHours: schema.agencyCourseTemplates.poolHours,
+      templateOpenWaterDives: schema.agencyCourseTemplates.openWaterDives,
+      templatePrerequisites: schema.agencyCourseTemplates.prerequisites,
+      templateMinAge: schema.agencyCourseTemplates.minAge,
+      templateMedicalRequirements: schema.agencyCourseTemplates.medicalRequirements,
+      templateRequiredItems: schema.agencyCourseTemplates.requiredItems,
+      templateMaterialsIncluded: schema.agencyCourseTemplates.materialsIncluded,
+      templateAgencyCode: schema.agencyCourseTemplates.agencyCode,
+      templateLevelCode: schema.agencyCourseTemplates.levelCode,
+      // Tenant-owned fields
+      imageOverride: schema.trainingCourses.imageOverride,
       price: schema.trainingCourses.price,
       currency: schema.trainingCourses.currency,
       depositRequired: schema.trainingCourses.depositRequired,
       depositAmount: schema.trainingCourses.depositAmount,
       minStudents: schema.trainingCourses.minStudents,
       maxStudents: schema.trainingCourses.maxStudents,
-      materialsIncluded: schema.trainingCourses.materialsIncluded,
       equipmentIncluded: schema.trainingCourses.equipmentIncluded,
       includedItems: schema.trainingCourses.includedItems,
-      requiredItems: schema.trainingCourses.requiredItems,
-      minAge: schema.trainingCourses.minAge,
-      prerequisites: schema.trainingCourses.prerequisites,
-      medicalRequirements: schema.trainingCourses.medicalRequirements,
-      images: schema.trainingCourses.images,
       isPublic: schema.trainingCourses.isPublic,
       isActive: schema.trainingCourses.isActive,
       sortOrder: schema.trainingCourses.sortOrder,
@@ -273,6 +328,10 @@ export async function getCourseById(organizationId: string, courseId: string) {
       updatedAt: schema.trainingCourses.updatedAt,
     })
     .from(schema.trainingCourses)
+    .leftJoin(
+      schema.agencyCourseTemplates,
+      eq(schema.trainingCourses.templateId, schema.agencyCourseTemplates.id)
+    )
     .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
@@ -287,11 +346,52 @@ export async function getCourseById(organizationId: string, courseId: string) {
         eq(schema.trainingCourses.id, courseId)
       )
     );
-  return course;
+
+  if (!row) return undefined;
+
+  // Merge: template wins for content fields, tenant wins for business fields
+  return {
+    id: row.id,
+    name: row.templateName ?? row.courseName,
+    code: row.templateCode ?? row.courseCode,
+    description: row.templateDescription ?? row.courseDescription,
+    images: row.imageOverride ?? row.templateImages ?? row.courseImages,
+    durationDays: row.templateDurationDays ?? row.courseDurationDays,
+    classroomHours: row.templateClassroomHours ?? row.courseClassroomHours,
+    poolHours: row.templatePoolHours ?? row.coursePoolHours,
+    openWaterDives: row.templateOpenWaterDives ?? row.courseOpenWaterDives,
+    prerequisites: row.templatePrerequisites ?? row.coursePrerequisites,
+    minAge: row.templateMinAge ?? row.courseMinAge,
+    medicalRequirements: row.templateMedicalRequirements ?? row.courseMedicalRequirements,
+    requiredItems: row.templateRequiredItems ?? row.courseRequiredItems,
+    materialsIncluded: row.templateMaterialsIncluded ?? row.courseMaterialsIncluded,
+    price: row.price,
+    currency: row.currency,
+    depositRequired: row.depositRequired,
+    depositAmount: row.depositAmount,
+    minStudents: row.minStudents,
+    maxStudents: row.maxStudents,
+    equipmentIncluded: row.equipmentIncluded,
+    includedItems: row.includedItems,
+    isPublic: row.isPublic,
+    isActive: row.isActive,
+    sortOrder: row.sortOrder,
+    agencyId: row.agencyId,
+    agencyName: row.agencyName ?? (row.templateAgencyCode ? AGENCY_METADATA[row.templateAgencyCode]?.name : null),
+    levelId: row.levelId,
+    levelName: row.levelName ?? row.templateLevelCode,
+    requiredCertLevel: row.requiredCertLevel,
+    templateId: row.templateId,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
 }
 
 export async function createCourse(data: {
   organizationId: string;
+  // Template reference (for catalog courses)
+  templateId?: string;
+  // Content fields (for custom courses when templateId is null)
   name: string;
   code?: string;
   description?: string;
@@ -301,21 +401,23 @@ export async function createCourse(data: {
   classroomHours?: number;
   poolHours?: number;
   openWaterDives?: number;
+  prerequisites?: string;
+  minAge?: number;
+  medicalRequirements?: string;
+  requiredItems?: string[];
+  materialsIncluded?: boolean;
+  images?: string[];
+  // Tenant-owned fields
   price: string;
   currency?: string;
   depositRequired?: boolean;
   depositAmount?: string;
   minStudents?: number;
   maxStudents?: number;
-  materialsIncluded?: boolean;
   equipmentIncluded?: boolean;
   includedItems?: string[];
-  requiredItems?: string[];
-  minAge?: number;
-  prerequisites?: string;
+  imageOverride?: string[];
   requiredCertLevel?: string;
-  medicalRequirements?: string;
-  images?: string[];
   isPublic?: boolean;
   isActive?: boolean;
   sortOrder?: number;
@@ -328,6 +430,33 @@ export async function createCourse(data: {
   const [course] = await db
     .insert(schema.trainingCourses)
     .values(data)
+    .returning();
+  return course;
+}
+
+/**
+ * Enable a course from the global catalog for a tenant.
+ * Creates a thin training_courses row with templateId FK.
+ */
+export async function enableCatalogCourse(data: {
+  organizationId: string;
+  templateId: string;
+  price: string;
+  currency?: string;
+  isPublic?: boolean;
+  isActive?: boolean;
+  maxStudents?: number;
+  depositRequired?: boolean;
+  depositAmount?: string;
+  equipmentIncluded?: boolean;
+}) {
+  // Use a placeholder name (will be resolved via template JOIN at read time)
+  const [course] = await db
+    .insert(schema.trainingCourses)
+    .values({
+      ...data,
+      name: "(from catalog)", // Placeholder; display reads from template
+    })
     .returning();
   return course;
 }

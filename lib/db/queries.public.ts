@@ -11,6 +11,7 @@ import { db } from "./index";
 import { eq, and, asc, gte, sql, inArray } from "drizzle-orm";
 import * as schema from "./schema";
 import { organization } from "./schema/auth";
+import { AGENCY_METADATA } from "./training-templates.server";
 
 // ============================================================================
 // Organization Lookup for Embed Routes
@@ -504,8 +505,22 @@ export async function getPublicCourses(
   const courses = await db
     .select({
       id: schema.trainingCourses.id,
-      name: schema.trainingCourses.name,
-      description: schema.trainingCourses.description,
+      courseName: schema.trainingCourses.name,
+      courseDescription: schema.trainingCourses.description,
+      courseDurationDays: schema.trainingCourses.durationDays,
+      courseClassroomHours: schema.trainingCourses.classroomHours,
+      coursePoolHours: schema.trainingCourses.poolHours,
+      courseOpenWaterDives: schema.trainingCourses.openWaterDives,
+      // Template read-through
+      templateName: schema.agencyCourseTemplates.name,
+      templateDescription: schema.agencyCourseTemplates.description,
+      templateDurationDays: schema.agencyCourseTemplates.durationDays,
+      templateClassroomHours: schema.agencyCourseTemplates.classroomHours,
+      templatePoolHours: schema.agencyCourseTemplates.poolHours,
+      templateOpenWaterDives: schema.agencyCourseTemplates.openWaterDives,
+      templateAgencyCode: schema.agencyCourseTemplates.agencyCode,
+      templateLevelCode: schema.agencyCourseTemplates.levelCode,
+      // Tenant-scoped agency/level (may be null for catalog courses)
       agencyName: schema.certificationAgencies.name,
       agencyCode: schema.certificationAgencies.code,
       agencyLogo: schema.certificationAgencies.logoUrl,
@@ -514,12 +529,12 @@ export async function getPublicCourses(
       price: schema.trainingCourses.price,
       depositAmount: schema.trainingCourses.depositAmount,
       maxStudents: schema.trainingCourses.maxStudents,
-      durationDays: schema.trainingCourses.durationDays,
-      classroomHours: schema.trainingCourses.classroomHours,
-      poolHours: schema.trainingCourses.poolHours,
-      openWaterDives: schema.trainingCourses.openWaterDives,
     })
     .from(schema.trainingCourses)
+    .leftJoin(
+      schema.agencyCourseTemplates,
+      eq(schema.trainingCourses.templateId, schema.agencyCourseTemplates.id)
+    )
     .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
@@ -532,7 +547,7 @@ export async function getPublicCourses(
       and(
         eq(schema.trainingCourses.organizationId, organizationId),
         eq(schema.trainingCourses.isActive, true),
-        eq(schema.trainingCourses.isPublic, true) // Only show public courses
+        eq(schema.trainingCourses.isPublic, true)
       )
     )
     .orderBy(asc(schema.certificationLevels.levelNumber));
@@ -548,21 +563,21 @@ export async function getPublicCourses(
 
   return courses.map((course) => ({
     id: course.id,
-    name: course.name,
-    description: course.description,
-    agencyName: course.agencyName,
-    agencyCode: course.agencyCode,
+    name: course.templateName ?? course.courseName,
+    description: course.templateDescription ?? course.courseDescription,
+    agencyName: course.agencyName ?? (course.templateAgencyCode ? AGENCY_METADATA[course.templateAgencyCode]?.name : null),
+    agencyCode: course.agencyCode ?? course.templateAgencyCode,
     agencyLogo: course.agencyLogo,
-    levelName: course.levelName,
-    levelCode: course.levelCode,
+    levelName: course.levelName ?? course.templateLevelCode,
+    levelCode: course.levelCode ?? course.templateLevelCode,
     price: course.price,
     depositAmount: course.depositAmount,
     currency,
     maxStudents: course.maxStudents,
-    durationDays: course.durationDays,
-    classroomHours: course.classroomHours ?? 0,
-    poolHours: course.poolHours ?? 0,
-    openWaterDives: course.openWaterDives ?? 0,
+    durationDays: course.templateDurationDays ?? course.courseDurationDays,
+    classroomHours: (course.templateClassroomHours ?? course.courseClassroomHours) ?? 0,
+    poolHours: (course.templatePoolHours ?? course.coursePoolHours) ?? 0,
+    openWaterDives: (course.templateOpenWaterDives ?? course.courseOpenWaterDives) ?? 0,
   }));
 }
 
@@ -585,8 +600,22 @@ export async function getPublicCourseById(
   const courses = await db
     .select({
       id: schema.trainingCourses.id,
-      name: schema.trainingCourses.name,
-      description: schema.trainingCourses.description,
+      courseName: schema.trainingCourses.name,
+      courseDescription: schema.trainingCourses.description,
+      courseDurationDays: schema.trainingCourses.durationDays,
+      courseClassroomHours: schema.trainingCourses.classroomHours,
+      coursePoolHours: schema.trainingCourses.poolHours,
+      courseOpenWaterDives: schema.trainingCourses.openWaterDives,
+      // Template read-through
+      templateName: schema.agencyCourseTemplates.name,
+      templateDescription: schema.agencyCourseTemplates.description,
+      templateDurationDays: schema.agencyCourseTemplates.durationDays,
+      templateClassroomHours: schema.agencyCourseTemplates.classroomHours,
+      templatePoolHours: schema.agencyCourseTemplates.poolHours,
+      templateOpenWaterDives: schema.agencyCourseTemplates.openWaterDives,
+      templateAgencyCode: schema.agencyCourseTemplates.agencyCode,
+      templateLevelCode: schema.agencyCourseTemplates.levelCode,
+      // Tenant-scoped
       agencyName: schema.certificationAgencies.name,
       agencyCode: schema.certificationAgencies.code,
       agencyLogo: schema.certificationAgencies.logoUrl,
@@ -595,12 +624,12 @@ export async function getPublicCourseById(
       price: schema.trainingCourses.price,
       depositAmount: schema.trainingCourses.depositAmount,
       maxStudents: schema.trainingCourses.maxStudents,
-      durationDays: schema.trainingCourses.durationDays,
-      classroomHours: schema.trainingCourses.classroomHours,
-      poolHours: schema.trainingCourses.poolHours,
-      openWaterDives: schema.trainingCourses.openWaterDives,
     })
     .from(schema.trainingCourses)
+    .leftJoin(
+      schema.agencyCourseTemplates,
+      eq(schema.trainingCourses.templateId, schema.agencyCourseTemplates.id)
+    )
     .leftJoin(
       schema.certificationAgencies,
       eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
@@ -623,7 +652,24 @@ export async function getPublicCourseById(
     return null;
   }
 
-  const course = courses[0];
+  const row = courses[0];
+  const course = {
+    id: row.id,
+    name: row.templateName ?? row.courseName,
+    description: row.templateDescription ?? row.courseDescription,
+    agencyName: row.agencyName ?? (row.templateAgencyCode ? AGENCY_METADATA[row.templateAgencyCode]?.name : null),
+    agencyCode: row.agencyCode ?? row.templateAgencyCode,
+    agencyLogo: row.agencyLogo,
+    levelName: row.levelName ?? row.templateLevelCode,
+    levelCode: row.levelCode ?? row.templateLevelCode,
+    price: row.price,
+    depositAmount: row.depositAmount,
+    maxStudents: row.maxStudents,
+    durationDays: row.templateDurationDays ?? row.courseDurationDays,
+    classroomHours: (row.templateClassroomHours ?? row.courseClassroomHours) ?? 0,
+    poolHours: (row.templatePoolHours ?? row.coursePoolHours) ?? 0,
+    openWaterDives: (row.templateOpenWaterDives ?? row.courseOpenWaterDives) ?? 0,
+  };
 
   // Get organization settings for currency
   const orgSettings = await db
