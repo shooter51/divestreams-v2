@@ -38,7 +38,7 @@ jobs:
         run: npm run typecheck
 
       - name: Setup database schema
-        run: npx drizzle-kit push --force
+        run: yes '' | npx drizzle-kit push --force
         env:
           DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
 
