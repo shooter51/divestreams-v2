@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-03-12T15:25:21.788Z",
+  "target": "https://test.divestreams.com",
+  "metrics": {
+    "Health endpoint response time": {
+      "value": 312,
+      "unit": "ms"
+    },
+    "Health endpoint status": {
+      "value": 200
+    },
+    "Landing page response time": {
+      "value": 264,
+      "unit": "ms"
+    },
+    "Landing page status": {
+      "value": 200
+    },
+    "Demo public site response time": {
+      "value": 281,
+      "unit": "ms"
+    },
+    "Demo public site status": {
+      "value": 200
+    },
+    "Demo trips page response time": {
+      "value": 338,
+      "unit": "ms"
+    },
+    "Demo trips page status": {
+      "value": 200
+    },
+    "Demo courses page response time": {
+      "value": 196,
+      "unit": "ms"
+    },
+    "Demo courses page status": {
+      "value": 200
+    },
+    "Demo equipment page response time": {
+      "value": 164,
+      "unit": "ms"
+    },
+    "Demo equipment page status": {
+      "value": 200
+    },
+    "Tenant dashboard (redirect) response time": {
+      "value": 198,
+      "unit": "ms"
+    },
+    "Tenant dashboard (redirect) status": {
+      "value": 200
+    },
+    "Tenant tours (redirect) response time": {
+      "value": 193,
+      "unit": "ms"
+    },
+    "Tenant tours (redirect) status": {
+      "value": 200
+    },
+    "Tenant bookings (redirect) response time": {
+      "value": 195,
+      "unit": "ms"
+    },
+    "Tenant bookings (redirect) status": {
+      "value": 200
+    },
+    "Admin login": {
+      "value": "success"
+    },
+    "Current tenant count": {
+      "value": 204
+    }
+  }
+}
