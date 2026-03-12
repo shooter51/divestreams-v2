@@ -39,8 +39,8 @@ jobs:
 
       - name: Setup database schema
         run: |
-          PGPASSWORD=test psql -h ci-postgres -U test -d postgres -c "DROP DATABASE IF EXISTS testdb;"
-          PGPASSWORD=test psql -h ci-postgres -U test -d postgres -c "CREATE DATABASE testdb OWNER test;"
+          docker exec ci-postgres psql -U test -d postgres -c "DROP DATABASE IF EXISTS testdb;"
+          docker exec ci-postgres psql -U test -d postgres -c "CREATE DATABASE testdb OWNER test;"
           npx drizzle-kit push --force
         env:
           DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
