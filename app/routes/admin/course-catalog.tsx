@@ -2,10 +2,8 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import {
-  getAllGlobalAgencyCourseTemplates,
   getAvailableAgencies,
   getAgencyTemplateCounts,
-  AGENCY_METADATA,
 } from "../../../lib/db/training-templates.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
