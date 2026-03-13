@@ -64,6 +64,11 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
+      - name: Run migrations
+        run: node scripts/run-migrations.mjs
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+
       - name: Integration tests
         run: npm test -- --run
         env:
