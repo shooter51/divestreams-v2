@@ -10,6 +10,7 @@ import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
+import { useT } from "../../i18n/use-t";
 
 type ActionData = {
   error?: string;
@@ -98,7 +99,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Validate CSRF token (log warning if missing, reject if present but invalid)
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
-    return { error: "Invalid form submission. Please refresh and try again." };
+    return { error: "auth.login.invalidFormSubmission" };
   }
 
   // Rate limit login attempts
@@ -107,7 +108,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent !== "join" && loginEmail) {
     const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 30, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.allowed) {
-      return { error: "Too many login attempts. Please try again later." };
+      return { error: "auth.login.tooManyAttempts" };
     }
   }
 
@@ -125,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     if (!joinSession?.user) {
-      return { error: "You must be logged in to join an organization" };
+      return { error: "auth.login.mustBeLoggedIn" };
     }
 
     const userId = joinSession.user.id;
@@ -133,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Derive orgId from subdomain, NOT from form data (prevents joining arbitrary orgs)
     const joinSubdomain = getSubdomainFromRequest(request);
     if (!joinSubdomain) {
-      return { error: "Unable to determine organization", email: "" };
+      return { error: "auth.login.unableToDetermineOrg", email: "" };
     }
 
     const [joinOrg] = await db
@@ -143,7 +144,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .limit(1);
 
     if (!joinOrg) {
-      return { error: "Organization not found", email: "" };
+      return { error: "auth.login.orgNotFound", email: "" };
     }
 
     const orgId = joinOrg.id;
@@ -177,7 +178,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(validatedRedirectTo);
     } catch (error) {
       console.error("Join error:", error);
-      return { error: "Failed to join organization. Please try again.", email: "" };
+      return { error: "auth.login.joinFailed", email: "" };
     }
   }
 
@@ -188,11 +189,11 @@ export async function action({ request }: ActionFunctionArgs) {
   // Per-email rate limit is already checked above.
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
-    return { error: "Please enter a valid email address", email: email || "" };
+    return { error: "auth.login.invalidEmail", email: email || "" };
   }
 
   if (typeof password !== "string" || !password) {
-    return { error: "Password is required", email: email || "" };
+    return { error: "auth.login.passwordRequired", email: email || "" };
   }
 
   try {
@@ -209,7 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
-      return { error: userData.message || "Invalid email or password", email };
+      return { error: userData.message || "auth.login.invalidCredentials", email };
     }
 
     const userId = userData?.user?.id;
@@ -263,11 +264,12 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return { error: "An error occurred during login. Please try again.", email: email || "" };
+    return { error: "auth.login.genericError", email: email || "" };
   }
 }
 
 export default function LoginPage() {
+  const t = useT();
   const { orgName, noAccessError, mainSiteUrl, csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
@@ -295,10 +297,10 @@ export default function LoginPage() {
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-            Not a member of {shopName}
+            {t("tenant.auth.login.notMemberOf", { shop: shopName })}
           </h2>
           <p className="mt-2 text-center text-sm text-foreground-muted">
-            You signed in as <span className="font-medium">{email}</span>, but you are not a member of this shop yet.
+            {t("tenant.auth.login.signedInAsNotMember", { email })}
           </p>
         </div>
 
@@ -322,10 +324,10 @@ export default function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Joining...
+                    {t("tenant.auth.login.joining")}
                   </span>
                 ) : (
-                  `Join ${shopName} as Customer`
+                  t("tenant.auth.login.joinAsCustomer", { shop: shopName })
                 )}
               </button>
             </Form>
@@ -335,7 +337,7 @@ export default function LoginPage() {
                 to="/"
                 className="text-sm font-medium text-foreground-muted hover:text-foreground"
               >
-                Go back to homepage
+                {t("tenant.auth.login.goBackToHomepage")}
               </Link>
             </div>
           </div>
@@ -354,10 +356,10 @@ export default function LoginPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-          Sign in to your account
+          {t("tenant.auth.login.signInToAccount")}
         </h2>
         <p className="mt-2 text-center text-sm text-foreground-muted">
-          Welcome back! Please enter your details.
+          {t("tenant.auth.login.welcomeBack")}
         </p>
       </div>
 
@@ -365,20 +367,20 @@ export default function LoginPage() {
         {/* Access Denied Warning - shown when user is logged in but doesn't have access to this org */}
         {noAccessError && mainSiteUrl && (
           <div className="mb-6 bg-warning-muted border border-warning text-warning p-4 rounded-xl max-w-4xl break-words">
-            <div className="font-semibold mb-2">🔒 Access Denied</div>
+            <div className="font-semibold mb-2">{t("tenant.auth.login.accessDenied")}</div>
             <p className="text-sm">{noAccessError}</p>
             <div className="mt-4 flex gap-2">
               <a
                 href="/auth/logout"
                 className="flex-1 px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover text-center text-sm"
               >
-                Log Out
+                {t("auth.logout")}
               </a>
               <a
                 href={mainSiteUrl}
                 className="flex-1 px-4 py-2 border-2 border-warning text-warning rounded-lg hover:bg-warning-muted text-center text-sm"
               >
-                Go to Main Site
+                {t("tenant.auth.login.goToMainSite")}
               </a>
             </div>
           </div>
@@ -388,10 +390,10 @@ export default function LoginPage() {
           {/* Signup Success Message */}
           {isSignupSuccess && (
             <div className="mb-4 p-3 bg-success-muted border border-success rounded-lg">
-              <p className="text-sm text-success font-medium">Account created successfully! Sign in below to get started.</p>
+              <p className="text-sm text-success font-medium">{t("tenant.auth.login.signupSuccess")}</p>
               {emailSkipped && (
                 <p className="text-sm text-foreground-muted mt-1">
-                  If you don&apos;t receive a welcome email, don&apos;t worry — you can still log in with your password.
+                  {t("tenant.auth.login.emailSkippedNote")}
                 </p>
               )}
             </div>
@@ -400,7 +402,7 @@ export default function LoginPage() {
           {/* Error Message */}
           {actionData?.error && (
             <div className="mb-4 p-3 bg-danger-muted border border-danger rounded-lg">
-              <p className="text-sm text-danger">{actionData.error}</p>
+              <p className="text-sm text-danger">{t(actionData.error)}</p>
             </div>
           )}
 
@@ -411,7 +413,7 @@ export default function LoginPage() {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email address
+                {t("common.emailAddress")}
               </label>
               <div className="mt-1">
                 <input
@@ -422,7 +424,7 @@ export default function LoginPage() {
                   required
                   defaultValue={actionData?.email || ""}
                   className="appearance-none block w-full px-3 py-2 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
-                  placeholder="you@example.com"
+                  placeholder={t("site.login.emailPlaceholder")}
                 />
               </div>
             </div>
@@ -430,7 +432,7 @@ export default function LoginPage() {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground">
-                Password
+                {t("common.password")}
               </label>
               <div className="mt-1 relative">
                 <input
@@ -440,7 +442,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   required
                   className="appearance-none block w-full px-3 py-2 pr-10 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
-                  placeholder="Enter your password"
+                  placeholder={t("site.login.passwordPlaceholder")}
                 />
                 <button
                   type="button"
@@ -472,7 +474,7 @@ export default function LoginPage() {
                   className="h-4 w-4 text-brand focus:ring-brand border-border-strong rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-foreground">
-                  Remember me
+                  {t("tenant.auth.login.rememberMe")}
                 </label>
               </div>
 
@@ -481,7 +483,7 @@ export default function LoginPage() {
                   to="/tenant/forgot-password"
                   className="font-medium text-brand hover:text-brand"
                 >
-                  Forgot your password?
+                  {t("tenant.auth.login.forgotPassword")}
                 </Link>
               </div>
             </div>
@@ -499,10 +501,10 @@ export default function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Signing in...
+                    {t("tenant.auth.login.signingIn")}
                   </span>
                 ) : (
-                  "Sign in"
+                  t("tenant.auth.login.signIn")
                 )}
               </button>
             </div>
@@ -515,7 +517,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-border-strong" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-surface-raised text-foreground-muted">Not a member yet?</span>
+                <span className="px-2 bg-surface-raised text-foreground-muted">{t("tenant.auth.login.notMemberYet")}</span>
               </div>
             </div>
 
@@ -524,7 +526,7 @@ export default function LoginPage() {
                 to={`/signup${redirectTo !== "/tenant" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
                 className="w-full flex justify-center py-2.5 px-4 border border-border-strong rounded-lg shadow-sm text-sm font-medium text-foreground bg-surface-raised hover:bg-surface-inset focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors"
               >
-                Create an account
+                {t("tenant.auth.login.createAccount")}
               </Link>
             </div>
           </div>
@@ -532,12 +534,12 @@ export default function LoginPage() {
 
         {/* Join as customer prompt */}
         <p className="mt-6 text-center text-sm text-foreground-muted">
-          Not a member of {orgName}?{" "}
+          {t("tenant.auth.login.notMemberOfOrg", { org: orgName })}{" "}
           <Link
             to={`/signup?role=customer${redirectTo !== "/tenant" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
             className="font-medium text-brand hover:text-brand"
           >
-            Join as a customer
+            {t("tenant.auth.login.joinAsCustomerLink")}
           </Link>
         </p>
       </div>

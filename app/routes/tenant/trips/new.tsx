@@ -7,6 +7,7 @@ import { getTours, getBoats, getStaff, createTrip, getDiveSitesForTour } from ".
 import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 // Client-side helper to preview recurrence dates
 function calculatePreviewDates(
@@ -226,21 +227,22 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(redirectWithNotification("/tenant/trips", "Trip has been successfully created", "success"));
 }
 
-// Day names for weekly selection
-const DAYS_OF_WEEK = [
-  { value: 0, label: "Sun" },
-  { value: 1, label: "Mon" },
-  { value: 2, label: "Tue" },
-  { value: 3, label: "Wed" },
-  { value: 4, label: "Thu" },
-  { value: 5, label: "Fri" },
-  { value: 6, label: "Sat" },
-];
+// Day translation keys for weekly selection
+const DAY_KEYS = [
+  "tenant.trips.day.sun",
+  "tenant.trips.day.mon",
+  "tenant.trips.day.tue",
+  "tenant.trips.day.wed",
+  "tenant.trips.day.thu",
+  "tenant.trips.day.fri",
+  "tenant.trips.day.sat",
+] as const;
 
 export default function NewTripPage() {
   const { tours, boats, staff, selectedTour, diveSitesForTour } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
   // Recurring trip state
   const [isRecurring, setIsRecurring] = useState(false);
@@ -277,16 +279,16 @@ export default function NewTripPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/trips" className="text-brand hover:underline text-sm">
-          ← Back to Trips
+          {t("tenant.trips.backToTrips")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Schedule Trip</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.trips.scheduleTrip")}</h1>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Tour Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Tour</h2>
+          <h2 className="font-semibold mb-4">{t("common.tour")}</h2>
           {selectedTour ? (
             <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
               <div>
@@ -296,14 +298,14 @@ export default function NewTripPage() {
                 </p>
               </div>
               <Link to="/tenant/trips/new" className="text-sm text-brand hover:underline">
-                Change
+                {t("tenant.trips.change")}
               </Link>
               <input type="hidden" name="tourId" value={selectedTour.id} />
             </div>
           ) : (
             <div>
               <label htmlFor="tourId" className="block text-sm font-medium mb-1">
-                Select Tour *
+                {t("tenant.trips.selectTour")} *
               </label>
               <select
                 id="tourId"
@@ -312,7 +314,7 @@ export default function NewTripPage() {
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
-                <option value="">Choose a tour...</option>
+                <option value="">{t("tenant.trips.chooseTour")}</option>
                 {tours.map((tour) => (
                   <option key={tour.id} value={tour.id}>
                     {tour.name} (${tour.price}, {tour.duration}min)
@@ -329,8 +331,8 @@ export default function NewTripPage() {
         {/* Dive Sites (read-only, shown when tour pre-selected) */}
         {selectedTour && diveSitesForTour.length > 0 && (
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-1">Dive Sites</h2>
-            <p className="text-xs text-foreground-muted mb-3">From the selected tour</p>
+            <h2 className="font-semibold mb-1">{t("tenant.trips.diveSites")}</h2>
+            <p className="text-xs text-foreground-muted mb-3">{t("tenant.trips.fromSelectedTour")}</p>
             <div className="space-y-2">
               {diveSitesForTour.map((site) => (
                 <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
@@ -347,11 +349,11 @@ export default function NewTripPage() {
 
         {/* Date & Time */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">{isRecurring ? "Start Date & Time" : "Date & Time"}</h2>
+          <h2 className="font-semibold mb-4">{isRecurring ? t("tenant.trips.startDateTime") : t("tenant.trips.dateTime")}</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="date" className="block text-sm font-medium mb-1">
-                {isRecurring ? "First Trip Date *" : "Date *"}
+                {isRecurring ? t("tenant.trips.firstTripDate") : t("common.date")} *
               </label>
               <input
                 type="date"
@@ -369,7 +371,7 @@ export default function NewTripPage() {
             </div>
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium mb-1">
-                Start Time *
+                {t("tenant.trips.startTime")} *
               </label>
               <input
                 type="time"
@@ -385,7 +387,7 @@ export default function NewTripPage() {
             </div>
             <div>
               <label htmlFor="endTime" className="block text-sm font-medium mb-1">
-                End Time
+                {t("tenant.trips.endTime")}
               </label>
               <input
                 type="time"
@@ -402,8 +404,8 @@ export default function NewTripPage() {
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-semibold">Recurring Trip</h2>
-              <p className="text-sm text-foreground-muted">Schedule this trip to repeat automatically</p>
+              <h2 className="font-semibold">{t("tenant.trips.recurringTrip")}</h2>
+              <p className="text-sm text-foreground-muted">{t("tenant.trips.recurringDesc")}</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -423,7 +425,7 @@ export default function NewTripPage() {
               {/* Recurrence Pattern */}
               <div>
                 <label htmlFor="recurrencePattern" className="block text-sm font-medium mb-1">
-                  Repeat
+                  {t("tenant.trips.repeat")}
                 </label>
                 <select
                   id="recurrencePattern"
@@ -432,10 +434,10 @@ export default function NewTripPage() {
                   onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Every 2 Weeks</option>
-                  <option value="monthly">Monthly</option>
+                  <option value="daily">{t("tenant.trips.recurrencePattern.daily")}</option>
+                  <option value="weekly">{t("tenant.trips.recurrencePattern.weekly")}</option>
+                  <option value="biweekly">{t("tenant.trips.recurrencePattern.biweekly")}</option>
+                  <option value="monthly">{t("tenant.trips.recurrencePattern.monthly")}</option>
                 </select>
               </div>
 
@@ -443,21 +445,21 @@ export default function NewTripPage() {
               {(recurrencePattern === "weekly" || recurrencePattern === "biweekly") && (
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    On these days
+                    {t("tenant.trips.onTheseDays")}
                   </label>
                   <div className="flex gap-2">
-                    {DAYS_OF_WEEK.map((day) => (
+                    {DAY_KEYS.map((dayKey, idx) => (
                       <button
-                        key={day.value}
+                        key={idx}
                         type="button"
-                        onClick={() => toggleDay(day.value)}
+                        onClick={() => toggleDay(idx)}
                         className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
-                          selectedDays.includes(day.value)
+                          selectedDays.includes(idx)
                             ? "bg-brand text-white"
                             : "bg-surface-inset text-foreground hover:bg-surface-overlay"
                         }`}
                       >
-                        {day.label}
+                        {t(dayKey)}
                       </button>
                     ))}
                     {/* Hidden inputs for selected days */}
@@ -466,7 +468,7 @@ export default function NewTripPage() {
                     ))}
                   </div>
                   <p className="text-xs text-foreground-muted mt-1">
-                    {selectedDays.length === 0 ? "Will use the start date's day of week" : `Selected: ${selectedDays.map(d => DAYS_OF_WEEK[d].label).join(", ")}`}
+                    {selectedDays.length === 0 ? t("tenant.trips.willUseStartDay") : `${t("tenant.trips.selectedDays")}: ${selectedDays.map(d => t(DAY_KEYS[d])).join(", ")}`}
                   </p>
                 </div>
               )}
@@ -474,7 +476,7 @@ export default function NewTripPage() {
               {/* End Type */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Ends
+                  {t("tenant.trips.ends")}
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2">
@@ -486,7 +488,7 @@ export default function NewTripPage() {
                       onChange={() => setRecurrenceEndType("never")}
                       className="rounded"
                     />
-                    <span className="text-sm">Never (generate up to 3 months)</span>
+                    <span className="text-sm">{t("tenant.trips.neverEnd")}</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -497,7 +499,7 @@ export default function NewTripPage() {
                       onChange={() => setRecurrenceEndType("date")}
                       className="rounded"
                     />
-                    <span className="text-sm">On date</span>
+                    <span className="text-sm">{t("tenant.trips.onDate")}</span>
                     {recurrenceEndType === "date" && (
                       <input
                         type="date"
@@ -516,7 +518,7 @@ export default function NewTripPage() {
                       onChange={() => setRecurrenceEndType("count")}
                       className="rounded"
                     />
-                    <span className="text-sm">After</span>
+                    <span className="text-sm">{t("tenant.trips.after")}</span>
                     {recurrenceEndType === "count" && (
                       <>
                         <input
@@ -527,7 +529,7 @@ export default function NewTripPage() {
                           defaultValue="10"
                           className="ml-2 w-16 px-2 py-1 border rounded text-sm"
                         />
-                        <span className="text-sm">occurrences</span>
+                        <span className="text-sm">{t("tenant.trips.occurrences")}</span>
                       </>
                     )}
                   </label>
@@ -538,7 +540,7 @@ export default function NewTripPage() {
               {previewDates.length > 0 && (
                 <div className="pt-4 border-t">
                   <label className="block text-sm font-medium mb-2">
-                    Upcoming Dates Preview
+                    {t("tenant.trips.previewDates")}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {previewDates.map((date, idx) => (
@@ -556,7 +558,7 @@ export default function NewTripPage() {
                       </span>
                     ))}
                     {previewDates.length === 10 && (
-                      <span className="text-xs text-foreground-muted self-center">...and more</span>
+                      <span className="text-xs text-foreground-muted self-center">...{t("tenant.trips.andMore")}</span>
                     )}
                   </div>
                 </div>
@@ -567,10 +569,10 @@ export default function NewTripPage() {
 
         {/* Boat */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Boat</h2>
+          <h2 className="font-semibold mb-4">{t("common.boat")}</h2>
           <div>
             <label htmlFor="boatId" className="block text-sm font-medium mb-1">
-              Select Boat
+              {t("tenant.trips.selectBoat")}
             </label>
             <select
               id="boatId"
@@ -578,7 +580,7 @@ export default function NewTripPage() {
               defaultValue={actionData?.values?.boatId || ""}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
-              <option value="">No boat assigned</option>
+              <option value="">{t("tenant.trips.noBoat")}</option>
               {boats.map((boat) => (
                 <option key={boat.id} value={boat.id}>
                   {boat.name} (capacity: {boat.capacity})
@@ -590,28 +592,28 @@ export default function NewTripPage() {
 
         {/* Capacity Override */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Capacity</h2>
+          <h2 className="font-semibold mb-4">{t("common.capacity")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="maxParticipants" className="block text-sm font-medium mb-1">
-                Max Participants
+                {t("common.capacity")}
               </label>
               <input
                 type="number"
                 id="maxParticipants"
                 name="maxParticipants"
                 min="1"
-                placeholder={selectedTour ? String(selectedTour.maxParticipants) : "From tour"}
+                placeholder={selectedTour ? String(selectedTour.maxParticipants) : t("tenant.trips.leaveBlankTour")}
                 defaultValue={actionData?.values?.maxParticipants}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Leave blank to use tour default
+                {t("tenant.trips.leaveBlankDefault")}
               </p>
             </div>
             <div>
               <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price Override
+                {t("tenant.trips.priceOverride")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -621,13 +623,13 @@ export default function NewTripPage() {
                   name="price"
                   step="0.01"
                   min="0"
-                  placeholder={selectedTour ? selectedTour.price : "From tour"}
+                  placeholder={selectedTour ? selectedTour.price : t("tenant.trips.leaveBlankTour")}
                   defaultValue={actionData?.values?.price}
                   className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <p className="text-xs text-foreground-muted mt-1">
-                Leave blank to use tour price
+                {t("tenant.trips.leaveBlankPrice")}
               </p>
             </div>
           </div>
@@ -635,7 +637,7 @@ export default function NewTripPage() {
 
         {/* Staff Assignment */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Staff Assignment</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.trips.staffAssignment")}</h2>
           <div className="space-y-2">
             {staff.map((member) => (
               <label key={member.id} className="flex items-center gap-3 p-2 hover:bg-surface-inset rounded">
@@ -654,24 +656,24 @@ export default function NewTripPage() {
 
         {/* Notes */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Notes</h2>
+          <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="weatherNotes" className="block text-sm font-medium mb-1">
-                Weather Notes
+                {t("tenant.trips.weatherNotes")}
               </label>
               <input
                 type="text"
                 id="weatherNotes"
                 name="weatherNotes"
-                placeholder="e.g., Light wind expected, good visibility"
+                placeholder={t("tenant.trips.weatherPlaceholder")}
                 defaultValue={actionData?.values?.weatherNotes}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
               <label htmlFor="notes" className="block text-sm font-medium mb-1">
-                Internal Notes
+                {t("tenant.trips.internalNotes")}
               </label>
               <textarea
                 id="notes"
@@ -690,10 +692,10 @@ export default function NewTripPage() {
                   defaultChecked={actionData?.values?.isPublic !== "false"}
                   className="rounded"
                 />
-                <span className="text-sm font-medium">Show on public website</span>
+                <span className="text-sm font-medium">{t("tenant.trips.showOnPublicSite")}</span>
               </label>
               <p className="text-xs text-foreground-muted mt-1">
-                Make this trip visible on your public booking site
+                {t("tenant.trips.publicSiteDesc")}
               </p>
             </div>
           </div>
@@ -706,13 +708,13 @@ export default function NewTripPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Scheduling..." : "Schedule Trip"}
+            {isSubmitting ? t("common.creating") : t("tenant.trips.scheduleTrip")}
           </button>
           <Link
             to="/tenant/trips"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

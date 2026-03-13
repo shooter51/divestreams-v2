@@ -358,7 +358,7 @@ export default function EnrollmentFormPage() {
               {course.agencyLogo ? (
                 <img
                   src={course.agencyLogo}
-                  alt={course.agencyName}
+                  alt={course.agencyName ?? undefined}
                   className="h-6 object-contain"
                 />
               ) : (

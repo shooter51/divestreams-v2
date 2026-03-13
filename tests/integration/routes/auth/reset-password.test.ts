@@ -115,7 +115,7 @@ describe("auth/reset-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Password must be at least 8 characters" });
+      expect(result).toEqual({ error: "auth.resetPassword.passwordMinLength" });
     });
 
     it("returns error when rate limited", async () => {
@@ -133,7 +133,7 @@ describe("auth/reset-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Too many attempts. Please try again later." });
+      expect(result).toEqual({ error: "auth.resetPassword.tooManyAttempts" });
     });
 
     it("returns error when password too short", async () => {
@@ -150,7 +150,7 @@ describe("auth/reset-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Password must be at least 8 characters" });
+      expect(result).toEqual({ error: "auth.resetPassword.passwordMinLength" });
     });
 
     it("returns error when passwords don't match", async () => {
@@ -167,7 +167,7 @@ describe("auth/reset-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Passwords do not match" });
+      expect(result).toEqual({ error: "auth.resetPassword.passwordsDoNotMatch" });
     });
 
     it("returns error when token missing", async () => {
@@ -183,7 +183,7 @@ describe("auth/reset-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Invalid reset token" });
+      expect(result).toEqual({ error: "auth.resetPassword.invalidToken" });
     });
 
     it("redirects to login on successful reset", async () => {
@@ -221,7 +221,7 @@ describe("auth/reset-password route", () => {
       });
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(result).toEqual({ error: "Invalid or expired reset token" });
+      expect(result).toEqual({ error: "auth.resetPassword.invalidOrExpiredToken" });
     });
   });
 });

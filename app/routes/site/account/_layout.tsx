@@ -9,6 +9,7 @@
 
 import { Outlet, Link, useLoaderData, useLocation, redirect } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import type { Customer } from "../../../../lib/db/schema";
 
@@ -59,12 +60,13 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<AccountLo
 export default function AccountLayout() {
   const { customer } = useLoaderData<typeof loader>();
   const location = useLocation();
+  const t = useT();
 
   // Navigation items for account section
   const navItems = [
-    { href: "/site/account", label: "Dashboard", icon: HomeIcon },
-    { href: "/site/account/bookings", label: "My Bookings", icon: CalendarIcon },
-    { href: "/site/account/profile", label: "Profile", icon: UserIcon },
+    { href: "/site/account", label: t("site.account.dashboard"), icon: HomeIcon },
+    { href: "/site/account/bookings", label: t("site.account.myBookings"), icon: CalendarIcon },
+    { href: "/site/account/profile", label: t("site.account.profile"), icon: UserIcon },
   ];
 
   // Check if nav item is active
@@ -81,10 +83,10 @@ export default function AccountLayout() {
         {/* Account Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold" style={{ color: "var(--text-color)" }}>
-            My Account
+            {t("site.account.myAccount")}
           </h1>
           <p className="mt-2 opacity-75">
-            Welcome back, {customer.firstName}!
+            {t("site.account.welcomeBack", { name: customer.firstName })}
           </p>
         </div>
 
@@ -122,7 +124,7 @@ export default function AccountLayout() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left transition-colors hover:bg-danger-muted text-danger"
                 >
                   <LogoutIcon className="w-5 h-5" />
-                  Log Out
+                  {t("auth.logout")}
                 </button>
               </form>
             </div>

@@ -10,6 +10,9 @@ import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeTyp
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
+import { enqueueTranslation } from "../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
@@ -52,6 +55,23 @@ export async function action({ request }: ActionFunctionArgs) {
     stockQuantity: formData.get("stockQuantity") ? parseInt(formData.get("stockQuantity") as string) : undefined,
     lowStockThreshold: formData.get("lowStockThreshold") ? parseInt(formData.get("lowStockThreshold") as string) : undefined,
   });
+
+  // Enqueue auto-translation for non-default locales
+  const fieldsToTranslate = [
+    { field: "name", text: name },
+    { field: "description", text: formData.get("description") as string },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "product",
+      entityId: product.id,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   // Process uploaded images if any
   if (imageFiles.length > 0) {
@@ -155,18 +175,19 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(`/tenant/pos/products/${product.id}`);
 }
 
-const categories = [
-  { value: "equipment", label: "Equipment" },
-  { value: "apparel", label: "Apparel" },
-  { value: "accessories", label: "Accessories" },
-  { value: "courses", label: "Courses" },
-  { value: "rental", label: "Rental" },
-];
-
 export default function NewProductPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
+
+  const categories = [
+    { value: "equipment", label: t("tenant.pos.products.categoryEquipment") },
+    { value: "apparel", label: t("tenant.pos.products.categoryApparel") },
+    { value: "accessories", label: t("tenant.pos.products.categoryAccessories") },
+    { value: "courses", label: t("tenant.pos.products.categoryCourses") },
+    { value: "rental", label: t("tenant.pos.products.categoryRental") },
+  ];
 
   return (
     <div className="max-w-2xl">
@@ -176,7 +197,7 @@ export default function NewProductPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-2xl font-bold">New Product</h1>
+        <h1 className="text-2xl font-bold">{t("tenant.pos.products.newProduct")}</h1>
       </div>
 
       {actionData?.error && (
@@ -191,7 +212,7 @@ export default function NewProductPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
-              Product Name *
+              {t("tenant.pos.products.productName")}
             </label>
             <input
               type="text"
@@ -199,13 +220,13 @@ export default function NewProductPage() {
               name="name"
               required
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
-              placeholder="e.g., Dive Mask Pro"
+              placeholder={t("tenant.pos.products.productNamePlaceholder")}
             />
           </div>
 
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-foreground mb-1">
-              Category *
+              {t("tenant.pos.products.categoryLabel")}
             </label>
             <select
               id="category"
@@ -213,7 +234,7 @@ export default function NewProductPage() {
               required
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
             >
-              <option value="">Select category</option>
+              <option value="">{t("tenant.pos.products.selectCategory")}</option>
               {categories.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
@@ -224,38 +245,38 @@ export default function NewProductPage() {
 
           <div>
             <label htmlFor="sku" className="block text-sm font-medium text-foreground mb-1">
-              SKU
+              {t("tenant.pos.products.skuField")}
             </label>
             <input
               type="text"
               id="sku"
               name="sku"
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
-              placeholder="e.g., DM-001"
+              placeholder={t("tenant.pos.products.skuPlaceholder")}
             />
           </div>
 
           <div className="col-span-2">
             <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">
-              Description
+              {t("tenant.pos.products.descriptionLabel")}
             </label>
             <textarea
               id="description"
               name="description"
               rows={3}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
-              placeholder="Product description..."
+              placeholder={t("tenant.pos.products.descriptionPlaceholder")}
             />
           </div>
         </div>
 
         {/* Pricing */}
         <div className="border-t pt-6">
-          <h3 className="font-medium mb-4">Pricing</h3>
+          <h3 className="font-medium mb-4">{t("tenant.pos.products.pricing")}</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-foreground mb-1">
-                Price *
+                {t("tenant.pos.products.priceLabel")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -274,7 +295,7 @@ export default function NewProductPage() {
 
             <div>
               <label htmlFor="costPrice" className="block text-sm font-medium text-foreground mb-1">
-                Cost Price
+                {t("tenant.pos.products.costPriceLabel")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -292,7 +313,7 @@ export default function NewProductPage() {
 
             <div>
               <label htmlFor="taxRate" className="block text-sm font-medium text-foreground mb-1">
-                Tax Rate
+                {t("tenant.pos.products.taxRateLabel")}
               </label>
               <div className="relative">
                 <input
@@ -313,7 +334,7 @@ export default function NewProductPage() {
 
         {/* Inventory */}
         <div className="border-t pt-6">
-          <h3 className="font-medium mb-4">Inventory</h3>
+          <h3 className="font-medium mb-4">{t("tenant.pos.products.inventory")}</h3>
           <div className="space-y-4">
             <label className="flex items-center gap-3">
               <input
@@ -322,13 +343,13 @@ export default function NewProductPage() {
                 defaultChecked
                 className="w-4 h-4 text-brand border-border-strong rounded focus:ring-brand"
               />
-              <span className="text-sm text-foreground">Track inventory for this product</span>
+              <span className="text-sm text-foreground">{t("tenant.pos.products.trackInventory")}</span>
             </label>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="stockQuantity" className="block text-sm font-medium text-foreground mb-1">
-                  Initial Stock
+                  {t("tenant.pos.products.initialStock")}
                 </label>
                 <input
                   type="number"
@@ -342,7 +363,7 @@ export default function NewProductPage() {
 
               <div>
                 <label htmlFor="lowStockThreshold" className="block text-sm font-medium text-foreground mb-1">
-                  Low Stock Alert
+                  {t("tenant.pos.products.lowStockAlert")}
                 </label>
                 <input
                   type="number"
@@ -359,10 +380,10 @@ export default function NewProductPage() {
 
         {/* Images */}
         <div className="border-t pt-6">
-          <h3 className="font-medium mb-4">Product Images (Optional)</h3>
+          <h3 className="font-medium mb-4">{t("tenant.pos.products.imagesOptional")}</h3>
           <div>
             <label htmlFor="images" className="block text-sm font-medium mb-2">
-              Upload up to 5 images
+              {t("tenant.pos.products.uploadUpTo5")}
             </label>
             <input
               type="file"
@@ -379,7 +400,7 @@ export default function NewProductPage() {
                 file:cursor-pointer cursor-pointer"
             />
             <p className="mt-2 text-sm text-foreground-muted">
-              JPEG, PNG, WebP, or GIF. Max 10MB each.
+              {t("tenant.pos.products.imageFormats")}
             </p>
           </div>
         </div>
@@ -391,13 +412,13 @@ export default function NewProductPage() {
             disabled={isSubmitting}
             className="px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Creating..." : "Create Product"}
+            {isSubmitting ? t("tenant.pos.products.creatingProduct") : t("tenant.pos.products.createProduct")}
           </button>
           <Link
             to="/tenant/pos/products"
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </Form>

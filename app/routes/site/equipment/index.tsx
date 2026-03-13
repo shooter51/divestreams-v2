@@ -11,6 +11,9 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { eq, and, or, like, sql, asc, desc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { equipment, images, organization } from "../../../../lib/db/schema";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Equipment" }];
@@ -38,19 +41,19 @@ interface EquipmentCard {
   primaryImage: string | null;
 }
 
-// Equipment categories
+// Equipment categories — labels are i18n keys, resolved in the component via t()
 const EQUIPMENT_CATEGORIES = [
-  { value: "bcd", label: "BCDs", icon: "⚓" },
-  { value: "regulator", label: "Regulators", icon: "🌬️" },
-  { value: "wetsuit", label: "Wetsuits", icon: "🦈" },
-  { value: "mask", label: "Masks", icon: "👓" },
-  { value: "fins", label: "Fins", icon: "🦵" },
-  { value: "computer", label: "Computers", icon: "💻" },
-  { value: "tank", label: "Tanks", icon: "⛽" },
-  { value: "snorkel", label: "Snorkels", icon: "🤿" },
-  { value: "camera", label: "Cameras", icon: "📷" },
-  { value: "light", label: "Lights", icon: "💡" },
-  { value: "other", label: "Other", icon: "🔧" },
+  { value: "bcd", labelKey: "site.equipment.category.bcd", icon: "⚓" },
+  { value: "regulator", labelKey: "site.equipment.category.regulator", icon: "🌬️" },
+  { value: "wetsuit", labelKey: "site.equipment.category.wetsuit", icon: "🦈" },
+  { value: "mask", labelKey: "site.equipment.category.mask", icon: "👓" },
+  { value: "fins", labelKey: "site.equipment.category.fins", icon: "🦵" },
+  { value: "computer", labelKey: "site.equipment.category.computer", icon: "💻" },
+  { value: "tank", labelKey: "site.equipment.category.tank", icon: "⛽" },
+  { value: "snorkel", labelKey: "site.equipment.category.snorkel", icon: "🤿" },
+  { value: "camera", labelKey: "site.equipment.category.camera", icon: "📷" },
+  { value: "light", labelKey: "site.equipment.category.light", icon: "💡" },
+  { value: "other", labelKey: "site.equipment.category.other", icon: "🔧" },
 ];
 
 // ============================================================================
@@ -219,8 +222,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   );
 
+  // Apply content translations
+  const locale = resolveLocale(request);
+  let translatedCards = equipmentCards;
+  if (locale !== "en" && equipmentCards.length > 0) {
+    const translations = await bulkGetContentTranslations(
+      org.id,
+      "product",
+      equipmentCards.map((e) => e.id),
+      locale
+    );
+    translatedCards = equipmentCards.map((e) => {
+      const t = translations.get(e.id);
+      return t
+        ? { ...e, name: t.name || e.name }
+        : e;
+    });
+  }
+
   return {
-    equipment: equipmentCards,
+    equipment: translatedCards,
     total,
     page,
     totalPages,
@@ -248,6 +269,7 @@ function formatPrice(price: string | null): string {
 }
 
 export default function SiteEquipmentPage() {
+  const t = useT();
   const { equipment, total, page, totalPages, category, search, sortBy, categoryCounts } =
     useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -308,11 +330,10 @@ export default function SiteEquipmentPage() {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ color: "var(--primary-color)" }}
           >
-            Rental Equipment
+            {t("site.equipment.rentalEquipment")}
           </h1>
           <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-            Quality dive equipment available for rent. Choose from our wide selection
-            of BCDs, regulators, wetsuits, and more.
+            {t("site.equipment.subtitle")}
           </p>
         </div>
       </section>
@@ -322,7 +343,7 @@ export default function SiteEquipmentPage() {
           {/* Sidebar - Categories */}
           <aside className="lg:w-64 flex-shrink-0">
             <div className="rounded-xl shadow-sm p-6 sticky top-20" style={{ backgroundColor: "var(--color-card-bg)" }}>
-              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>Categories</h2>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>{t("site.equipment.categories")}</h2>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -338,7 +359,7 @@ export default function SiteEquipmentPage() {
                     }}
                   >
                     <span className="flex items-center justify-between">
-                      <span>All Equipment</span>
+                      <span>{t("site.equipment.allEquipment")}</span>
                       <span className="text-sm opacity-60">{total}</span>
                     </span>
                   </button>
@@ -363,7 +384,7 @@ export default function SiteEquipmentPage() {
                         <span className="flex items-center justify-between">
                           <span>
                             <span className="mr-2">{cat.icon}</span>
-                            {cat.label}
+                            {t(cat.labelKey)}
                           </span>
                           <span className="text-sm opacity-60">{count}</span>
                         </span>
@@ -387,7 +408,7 @@ export default function SiteEquipmentPage() {
                       type="text"
                       name="search"
                       defaultValue={search || ""}
-                      placeholder="Search equipment..."
+                      placeholder={t("site.equipment.searchPlaceholder")}
                       className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:outline-none"
                       style={{
                         backgroundColor: "var(--color-card-bg)",
@@ -427,9 +448,9 @@ export default function SiteEquipmentPage() {
                       "--tw-ring-color": "var(--primary-color)",
                     }}
                   >
-                    <option value="name">Sort by Name</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
+                    <option value="name">{t("site.equipment.sortByName")}</option>
+                    <option value="price-low">{t("site.equipment.priceLowHigh")}</option>
+                    <option value="price-high">{t("site.equipment.priceHighLow")}</option>
                   </select>
                 </div>
 
@@ -440,7 +461,7 @@ export default function SiteEquipmentPage() {
                     className="px-4 py-2 border rounded-lg font-medium transition-colors"
                     style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                   >
-                    Clear
+                    {t("site.equipment.clear")}
                   </button>
                 )}
               </div>
@@ -450,7 +471,7 @@ export default function SiteEquipmentPage() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {category && (
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
-                      Category: {EQUIPMENT_CATEGORIES.find(c => c.value === category)?.label}
+                      {t("site.equipment.categoryFilter", { category: t(EQUIPMENT_CATEGORIES.find(c => c.value === category)?.labelKey || "site.equipment.category.other") })}
                       <button
                         onClick={() => handleCategoryFilter(null)}
                         className="hover:opacity-70"
@@ -461,7 +482,7 @@ export default function SiteEquipmentPage() {
                   )}
                   {search && (
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
-                      Search: "{search}"
+                      {t("site.equipment.searchFilter", { search })}
                       <button
                         onClick={() => {
                           const params = new URLSearchParams(searchParams);
@@ -478,7 +499,7 @@ export default function SiteEquipmentPage() {
               )}
 
               <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
-                Showing {equipment.length} of {total} items
+                {t("site.equipment.showingXofY", { count: String(equipment.length), total: String(total) })}
               </p>
             </div>
 
@@ -504,11 +525,11 @@ export default function SiteEquipmentPage() {
                     />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Equipment Found</h2>
+                <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>{t("site.equipment.noEquipmentFound")}</h2>
                 <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                   {hasFilters
-                    ? "Try adjusting your filters or search terms."
-                    : "Check back soon for available equipment!"}
+                    ? t("site.equipment.adjustFilters")
+                    : t("site.equipment.checkBackSoon")}
                 </p>
                 {hasFilters && (
                   <button
@@ -516,7 +537,7 @@ export default function SiteEquipmentPage() {
                     className="px-6 py-2 rounded-lg text-white font-medium"
                     style={{ backgroundColor: "var(--primary-color)" }}
                   >
-                    Clear Filters
+                    {t("site.equipment.clearFilters")}
                   </button>
                 )}
               </div>
@@ -537,7 +558,7 @@ export default function SiteEquipmentPage() {
                       className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                     >
-                      Previous
+                      {t("common.previous")}
                     </button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -572,7 +593,7 @@ export default function SiteEquipmentPage() {
                       className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                     >
-                      Next
+                      {t("common.next")}
                     </button>
                   </div>
                 )}
@@ -590,6 +611,7 @@ export default function SiteEquipmentPage() {
 // ============================================================================
 
 function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
+  const t = useT();
   const categoryInfo = EQUIPMENT_CATEGORIES.find(c => c.value === equipment.category);
   const conditionColor = equipment.condition === "excellent"
     ? "bg-success-muted text-success"
@@ -624,7 +646,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
         {/* Condition Badge */}
         {equipment.condition && (
           <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium ${conditionColor}`}>
-            {equipment.condition.charAt(0).toUpperCase() + equipment.condition.slice(1)}
+            {t(`site.equipment.condition.${equipment.condition}`)}
           </div>
         )}
       </div>
@@ -640,7 +662,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
               color: "var(--primary-color)",
             }}
           >
-            {categoryInfo?.label || equipment.category}
+            {categoryInfo ? t(categoryInfo.labelKey) : equipment.category}
           </span>
         </div>
 
@@ -658,7 +680,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
         {equipment.size && (
           <div className="mb-3">
             <span className="text-sm" style={{ color: "var(--text-color)" }}>
-              <span className="opacity-60">Size:</span> <span className="font-medium">{equipment.size}</span>
+              {t("site.equipment.sizeLabel", { size: equipment.size })}
             </span>
           </div>
         )}
@@ -673,14 +695,14 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
               {formatPrice(equipment.rentalPrice)}
             </p>
             {equipment.rentalPrice && (
-              <p className="text-xs opacity-50" style={{ color: "var(--text-color)" }}>per day</p>
+              <p className="text-xs opacity-50" style={{ color: "var(--text-color)" }}>{t("site.equipment.perDay")}</p>
             )}
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
             style={{ backgroundColor: "var(--primary-color)" }}
           >
-            View Details
+            {t("site.trips.viewDetails")}
           </span>
         </div>
       </div>

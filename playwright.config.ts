@@ -106,6 +106,16 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     // ─────────────────────────────────────────────────────────────────────
+    // Project 2.5: SMOKE — Visits every route, asserts no 500s or crashes
+    // Uses "demo" tenant. Depends on bootstrap (remote) or global-setup (local).
+    // ─────────────────────────────────────────────────────────────────────
+    {
+      name: "smoke",
+      testMatch: "**/smoke/**/*.spec.ts",
+      dependencies: isRemoteTest ? ["bootstrap"] : [],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    // ─────────────────────────────────────────────────────────────────────
     // Project 3: WORKFLOW — Depends on setup project completing first
     // These tests use the e2etest tenant and may reference entities
     // created by 00-full-workflow (e.g. training data seeded in Block A).

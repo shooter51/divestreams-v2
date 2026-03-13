@@ -27,6 +27,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       limits: { customers: 100 },
       isPremium: false,
     } as unknown);
+    vi.mocked(queries.getTankTypes).mockResolvedValue([]);
   });
 
   describe("loader", () => {
@@ -122,9 +123,21 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
         },
       ];
 
+      const mockTripById = {
+        id: "trip-1",
+        tourName: "Night Dive",
+        date: new Date("2024-02-10"),
+        startTime: "19:00",
+        maxParticipants: 6,
+        bookedParticipants: 2,
+        price: 150,
+        requiresTankSelection: false,
+      };
+
       vi.mocked(queries.getCustomers).mockResolvedValue({ customers: [] } as unknown);
       vi.mocked(queries.getTrips).mockResolvedValue(mockTrips as unknown);
       vi.mocked(queries.getEquipment).mockResolvedValue([]);
+      vi.mocked(queries.getTripById).mockResolvedValue(mockTripById as unknown);
 
       const request = new Request("http://test.com/tenant/bookings/new?tripId=trip-1");
       const result = await loader({ request, params: {}, context: {} });

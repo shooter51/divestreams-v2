@@ -3,6 +3,7 @@
  */
 
 import type { CartItem } from "../../../lib/validation/pos";
+import { useT } from "../../i18n/use-t";
 
 interface CartProps {
   items: CartItem[];
@@ -27,6 +28,7 @@ export function Cart({
   onCheckout,
   requiresCustomer,
 }: CartProps) {
+  const t = useT();
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   // Use per-product taxRate when available (same logic as pos.tsx) so displayed
   // total matches the value passed to checkout modals.
@@ -45,13 +47,13 @@ export function Cart({
     <div className="flex flex-col h-full bg-surface-raised rounded-lg shadow-sm">
       {/* Header */}
       <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Cart</h2>
+        <h2 className="text-lg font-semibold">{t("tenant.pos.cart.title")}</h2>
       </div>
 
       {/* Items */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {items.length === 0 ? (
-          <p className="text-foreground-muted text-center py-8">Cart is empty</p>
+          <p className="text-foreground-muted text-center py-8">{t("tenant.pos.cart.empty")}</p>
         ) : (
           items.map((item, index) => (
             <div key={index} className="flex items-start gap-3 p-3 bg-surface-inset rounded-lg">
@@ -61,8 +63,8 @@ export function Cart({
                 </p>
                 <p className="text-sm text-foreground-muted">
                   {item.type === "product" && `${item.quantity} × $${item.unitPrice.toFixed(2)}`}
-                  {item.type === "rental" && `${item.days} day${item.days > 1 ? "s" : ""} × $${item.dailyRate.toFixed(2)}/day`}
-                  {item.type === "booking" && `${item.participants} participant${item.participants > 1 ? "s" : ""} × $${item.unitPrice.toFixed(2)}`}
+                  {item.type === "rental" && `${item.days} ${item.days > 1 ? t("tenant.pos.cart.days") : t("tenant.pos.cart.day")} × $${item.dailyRate.toFixed(2)}/${t("tenant.pos.cart.day")}`}
+                  {item.type === "booking" && `${item.participants} ${item.participants > 1 ? t("tenant.pos.cart.participants") : t("tenant.pos.cart.participant")} × $${item.unitPrice.toFixed(2)}`}
                 </p>
               </div>
               <div className="text-right">
@@ -73,7 +75,7 @@ export function Cart({
                       onClick={() => onUpdateQuantity(index, item.quantity - 1)}
                       className="w-6 h-6 rounded bg-surface-overlay hover:bg-border text-sm"
                       disabled={item.quantity <= 1}
-                      aria-label="Decrease quantity"
+                      aria-label={t("tenant.pos.cart.decreaseQuantity")}
                     >
                       -
                     </button>
@@ -81,7 +83,7 @@ export function Cart({
                     <button
                       onClick={() => onUpdateQuantity(index, item.quantity + 1)}
                       className="w-6 h-6 rounded bg-surface-overlay hover:bg-border text-sm"
-                      aria-label="Increase quantity"
+                      aria-label={t("tenant.pos.cart.increaseQuantity")}
                     >
                       +
                     </button>
@@ -91,7 +93,7 @@ export function Cart({
               <button
                 onClick={() => onRemoveItem(index)}
                 className="text-danger hover:text-danger"
-                aria-label="Remove item"
+                aria-label={t("tenant.pos.cart.removeItem")}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -123,7 +125,7 @@ export function Cart({
               requiresCustomer ? "border-danger text-danger" : "border-border-strong text-foreground-muted"
             } hover:border-brand hover:text-brand`}
           >
-            {requiresCustomer ? "Customer Required" : "Add Customer (Optional)"}
+            {requiresCustomer ? t("tenant.pos.cart.customerRequired") : t("tenant.pos.cart.addCustomerOptional")}
           </button>
         )}
       </div>
@@ -131,17 +133,17 @@ export function Cart({
       {/* Totals */}
       <div className="p-4 border-t space-y-2">
         <div className="flex justify-between text-sm">
-          <span>Subtotal</span>
+          <span>{t("tenant.pos.cart.subtotal")}</span>
           <span>${subtotal.toFixed(2)}</span>
         </div>
         {items.length > 0 && (
           <div className="flex justify-between text-sm">
-            <span>Tax ({effectiveTaxRate}%)</span>
+            <span>{t("tenant.pos.cart.tax", { rate: effectiveTaxRate })}</span>
             <span>${tax.toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between text-lg font-bold">
-          <span>Total</span>
+          <span>{t("tenant.pos.cart.total")}</span>
           <span>${total.toFixed(2)}</span>
         </div>
       </div>
@@ -154,21 +156,21 @@ export function Cart({
             disabled={!canCheckout}
             className="py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            Card
+            {t("tenant.pos.cart.card")}
           </button>
           <button
             onClick={() => onCheckout("cash")}
             disabled={!canCheckout}
             className="py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            Cash
+            {t("tenant.pos.cart.cash")}
           </button>
           <button
             onClick={() => onCheckout("split")}
             disabled={!canCheckout}
             className="py-3 bg-info text-white rounded-lg hover:bg-info-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            Split
+            {t("tenant.pos.cart.split")}
           </button>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatCurrency, formatDisplayDate } from "../../../lib/format";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
@@ -191,12 +192,13 @@ export default function CustomerDetailPage() {
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this customer? This cannot be undone.")) {
+    if (confirm(t("tenant.customers.confirmDelete"))) {
       fetcher.submit({ intent: "delete", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
     }
   };
@@ -214,7 +216,7 @@ export default function CustomerDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/customers" className="text-brand hover:underline text-sm">
-          ← Back to Customers
+          {t("tenant.customers.backToCustomers")}
         </Link>
       </div>
 
@@ -230,19 +232,19 @@ export default function CustomerDetailPage() {
             onClick={() => setShowEmailModal(true)}
             className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
-            Send Email
+            {t("tenant.customers.sendEmail")}
           </button>
           <Link
             to={`/tenant/customers/${customer.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           <button
             onClick={handleDelete}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -266,36 +268,36 @@ export default function CustomerDetailPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{customer.totalDives}</p>
-              <p className="text-foreground-muted text-sm">Total Dives</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.customers.totalDives")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{formatCurrency(customer.totalSpent)}</p>
-              <p className="text-foreground-muted text-sm">Total Spent</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.customers.totalSpent")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDisplayDate(customer.lastDiveAt) : "Never"}</p>
-              <p className="text-foreground-muted text-sm">Last Dive</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? formatDisplayDate(customer.lastDiveAt) : t("tenant.customers.never")}</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.customers.lastDive")}</p>
             </div>
           </div>
 
           {/* Contact Info */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Contact Information</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.customers.contactInfo")}</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-foreground-muted">Email</p>
+                <p className="text-foreground-muted">{t("common.email")}</p>
                 <p>{customer.email}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Phone</p>
+                <p className="text-foreground-muted">{t("common.phone")}</p>
                 <p>{customer.phone || "—"}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Date of Birth</p>
+                <p className="text-foreground-muted">{t("common.dateOfBirth")}</p>
                 <p>{customer.dateOfBirth ? formatDisplayDate(customer.dateOfBirth) : "—"}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Language</p>
+                <p className="text-foreground-muted">{t("tenant.customers.language")}</p>
                 <p>{customer.preferredLanguage === "en" ? "English" : customer.preferredLanguage}</p>
               </div>
             </div>
@@ -303,7 +305,7 @@ export default function CustomerDetailPage() {
 
           {/* Address */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Address</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.customers.addressSection")}</h2>
             <p className="text-sm">
               {customer.address && <>{customer.address}<br /></>}
               {customer.city && customer.state && (
@@ -316,12 +318,12 @@ export default function CustomerDetailPage() {
           {/* Booking History */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Booking History</h2>
+              <h2 className="font-semibold">{t("tenant.customers.bookingHistory")}</h2>
               <Link
                 to={`/tenant/bookings/new?customerId=${customer.id}`}
                 className="text-brand text-sm hover:underline"
               >
-                + New Booking
+                {t("tenant.customers.newBooking")}
               </Link>
             </div>
             <div className="space-y-3">
@@ -355,7 +357,7 @@ export default function CustomerDetailPage() {
         <div className="space-y-6">
           {/* Certification */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Certification</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.customers.certificationSection")}</h2>
             {Array.isArray(customer.certifications) && customer.certifications.length > 0 ? (
               customer.certifications.map((cert: { agency: string; level: string; number?: string; date?: string | null }, i: number) => (
                 <div key={i} className="text-sm">
@@ -365,13 +367,13 @@ export default function CustomerDetailPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-foreground-muted">No certification on file</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.customers.noCertificationFile")}</p>
             )}
           </div>
 
           {/* Emergency Contact */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Emergency Contact</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.customers.emergencyContact")}</h2>
             {customer.emergencyContactName ? (
               <div className="text-sm">
                 <p className="font-medium">{customer.emergencyContactName}</p>
@@ -379,29 +381,29 @@ export default function CustomerDetailPage() {
                 <p>{customer.emergencyContactPhone}</p>
               </div>
             ) : (
-              <p className="text-sm text-foreground-muted">No emergency contact on file</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.customers.noEmergencyContact")}</p>
             )}
           </div>
 
           {/* Medical */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Medical Information</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.customers.medicalInfo")}</h2>
             <div className="text-sm space-y-2">
               <div>
-                <p className="text-foreground-muted">Conditions</p>
-                <p>{customer.medicalConditions || "None reported"}</p>
+                <p className="text-foreground-muted">{t("tenant.customers.conditions")}</p>
+                <p>{customer.medicalConditions || t("tenant.customers.noneReported")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Medications</p>
-                <p>{customer.medications || "None reported"}</p>
+                <p className="text-foreground-muted">{t("tenant.customers.medications")}</p>
+                <p>{customer.medications || t("tenant.customers.noneReported")}</p>
               </div>
             </div>
           </div>
 
           {/* Notes */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Notes</h2>
-            <p className="text-sm">{customer.notes || "No notes"}</p>
+            <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
+            <p className="text-sm">{customer.notes || t("tenant.customers.noNotes")}</p>
             {Array.isArray(customer.tags) && customer.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-3">
                 {(Array.isArray(customer.tags) ? customer.tags : []).map((tag: string) => (
@@ -415,7 +417,7 @@ export default function CustomerDetailPage() {
 
           {/* Communication History */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Communication History</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.customers.communicationHistory")}</h2>
             {communications && communications.length > 0 ? (
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {communications.map((comm) => (
@@ -429,20 +431,20 @@ export default function CustomerDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-foreground-muted">No communications yet</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.customers.noCommunications")}</p>
             )}
             <button
               onClick={() => setShowEmailModal(true)}
               className="mt-4 text-sm text-brand hover:underline"
             >
-              + Send new email
+              {t("tenant.customers.sendNewEmail")}
             </button>
           </div>
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Customer since {formatDisplayDate(customer.createdAt)}</p>
-            <p>Marketing: {customer.marketingOptIn ? "Opted in" : "Opted out"}</p>
+            <p>{t("tenant.customers.customerSince")} {formatDisplayDate(customer.createdAt)}</p>
+            <p>{t("tenant.customers.marketing")}: {customer.marketingOptIn ? t("tenant.customers.optedIn") : t("tenant.customers.optedOut")}</p>
           </div>
         </div>
       </div>
@@ -452,39 +454,38 @@ export default function CustomerDetailPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <h2 className="text-lg font-bold mb-4">
-              Send Email to {customer.firstName} {customer.lastName}
+              {t("tenant.customers.sendEmailTo", { name: `${customer.firstName} ${customer.lastName}` })}
             </h2>
             <p className="text-sm text-foreground-muted mb-4">
-              To: {customer.email}
+              {t("tenant.customers.toEmail")}: {customer.email}
             </p>
 
             <form onSubmit={handleSendEmail} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Subject *</label>
+                <label className="block text-sm font-medium mb-1">{t("tenant.customers.subject")} *</label>
                 <input
                   type="text"
                   name="subject"
                   required
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                  placeholder="e.g., Your upcoming dive trip"
+                  placeholder={t("tenant.customers.subjectPlaceholder")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Message *</label>
+                <label className="block text-sm font-medium mb-1">{t("tenant.customers.message")} *</label>
                 <textarea
                   name="body"
                   required
                   rows={6}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                  placeholder="Write your message here..."
+                  placeholder={t("tenant.customers.messagePlaceholder")}
                 />
               </div>
 
               <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                 <p className="text-sm text-warning">
-                  Note: Email delivery requires SMTP configuration in settings.
-                  This message will be logged to communication history.
+                  {t("tenant.customers.smtpNote")}
                 </p>
               </div>
 
@@ -494,14 +495,14 @@ export default function CustomerDetailPage() {
                   onClick={() => setShowEmailModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
-                  {fetcher.state === "submitting" ? "Sending..." : "Send Email"}
+                  {fetcher.state === "submitting" ? t("tenant.customers.sending") : t("tenant.customers.sendEmail")}
                 </button>
               </div>
             </form>

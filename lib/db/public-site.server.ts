@@ -17,9 +17,11 @@ import {
   trainingSessions,
   certificationAgencies,
   certificationLevels,
+  agencyCourseTemplates,
   images,
   type PublicSiteSettings,
 } from "./schema";
+import { AGENCY_METADATA } from "./training-templates.server";
 
 // ============================================================================
 // Types
@@ -28,6 +30,7 @@ import {
 export interface PaginationOptions {
   limit?: number;
   page?: number;
+  onlyWithUpcomingSessions?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -306,37 +309,67 @@ export async function getPublicCourses(
   organizationId: string,
   options: PaginationOptions = {}
 ): Promise<PaginatedCoursesResult> {
-  const { limit = 20, page = 1 } = options;
+  const { limit = 20, page = 1, onlyWithUpcomingSessions = false } = options;
   const offset = (page - 1) * limit;
 
-  // Query from trainingCourses table with agency and level joins
+  const today = new Date().toISOString().split("T")[0];
+
+  // Build WHERE conditions
+  const baseConditions = and(
+    eq(trainingCourses.organizationId, organizationId),
+    eq(trainingCourses.isPublic, true),
+    eq(trainingCourses.isActive, true)
+  );
+
+  // When filtering by upcoming sessions, use EXISTS subquery
+  const whereCondition = onlyWithUpcomingSessions
+    ? and(
+        baseConditions,
+        sql`EXISTS (
+          SELECT 1 FROM training_sessions ts
+          WHERE ts.course_id = ${trainingCourses.id}
+            AND ts.organization_id = ${trainingCourses.organizationId}
+            AND ts.start_date >= ${today}
+            AND ts.status IN ('scheduled', 'open')
+        )`
+      )
+    : baseConditions;
+
+  // Query from trainingCourses with template JOIN for read-through
   const coursesData = await db
     .select({
       id: trainingCourses.id,
-      name: trainingCourses.name,
-      description: trainingCourses.description,
+      courseName: trainingCourses.name,
+      courseDescription: trainingCourses.description,
+      courseImages: trainingCourses.images,
+      courseDurationDays: trainingCourses.durationDays,
+      courseMinAge: trainingCourses.minAge,
+      coursePrerequisites: trainingCourses.prerequisites,
+      courseMaterialsIncluded: trainingCourses.materialsIncluded,
+      // Template fields (read-through)
+      templateName: agencyCourseTemplates.name,
+      templateDescription: agencyCourseTemplates.description,
+      templateImages: agencyCourseTemplates.images,
+      templateDurationDays: agencyCourseTemplates.durationDays,
+      templateMinAge: agencyCourseTemplates.minAge,
+      templatePrerequisites: agencyCourseTemplates.prerequisites,
+      templateMaterialsIncluded: agencyCourseTemplates.materialsIncluded,
+      templateAgencyCode: agencyCourseTemplates.agencyCode,
+      templateLevelCode: agencyCourseTemplates.levelCode,
+      // Tenant-owned
+      imageOverride: trainingCourses.imageOverride,
       price: trainingCourses.price,
       currency: trainingCourses.currency,
-      durationDays: trainingCourses.durationDays,
       maxStudents: trainingCourses.maxStudents,
-      minAge: trainingCourses.minAge,
-      prerequisites: trainingCourses.prerequisites,
-      materialsIncluded: trainingCourses.materialsIncluded,
       equipmentIncluded: trainingCourses.equipmentIncluded,
-      templateImages: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
     .from(trainingCourses)
+    .leftJoin(agencyCourseTemplates, eq(trainingCourses.templateId, agencyCourseTemplates.id))
     .leftJoin(certificationAgencies, eq(trainingCourses.agencyId, certificationAgencies.id))
     .leftJoin(certificationLevels, eq(trainingCourses.levelId, certificationLevels.id))
-    .where(
-      and(
-        eq(trainingCourses.organizationId, organizationId),
-        eq(trainingCourses.isPublic, true),
-        eq(trainingCourses.isActive, true)
-      )
-    )
+    .where(whereCondition)
     .orderBy(trainingCourses.sortOrder, trainingCourses.name)
     .limit(limit)
     .offset(offset);
@@ -345,13 +378,7 @@ export async function getPublicCourses(
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(trainingCourses)
-    .where(
-      and(
-        eq(trainingCourses.organizationId, organizationId),
-        eq(trainingCourses.isPublic, true),
-        eq(trainingCourses.isActive, true)
-      )
-    );
+    .where(whereCondition);
 
   const total = Number(countResult[0]?.count ?? 0);
 
@@ -360,22 +387,25 @@ export async function getPublicCourses(
   const imageMap = await getCourseImagesMap(organizationId, courseIds);
 
   return {
-    courses: coursesData.map((course) => ({
-      id: course.id,
-      name: course.name,
-      description: course.description,
-      price: course.price,
-      currency: course.currency,
-      durationDays: course.durationDays,
-      maxStudents: course.maxStudents,
-      minAge: course.minAge,
-      prerequisites: course.prerequisites,
-      materialsIncluded: course.materialsIncluded,
-      equipmentIncluded: course.equipmentIncluded,
-      images: imageMap.get(course.id) || course.templateImages || null,
-      agencyName: course.agencyName,
-      levelName: course.levelName,
-    })),
+    courses: coursesData.map((course) => {
+      const resolvedImages = course.imageOverride ?? course.templateImages ?? course.courseImages;
+      return {
+        id: course.id,
+        name: course.templateName ?? course.courseName,
+        description: course.templateDescription ?? course.courseDescription,
+        price: course.price,
+        currency: course.currency,
+        durationDays: course.templateDurationDays ?? course.courseDurationDays,
+        maxStudents: course.maxStudents,
+        minAge: course.templateMinAge ?? course.courseMinAge,
+        prerequisites: course.templatePrerequisites ?? course.coursePrerequisites,
+        materialsIncluded: course.templateMaterialsIncluded ?? course.courseMaterialsIncluded,
+        equipmentIncluded: course.equipmentIncluded,
+        images: imageMap.get(course.id) || resolvedImages || null,
+        agencyName: course.agencyName ?? (course.templateAgencyCode ? AGENCY_METADATA[course.templateAgencyCode]?.name : null),
+        levelName: course.levelName ?? course.templateLevelCode,
+      };
+    }),
     total,
   };
 }
@@ -476,33 +506,52 @@ export async function getPublicCourseById(
   agencyName: string | null;
   levelName: string | null;
 } | null> {
-  const [course] = await db
+  const [row] = await db
     .select({
       id: trainingCourses.id,
-      name: trainingCourses.name,
-      description: trainingCourses.description,
-      durationDays: trainingCourses.durationDays,
-      classroomHours: trainingCourses.classroomHours,
-      poolHours: trainingCourses.poolHours,
-      openWaterDives: trainingCourses.openWaterDives,
+      // Course fields
+      courseName: trainingCourses.name,
+      courseDescription: trainingCourses.description,
+      courseImages: trainingCourses.images,
+      courseDurationDays: trainingCourses.durationDays,
+      courseClassroomHours: trainingCourses.classroomHours,
+      coursePoolHours: trainingCourses.poolHours,
+      courseOpenWaterDives: trainingCourses.openWaterDives,
+      courseMinAge: trainingCourses.minAge,
+      coursePrerequisites: trainingCourses.prerequisites,
+      courseMedicalRequirements: trainingCourses.medicalRequirements,
+      courseRequiredItems: trainingCourses.requiredItems,
+      courseMaterialsIncluded: trainingCourses.materialsIncluded,
+      // Template fields
+      templateName: agencyCourseTemplates.name,
+      templateDescription: agencyCourseTemplates.description,
+      templateImages: agencyCourseTemplates.images,
+      templateDurationDays: agencyCourseTemplates.durationDays,
+      templateClassroomHours: agencyCourseTemplates.classroomHours,
+      templatePoolHours: agencyCourseTemplates.poolHours,
+      templateOpenWaterDives: agencyCourseTemplates.openWaterDives,
+      templateMinAge: agencyCourseTemplates.minAge,
+      templatePrerequisites: agencyCourseTemplates.prerequisites,
+      templateMedicalRequirements: agencyCourseTemplates.medicalRequirements,
+      templateRequiredItems: agencyCourseTemplates.requiredItems,
+      templateMaterialsIncluded: agencyCourseTemplates.materialsIncluded,
+      templateAgencyCode: agencyCourseTemplates.agencyCode,
+      templateLevelCode: agencyCourseTemplates.levelCode,
+      // Tenant-owned fields
+      imageOverride: trainingCourses.imageOverride,
       maxStudents: trainingCourses.maxStudents,
       minStudents: trainingCourses.minStudents,
       price: trainingCourses.price,
       currency: trainingCourses.currency,
       depositRequired: trainingCourses.depositRequired,
       depositAmount: trainingCourses.depositAmount,
-      materialsIncluded: trainingCourses.materialsIncluded,
       equipmentIncluded: trainingCourses.equipmentIncluded,
       includedItems: trainingCourses.includedItems,
-      requiredItems: trainingCourses.requiredItems,
-      minAge: trainingCourses.minAge,
-      prerequisites: trainingCourses.prerequisites,
-      medicalRequirements: trainingCourses.medicalRequirements,
-      images: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
     .from(trainingCourses)
+    .leftJoin(agencyCourseTemplates, eq(trainingCourses.templateId, agencyCourseTemplates.id))
     .leftJoin(certificationAgencies, eq(trainingCourses.agencyId, certificationAgencies.id))
     .leftJoin(certificationLevels, eq(trainingCourses.levelId, certificationLevels.id))
     .where(
@@ -515,18 +564,40 @@ export async function getPublicCourseById(
     )
     .limit(1);
 
-  if (!course) {
+  if (!row) {
     return null;
   }
+
+  const resolvedImages = row.imageOverride ?? row.templateImages ?? row.courseImages;
 
   // Get images from images table (for custom uploaded images)
   const imageMap = await getCourseImagesMap(organizationId, [courseId]);
   const customImages = imageMap.get(courseId) || null;
 
-  // Use custom images if available, otherwise use template images from course
   return {
-    ...course,
-    images: customImages && customImages.length > 0 ? customImages : course.images,
+    id: row.id,
+    name: row.templateName ?? row.courseName,
+    description: row.templateDescription ?? row.courseDescription,
+    durationDays: row.templateDurationDays ?? row.courseDurationDays,
+    classroomHours: row.templateClassroomHours ?? row.courseClassroomHours,
+    poolHours: row.templatePoolHours ?? row.coursePoolHours,
+    openWaterDives: row.templateOpenWaterDives ?? row.courseOpenWaterDives,
+    maxStudents: row.maxStudents,
+    minStudents: row.minStudents,
+    price: row.price,
+    currency: row.currency,
+    depositRequired: row.depositRequired,
+    depositAmount: row.depositAmount,
+    materialsIncluded: row.templateMaterialsIncluded ?? row.courseMaterialsIncluded,
+    equipmentIncluded: row.equipmentIncluded,
+    includedItems: row.includedItems,
+    requiredItems: row.templateRequiredItems ?? row.courseRequiredItems,
+    minAge: row.templateMinAge ?? row.courseMinAge,
+    prerequisites: row.templatePrerequisites ?? row.coursePrerequisites,
+    medicalRequirements: row.templateMedicalRequirements ?? row.courseMedicalRequirements,
+    images: customImages && customImages.length > 0 ? customImages : resolvedImages,
+    agencyName: row.agencyName ?? (row.templateAgencyCode ? AGENCY_METADATA[row.templateAgencyCode]?.name : null),
+    levelName: row.levelName ?? row.templateLevelCode,
   };
 }
 

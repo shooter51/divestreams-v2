@@ -48,65 +48,93 @@ import type {
   StripeSettings,
 } from "../../../components/integrations";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Integrations - DiveStreams" }];
 
-const availableIntegrations = [
-  {
-    id: "stripe",
-    name: "Stripe",
-    description: "Process payments, deposits, and refunds",
-    category: "payments",
-    icon: "CreditCard",
-    features: ["Online payments", "Card processing", "Automatic refunds", "Invoice generation"],
-    requiredPlan: "starter",
-  },
-  {
-    id: "google-calendar",
-    name: "Google Calendar",
-    description: "Sync trips and bookings with Google Calendar",
-    category: "calendar",
-    icon: "Calendar",
-    features: ["Two-way sync", "Automatic updates", "Team calendars"],
-    requiredPlan: "starter",
-  },
-  {
-    id: "mailchimp",
-    name: "Mailchimp",
-    description: "Email marketing and customer newsletters",
-    category: "marketing",
-    icon: "Mail",
-    features: ["Customer sync", "Automated campaigns", "Booking follow-ups"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "quickbooks",
-    name: "QuickBooks",
-    description: "Accounting and financial reporting",
-    category: "accounting",
-    icon: "BarChart",
-    features: ["Invoice sync", "Expense tracking", "Financial reports"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "zapier",
-    name: "Zapier",
-    description: "Connect to 5,000+ apps with automation",
-    category: "automation",
-    icon: "Zap",
-    features: ["Custom workflows", "Triggers", "Multi-step automations"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "xero",
-    name: "Xero",
-    description: "Cloud accounting software",
-    category: "accounting",
-    icon: "TrendingUp",
-    features: ["Invoice sync", "Bank reconciliation", "Multi-currency"],
-    requiredPlan: "enterprise",
-  },
-];
+function getAvailableIntegrations(t: (key: string) => string) {
+  return [
+    {
+      id: "stripe",
+      name: "Stripe",
+      description: t("tenant.settings.integrations.stripe.description"),
+      category: "payments",
+      icon: "CreditCard",
+      features: [
+        t("tenant.settings.integrations.stripe.featureOnlinePayments"),
+        t("tenant.settings.integrations.stripe.featureCardProcessing"),
+        t("tenant.settings.integrations.stripe.featureAutomaticRefunds"),
+        t("tenant.settings.integrations.stripe.featureInvoiceGeneration"),
+      ],
+      requiredPlan: "starter",
+    },
+    {
+      id: "google-calendar",
+      name: "Google Calendar",
+      description: t("tenant.settings.integrations.googleCalendar.description"),
+      category: "calendar",
+      icon: "Calendar",
+      features: [
+        t("tenant.settings.integrations.googleCalendar.featureTwoWaySync"),
+        t("tenant.settings.integrations.googleCalendar.featureAutomaticUpdates"),
+        t("tenant.settings.integrations.googleCalendar.featureTeamCalendars"),
+      ],
+      requiredPlan: "starter",
+    },
+    {
+      id: "mailchimp",
+      name: "Mailchimp",
+      description: t("tenant.settings.integrations.mailchimp.description"),
+      category: "marketing",
+      icon: "Mail",
+      features: [
+        t("tenant.settings.integrations.mailchimp.featureCustomerSync"),
+        t("tenant.settings.integrations.mailchimp.featureAutomatedCampaigns"),
+        t("tenant.settings.integrations.mailchimp.featureBookingFollowUps"),
+      ],
+      requiredPlan: "professional",
+    },
+    {
+      id: "quickbooks",
+      name: "QuickBooks",
+      description: t("tenant.settings.integrations.quickbooksCard.description"),
+      category: "accounting",
+      icon: "BarChart",
+      features: [
+        t("tenant.settings.integrations.quickbooksCard.featureInvoiceSync"),
+        t("tenant.settings.integrations.quickbooksCard.featureExpenseTracking"),
+        t("tenant.settings.integrations.quickbooksCard.featureFinancialReports"),
+      ],
+      requiredPlan: "professional",
+    },
+    {
+      id: "zapier",
+      name: "Zapier",
+      description: t("tenant.settings.integrations.zapierCard.description"),
+      category: "automation",
+      icon: "Zap",
+      features: [
+        t("tenant.settings.integrations.zapierCard.featureCustomWorkflows"),
+        t("tenant.settings.integrations.zapierCard.featureTriggers"),
+        t("tenant.settings.integrations.zapierCard.featureMultiStepAutomations"),
+      ],
+      requiredPlan: "professional",
+    },
+    {
+      id: "xero",
+      name: "Xero",
+      description: t("tenant.settings.integrations.xero.description"),
+      category: "accounting",
+      icon: "TrendingUp",
+      features: [
+        t("tenant.settings.integrations.xero.featureInvoiceSync"),
+        t("tenant.settings.integrations.xero.featureBankReconciliation"),
+        t("tenant.settings.integrations.xero.featureMultiCurrency"),
+      ],
+      requiredPlan: "enterprise",
+    },
+  ];
+}
 
 // ─── Loader ─────────────────────────────────────────────────────────────────
 
@@ -117,7 +145,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
 
   // Parse metadata if it exists
-  const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+  let metadata: Record<string, unknown> = {};
+  try { metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {}; } catch { /* invalid JSON */ }
 
   // Get connected integrations from database
   const dbIntegrations = await listActiveIntegrations(ctx.org.id);
@@ -228,7 +257,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     connectedIntegrations,
-    availableIntegrations,
     currentPlan,
     isPremium: ctx.isPremium,
     orgId: ctx.org.id,
@@ -526,9 +554,10 @@ export async function action({ request }: ActionFunctionArgs) {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function IntegrationsPage() {
+  const t = useT();
+  const integrations = getAvailableIntegrations(t);
   const {
     connectedIntegrations,
-    availableIntegrations: integrations,
     xeroSettings,
     zapierTriggers,
     zapierTriggerDescriptions,
@@ -603,11 +632,11 @@ export default function IntegrationsPage() {
   };
 
   const categories = [
-    { id: "payments", name: "Payments" },
-    { id: "calendar", name: "Calendar" },
-    { id: "marketing", name: "Marketing" },
-    { id: "accounting", name: "Accounting" },
-    { id: "automation", name: "Automation" },
+    { id: "payments", name: t("tenant.settings.integrations.categoryPayments") },
+    { id: "calendar", name: t("tenant.settings.integrations.categoryCalendar") },
+    { id: "marketing", name: t("tenant.settings.integrations.categoryMarketing") },
+    { id: "accounting", name: t("tenant.settings.integrations.categoryAccounting") },
+    { id: "automation", name: t("tenant.settings.integrations.categoryAutomation") },
   ];
 
   // Callback for child components to surface notifications
@@ -638,16 +667,16 @@ export default function IntegrationsPage() {
 
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          &larr; {t("common.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Integrations</h1>
-        <p className="text-foreground-muted">Connect third-party services to enhance DiveStreams</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.integrations.title")}</h1>
+        <p className="text-foreground-muted">{t("tenant.settings.integrations.subtitle")}</p>
       </div>
 
       {/* Connected Integrations */}
       {connectedIntegrations.length > 0 && (
         <div className="mb-8">
-          <h2 className="font-semibold mb-4">Connected</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.integrations.connected")}</h2>
           <div className="space-y-4">
             {connectedIntegrations.map((connection) => {
               const integration = integrations.find((i) => i.id === connection.id);
@@ -668,14 +697,14 @@ export default function IntegrationsPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{integration.name}</h3>
                           <span className="text-xs bg-success-muted text-success px-2 py-0.5 rounded-full">
-                            Connected
+                            {t("tenant.settings.integrations.connected")}
                           </span>
                         </div>
                         <p className="text-sm text-foreground-muted">{integration.description}</p>
                         <div className="mt-2 text-xs text-foreground-subtle">
-                          <span>Account: {connection.accountName}</span>
+                          <span>{t("tenant.settings.integrations.account")}: {connection.accountName}</span>
                           <span className="mx-2">-</span>
-                          <span>Last sync: {connection.lastSync}</span>
+                          <span>{t("tenant.settings.integrations.lastSync")}: {connection.lastSync}</span>
                         </div>
                       </div>
                     </div>
@@ -734,7 +763,7 @@ export default function IntegrationsPage() {
                           type="submit"
                           className="px-3 py-1.5 text-sm text-danger border border-danger rounded-lg hover:bg-danger-muted"
                         >
-                          Disconnect
+                          {t("tenant.settings.integrations.disconnect")}
                         </button>
                       </fetcher.Form>
                     </div>
@@ -797,21 +826,21 @@ export default function IntegrationsPage() {
                         onClick={() => setOpenModalFor(integration.id)}
                         className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
                       >
-                        Connect
+                        {t("tenant.settings.integrations.connect")}
                       </button>
                     ) : (
                       <div className="text-center">
                         <p className="text-xs text-foreground-muted mb-2">
                           {requiredPlanName
-                            ? `Requires ${requiredPlanName} plan`
-                            : "Not available on your plan"
+                            ? t("tenant.settings.integrations.requiresPlan", { plan: requiredPlanName })
+                            : t("tenant.settings.integrations.notAvailableOnPlan")
                           }
                         </p>
                         <Link
                           to="/tenant/settings/billing"
                           className="text-sm text-brand hover:underline"
                         >
-                          Upgrade to unlock
+                          {t("tenant.settings.integrations.upgradeToUnlock")}
                         </Link>
                       </div>
                     )}

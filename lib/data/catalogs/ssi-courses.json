@@ -13,7 +13,7 @@
       "levelCode": "beginner",
       "description": "Try Scuba Diving is a program designed to give you a taste of scuba diving without committing to a certification or diving in deep water. The program lasts around 3 hours combining basic theory and one shallow water session in a pool or shallow ocean to a maximum depth of 5 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/tryscuba2020_website.jpg"
+        "https://my.divessi.com/cview/TRY-SCUBA/400"
       ],
       "durationDays": 1,
       "classroomHours": 1,
@@ -34,7 +34,7 @@
       "levelCode": "beginner",
       "description": "The Basic Diver course gives you the skills you need to dive safely with a professional alongside you. It is a mixture of one theory session, a confined water session in shallow water, and an open water session to a maximum depth of 12 meters. This course can be credited towards the Scuba Diver or Open Water Diver certifications.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/basicdiver_website.jpg"
+        "https://my.divessi.com/cview/BD/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -55,7 +55,7 @@
       "levelCode": "beginner",
       "description": "The SSI Scuba Diver certification is the first official SSI scuba diving certification. The course consists of three theory sessions, two shallow water confined dives, and two open water dives. Upon completion, you will be certified to dive to a maximum of 12 meters with a professional always with you.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/scubadiver_website.jpg"
+        "https://my.divessi.com/cview/SD/400"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -76,7 +76,7 @@
       "levelCode": "beginner",
       "description": "The SSI Open Water Diver program is SSI's globally recognized certification. Complete all academic sections, pool/confined water sessions, and at least four open water training dives. Upon completion, you become part of an exclusive group of underwater explorers certified to dive anywhere in the world.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/openwaterdiver_website.jpg"
+        "https://my.divessi.com/cview/OWD/400"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -101,7 +101,7 @@
       "levelCode": "advanced",
       "description": "The SSI Advanced Adventurer program allows you to try 5 different Specialty dives before committing to a full training program. You will complete one open water training dive per specialty after a comprehensive briefing with your SSI Instructor. Dives completed can be applied toward full Specialty certifications.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/advancedadventurer_website.jpg"
+        "https://my.divessi.com/cview/AA/400"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -122,7 +122,7 @@
       "levelCode": "advanced",
       "description": "Learn to identify stress, prevent accidents, and discover rescue diver skills with the SSI Diver Stress and Rescue program. With a combination of pool and open water practice sessions, you will become well prepared and confident at handling emergency and rescue situations.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/diverstressrescue_website.jpg"
+        "https://my.divessi.com/cview/DSR/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -144,7 +144,7 @@
       "levelCode": "specialty",
       "description": "React Right is SSI's emergency first response course providing training and knowledge to act as a first responder in a medical emergency. This flexible program covers primary assessment, first aid, CPR, primary stabilization techniques, oxygen administration in diving emergencies, and Automated External Defibrillator (AED) basics.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/reactright_website.jpg"
+        "https://my.divessi.com/cview/RR/400"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -164,7 +164,7 @@
       "levelCode": "specialty",
       "description": "The SSI Deep Diving Specialty teaches you to dive to depths between 18 and 40 meters through academic sessions and open water dives. Learn to plan and safely complete deep diving adventures using computers and gas consumption calculations.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/deepdiving_website.jpg"
+        "https://my.divessi.com/cview/DD/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -186,7 +186,7 @@
       "levelCode": "specialty",
       "description": "The SSI Wreck Diving Specialty allows you to discover the world of wreck diving and immerse in living history. Learn the knowledge and techniques needed to safely conduct non-penetration wreck dives, practice using reels and tethers, and develop buoyancy control and navigation skills.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/wreckdiving_website.jpg"
+        "https://my.divessi.com/cview/WD/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -209,7 +209,7 @@
       "levelCode": "specialty",
       "description": "The SSI Night Diving and Limited Visibility specialty provides all the knowledge and skills you need to safely and comfortably dive at night or in limited visibility conditions. Learn how to enter and exit the water, use specialized equipment, and communicate with your buddy at night.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/nightdiving_website.jpg"
+        "https://my.divessi.com/cview/NDLV/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -232,7 +232,7 @@
       "levelCode": "specialty",
       "description": "The SSI Navigation Specialty program helps you become a better, more confident diver who always knows where they are going. Learn how to use a dive compass, natural navigation techniques, and more.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/navigation_website.jpg"
+        "https://my.divessi.com/cview/NAV/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -254,7 +254,7 @@
       "levelCode": "specialty",
       "description": "The SSI Perfect Buoyancy Specialty improves your body position for relaxed dives, lowers your air consumption, and increases your bottom times. Master buoyancy control techniques for safer, more enjoyable diving.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/perfectbuoyancy_website.jpg"
+        "https://my.divessi.com/cview/PB/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -275,7 +275,7 @@
       "levelCode": "specialty",
       "description": "The SSI Search and Recovery Specialty teaches you the skills and techniques to conduct underwater searches and recover lost objects. Learn various search patterns and proper lift bag techniques.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/search-recovery.jpg"
+        "https://my.divessi.com/cview/SR/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -298,7 +298,7 @@
       "levelCode": "specialty",
       "description": "The SSI Enriched Air Nitrox specialty teaches you to plan and conduct dives using enriched air nitrox mixtures up to 40% oxygen. Extend your no-decompression limits and shorten surface intervals.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/enrichedairnitrox_website.jpg"
+        "https://my.divessi.com/cview/EAN/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -320,7 +320,7 @@
       "levelCode": "specialty",
       "description": "The SSI Recreational Sidemount course teaches you to go single or two-cylinder recreational sidemount diving up to a maximum depth of 30 meters. Experience greater flexibility and freedom of movement with tanks positioned along the sides of your body.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/sidemount_website.jpg"
+        "https://my.divessi.com/cview/RSD/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -342,7 +342,7 @@
       "levelCode": "specialty",
       "description": "The SSI Boat Diver Specialty teaches you the skills and techniques needed to safely and comfortably dive from a variety of boats. Learn boat diving etiquette, entry and exit techniques, and emergency procedures.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/boat-diving.jpg"
+        "https://my.divessi.com/cview/BOAT/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -363,7 +363,7 @@
       "levelCode": "specialty",
       "description": "The SSI Dry Suit Diving Specialty allows you to dive all year, anywhere in the world while staying warm on every dive adventure. Learn dry suit operation, buoyancy control, and emergency procedures.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/drysuit_website.jpg"
+        "https://my.divessi.com/cview/DSD/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -386,7 +386,7 @@
       "levelCode": "specialty",
       "description": "The SSI Equipment Techniques Specialty provides in-depth knowledge of scuba equipment operation, maintenance, and basic repairs. Understand how your gear works and learn to perform routine maintenance.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/equipment-techniques.jpg"
+        "https://my.divessi.com/cview/ET/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -406,7 +406,7 @@
       "levelCode": "specialty",
       "description": "The SSI Photo and Video specialty provides in-depth knowledge to dive with an underwater camera and properly use, maintain, and store your equipment. Develop skills to take underwater images and video safely while perfecting your diving abilities.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/photovideo_website.jpg"
+        "https://my.divessi.com/cview/PV/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -428,7 +428,7 @@
       "levelCode": "specialty",
       "description": "The SSI Marine Ecology specialty helps divers gain a thorough understanding of the oceans and the exciting science of marine ecology. Learn how ocean ecosystems interact and become an underwater naturalist.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/marineecology_website.jpg"
+        "https://my.divessi.com/cview/ME/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -446,7 +446,7 @@
       "levelCode": "specialty",
       "description": "The SSI Shark Ecology program teaches you to interpret shark behaviors, understand why they are often misunderstood, and how to dive with sharks safely. Perfect for shark fans and divers who want to overcome their fear.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/sharkecology_website.jpg"
+        "https://my.divessi.com/cview/SE/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -464,7 +464,7 @@
       "levelCode": "specialty",
       "description": "The SSI Sea Turtle Ecology program teaches you to identify sea turtles, discover their vital role in marine ecosystems, and learn about their fascinating history and the threats to their survival.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/seaturtleecology_website.jpg"
+        "https://my.divessi.com/cview/STE/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -482,7 +482,7 @@
       "levelCode": "specialty",
       "description": "The SSI Manta and Ray Ecology program teaches you to dive with mantas and other rays safely, plus discover the vital role they play in ocean ecosystems. Learn how to recognize different species.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/mantarayecology_website.jpg"
+        "https://my.divessi.com/cview/MRE/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -500,7 +500,7 @@
       "levelCode": "specialty",
       "description": "The SSI Fish Identification specialty teaches you to identify fish and enhance your dives. Learn to identify common families of Caribbean, Indo-Pacific, and Red Sea reef fish.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/fishidentification_website.jpg"
+        "https://my.divessi.com/cview/FI/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -518,7 +518,7 @@
       "levelCode": "specialty",
       "description": "The SSI Coral Identification Specialty teaches you to identify common families of coral species and enjoy diving these incredible underwater ecosystems. Discover the wonders of coral reefs.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/ecology/coral-identification.jpg"
+        "https://my.divessi.com/cview/CI/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -536,7 +536,7 @@
       "levelCode": "specialty",
       "description": "The SSI Marine Mammal Ecology program teaches you about marine mammals, their behaviors, and how to safely interact with them in the wild. Learn to help protect ocean wildlife.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/ecology/marine-mammal-ecology.jpg"
+        "https://my.divessi.com/cview/MME/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -554,7 +554,7 @@
       "levelCode": "specialty",
       "description": "The SSI Science of Diving Specialty immerses you in physics, physiology, decompression theory, and the aquatic environment. This program provides half the knowledge needed to earn your Divemaster rating.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/2023/12/06/scienceofdiving_website.jpg"
+        "https://my.divessi.com/cview/SOD/400"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -572,7 +572,7 @@
       "levelCode": "specialty",
       "description": "The SSI Waves, Tides and Currents specialty enhances your dive skills and understanding, so you can enjoy diving in different environments safely. Learn about environmental conditions that affect dive sites and practice evaluating diving conditions.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/waves-tides-currents.jpg"
+        "https://my.divessi.com/cview/WTC/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -593,7 +593,7 @@
       "levelCode": "specialty",
       "description": "The SSI Ice Diving program provides the skills and concepts required to safely and comfortably dive underneath the ice. Experience polar diving and explore frozen underwater landscapes.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/ice-diving.jpg"
+        "https://my.divessi.com/cview/ICE/400"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -615,7 +615,7 @@
       "levelCode": "specialty",
       "description": "The SSI Scooter/DPV Diving specialty teaches you the skills and concepts needed to safely plan and conduct dives using scooters or diver propulsion vehicles. Learn special precautions, buddy contact techniques, and equipment control.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/dpv-diving.jpg"
+        "https://my.divessi.com/cview/DPV/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -636,7 +636,7 @@
       "levelCode": "specialty",
       "description": "The SSI Computer Diving program goes beyond teaching basic dive computer functions. Gain in-depth knowledge of decompression theory and how it relates to your dive computer operation, including differences between nitrox, mixed-gas, rebreather, and freediving computers.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/computer-diving.jpg"
+        "https://my.divessi.com/cview/CD/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -656,7 +656,7 @@
       "levelCode": "specialty",
       "description": "The SSI Gas Blender Nitrox program teaches you the skills and concepts required to safely blend nitrox gases. This non-diving program is open to certified and uncertified divers and teaches proper usage of mathematics, gas blending software, physics, and techniques.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/gas-blender.jpg"
+        "https://my.divessi.com/cview/GBN/400"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -674,7 +674,7 @@
       "levelCode": "specialty",
       "description": "The SSI Gas Blender Trimix program teaches you to safely blend helium-based trimix gases. This non-diving program covers mathematics, gas blending software, physics, and techniques required to blend breathing gases safely.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/specialty/gas-blender-trimix.jpg"
+        "https://my.divessi.com/cview/GBT/400"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -692,7 +692,7 @@
       "levelCode": "advanced",
       "description": "The SSI Extended Range Nitrox program provides a thorough introduction to decompression diving with nitrox. Using either a sidemount or twinset configuration, this program prepares divers to plan and conduct limited decompression dives to a maximum depth of 40 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/xr-nitrox.jpg"
+        "https://my.divessi.com/cview/XR-NITROX/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -715,7 +715,7 @@
       "levelCode": "advanced",
       "description": "The SSI Extended Range Trimix program is the core program for technical diving. Using either a sidemount or twinset configuration, this program prepares you to plan and conduct trimix decompression dives to a maximum depth of 45 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/xr-trimix.jpg"
+        "https://my.divessi.com/cview/XR/400"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -739,7 +739,7 @@
       "levelCode": "advanced",
       "description": "The SSI Technical Extended Range Trimix program builds upon Extended Range skills by increasing dive depth and duration. Using either a sidemount or twinset configuration, plan and conduct mixed gas unlimited decompression dives to a maximum depth of 60 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/txr.jpg"
+        "https://my.divessi.com/cview/TXR/400"
       ],
       "durationDays": 5,
       "classroomHours": 10,
@@ -763,7 +763,7 @@
       "levelCode": "advanced",
       "description": "The SSI Hypoxic Trimix program is the ultimate decompression dive training. Learn to carry and use a minimum of three stage-cylinders for travel and decompression gas, and plan and conduct dives to a maximum depth of 100 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/hypoxic-trimix.jpg"
+        "https://my.divessi.com/cview/HTX/400"
       ],
       "durationDays": 6,
       "classroomHours": 12,
@@ -787,7 +787,7 @@
       "levelCode": "advanced",
       "description": "The SSI Extended Range Sidemount program trains you to dive in a sidemount configuration with additional stage cylinders for decompression diving. Improve your trim and streamlining for exploring overhead environments.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/xr-sidemount.jpg"
+        "https://my.divessi.com/cview/XR-SM/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -810,7 +810,7 @@
       "levelCode": "advanced",
       "description": "The SSI Extended Range Wreck Diving program provides all you need to plan and conduct wreck penetration dives using specialized wreck diving equipment, gas management concepts, and buddy team skills within the light zone to depths shallower than 40 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/xr-wreck.jpg"
+        "https://my.divessi.com/cview/XR-WD/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -833,7 +833,7 @@
       "levelCode": "advanced",
       "description": "The SSI Technical Wreck Diving program teaches you to dive the deepest wrecks with advanced penetration techniques. Plan and conduct complex wreck penetration dives beyond the light zone.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/technical-wreck.jpg"
+        "https://my.divessi.com/cview/TWD/400"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -857,7 +857,7 @@
       "levelCode": "advanced",
       "description": "The SSI Extended Range Cavern Diving program gives you a glimpse into the exciting world of cave diving. Learn how to use cavern diving equipment, gas management concepts, and buddy team skills to safely conduct cavern penetration dives within the daylight zone to a maximum depth of 40 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/xr-cavern.jpg"
+        "https://my.divessi.com/cview/XR-CAVERN/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -880,7 +880,7 @@
       "levelCode": "advanced",
       "description": "The SSI Cave Diver certification allows you to plan and conduct cave penetration dives with a single navigational choice, using cave diving equipment. Learn the correct procedures and protocols for such dives using sidemount, twinset, or rebreather configuration.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/cave-diving.jpg"
+        "https://my.divessi.com/cview/CAVE/400"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -903,7 +903,7 @@
       "levelCode": "advanced",
       "description": "SSI Full Cave Diving teaches you complex underwater navigation skills including traverse, jump, tee, and gap within a cave system. This is SSI's highest-level overhead environment certification, providing all the tools you need to explore the world's underwater caves to a maximum depth of 40 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/full-cave.jpg"
+        "https://my.divessi.com/cview/FULL-CAVE/400"
       ],
       "durationDays": 5,
       "classroomHours": 10,
@@ -926,7 +926,7 @@
       "levelCode": "advanced",
       "description": "The SSI Try SCR program introduces you to semi-closed rebreather diving using a Mares Horizon unit. Experience the peace and extended dive times that rebreathers can bring in this introductory course.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/try-scr.jpg"
+        "https://my.divessi.com/cview/TRY-SCR/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -947,7 +947,7 @@
       "levelCode": "advanced",
       "description": "The SSI SCR Diving course teaches you to conduct no-decompression dives up to 30 meters using the Mares Horizon semi-closed rebreather. Learn essential skills such as SCR-specific equipment configuration, gas management, and bailout procedures.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/scr-diving.jpg"
+        "https://my.divessi.com/cview/SCR/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -969,7 +969,7 @@
       "levelCode": "advanced",
       "description": "The SSI SCR Extended Range program expands your semi-closed rebreather diving to 40 meters depth, incorporating limited decompression and refining gas management techniques with the Mares Horizon.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/scr-xr.jpg"
+        "https://my.divessi.com/cview/SCR-XR/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -991,7 +991,7 @@
       "levelCode": "advanced",
       "description": "The SSI CCR Diving program teaches you rebreather dive planning, in-water skills, problem-solving techniques, and emergency scenario management. Become comfortable with pre-dive checks, assembly, and failure handling. Allows no-decompression diving to 30 meters using SF2, JJ, Poseidon, AP Inspiration, Prism 2, or rEvo rebreathers.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/ccr-diving.jpg"
+        "https://my.divessi.com/cview/CCR/400"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -1013,7 +1013,7 @@
       "levelCode": "advanced",
       "description": "The SSI CCR Extended Range Trimix program builds upon basic rebreather skills by increasing depth, duration, introducing decompression, and adding more complex skills. Qualifies you to conduct decompression dives to a maximum depth of 45 meters using a trimix diluent.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/ccr-xr.jpg"
+        "https://my.divessi.com/cview/CCR-XR/400"
       ],
       "durationDays": 5,
       "classroomHours": 10,
@@ -1035,7 +1035,7 @@
       "levelCode": "advanced",
       "description": "The SSI CCR Technical Extended Range program provides training to independently plan and conduct trimix diluent decompression dives to a maximum depth of 60 meters using a closed-circuit rebreather and a minimum of two bailout cylinders.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/ccr-txr.jpg"
+        "https://my.divessi.com/cview/CCR-TXR/400"
       ],
       "durationDays": 6,
       "classroomHours": 12,
@@ -1057,7 +1057,7 @@
       "levelCode": "advanced",
       "description": "The SSI CCR Hypoxic Trimix program is the pinnacle of rebreather diving. Plan and conduct unlimited trimix decompression dives to a maximum depth of 100 meters using a closed-circuit rebreather and a minimum of three bailout cylinders. This elite certification is both physically and mentally challenging.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/extended-range/ccr-hypoxic.jpg"
+        "https://my.divessi.com/cview/CCR-HTX/400"
       ],
       "durationDays": 7,
       "classroomHours": 14,
@@ -1080,7 +1080,7 @@
       "levelCode": "beginner",
       "description": "The SSI Try Freediving program provides a taste of freediving in a safe, controlled environment. Learn basic breath-hold techniques and experience the underwater world on a single breath.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/try-freediving.jpg"
+        "https://my.divessi.com/cview/TRY-FD/400"
       ],
       "durationDays": 1,
       "classroomHours": 1,
@@ -1101,7 +1101,7 @@
       "levelCode": "beginner",
       "description": "The SSI Basic Freediver course is your first step into the world of freediving. Learn to freedive safely with a buddy in pool/confined water up to a depth of 5 meters. Cover static apnea, dynamic apnea, and rescue exercises.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/basic-freediver.jpg"
+        "https://my.divessi.com/cview/BFD/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1122,7 +1122,7 @@
       "levelCode": "beginner",
       "description": "The SSI Pool Freediver program provides all the skills and knowledge you need to freedive to a depth of 5 meters with a buddy in a pool/confined water environment. Easily upgradeable to Freediving Level 1.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/pool-freediver.jpg"
+        "https://my.divessi.com/cview/PFD/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1143,7 +1143,7 @@
       "levelCode": "beginner",
       "description": "The SSI Freediving Level 1 program gives you all the training and knowledge you need to safely freedive with a buddy in open water environments up to a depth of 20 meters. Combines online training, pool/confined water sessions, and open water dives.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/freediver-level-1.jpg"
+        "https://my.divessi.com/cview/FD1/400"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1166,7 +1166,7 @@
       "levelCode": "advanced",
       "description": "The SSI Freediving Level 2 (Advanced Freediver) course allows you to discover new freediving breathing exercises, go open water freediving to 30 meters, and improve your breath holding with advanced techniques.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/freediver-level-2.jpg"
+        "https://my.divessi.com/cview/FD2/400"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1190,7 +1190,7 @@
       "levelCode": "advanced",
       "description": "The SSI Freediving Level 3 program teaches you the techniques of a freediving world record holder. This program provides advanced freediving skills and knowledge to dive up to 40 meters deep with a buddy.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/freediver-level-3.jpg"
+        "https://my.divessi.com/cview/FD3/400"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -1214,7 +1214,7 @@
       "levelCode": "advanced",
       "description": "The SSI Performance Freediver certification is the highest level of non-professional freediving course SSI offers. Learn the techniques used in the competitive freediving world and maximize your skills to discover your true freediving potential.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/performance-freediver.jpg"
+        "https://my.divessi.com/cview/PFR/400"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -1236,7 +1236,7 @@
       "levelCode": "specialty",
       "description": "The SSI Monofin Freediving specialty teaches monofin swimming, allowing you to enjoy increased speed, power, and confidence while maximizing underwater efficiency for better freediving performance.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/monofin.jpg"
+        "https://my.divessi.com/cview/MFF/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1258,7 +1258,7 @@
       "levelCode": "specialty",
       "description": "The SSI Training Techniques specialty teaches exercises to do at home and in the water to progress faster in freediving training. Discover your strengths and weaknesses and create a personalized training plan.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/freediving/training-techniques.jpg"
+        "https://my.divessi.com/cview/TT/400"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -1278,7 +1278,7 @@
       "levelCode": "beginner",
       "description": "The SSI Try Mermaid program provides a great introductory mermaid experience in confined waters. Learn the first skills involved in becoming a mermaid and swim with a tail.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/mermaid/try-mermaid.jpg"
+        "https://my.divessi.com/cview/TRY-MER/400"
       ],
       "durationDays": 1,
       "classroomHours": 1,
@@ -1299,7 +1299,7 @@
       "levelCode": "beginner",
       "description": "The SSI Mermaid program provides students with the knowledge and training to autonomously conduct mermaid activities with an equally or more qualified buddy in a pool/confined water environment, and to depths shallower than 5 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/mermaid/mermaid.jpg"
+        "https://my.divessi.com/cview/MER/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -1321,7 +1321,7 @@
       "levelCode": "advanced",
       "description": "The SSI Ocean Mermaid program provides all the skills and techniques you need to maximize your mermaid experience in open water. Take your mermaid adventures to the oceans with 2 additional open water sessions.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/mermaid/ocean-mermaid.jpg"
+        "https://my.divessi.com/cview/OMER/400"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1344,7 +1344,7 @@
       "levelCode": "advanced",
       "description": "The SSI Model Mermaid program teaches you to pose for the perfect underwater photo and perfect your mermaid presentation skills. Learn professional underwater modeling techniques.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/mermaid/model-mermaid.jpg"
+        "https://my.divessi.com/cview/MMER/400"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -1365,7 +1365,7 @@
       "levelCode": "professional",
       "description": "The SSI Dive Guide program is your entry into the professional diving world. Learn to guide certified divers underwater safely while developing leadership and customer service skills.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/dive-guide.jpg"
+        "https://my.divessi.com/cview/DG/400"
       ],
       "durationDays": 4,
       "classroomHours": 12,
@@ -1387,7 +1387,7 @@
       "levelCode": "professional",
       "description": "Transform your passion for diving into a career with the SSI Divemaster program. Guide certified divers, teach Ecology specialties, assist instructors, and explore endless opportunities. Requires completion of Dive Guide, Science of Diving, and minimum 60 logged dives.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/divemaster.jpg"
+        "https://my.divessi.com/cview/DM/400"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -1410,7 +1410,7 @@
       "levelCode": "professional",
       "description": "The SSI Assistant Instructor program is the next step after becoming a Divemaster. Assist instructors with open water diver courses and collect valuable teaching experience while working toward becoming a diving instructor.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/assistant-instructor.jpg"
+        "https://my.divessi.com/cview/AI/400"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -1431,7 +1431,7 @@
       "levelCode": "instructor",
       "description": "The SSI Instructor Training Course (ITC) is a comprehensive program that is part of SSI's 2-Step Instructor Training Approach. After completing the ITC, you attend the Instructor Evaluation (IE) to become an SSI Open Water Instructor.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/itc.jpg"
+        "https://my.divessi.com/cview/ITC/400"
       ],
       "durationDays": 7,
       "classroomHours": 32,
@@ -1453,7 +1453,7 @@
       "levelCode": "instructor",
       "description": "As an SSI Open Water Instructor, you can independently teach key SSI programs including Open Water Diver, Advanced Open Water Diver, Enriched Air Nitrox, Diver Stress & Rescue, and Dive Guide. This certification is earned after completing the ITC and Instructor Evaluation.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/owi.jpg"
+        "https://my.divessi.com/cview/OWI/400"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -1474,7 +1474,7 @@
       "levelCode": "instructor",
       "description": "The SSI Specialty Instructor program allows you to expand your teaching offerings by becoming qualified to teach specific SSI Specialty programs. Increase your value as a dive professional.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/specialty-instructor.jpg"
+        "https://my.divessi.com/cview/SI/400"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -1495,7 +1495,7 @@
       "levelCode": "instructor",
       "description": "The SSI Advanced Open Water Instructor is a professional recognition earned by completing multiple specialty instructor certifications and gaining teaching experience. Teach a wider range of programs.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/aowi.jpg"
+        "https://my.divessi.com/cview/AOWI/400"
       ],
       "durationDays": 0,
       "classroomHours": 0,
@@ -1513,7 +1513,7 @@
       "levelCode": "instructor",
       "description": "The SSI Divemaster Instructor qualification allows you to teach Dive Guide and Divemaster programs. Guide the next generation of dive professionals.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/dmi.jpg"
+        "https://my.divessi.com/cview/DMI/400"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -1534,7 +1534,7 @@
       "levelCode": "instructor",
       "description": "SSI Master Instructor is a professional recognition earned through continued education and teaching experience. Demonstrates exceptional commitment to the diving industry.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/master-instructor.jpg"
+        "https://my.divessi.com/cview/MI/400"
       ],
       "durationDays": 0,
       "classroomHours": 0,
@@ -1552,7 +1552,7 @@
       "levelCode": "instructor",
       "description": "The SSI Assistant Instructor Trainer program allows you to assist Instructor Trainers in conducting all SSI Instructor-level programs. Make an essential contribution to the diving industry by teaching future instructors.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/ait.jpg"
+        "https://my.divessi.com/cview/AIT/400"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1573,7 +1573,7 @@
       "levelCode": "instructor",
       "description": "The SSI Instructor Trainer is the final step in SSI's Instructor Training Pathway. Join the most elite dive instructors in the industry and teach the entire range of SSI recreational diving courses, conduct the ITC, and Instructor Crossovers.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/instructor-trainer.jpg"
+        "https://my.divessi.com/cview/IT/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1594,7 +1594,7 @@
       "levelCode": "instructor",
       "description": "As an SSI Freediving Instructor Level 1, utilize innovative training techniques to introduce new freedivers to the world of breath-hold diving. Teach all entry-level programs along with Free Immersion and Training Techniques specialties.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/freediving-instructor-1.jpg"
+        "https://my.divessi.com/cview/FDI1/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1615,7 +1615,7 @@
       "levelCode": "instructor",
       "description": "The SSI Freediving Instructor Level 2 (Advanced Freediving Instructor) certification allows you to increase your freediving certification offerings and introduce customers to the basics of competitive freediving.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/freediving-instructor-2.jpg"
+        "https://my.divessi.com/cview/FDI2/400"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1636,7 +1636,7 @@
       "levelCode": "instructor",
       "description": "The SSI Performance Freediving Instructor is the apex of the SSI freediving system. After certifying 50 students from different levels, join other elite freediving instructors with this upgrade.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/performance-freediving-instructor.jpg"
+        "https://my.divessi.com/cview/PFI/400"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1657,7 +1657,7 @@
       "levelCode": "instructor",
       "description": "Join an elite group of exceptional freedivers as an SSI Freediving Instructor Trainer. Train and certify the next generation of freediving instructors worldwide.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/freediving-instructor-trainer.jpg"
+        "https://my.divessi.com/cview/FDIT/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1678,7 +1678,7 @@
       "levelCode": "instructor",
       "description": "Become an SSI Mermaid Instructor and share your knowledge teaching students how to enjoy all bodies of water using their mermaid tails. Work at SSI Training Centers in over 150 countries.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/mermaid-instructor.jpg"
+        "https://my.divessi.com/cview/MERI/400"
       ],
       "durationDays": 3,
       "classroomHours": 10,
@@ -1699,7 +1699,7 @@
       "levelCode": "instructor",
       "description": "Become an SSI Mermaid Instructor Trainer and teach others how to become professional mermaids. Train mermaid instructors worldwide with this globally recognized certification.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/mermaid-instructor-trainer.jpg"
+        "https://my.divessi.com/cview/MERIT/400"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1720,7 +1720,7 @@
       "levelCode": "professional",
       "description": "The SSI Lifeguard certification teaches exciting new skills including communication, problem solving, and teamwork. Become a professional lifeguard with SSI's globally recognized lifeguard training.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/lifeguard.jpg"
+        "https://my.divessi.com/cview/LG/400"
       ],
       "durationDays": 3,
       "classroomHours": 10,
@@ -1742,7 +1742,7 @@
       "levelCode": "instructor",
       "description": "As an SSI Lifeguard Instructor, you can join water safety teams around the world and make training lifeguards your full-time career. A fun and rewarding profession.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/lifeguard-instructor.jpg"
+        "https://my.divessi.com/cview/LGI/400"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1763,7 +1763,7 @@
       "levelCode": "instructor",
       "description": "Upgrade your SSI certification with the Lifeguard Instructor Trainer program. Teach and certify all levels of the SSI Lifeguard and SSI Lifeguard Instructor courses.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/lifeguard-instructor-trainer.jpg"
+        "https://my.divessi.com/cview/LGIT/400"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1784,7 +1784,7 @@
       "levelCode": "instructor",
       "description": "Start your Extended Range career by becoming an SSI Extended Range Nitrox Diving Instructor. Teach divers to conduct limited decompression dives to 40 meters using nitrox.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/xr-nitrox-instructor.jpg"
+        "https://my.divessi.com/cview/XR-NITROX-I/400"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1805,7 +1805,7 @@
       "levelCode": "instructor",
       "description": "Grow your technical diver career by becoming an SSI Technical Extended Range Trimix Instructor. Teach advanced technical diving to 60 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/txr-instructor.jpg"
+        "https://my.divessi.com/cview/TXR-I/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1826,7 +1826,7 @@
       "levelCode": "instructor",
       "description": "Teach SSI Hypoxic Trimix diving and certify students for multiple-gas switch, multiple-stop, decompression dives up to a maximum depth of 100 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/htx-instructor.jpg"
+        "https://my.divessi.com/cview/HTX-I/400"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -1847,7 +1847,7 @@
       "levelCode": "instructor",
       "description": "Train rebreather divers and sharpen your skills by becoming an SSI CCR Diving Instructor. Teach unit-specific CCR programs.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/ccr-instructor.jpg"
+        "https://my.divessi.com/cview/CCR-I/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1868,7 +1868,7 @@
       "levelCode": "instructor",
       "description": "Continue your CCR training and become an SSI CCR Technical Extended Range Instructor. Teach advanced CCR diving to 60 meters.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/ccr-txr-instructor.jpg"
+        "https://my.divessi.com/cview/CCR-TXR-I/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1889,7 +1889,7 @@
       "levelCode": "instructor",
       "description": "Teach SSI CCR Hypoxic Trimix diving and certify students for the ultimate rebreather dives to 100 meters depth.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/ccr-htx-instructor.jpg"
+        "https://my.divessi.com/cview/CCR-HTX-I/400"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -1910,7 +1910,7 @@
       "levelCode": "instructor",
       "description": "Become an SSI Extended Range Cavern Diving Instructor and certify SSI Recreational Cavern/Cenote Diving and Extended Range Cavern Diving courses.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/xr-cavern-instructor.jpg"
+        "https://my.divessi.com/cview/XR-CAVERN-I/400"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1931,7 +1931,7 @@
       "levelCode": "instructor",
       "description": "Become an SSI Cave Diving Instructor and train the next generation of cave divers. Teach cave penetration techniques and safety protocols.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/cave-instructor.jpg"
+        "https://my.divessi.com/cview/CAVE-I/400"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1952,7 +1952,7 @@
       "levelCode": "instructor",
       "description": "Become an SSI Extended Range Instructor Trainer for open circuit, rebreather, and overhead environment diving. Train the next generation of technical diving instructors.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/xr-instructor-trainer.jpg"
+        "https://my.divessi.com/cview/XR-IT/400"
       ],
       "durationDays": 7,
       "classroomHours": 28,
@@ -1973,7 +1973,7 @@
       "levelCode": "instructor",
       "description": "Train rebreather divers and sharpen your skills by becoming an SSI SCR Diving Instructor. Teach Mares Horizon semi-closed rebreather programs.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/scr-instructor.jpg"
+        "https://my.divessi.com/cview/SCR-I/400"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1994,7 +1994,7 @@
       "levelCode": "instructor",
       "description": "Become an SSI Ecology Specialty Instructor and teach marine life ecology programs. Share your passion for ocean conservation and marine biology.",
       "images": [
-        "https://www.divessi.com/documents/filer/images/professional/ecology-instructor.jpg"
+        "https://my.divessi.com/cview/ECO-I/400"
       ],
       "durationDays": 2,
       "classroomHours": 8,

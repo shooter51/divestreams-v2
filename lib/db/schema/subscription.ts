@@ -13,6 +13,7 @@ import {
   index,
   uniqueIndex,
   uuid,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { organization } from "./auth";
 
@@ -48,6 +49,7 @@ export const subscription = pgTable(
     trialEndsAt: timestamp("trial_ends_at"),
     currentPeriodStart: timestamp("current_period_start"),
     currentPeriodEnd: timestamp("current_period_end"),
+    featureOverrides: jsonb("feature_overrides").$type<Record<string, boolean | null>>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

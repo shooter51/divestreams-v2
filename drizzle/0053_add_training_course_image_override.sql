@@ -1,0 +1,1 @@
+ALTER TABLE "training_courses" ADD COLUMN IF NOT EXISTS "image_override" jsonb;

@@ -5,6 +5,7 @@ import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 type OutletContextType = {
   settings: PublicSiteSettings;
   orgSlug: string;
@@ -12,45 +13,13 @@ type OutletContextType = {
   publicSiteUrl: string;
 };
 
-const themes = [
-  {
-    id: "ocean",
-    name: "Ocean",
-    description: "Deep blue tones inspired by the sea",
-    colors: ["#0ea5e9", "#0284c7", "#0369a1"],
-  },
-  {
-    id: "tropical",
-    name: "Tropical",
-    description: "Vibrant greens and teals",
-    colors: ["#14b8a6", "#0d9488", "#0f766e"],
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    description: "Clean, modern grayscale design",
-    colors: ["#6b7280", "#4b5563", "#374151"],
-  },
-  {
-    id: "dark",
-    name: "Dark",
-    description: "Dark mode theme for night divers",
-    colors: ["#1f2937", "#111827", "#0f172a"],
-  },
-  {
-    id: "classic",
-    name: "Classic",
-    description: "Traditional navy and gold",
-    colors: ["#1e3a5f", "#0c4a6e", "#b8860b"],
-  },
-];
-
-const fontFamilies = [
-  { id: "inter", name: "Inter", sample: "Clean and modern" },
-  { id: "poppins", name: "Poppins", sample: "Friendly and rounded" },
-  { id: "roboto", name: "Roboto", sample: "Professional and balanced" },
-  { id: "open-sans", name: "Open Sans", sample: "Neutral and readable" },
-];
+const themeColors: Record<string, string[]> = {
+  ocean: ["#0ea5e9", "#0284c7", "#0369a1"],
+  tropical: ["#14b8a6", "#0d9488", "#0f766e"],
+  minimal: ["#6b7280", "#4b5563", "#374151"],
+  dark: ["#1f2937", "#111827", "#0f172a"],
+  classic: ["#1e3a5f", "#0c4a6e", "#b8860b"],
+};
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -99,6 +68,20 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function PublicSiteAppearanceSettings() {
+  const t = useT();
+  const themes = [
+    { id: "ocean", name: "Ocean", description: t("tenant.settings.publicSite.appearance.themeOcean"), colors: themeColors.ocean },
+    { id: "tropical", name: "Tropical", description: t("tenant.settings.publicSite.appearance.themeTropical"), colors: themeColors.tropical },
+    { id: "minimal", name: "Minimal", description: t("tenant.settings.publicSite.appearance.themeMinimal"), colors: themeColors.minimal },
+    { id: "dark", name: "Dark", description: t("tenant.settings.publicSite.appearance.themeDark"), colors: themeColors.dark },
+    { id: "classic", name: "Classic", description: t("tenant.settings.publicSite.appearance.themeClassic"), colors: themeColors.classic },
+  ];
+  const fontFamilies = [
+    { id: "inter", name: "Inter", sample: t("tenant.settings.publicSite.appearance.fontInter") },
+    { id: "poppins", name: "Poppins", sample: t("tenant.settings.publicSite.appearance.fontPoppins") },
+    { id: "roboto", name: "Roboto", sample: t("tenant.settings.publicSite.appearance.fontRoboto") },
+    { id: "open-sans", name: "Open Sans", sample: t("tenant.settings.publicSite.appearance.fontOpenSans") },
+  ];
   const { settings, publicSiteUrl } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const isSubmitting = fetcher.state === "submitting";
@@ -151,32 +134,32 @@ export default function PublicSiteAppearanceSettings() {
 
         {/* Hero Image URL */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-2">Hero Image</h2>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.publicSite.appearance.heroImage")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Set the hero image URL for your public site landing page
+            {t("tenant.settings.publicSite.appearance.heroImageDescription")}
           </p>
           <div>
             <label htmlFor="heroImageUrl" className="block text-sm font-medium mb-1">
-              Hero Image URL
+              {t("tenant.settings.publicSite.appearance.heroImageUrl")}
             </label>
             <input
               type="url"
               id="heroImageUrl"
               name="heroImageUrl"
               value={heroImageUrl}
-              placeholder="https://images.unsplash.com/photo-..."
+              placeholder={t("tenant.settings.publicSite.appearance.heroImagePlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               onChange={(e) => setHeroImageUrl(e.target.value)}
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Enter a URL for the hero banner image. Recommended size: 1600x900 or larger.
+              {t("tenant.settings.publicSite.appearance.heroImageHint")}
             </p>
           </div>
           {heroImageUrl && (
             <div className="mt-4 rounded-lg overflow-hidden border border-border">
               <img
                 src={heroImageUrl}
-                alt="Hero preview"
+                alt={t("tenant.settings.publicSite.appearance.heroPreview")}
                 className="w-full h-48 object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = "none";
@@ -188,9 +171,9 @@ export default function PublicSiteAppearanceSettings() {
 
         {/* Theme Selector */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-2">Theme</h2>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.publicSite.appearance.theme")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Choose a pre-designed theme for your public site
+            {t("tenant.settings.publicSite.appearance.themeDescription")}
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -244,15 +227,15 @@ export default function PublicSiteAppearanceSettings() {
 
         {/* Custom Colors */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-2">Custom Colors</h2>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.publicSite.appearance.customColors")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Override theme colors with your brand colors
+            {t("tenant.settings.publicSite.appearance.customColorsDescription")}
           </p>
 
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label htmlFor="primaryColor" className="block text-sm font-medium mb-1">
-                Primary Color
+                {t("tenant.settings.publicSite.appearance.primaryColor")}
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -267,7 +250,7 @@ export default function PublicSiteAppearanceSettings() {
                   id="primaryColor"
                   name="primaryColor"
                   value={primaryColor}
-                  placeholder="#0ea5e9"
+                  placeholder={t("tenant.settings.publicSite.appearance.primaryColorPlaceholder")}
                   pattern="^#[0-9A-Fa-f]{6}$"
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
                   onChange={(e) => {
@@ -277,12 +260,12 @@ export default function PublicSiteAppearanceSettings() {
                   }}
                 />
               </div>
-              <p className="text-xs text-foreground-muted mt-1">Used for buttons, links, accents</p>
+              <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.publicSite.appearance.primaryColorHint")}</p>
             </div>
 
             <div>
               <label htmlFor="secondaryColor" className="block text-sm font-medium mb-1">
-                Secondary Color
+                {t("tenant.settings.publicSite.appearance.secondaryColor")}
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -297,7 +280,7 @@ export default function PublicSiteAppearanceSettings() {
                   id="secondaryColor"
                   name="secondaryColor"
                   value={secondaryColor}
-                  placeholder="#06b6d4"
+                  placeholder={t("tenant.settings.publicSite.appearance.secondaryColorPlaceholder")}
                   pattern="^#[0-9A-Fa-f]{6}$"
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
                   onChange={(e) => {
@@ -307,30 +290,30 @@ export default function PublicSiteAppearanceSettings() {
                   }}
                 />
               </div>
-              <p className="text-xs text-foreground-muted mt-1">Used for highlights, hover states</p>
+              <p className="text-xs text-foreground-muted mt-1">{t("tenant.settings.publicSite.appearance.secondaryColorHint")}</p>
             </div>
           </div>
 
           {/* Color Preview */}
           <div className="mt-4 p-4 border rounded-lg bg-surface-inset">
-            <p className="text-sm font-medium text-foreground-muted mb-3">Color Preview</p>
+            <p className="text-sm font-medium text-foreground-muted mb-3">{t("tenant.settings.publicSite.appearance.colorPreview")}</p>
             <div className="flex items-center gap-4">
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg text-white text-sm"
                 style={{ backgroundColor: primaryColor }}
               >
-                Primary Button
+                {t("tenant.settings.publicSite.appearance.primaryButton")}
               </button>
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg text-white text-sm"
                 style={{ backgroundColor: secondaryColor }}
               >
-                Secondary Button
+                {t("tenant.settings.publicSite.appearance.secondaryButton")}
               </button>
               <span className="text-sm" style={{ color: primaryColor }}>
-                Primary Link
+                {t("tenant.settings.publicSite.appearance.primaryLink")}
               </span>
             </div>
           </div>
@@ -338,8 +321,8 @@ export default function PublicSiteAppearanceSettings() {
 
         {/* Font Family */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-2">Font Family</h2>
-          <p className="text-sm text-foreground-muted mb-4">Choose the typography for your site</p>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.publicSite.appearance.fontFamily")}</h2>
+          <p className="text-sm text-foreground-muted mb-4">{t("tenant.settings.publicSite.appearance.fontFamilyDescription")}</p>
 
           <div className="grid grid-cols-2 gap-4">
             {fontFamilies.map((font) => (
@@ -399,9 +382,9 @@ export default function PublicSiteAppearanceSettings() {
         <div className="bg-surface-inset rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold">Preview Your Site</h2>
+              <h2 className="font-semibold">{t("tenant.settings.publicSite.appearance.previewYourSite")}</h2>
               <p className="text-sm text-foreground-muted">
-                See how your changes look on the public site
+                {t("tenant.settings.publicSite.appearance.previewDescription")}
               </p>
             </div>
             <a
@@ -423,7 +406,7 @@ export default function PublicSiteAppearanceSettings() {
                   d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                 />
               </svg>
-              Open Preview
+              {t("tenant.settings.publicSite.appearance.openPreview")}
             </a>
           </div>
         </div>
@@ -434,7 +417,7 @@ export default function PublicSiteAppearanceSettings() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Appearance Settings"}
+            {isSubmitting ? t("common.saving") : t("tenant.settings.publicSite.appearance.saveAppearance")}
           </button>
         </div>
       </fetcher.Form>

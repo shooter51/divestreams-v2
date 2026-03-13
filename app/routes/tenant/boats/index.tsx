@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
@@ -9,6 +11,7 @@ import { eq, ilike, count, and } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
 import { formatLabel } from "../../../lib/format";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
@@ -103,6 +106,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     imageUrl: imageMap.get(b.id),
   }));
 
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && boats.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "boat", boats.map(b => b.id), locale);
+    for (const boat of boats) {
+      const tr = translations.get(boat.id);
+      if (tr) {
+        if (tr.name) boat.name = tr.name;
+        if (tr.description) boat.description = tr.description;
+      }
+    }
+  }
+
   const totalCapacity = boats.filter((b) => b.isActive).reduce((sum, b) => sum + b.capacity, 0);
   const activeCount = boats.filter((b) => b.isActive).length;
 
@@ -116,21 +132,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const vesselTypeLabels: Record<string, string> = {
-  catamaran: "Catamaran",
-  speedboat: "Speedboat",
-  sailboat: "Sailboat",
-  inflatable: "Inflatable",
-  rigid_inflatable: "Rigid Inflatable",
-  dive_boat: "Dive Boat",
-  other: "Other",
-};
-
 export default function BoatsPage() {
   // Show notifications from URL params
   useNotification();
 
   const { boats, total, activeCount, totalCapacity, search } = useLoaderData<typeof loader>();
+  const t = useT();
+
+  const vesselTypeLabels: Record<string, string> = {
+    catamaran: t("tenant.boats.type.catamaran"),
+    speedboat: t("tenant.boats.type.speedboat"),
+    sailboat: t("tenant.boats.type.sailboat"),
+    inflatable: t("tenant.boats.type.inflatable"),
+    rigid_inflatable: t("tenant.boats.type.rigidInflatable"),
+    dive_boat: t("tenant.boats.type.diveBoat"),
+    other: t("tenant.boats.type.other"),
+  };
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -147,16 +164,16 @@ export default function BoatsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Boats & Vessels</h1>
+          <h1 className="text-2xl font-bold">{t("tenant.boats.title")}</h1>
           <p className="text-foreground-muted">
-            {activeCount} active boats • {totalCapacity} total capacity
+            {activeCount} {t("common.active").toLowerCase()} {t("tenant.boats.title").toLowerCase()} • {totalCapacity} {t("common.capacity").toLowerCase()}
           </p>
         </div>
         <Link
           to="/tenant/boats/new"
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
-          Add Boat
+          {t("tenant.boats.addBoat")}
         </Link>
       </div>
 
@@ -165,7 +182,7 @@ export default function BoatsPage() {
         <input
           type="search"
           name="q"
-          placeholder="Search boats..."
+          placeholder={t("tenant.boats.searchBoats")}
           defaultValue={search}
           className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
@@ -175,33 +192,33 @@ export default function BoatsPage() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{total}</p>
-          <p className="text-foreground-muted text-sm">Total Boats</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.boats.totalBoats")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold text-success">{activeCount}</p>
-          <p className="text-foreground-muted text-sm">Active</p>
+          <p className="text-foreground-muted text-sm">{t("common.active")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{totalCapacity}</p>
-          <p className="text-foreground-muted text-sm">Total Capacity</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.boats.totalCapacity")}</p>
         </div>
         <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">
             {boats.reduce((sum, b) => sum + b.tripCount, 0)}
           </p>
-          <p className="text-foreground-muted text-sm">Total Trips</p>
+          <p className="text-foreground-muted text-sm">{t("tenant.boats.totalTrips")}</p>
         </div>
       </div>
 
       {/* Boats List */}
       {boats.length === 0 ? (
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
-          <p className="text-foreground-muted">No boats found.</p>
+          <p className="text-foreground-muted">{t("tenant.boats.noBoatsFound")}</p>
           <Link
             to="/tenant/boats/new"
             className="inline-block mt-4 text-brand hover:underline"
           >
-            Add your first boat
+            {t("tenant.boats.addFirstBoat")}
           </Link>
         </div>
       ) : (
@@ -242,7 +259,7 @@ export default function BoatsPage() {
                     boat.isActive ? "bg-success-muted text-success" : "bg-surface-inset text-foreground-muted"
                   }`}
                 >
-                  {boat.isActive ? "Active" : "Inactive"}
+                  {boat.isActive ? t("common.active") : t("common.inactive")}
                 </span>
               </div>
 
@@ -261,21 +278,21 @@ export default function BoatsPage() {
                 ))}
                 {boat.amenities.length > 3 && (
                   <span className="text-xs text-foreground-subtle">
-                    +{boat.amenities.length - 3} more
+                    +{t("tenant.boats.more", { count: boat.amenities.length - 3 })}
                   </span>
                 )}
               </div>
 
               <div className="flex justify-between items-center text-sm border-t pt-3">
                 <span>
-                  <strong>{boat.capacity}</strong> passengers
+                  <strong>{boat.capacity}</strong> {t("tenant.boats.passengers")}
                 </span>
-                <span className="text-foreground-muted">{boat.tripCount} trips</span>
+                <span className="text-foreground-muted">{boat.tripCount} {t("tenant.boats.trips")}</span>
               </div>
 
               {boat.registrationNumber && (
                 <p className="text-xs text-foreground-subtle mt-2">
-                  Reg: {boat.registrationNumber}
+                  {t("tenant.boats.reg", { number: boat.registrationNumber })}
                 </p>
               )}
               </div>

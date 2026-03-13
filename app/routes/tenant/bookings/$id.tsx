@@ -8,6 +8,7 @@ import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatCurrency, formatTime as sharedFormatTime, formatDisplayDate, formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 // Valid booking status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -170,27 +171,28 @@ function formatDate(d: string | null | undefined): string {
   return formatDisplayDate(d);
 }
 
-const sourceLabels: Record<string, string> = {
-  referral: "Referral",
-  walk_in: "Walk-in",
-  direct: "Direct",
-  online: "Online",
-  phone: "Phone",
-  repeat: "Repeat Customer",
-  website: "Website",
-  partner: "Partner/Agent",
-  other: "Other",
-};
-
 export default function BookingDetailPage() {
   useNotification();
 
   const { booking } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const t = useT();
+
+  const sourceLabels: Record<string, string> = {
+    referral: t("tenant.bookings.source.referral"),
+    walk_in: t("tenant.bookings.source.walkIn"),
+    direct: t("tenant.bookings.source.direct"),
+    online: t("tenant.bookings.source.online"),
+    phone: t("tenant.bookings.source.phone"),
+    repeat: t("tenant.bookings.source.repeat"),
+    website: t("tenant.bookings.source.website"),
+    partner: t("tenant.bookings.source.partner"),
+    other: t("tenant.bookings.source.other"),
+  };
 
   const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel this booking?")) {
+    if (confirm(t("tenant.bookings.confirmCancel"))) {
       fetcher.submit({ intent: "cancel" }, { method: "post" });
     }
   };
@@ -294,7 +296,7 @@ export default function BookingDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/bookings" className="text-brand hover:underline text-sm">
-          ← Back to Bookings
+          {t("tenant.bookings.backToBookings")}
         </Link>
       </div>
 
@@ -304,7 +306,7 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
             <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
-          <p className="text-foreground-muted">Created {formatDate(booking.createdAt)}</p>
+          <p className="text-foreground-muted">{t("tenant.bookings.created", { date: formatDate(booking.createdAt) })}</p>
         </div>
         <div className="flex gap-2">
           {booking.status === "pending" && (
@@ -315,7 +317,7 @@ export default function BookingDetailPage() {
                 type="submit"
                 className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success-hover"
               >
-                Confirm
+                {t("tenant.bookings.confirmAction")}
               </button>
             </fetcher.Form>
           )}
@@ -327,7 +329,7 @@ export default function BookingDetailPage() {
                 type="submit"
                 className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
               >
-                Mark Complete
+                {t("tenant.bookings.markComplete")}
               </button>
             </fetcher.Form>
           )}
@@ -335,14 +337,14 @@ export default function BookingDetailPage() {
             to={`/tenant/bookings/${booking.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           {booking.status !== "cancelled" && booking.status !== "completed" && (
             <button
               onClick={handleCancel}
               className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           )}
         </div>
@@ -365,7 +367,7 @@ export default function BookingDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Trip Info */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Trip Details</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.bookings.tripDetails")}</h2>
             <div className="flex justify-between items-start">
               <div>
                 <Link
@@ -376,13 +378,13 @@ export default function BookingDetailPage() {
                 </Link>
                 <div className="mt-2 space-y-1 text-sm">
                   <p>
-                    <span className="text-foreground-muted">Date:</span> {formatDate(booking.trip.date)}
+                    <span className="text-foreground-muted">{t("common.date")}:</span> {formatDate(booking.trip.date)}
                   </p>
                   <p>
-                    <span className="text-foreground-muted">Time:</span> {formatTime(booking.trip.startTime)} - {formatTime(booking.trip.endTime)}
+                    <span className="text-foreground-muted">{t("common.time")}:</span> {formatTime(booking.trip.startTime)} - {formatTime(booking.trip.endTime)}
                   </p>
                   <p>
-                    <span className="text-foreground-muted">Boat:</span> {booking.trip.boatName}
+                    <span className="text-foreground-muted">{t("tenant.bookings.boat")}:</span> {booking.trip.boatName}
                   </p>
                 </div>
               </div>
@@ -390,7 +392,7 @@ export default function BookingDetailPage() {
                 to={`/tenant/trips/${booking.trip.id}`}
                 className="text-sm text-brand hover:underline"
               >
-                View Trip →
+                {t("tenant.bookings.viewTrip")}
               </Link>
             </div>
           </div>
@@ -398,7 +400,7 @@ export default function BookingDetailPage() {
           {/* Participants */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">
-              Participants ({booking.participants})
+              {t("tenant.bookings.participantsCount", { count: booking.participants })}
             </h2>
             <div className="space-y-3">
               {Array.isArray(booking.participantDetails) && booking.participantDetails.length > 0 ? (
@@ -420,7 +422,7 @@ export default function BookingDetailPage() {
                 <div className="flex justify-between items-center p-3 bg-surface-inset rounded-lg">
                   <div>
                     <p className="font-medium">{booking.customer.firstName} {booking.customer.lastName}</p>
-                    <p className="text-sm text-foreground-muted">Primary contact</p>
+                    <p className="text-sm text-foreground-muted">{t("tenant.bookings.primaryContact")}</p>
                   </div>
                   <span className="text-sm text-foreground-subtle">#1</span>
                 </div>
@@ -431,7 +433,7 @@ export default function BookingDetailPage() {
           {/* Equipment */}
           {Array.isArray(booking.equipmentRental) && booking.equipmentRental.length > 0 && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Equipment Rental</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.bookings.equipmentRental")}</h2>
               <div className="space-y-2">
                 {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; size?: string; quantity?: number; price: number }, i: number) => (
                   <div key={i} className="flex justify-between text-sm">
@@ -442,7 +444,7 @@ export default function BookingDetailPage() {
                   </div>
                 ))}
                 <div className="flex justify-between font-medium pt-2 border-t">
-                  <span>Equipment Total</span>
+                  <span>{t("tenant.bookings.equipmentTotal")}</span>
                   <span>{formatCurrency(booking.pricing.equipmentTotal)}</span>
                 </div>
               </div>
@@ -452,18 +454,18 @@ export default function BookingDetailPage() {
           {/* Payment History */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Payment History</h2>
+              <h2 className="font-semibold">{t("tenant.bookings.paymentHistory")}</h2>
               {parseFloat(booking.balanceDue) > 0 && (
                 <button
                   onClick={() => setShowPaymentModal(true)}
                   className="text-sm text-brand hover:underline"
                 >
-                  + Record Payment
+                  {t("tenant.bookings.recordPayment")}
                 </button>
               )}
             </div>
             {booking.payments.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No payments recorded.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.bookings.noPayments")}</p>
             ) : (
               <div className="space-y-3">
                 {booking.payments.map((payment) => (
@@ -480,7 +482,7 @@ export default function BookingDetailPage() {
                         <p className="text-xs text-foreground-subtle">{payment.note}</p>
                       )}
                     </div>
-                    <span className="text-success text-sm">Paid</span>
+                    <span className="text-success text-sm">{t("tenant.bookings.paid")}</span>
                   </div>
                 ))}
               </div>
@@ -490,17 +492,17 @@ export default function BookingDetailPage() {
           {/* Notes */}
           {(booking.specialRequests || booking.internalNotes) && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Notes</h2>
+              <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
               <div className="space-y-4 text-sm">
                 {booking.specialRequests && (
                   <div>
-                    <p className="text-foreground-muted mb-1">Special Requests:</p>
+                    <p className="text-foreground-muted mb-1">{t("tenant.bookings.specialRequests")}</p>
                     <p>{booking.specialRequests}</p>
                   </div>
                 )}
                 {booking.internalNotes && (
                   <div>
-                    <p className="text-foreground-muted mb-1">Internal Notes:</p>
+                    <p className="text-foreground-muted mb-1">{t("tenant.bookings.internalNotes")}:</p>
                     <p>{booking.internalNotes}</p>
                   </div>
                 )}
@@ -513,7 +515,7 @@ export default function BookingDetailPage() {
         <div className="space-y-6">
           {/* Customer */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Customer</h2>
+            <h2 className="font-semibold mb-4">{t("common.customer")}</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/customers/${booking.customer.id}`}
@@ -528,7 +530,7 @@ export default function BookingDetailPage() {
 
           {/* Pricing Summary */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Pricing</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.bookings.pricing")}</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>
@@ -538,33 +540,33 @@ export default function BookingDetailPage() {
               </div>
               {parseFloat(booking.pricing.equipmentTotal) > 0 && (
                 <div className="flex justify-between">
-                  <span>Equipment</span>
+                  <span>{t("tenant.bookings.equipment")}</span>
                   <span>{formatCurrency(booking.pricing.equipmentTotal)}</span>
                 </div>
               )}
               {parseFloat(booking.pricing.tax) > 0 && (
                 <div className="flex justify-between">
-                  <span>Tax</span>
+                  <span>{t("tenant.bookings.tax")}</span>
                   <span>{formatCurrency(booking.pricing.tax)}</span>
                 </div>
               )}
               {parseFloat(booking.pricing.discount) > 0 && (
                 <div className="flex justify-between text-success">
-                  <span>Discount</span>
+                  <span>{t("tenant.bookings.discount")}</span>
                   <span>-{formatCurrency(booking.pricing.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                <span>Total</span>
+                <span>{t("common.total")}</span>
                 <span>{formatCurrency(booking.pricing.total)}</span>
               </div>
               <div className="flex justify-between text-success">
-                <span>Paid</span>
+                <span>{t("tenant.bookings.paid")}</span>
                 <span>{formatCurrency(booking.paidAmount)}</span>
               </div>
               {parseFloat(booking.balanceDue) > 0 && (
                 <div className="flex justify-between text-danger font-medium">
-                  <span>Balance Due</span>
+                  <span>{t("tenant.bookings.balanceDue")}</span>
                   <span>{formatCurrency(booking.balanceDue)}</span>
                 </div>
               )}
@@ -573,7 +575,7 @@ export default function BookingDetailPage() {
 
           {/* Quick Actions */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Actions</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.bookings.actions")}</h2>
             <div className="space-y-2">
               <fetcher.Form method="post">
                 <CsrfInput />
@@ -582,20 +584,20 @@ export default function BookingDetailPage() {
                   type="submit"
                   className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
                 >
-                  📧 Send Confirmation Email
+                  📧 {t("tenant.bookings.sendConfirmation")}
                 </button>
               </fetcher.Form>
               <button
                 onClick={handlePrintBooking}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                🖨️ Print Booking
+                🖨️ {t("tenant.bookings.printBooking")}
               </button>
               <Link
                 to={`/tenant/trips/${booking.trip?.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                📋 View Trip Manifest
+                📋 {t("tenant.bookings.viewTripManifest")}
               </Link>
               {booking.status === "confirmed" && (
                 <fetcher.Form method="post">
@@ -605,7 +607,7 @@ export default function BookingDetailPage() {
                     type="submit"
                     className="w-full text-left px-3 py-2 text-sm text-accent hover:bg-accent-muted rounded-lg"
                   >
-                    Mark as No-Show
+                    {t("tenant.bookings.markNoShow")}
                   </button>
                 </fetcher.Form>
               )}
@@ -614,9 +616,9 @@ export default function BookingDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Source: {booking.source ? (sourceLabels[booking.source] || formatLabel(booking.source)) : ""}</p>
-            <p>Updated: {formatDate(booking.updatedAt)}</p>
-            <p>ID: {booking.id}</p>
+            <p>{t("tenant.bookings.sourceLabel")}: {booking.source ? (sourceLabels[booking.source] || formatLabel(booking.source)) : ""}</p>
+            <p>{t("tenant.bookings.updated")}: {formatDate(booking.updatedAt)}</p>
+            <p>{t("tenant.bookings.idLabel")}: {booking.id}</p>
           </div>
         </div>
       </div>
@@ -627,9 +629,9 @@ export default function BookingDetailPage() {
           <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Record Payment</h2>
+                <h2 className="text-lg font-bold">{t("tenant.bookings.recordPaymentTitle")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Balance due: {formatCurrency(booking.balanceDue)}
+                  {t("tenant.bookings.balanceDueAmount")}: {formatCurrency(booking.balanceDue)}
                 </p>
               </div>
               <button
@@ -643,7 +645,7 @@ export default function BookingDetailPage() {
             <form onSubmit={handleRecordPayment} className="space-y-4">
               <CsrfInput />
               <div>
-                <label className="block text-sm font-medium mb-1">Amount *</label>
+                <label className="block text-sm font-medium mb-1">{t("tenant.bookings.amount")} *</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                   <input
@@ -660,28 +662,28 @@ export default function BookingDetailPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Payment Method *</label>
+                <label className="block text-sm font-medium mb-1">{t("tenant.bookings.paymentMethod")} *</label>
                 <select
                   name="paymentMethod"
                   required
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
-                  <option value="">Select method...</option>
-                  <option value="cash">Cash</option>
-                  <option value="card">Credit/Debit Card</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="stripe">Stripe</option>
-                  <option value="other">Other</option>
+                  <option value="">{t("tenant.bookings.selectMethod")}</option>
+                  <option value="cash">{t("tenant.bookings.cash")}</option>
+                  <option value="card">{t("tenant.bookings.creditDebitCard")}</option>
+                  <option value="bank_transfer">{t("tenant.bookings.bankTransfer")}</option>
+                  <option value="stripe">{t("tenant.bookings.stripe")}</option>
+                  <option value="other">{t("tenant.bookings.other")}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
+                <label className="block text-sm font-medium mb-1">{t("common.notes")}</label>
                 <input
                   type="text"
                   name="notes"
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                  placeholder="Optional payment notes..."
+                  placeholder={t("tenant.bookings.optionalPaymentNotes")}
                 />
               </div>
 
@@ -691,14 +693,14 @@ export default function BookingDetailPage() {
                   onClick={() => setShowPaymentModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
-                  {fetcher.state === "submitting" ? "Recording..." : "Record Payment"}
+                  {fetcher.state === "submitting" ? t("tenant.bookings.recording") : t("tenant.bookings.recordPayment")}
                 </button>
               </div>
             </form>

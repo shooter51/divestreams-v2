@@ -16,6 +16,7 @@ import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } fr
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { useT } from "../../i18n/use-t";
 
 // ============================================================================
 // ICONS
@@ -188,10 +189,9 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   });
 
   if (!rateLimitResult.allowed) {
-    const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
     return {
       success: false,
-      error: `Too many submissions. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+      error: "site.contact.tooManySubmissions",
     };
   }
 
@@ -199,26 +199,26 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   const errors: ActionData["errors"] = {};
 
   if (!name || name.trim().length < 2) {
-    errors.name = "Name must be at least 2 characters";
+    errors.name = "site.contact.nameMinLength";
   }
 
   if (!email || !email.includes("@") || !email.includes(".")) {
-    errors.email = "Please enter a valid email address";
+    errors.email = "site.contact.invalidEmail";
   }
 
   if (!message || message.trim().length < 10) {
-    errors.message = "Message must be at least 10 characters";
+    errors.message = "site.contact.messageMinLength";
   }
 
   if (message && message.length > 5000) {
-    errors.message = "Message must be less than 5000 characters";
+    errors.message = "site.contact.messageTooLong";
   }
 
   // Phone is optional but validate format if provided
   if (phone && phone.trim()) {
     const phoneRegex = /^[\d\s().+-]+$/;
     if (!phoneRegex.test(phone)) {
-      errors.phone = "Please enter a valid phone number";
+      errors.phone = "site.contact.invalidPhone";
     }
   }
 
@@ -234,7 +234,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   if (!subdomain) {
     return {
       success: false,
-      error: "Unable to process your request. Please try again later.",
+      error: "site.contact.processingError",
     };
   }
 
@@ -247,7 +247,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
   if (!org) {
     return {
       success: false,
-      error: "Unable to process your request. Please try again later.",
+      error: "site.contact.processingError",
     };
   }
 
@@ -331,7 +331,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     console.error("Error processing contact form:", error);
     return {
       success: false,
-      error: "Failed to send your message. Please try again later.",
+      error: "site.contact.sendFailed",
     };
   }
 }
@@ -341,6 +341,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 // ============================================================================
 
 export default function SiteContactPage() {
+  const t = useT();
   // Get data from parent layout loader
   const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
 
@@ -352,8 +353,8 @@ export default function SiteContactPage() {
   if (!loaderData) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold">Contact Us</h1>
-        <p className="mt-4 text-lg opacity-75">Loading...</p>
+        <h1 className="text-4xl font-bold">{t("site.contact.title")}</h1>
+        <p className="mt-4 text-lg opacity-75">{t("common.loading")}</p>
       </div>
     );
   }
@@ -376,10 +377,9 @@ export default function SiteContactPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
       {/* Page Header */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("site.contact.title")}</h1>
         <p className="text-lg opacity-75 max-w-2xl mx-auto">
-          Have a question about our dive trips, courses, or services?
-          We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          {t("site.contact.subtitle")}
         </p>
       </div>
 
@@ -393,7 +393,7 @@ export default function SiteContactPage() {
           }}
         >
           <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
-            Send us a message
+            {t("site.contact.sendUsMessage")}
           </h2>
 
           {actionData?.success ? (
@@ -405,9 +405,9 @@ export default function SiteContactPage() {
                 className="w-12 h-12 mx-auto mb-4"
                 style={{ color: "var(--primary-color)" } as React.CSSProperties}
               />
-              <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
+              <h3 className="text-xl font-semibold mb-2">{t("site.contact.messageSent")}</h3>
               <p className="opacity-75">
-                Thank you for reaching out. We'll get back to you as soon as possible.
+                {t("site.contact.thankYou")}
               </p>
             </div>
           ) : (
@@ -432,7 +432,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Name <span className="text-danger">*</span>
+                  {t("site.contact.name")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -459,7 +459,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.name}
+                    {t(actionData.errors.name)}
                   </p>
                 )}
               </div>
@@ -471,7 +471,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Email <span className="text-danger">*</span>
+                  {t("site.contact.email")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="email"
@@ -498,7 +498,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.email}
+                    {t(actionData.errors.email)}
                   </p>
                 )}
               </div>
@@ -510,7 +510,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Phone <span className="text-sm opacity-50">(optional)</span>
+                  {t("site.contact.phone")} <span className="text-sm opacity-50">({t("common.optional")})</span>
                 </label>
                 <input
                   type="tel"
@@ -536,7 +536,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.phone}
+                    {t(actionData.errors.phone)}
                   </p>
                 )}
               </div>
@@ -548,7 +548,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Message <span className="text-danger">*</span>
+                  {t("site.contact.message")} <span className="text-danger">*</span>
                 </label>
                 <textarea
                   id="contact-message"
@@ -574,7 +574,7 @@ export default function SiteContactPage() {
                     className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.message}
+                    {t(actionData.errors.message)}
                   </p>
                 )}
               </div>
@@ -583,7 +583,7 @@ export default function SiteContactPage() {
               {actionData?.error && (
                 <div className="p-4 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
                   <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
-                  <p>{actionData.error}</p>
+                  <p>{t(actionData.error)}</p>
                 </div>
               )}
 
@@ -596,7 +596,7 @@ export default function SiteContactPage() {
                   backgroundColor: "var(--primary-color)",
                 }}
               >
-                {isSubmitting ? "Sending..." : "Send Message"}
+                {isSubmitting ? t("site.contact.sending") : t("site.contact.send")}
               </button>
             </Form>
           )}
@@ -613,7 +613,7 @@ export default function SiteContactPage() {
             }}
           >
             <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
-              Get in touch
+              {t("site.contact.getInTouch")}
             </h2>
 
             <div className="space-y-6">
@@ -630,7 +630,7 @@ export default function SiteContactPage() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Address</h3>
+                    <h3 className="font-medium mb-1">{t("site.contact.address")}</h3>
                     <p className="opacity-75 whitespace-pre-line">
                       {contactInfo.address}
                     </p>
@@ -651,7 +651,7 @@ export default function SiteContactPage() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Phone</h3>
+                    <h3 className="font-medium mb-1">{t("site.contact.phone")}</h3>
                     <a
                       href={`tel:${contactInfo.phone.replace(/\s/g, "")}`}
                       className="opacity-75 hover:opacity-100 transition-opacity"
@@ -676,7 +676,7 @@ export default function SiteContactPage() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Email</h3>
+                    <h3 className="font-medium mb-1">{t("site.contact.email")}</h3>
                     <a
                       href={`mailto:${contactInfo.email}`}
                       className="opacity-75 hover:opacity-100 transition-opacity"
@@ -701,7 +701,7 @@ export default function SiteContactPage() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Business Hours</h3>
+                    <h3 className="font-medium mb-1">{t("site.contact.businessHours")}</h3>
                     <ul className="opacity-75 space-y-1">
                       {businessHours.map((hours, index) => (
                         <li key={index}>{hours}</li>
@@ -717,7 +717,7 @@ export default function SiteContactPage() {
                 !contactInfo?.email &&
                 !contactInfo?.hours && (
                   <p className="opacity-75">
-                    Send us a message using the contact form and we'll get back to you.
+                    {t("site.contact.fallbackMessage")}
                   </p>
                 )}
             </div>

@@ -7,6 +7,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, Form, useSearchParams } from "react-router";
 import { requireOrgContext, requireRole } from "../../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../../lib/db/translations.server";
 import {
   getProducts,
   getProductCategories,
@@ -15,6 +17,7 @@ import {
 } from "../../../../../lib/db/queries.server";
 import { formatLabel } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -29,6 +32,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getProducts(organizationId, { category, search, activeOnly: false }),
     getProductCategories(organizationId),
   ]);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && products.length > 0) {
+    const translations = await bulkGetContentTranslations(organizationId, "product", products.map((p: Product) => p.id), locale);
+    for (const product of products) {
+      const tr = translations.get(product.id);
+      if (tr) {
+        if (tr.name) product.name = tr.name;
+        if (tr.description) product.description = tr.description ?? null;
+      }
+    }
+  }
 
   return { products, categories };
 }
@@ -64,26 +80,27 @@ const categoryColors: Record<string, string> = {
   rental: "bg-accent-muted text-accent",
 };
 
-const categoryLabels: Record<string, string> = {
-  regulator: "Regulator",
-  bcd: "BCD",
-  wetsuit: "Wetsuit",
-  mask: "Mask",
-  fins: "Fins",
-  tank: "Tank",
-  computer: "Dive Computer",
-  torch: "Torch",
-  equipment: "Equipment",
-  apparel: "Apparel",
-  accessories: "Accessories",
-  courses: "Courses",
-  rental: "Rental",
-  other: "Other",
-};
-
 export default function ProductsPage() {
   const { products, categories } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
+  const t = useT();
+
+  const categoryLabels: Record<string, string> = {
+    regulator: t("tenant.pos.products.categoryRegulator"),
+    bcd: t("tenant.pos.products.categoryBCD"),
+    wetsuit: t("tenant.pos.products.categoryWetsuit"),
+    mask: t("tenant.pos.products.categoryMask"),
+    fins: t("tenant.pos.products.categoryFins"),
+    tank: t("tenant.pos.products.categoryTank"),
+    computer: t("tenant.pos.products.categoryComputer"),
+    torch: t("tenant.pos.products.categoryTorch"),
+    equipment: t("tenant.pos.products.categoryEquipment"),
+    apparel: t("tenant.pos.products.categoryApparel"),
+    accessories: t("tenant.pos.products.categoryAccessories"),
+    courses: t("tenant.pos.products.categoryCourses"),
+    rental: t("tenant.pos.products.categoryRental"),
+    other: t("tenant.pos.products.categoryOther"),
+  };
 
   const currentCategory = searchParams.get("category") || "";
   const currentSearch = searchParams.get("search") || "";
@@ -92,21 +109,21 @@ export default function ProductsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Products</h1>
-          <p className="text-sm text-foreground-muted">{products.length} products</p>
+          <h1 className="text-2xl font-bold">{t("tenant.pos.products.title")}</h1>
+          <p className="text-sm text-foreground-muted">{t("tenant.pos.products.count", { count: products.length })}</p>
         </div>
         <div className="flex gap-3">
           <Link
             to="/tenant/pos"
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Back to POS
+            {t("tenant.pos.products.backToPOS")}
           </Link>
           <Link
             to="/tenant/pos/products/new"
             className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
-            Add Product
+            {t("tenant.pos.products.addProduct")}
           </Link>
         </div>
       </div>
@@ -119,7 +136,7 @@ export default function ProductsPage() {
               type="text"
               name="search"
               defaultValue={currentSearch}
-              placeholder="Search products..."
+              placeholder={t("tenant.pos.products.searchPlaceholder")}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
@@ -128,7 +145,7 @@ export default function ProductsPage() {
             defaultValue={currentCategory}
             className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
           >
-            <option value="">All Categories</option>
+            <option value="">{t("tenant.pos.products.allCategories")}</option>
             {categories.map((cat: string) => (
               <option key={cat} value={cat}>
                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -139,14 +156,14 @@ export default function ProductsPage() {
             type="submit"
             className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
           >
-            Filter
+            {t("common.filter")}
           </button>
           {(currentCategory || currentSearch) && (
             <Link
               to="/tenant/pos/products"
               className="px-4 py-2 text-foreground-muted hover:text-foreground"
             >
-              Clear
+              {t("tenant.pos.products.clear")}
             </Link>
           )}
         </Form>
@@ -158,13 +175,13 @@ export default function ProductsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-surface-inset">
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Product</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Category</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">SKU</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Price</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Stock</th>
-                <th className="text-center px-6 py-3 text-sm font-medium text-foreground-muted">Status</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Actions</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tableProduct")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tableCategory")}</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tableSKU")}</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tablePrice")}</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tableStock")}</th>
+                <th className="text-center px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tableStatus")}</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.pos.products.tableActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -221,7 +238,7 @@ export default function ProductsPage() {
                           : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
-                      {product.isActive ? "Active" : "Inactive"}
+                      {product.isActive ? t("common.active") : t("common.inactive")}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -230,7 +247,7 @@ export default function ProductsPage() {
                         to={`/tenant/pos/products/${product.id}/edit`}
                         className="text-sm text-brand hover:underline"
                       >
-                        Edit
+                        {t("common.edit")}
                       </Link>
                       <Form method="post" className="inline">
                         <CsrfInput />
@@ -239,13 +256,13 @@ export default function ProductsPage() {
                         <button
                           type="submit"
                           onClick={(e) => {
-                            if (!confirm("Delete this product?")) {
+                            if (!confirm(t("tenant.pos.products.confirmDelete"))) {
                               e.preventDefault();
                             }
                           }}
                           className="text-sm text-danger hover:underline"
                         >
-                          Delete
+                          {t("common.delete")}
                         </button>
                       </Form>
                     </div>
@@ -256,12 +273,12 @@ export default function ProductsPage() {
           </table>
         ) : (
           <div className="text-center py-12">
-            <p className="text-foreground-muted mb-4">No products found</p>
+            <p className="text-foreground-muted mb-4">{t("tenant.pos.products.noProducts")}</p>
             <Link
               to="/tenant/pos/products/new"
               className="text-brand hover:underline"
             >
-              Add your first product
+              {t("tenant.pos.products.addFirst")}
             </Link>
           </div>
         )}

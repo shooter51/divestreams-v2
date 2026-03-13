@@ -67,6 +67,7 @@ export {
   getTripBookings,
   getTripRevenue,
   getTripBookedParticipants,
+  getTripEquipmentRentals,
   type CalendarTrip,
 } from "./trips.server";
 
@@ -96,8 +97,10 @@ export {
   updateEquipmentStatus,
   deleteEquipment,
   getEquipmentUtilization,
+  getTankTypes,
   type EquipmentServiceRecord,
   type EquipmentUtilization,
+  type TankType,
 } from "./equipment.server";
 
 // Boat queries

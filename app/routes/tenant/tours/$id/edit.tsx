@@ -8,6 +8,9 @@ import { tourSchema, validateFormData, getFormValues } from "../../../../../lib/
 import { ImageManager, type Image } from "../../../../components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Tour - DiveStreams" }];
 
@@ -70,6 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     minAge: tourData.minAge || null,
     requirements: tourData.requirements || [],
     isActive: tourData.isActive,
+    requiresTankSelection: tourData.requiresTankSelection || false,
   };
 
   const images: Image[] = tourImages.map((img) => ({
@@ -143,9 +147,34 @@ export async function action({ request, params }: ActionFunctionArgs) {
       minAge: validation.data.minAge as number | undefined,
       requirements: validation.data.requirements,
       isActive: validation.data.isActive,
+      requiresTankSelection: validation.data.requiresTankSelection,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.tours.organizationId, organizationId), eq(schema.tours.id, tourId)));
+
+  // Enqueue auto-translation for non-default locales
+  const inclusionsArr = inclusionsStr ? inclusionsStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const exclusionsArr = exclusionsStr ? exclusionsStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const requirementsArr = requirementsStr ? requirementsStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
+  const fieldsToTranslate = [
+    { field: "name", text: validation.data.name },
+    { field: "description", text: validation.data.description ?? "" },
+    { field: "inclusions", text: inclusionsArr.join("\n") },
+    { field: "exclusions", text: exclusionsArr.join("\n") },
+    { field: "requirements", text: requirementsArr.join("\n") },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: organizationId,
+      entityType: "tour",
+      entityId: tourId,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
 
   return redirect(redirectWithNotification(`/tenant/tours/${tourId}`, `Tour "${validation.data.name}" has been successfully updated`, "success"));
 }
@@ -154,6 +183,7 @@ export default function EditTourPage() {
   const { tour, images } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
 
   // Show notifications from URL params
@@ -163,21 +193,21 @@ export default function EditTourPage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/tours/${tour.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Tour
+          {t("tenant.tours.backToTour")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Tour</h1>
-        <p className="text-foreground-muted">Update tour details and images.</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.tours.editTour")}</h1>
+        <p className="text-foreground-muted">{t("tenant.tours.updateDetails")}</p>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Tour Name *
+                {t("tenant.tours.tourName")} *
               </label>
               <input
                 type="text"
@@ -194,7 +224,7 @@ export default function EditTourPage() {
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
@@ -208,7 +238,7 @@ export default function EditTourPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="type" className="block text-sm font-medium mb-1">
-                  Tour Type *
+                  {t("tenant.tours.tourType")} *
                 </label>
                 <select
                   id="type"
@@ -217,18 +247,18 @@ export default function EditTourPage() {
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   required
                 >
-                  <option value="single_dive">Single Dive</option>
-                  <option value="multi_dive">Multi-Dive</option>
-                  <option value="course">Course</option>
-                  <option value="snorkel">Snorkel</option>
-                  <option value="night_dive">Night Dive</option>
-                  <option value="other">Other</option>
+                  <option value="single_dive">{t("tenant.tours.singleDive")}</option>
+                  <option value="multi_dive">{t("tenant.tours.multiDive")}</option>
+                  <option value="course">{t("tenant.tours.course")}</option>
+                  <option value="snorkel">{t("tenant.tours.snorkel")}</option>
+                  <option value="night_dive">{t("tenant.tours.nightDive")}</option>
+                  <option value="other">{t("tenant.tours.other")}</option>
                 </select>
               </div>
 
               <div>
                 <label htmlFor="duration" className="block text-sm font-medium mb-1">
-                  Duration (minutes)
+                  {t("tenant.tours.durationMinutes")}
                 </label>
                 <input
                   type="number"
@@ -245,11 +275,11 @@ export default function EditTourPage() {
 
         {/* Pricing & Capacity */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.pricingCapacity")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price *
+                {t("common.price")} *
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -271,7 +301,7 @@ export default function EditTourPage() {
 
             <div>
               <label htmlFor="currency" className="block text-sm font-medium mb-1">
-                Currency
+                {t("common.currency")}
               </label>
               <select
                 id="currency"
@@ -291,7 +321,7 @@ export default function EditTourPage() {
 
             <div>
               <label htmlFor="maxParticipants" className="block text-sm font-medium mb-1">
-                Max Participants *
+                {t("tenant.tours.maxParticipants")} *
               </label>
               <input
                 type="number"
@@ -309,7 +339,7 @@ export default function EditTourPage() {
 
             <div>
               <label htmlFor="minParticipants" className="block text-sm font-medium mb-1">
-                Min Participants
+                {t("tenant.tours.minParticipants")}
               </label>
               <input
                 type="number"
@@ -325,7 +355,7 @@ export default function EditTourPage() {
 
         {/* Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Tour Images</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.tourImages")}</h2>
           <ImageManager
             entityType="tour"
             entityId={tour.id}
@@ -336,7 +366,7 @@ export default function EditTourPage() {
 
         {/* Inclusions */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">What's Included</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.whatsIncluded")}</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4">
               <label className="flex items-center gap-2">
@@ -347,7 +377,7 @@ export default function EditTourPage() {
                   defaultChecked={actionData?.values?.includesEquipment === "true" || tour.includesEquipment}
                   className="rounded"
                 />
-                <span className="text-sm">Equipment Rental</span>
+                <span className="text-sm">{t("tenant.tours.equipmentRental")}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -357,7 +387,7 @@ export default function EditTourPage() {
                   defaultChecked={actionData?.values?.includesMeals === "true" || tour.includesMeals}
                   className="rounded"
                 />
-                <span className="text-sm">Meals/Snacks</span>
+                <span className="text-sm">{t("tenant.tours.mealsSnacks")}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -367,19 +397,29 @@ export default function EditTourPage() {
                   defaultChecked={actionData?.values?.includesTransport === "true" || tour.includesTransport}
                   className="rounded"
                 />
-                <span className="text-sm">Transport</span>
+                <span className="text-sm">{t("tenant.tours.transport")}</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="requiresTankSelection"
+                  value="true"
+                  defaultChecked={actionData?.values?.requiresTankSelection === "true" || tour.requiresTankSelection}
+                  className="rounded"
+                />
+                <span className="text-sm">Require tank &amp; gas selection</span>
               </label>
             </div>
 
             <div>
               <label htmlFor="inclusionsStr" className="block text-sm font-medium mb-1">
-                Additional Inclusions
+                {t("tenant.tours.additionalInclusions")}
               </label>
               <input
                 type="text"
                 id="inclusionsStr"
                 name="inclusionsStr"
-                placeholder="Bottled water, Towels, Photos (comma-separated)"
+                placeholder={t("tenant.tours.inclusionsPlaceholder")}
                 defaultValue={actionData?.values?.inclusionsStr || tour.inclusions?.join(", ")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -387,13 +427,13 @@ export default function EditTourPage() {
 
             <div>
               <label htmlFor="exclusionsStr" className="block text-sm font-medium mb-1">
-                Exclusions
+                {t("tenant.tours.exclusions")}
               </label>
               <input
                 type="text"
                 id="exclusionsStr"
                 name="exclusionsStr"
-                placeholder="Certification fees, Marine park fees (comma-separated)"
+                placeholder={t("tenant.tours.exclusionsPlaceholder")}
                 defaultValue={actionData?.values?.exclusionsStr || tour.exclusions?.join(", ")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -403,11 +443,11 @@ export default function EditTourPage() {
 
         {/* Requirements */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Requirements</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.tours.requirements")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="minCertLevel" className="block text-sm font-medium mb-1">
-                Minimum Certification
+                {t("tenant.tours.minCertification")}
               </label>
               <select
                 id="minCertLevel"
@@ -415,24 +455,24 @@ export default function EditTourPage() {
                 defaultValue={actionData?.values?.minCertLevel || tour.minCertLevel}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
-                <option value="">None Required</option>
-                <option value="Open Water">Open Water</option>
-                <option value="Advanced Open Water">Advanced Open Water</option>
-                <option value="Rescue Diver">Rescue Diver</option>
-                <option value="Divemaster">Divemaster</option>
+                <option value="">{t("tenant.tours.noneRequired")}</option>
+                <option value="Open Water">{t("tenant.tours.openWater")}</option>
+                <option value="Advanced Open Water">{t("tenant.tours.advancedOpenWater")}</option>
+                <option value="Rescue Diver">{t("tenant.tours.rescueDiver")}</option>
+                <option value="Divemaster">{t("tenant.tours.divemaster")}</option>
               </select>
             </div>
 
             <div>
               <label htmlFor="minAge" className="block text-sm font-medium mb-1">
-                Minimum Age
+                {t("tenant.tours.minimumAge")}
               </label>
               <input
                 type="number"
                 id="minAge"
                 name="minAge"
                 min="1"
-                placeholder="e.g., 10"
+                placeholder={t("tenant.tours.minAgePlaceholder")}
                 defaultValue={actionData?.values?.minAge || tour.minAge || ""}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
@@ -441,13 +481,13 @@ export default function EditTourPage() {
 
           <div className="mt-4">
             <label htmlFor="requirementsStr" className="block text-sm font-medium mb-1">
-              Other Requirements
+              {t("tenant.tours.otherRequirements")}
             </label>
             <input
               type="text"
               id="requirementsStr"
               name="requirementsStr"
-              placeholder="Must swim, Medical clearance required (comma-separated)"
+              placeholder={t("tenant.tours.requirementsPlaceholder")}
               defaultValue={actionData?.values?.requirementsStr || tour.requirements?.join(", ")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
@@ -464,9 +504,9 @@ export default function EditTourPage() {
               defaultChecked={actionData?.values?.isActive !== "false" && tour.isActive}
               className="rounded"
             />
-            <span className="font-medium">Active</span>
+            <span className="font-medium">{t("common.active")}</span>
             <span className="text-foreground-muted text-sm">
-              (Inactive tours cannot be scheduled)
+              {t("tenant.tours.inactiveCantSchedule")}
             </span>
           </label>
         </div>
@@ -478,13 +518,13 @@ export default function EditTourPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("tenant.tours.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/tours/${tour.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

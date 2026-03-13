@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFetcher, Link } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { Icons } from "./Icons";
 
 interface QuickBooksIntegrationProps {
@@ -13,6 +14,7 @@ export function QuickBooksIntegration({
   onNotification,
   openModal,
 }: QuickBooksIntegrationProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
 
@@ -25,22 +27,26 @@ export function QuickBooksIntegration({
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;
 
-  if (fetcherData && "showQuickBooksOAuthModal" in fetcherData && fetcherData.showQuickBooksOAuthModal) {
-    if (!showOAuthModal) setShowOAuthModal(true);
-  }
+  useEffect(() => {
+    if (!fetcherData) return;
 
-  if (fetcherData && "success" in fetcherData && fetcherData.success && "message" in fetcherData) {
-    if (showOAuthModal) {
+    if ("showQuickBooksOAuthModal" in fetcherData && fetcherData.showQuickBooksOAuthModal) {
+      setShowOAuthModal(true);
+      return;
+    }
+
+    if ("success" in fetcherData && fetcherData.success && "message" in fetcherData) {
       onNotification({ type: "success", message: fetcherData.message as string });
       setShowOAuthModal(false);
       setClientId("");
       setClientSecret("");
+      return;
     }
-  }
 
-  if (fetcherData && "error" in fetcherData && !("success" in fetcherData)) {
-    onNotification({ type: "error", message: fetcherData.error as string });
-  }
+    if ("error" in fetcherData && !("success" in fetcherData)) {
+      onNotification({ type: "error", message: fetcherData.error as string });
+    }
+  }, [fetcherData, onNotification]);
 
   return (
     <>
@@ -50,7 +56,7 @@ export function QuickBooksIntegration({
           to="/tenant/settings/integrations/quickbooks"
           className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset inline-block"
         >
-          Manage Settings
+          {t("tenant.integrations.quickbooks.manageSettings")}
         </Link>
       )}
 
@@ -60,9 +66,9 @@ export function QuickBooksIntegration({
           <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold">Connect QuickBooks</h2>
+                <h2 className="text-lg font-bold">{t("tenant.integrations.quickbooks.connectQuickBooks")}</h2>
                 <p className="text-sm text-foreground-muted">
-                  Enter your QuickBooks OAuth credentials to enable accounting sync
+                  {t("tenant.integrations.quickbooks.enterOAuthCredentials")}
                 </p>
               </div>
               <button
@@ -78,14 +84,14 @@ export function QuickBooksIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-danger">*</span>
+                  {t("tenant.integrations.quickbooks.clientId")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   name="clientId"
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
-                  placeholder="Your QuickBooks Client ID"
+                  placeholder={t("tenant.integrations.quickbooks.clientIdPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
@@ -93,27 +99,27 @@ export function QuickBooksIntegration({
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-danger">*</span>
+                  {t("tenant.integrations.quickbooks.clientSecret")} <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
                   name="clientSecret"
                   value={clientSecret}
                   onChange={(e) => setClientSecret(e.target.value)}
-                  placeholder="Your QuickBooks Client Secret"
+                  placeholder={t("tenant.integrations.quickbooks.clientSecretPlaceholder")}
                   className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  This will be encrypted and stored securely
+                  {t("tenant.integrations.quickbooks.encryptedStorage")}
                 </p>
               </div>
 
               <div className="bg-brand-muted border border-brand rounded-lg p-3">
                 <p className="text-sm text-brand">
-                  <strong>Get your credentials:</strong>
+                  <strong>{t("tenant.integrations.quickbooks.getCredentials")}:</strong>
                   <br />
-                  1. Go to{" "}
+                  1. {t("tenant.integrations.quickbooks.step1GoTo")}{" "}
                   <a
                     href="https://developer.intuit.com/app/developer/dashboard"
                     target="_blank"
@@ -123,9 +129,9 @@ export function QuickBooksIntegration({
                     Intuit Developer Portal
                   </a>
                   <br />
-                  2. Create an app with QuickBooks Online API
+                  2. {t("tenant.integrations.quickbooks.step2CreateApp")}
                   <br />
-                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/quickbooks/callback</code>
+                  3. {t("tenant.integrations.quickbooks.step3AddRedirect")}: <code className="bg-surface-raised px-1 break-all text-xs">{typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/quickbooks/callback</code>
                 </p>
               </div>
 
@@ -135,14 +141,14 @@ export function QuickBooksIntegration({
                   onClick={() => setShowOAuthModal(false)}
                   className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("tenant.integrations.quickbooks.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
                   className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
-                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to QuickBooks"}
+                  {fetcher.state !== "idle" ? t("tenant.integrations.quickbooks.connecting") : t("tenant.integrations.quickbooks.continueToQuickBooks")}
                 </button>
               </div>
             </fetcher.Form>

@@ -45,8 +45,13 @@ vi.mock("../../../../lib/db/schema", () => {
     trainingEnrollments: fields("trainingEnrollments"),
     certificationAgencies: fields("certificationAgencies"),
     certificationLevels: fields("certificationLevels"),
+    agencyCourseTemplates: fields("agencyCourseTemplates"),
   };
 });
+
+vi.mock("../../../../lib/db/training-templates.server", () => ({
+  AGENCY_METADATA: { padi: { name: "PADI" } },
+}));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),

@@ -3,6 +3,7 @@ import { Form, Link, useActionData, useNavigation, redirect } from "react-router
 
 import { auth } from "../../../lib/auth";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { useT } from "../../i18n/use-t";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,6 +70,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ForgotPasswordPage() {
+  const t = useT();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -87,11 +89,10 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-            Check your email
+            {t("tenant.auth.forgotPassword.checkEmail")}
           </h2>
           <p className="mt-2 text-center text-sm text-foreground-muted">
-            If an account exists for <span className="font-medium">{actionData.email}</span>,
-            we've sent a password reset link.
+            {t("tenant.auth.forgotPassword.resetLinkSent", { email: actionData.email })}
           </p>
         </div>
 
@@ -99,7 +100,7 @@ export default function ForgotPasswordPage() {
           <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
             <div className="space-y-4">
               <p className="text-sm text-foreground-muted text-center">
-                The link will expire in 1 hour. If you don't see the email, check your spam folder.
+                {t("tenant.auth.forgotPassword.linkExpiry")}
               </p>
 
               <div className="border-t border-border pt-4">
@@ -107,7 +108,7 @@ export default function ForgotPasswordPage() {
                   to="/login"
                   className="w-full flex justify-center py-2.5 px-4 border border-border-strong rounded-lg shadow-sm text-sm font-medium text-foreground bg-surface-raised hover:bg-surface-inset focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors"
                 >
-                  Back to login
+                  {t("common.backToLogin")}
                 </Link>
               </div>
 
@@ -117,7 +118,7 @@ export default function ForgotPasswordPage() {
                   onClick={() => window.location.reload()}
                   className="text-sm text-brand hover:text-brand"
                 >
-                  Didn't receive the email? Try again
+                  {t("tenant.auth.forgotPassword.tryAgain")}
                 </button>
               </div>
             </div>
@@ -137,10 +138,10 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-          Forgot your password?
+          {t("tenant.auth.forgotPassword.title")}
         </h2>
         <p className="mt-2 text-center text-sm text-foreground-muted">
-          No worries, we'll send you reset instructions.
+          {t("tenant.auth.forgotPassword.subtitle")}
         </p>
       </div>
 
@@ -157,7 +158,7 @@ export default function ForgotPasswordPage() {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email address
+                {t("common.emailAddress")}
               </label>
               <div className="mt-1">
                 <input
@@ -167,7 +168,7 @@ export default function ForgotPasswordPage() {
                   autoComplete="email"
                   required
                   className="appearance-none block w-full px-3 py-2 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
-                  placeholder="Enter your email"
+                  placeholder={t("tenant.forgotPassword.emailPlaceholder")}
                 />
               </div>
             </div>
@@ -185,10 +186,10 @@ export default function ForgotPasswordPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Sending...
+                    {t("common.sending")}
                   </span>
                 ) : (
-                  "Send reset link"
+                  t("tenant.auth.forgotPassword.sendResetLink")
                 )}
               </button>
             </div>
@@ -203,16 +204,16 @@ export default function ForgotPasswordPage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back to login
+              {t("common.backToLogin")}
             </Link>
           </div>
         </div>
 
         {/* Help Text */}
         <p className="mt-6 text-center text-xs text-foreground-muted">
-          Remember your password?{" "}
+          {t("tenant.auth.forgotPassword.rememberPassword")}{" "}
           <Link to="/login" className="text-brand hover:text-brand">
-            Sign in instead
+            {t("tenant.auth.forgotPassword.signInInstead")}
           </Link>
         </p>
       </div>

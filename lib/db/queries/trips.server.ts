@@ -137,6 +137,7 @@ export async function getTripById(organizationId: string, id: string) {
       tourPrice: schema.tours.price,
       tourMaxParticipants: schema.tours.maxParticipants,
       boatName: schema.boats.name,
+      requiresTankSelection: schema.tours.requiresTankSelection,
     })
     .from(schema.trips)
     .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
@@ -149,14 +150,17 @@ export async function getTripById(organizationId: string, id: string) {
 
   if (!result) return null;
 
-  return mapTrip({
-    ...result.trip,
-    tour_name: result.tourName,
-    tour_type: result.tourType,
-    tour_price: result.tourPrice,
-    tour_max_participants: result.tourMaxParticipants,
-    boat_name: result.boatName,
-  });
+  return {
+    ...mapTrip({
+      ...result.trip,
+      tour_name: result.tourName,
+      tour_type: result.tourType,
+      tour_price: result.tourPrice,
+      tour_max_participants: result.tourMaxParticipants,
+      boat_name: result.boatName,
+    }),
+    requiresTankSelection: result.requiresTankSelection ?? false,
+  };
 }
 
 // ============================================================================
@@ -412,4 +416,27 @@ export async function getTripBookedParticipants(organizationId: string, tripId: 
     ));
 
   return Number(result[0]?.total || 0);
+}
+
+/**
+ * Get equipment rental data for all bookings on a trip.
+ * Returns customer names and their equipmentRental JSONB for aggregation.
+ */
+export async function getTripEquipmentRentals(organizationId: string, tripId: string) {
+  const rows = await db
+    .select({
+      bookingNumber: schema.bookings.bookingNumber,
+      firstName: schema.customers.firstName,
+      lastName: schema.customers.lastName,
+      equipmentRental: schema.bookings.equipmentRental,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.customers, eq(schema.bookings.customerId, schema.customers.id))
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.tripId, tripId),
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'refunded', 'no_show')`
+    ));
+
+  return rows;
 }

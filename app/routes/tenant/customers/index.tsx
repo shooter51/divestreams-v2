@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useT } from "../../../i18n/use-t";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { customers } from "../../../../lib/db/schema";
@@ -59,6 +60,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function CustomersPage() {
+  const t = useT();
   const {
     customers,
     total,
@@ -101,12 +103,12 @@ export default function CustomersPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Customers</h1>
+          <h1 className="text-2xl font-bold">{t("nav.customers")}</h1>
           <p className="text-foreground-muted">
-            {total} total customers
+            {t("tenant.customers.totalCustomers", { count: total })}
             {!isPremium && (
               <span className="ml-2 text-sm text-foreground-subtle">
-                ({usage}/{limit} used)
+                {t("tenant.customers.usageOf", { usage, limit })}
               </span>
             )}
           </p>
@@ -125,7 +127,7 @@ export default function CustomersPage() {
           }}
           aria-disabled={!canAddCustomer}
         >
-          Add Customer
+          {t("tenant.customers.addCustomer")}
         </Link>
       </div>
 
@@ -136,14 +138,14 @@ export default function CustomersPage() {
             type="text"
             name="search"
             defaultValue={search}
-            placeholder="Search by name or email..."
+            placeholder={t("tenant.customers.searchPlaceholder")}
             className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
           <button
             type="submit"
             className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
           >
-            Search
+            {t("common.search")}
           </button>
         </div>
       </form>
@@ -153,12 +155,12 @@ export default function CustomersPage() {
         <table className="w-full">
           <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Name</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Contact</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Certification</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Dives</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Total Spent</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Last Dive</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.customers.col.name")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.customers.col.contact")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.customers.col.certification")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.customers.col.dives")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.customers.col.totalSpent")}</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">{t("tenant.customers.col.lastDive")}</th>
               <th className="px-6 py-3"></th>
             </tr>
           </thead>
@@ -166,7 +168,7 @@ export default function CustomersPage() {
             {customers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-foreground-muted">
-                  {search ? "No customers found matching your search." : "No customers yet. Add your first customer to get started."}
+                  {search ? t("tenant.customers.noCustomersFiltered") : t("tenant.customers.noCustomers")}
                 </td>
               </tr>
             ) : (
@@ -187,7 +189,7 @@ export default function CustomersPage() {
                         {customer.certifications[0].agency} {customer.certifications[0].level}
                       </span>
                     ) : (
-                      <span className="text-sm text-foreground-subtle">None</span>
+                      <span className="text-sm text-foreground-subtle">{t("tenant.customers.noCertification")}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">{customer.totalDives}</td>
@@ -195,14 +197,14 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 text-sm text-foreground-muted">
                     {customer.lastDiveAt
                       ? new Date(customer.lastDiveAt).toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })
-                      : "Never"}
+                      : t("tenant.customers.neverDived")}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/tenant/customers/${customer.id}`}
                       className="text-brand hover:underline text-sm"
                     >
-                      View
+                      {t("common.view")}
                     </Link>
                   </td>
                 </tr>
@@ -215,7 +217,7 @@ export default function CustomersPage() {
         {totalPages > 1 && (
           <div className="px-6 py-3 border-t flex justify-between items-center">
             <span className="text-sm text-foreground-muted">
-              Page {page} of {totalPages}
+              {t("common.pageOf", { page, total: totalPages })}
             </span>
             <div className="flex gap-2">
               <button
@@ -223,14 +225,14 @@ export default function CustomersPage() {
                 disabled={page <= 1}
                 className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
-                Previous
+                {t("common.previous")}
               </button>
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page + 1) })}
                 disabled={page >= totalPages}
                 className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
-                Next
+                {t("common.next")}
               </button>
             </div>
           </div>

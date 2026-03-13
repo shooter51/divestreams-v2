@@ -6,9 +6,9 @@
  * Format an ISO date string (YYYY-MM-DD) to a human-readable date (e.g. "Mar 4, 2026").
  * Appends T00:00:00 to avoid timezone shifts when parsing date-only strings.
  */
-export function formatDisplayDate(date: string | null | undefined): string {
+export function formatDisplayDate(date: string | null | undefined, locale = "en-US"): string {
   if (!date) return "";
-  return new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+  return new Date(date + "T00:00:00").toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -16,28 +16,32 @@ export function formatDisplayDate(date: string | null | undefined): string {
 }
 
 /**
- * Format a time string from HH:MM:SS or HH:MM to 12-hour format (e.g. "8:00 AM").
+ * Format a time string from HH:MM:SS or HH:MM to locale-appropriate format.
  */
-export function formatTime(time: string | null | undefined): string {
+export function formatTime(time: string | null | undefined, locale = "en-US"): string {
   if (!time) return "";
   const [hourStr, minuteStr] = time.split(":");
   const hour = parseInt(hourStr, 10);
   const minute = minuteStr || "00";
   if (isNaN(hour)) return time;
-  const period = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return `${displayHour}:${minute} ${period}`;
+  // Use Intl for locale-aware time formatting
+  const d = new Date(2000, 0, 1, hour, parseInt(minute, 10));
+  return d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
 }
 
 /**
  * Format a number as currency (e.g. 1200 → "$1,200.00").
  */
-export function formatCurrency(amount: number | string | null | undefined): string {
+export function formatCurrency(
+  amount: number | string | null | undefined,
+  locale = "en-US",
+  currency = "USD",
+): string {
   const num = typeof amount === "string" ? parseFloat(amount) : (amount ?? 0);
-  if (isNaN(num)) return "$0.00";
-  return new Intl.NumberFormat("en-US", {
+  if (isNaN(num)) return new Intl.NumberFormat(locale, { style: "currency", currency }).format(0);
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
+    currency,
   }).format(num);
 }
 

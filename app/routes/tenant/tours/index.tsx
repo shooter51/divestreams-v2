@@ -1,5 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useT } from "../../../i18n/use-t";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { tours, trips } from "../../../../lib/db/schema";
@@ -110,6 +113,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
     imageUrl: imageMap.get(t.id),
   }));
 
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && tourData.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "tour", tourData.map(t => t.id), locale);
+    for (const tour of tourData) {
+      const tr = translations.get(tour.id);
+      if (tr) {
+        if (tr.name) tour.name = tr.name;
+      }
+    }
+  }
+
   // Get total count for usage tracking (without filters)
   const [{ value: totalTours }] = await db
     .select({ value: count() })
@@ -129,18 +144,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const tourTypes: Record<string, { label: string; color: string }> = {
-  single_dive: { label: "Single Dive", color: "bg-brand-muted text-brand" },
-  multi_dive: { label: "Multi-Dive", color: "bg-info-muted text-info" },
-  course: { label: "Course", color: "bg-info-muted text-info" },
-  snorkel: { label: "Snorkel", color: "bg-info-muted text-info" },
-  night_dive: { label: "Night Dive", color: "bg-surface-overlay text-foreground-muted" },
-  other: { label: "Other", color: "bg-surface-inset text-foreground" },
+const tourTypeColors: Record<string, string> = {
+  single_dive: "bg-brand-muted text-brand",
+  multi_dive: "bg-info-muted text-info",
+  course: "bg-info-muted text-info",
+  snorkel: "bg-info-muted text-info",
+  night_dive: "bg-surface-overlay text-foreground-muted",
+  other: "bg-surface-inset text-foreground",
 };
 
 export default function ToursPage() {
   // Show notifications from URL params
   useNotification();
+  const t = useT();
+
+  const tourTypes: Record<string, { label: string; color: string }> = {
+    single_dive: { label: t("tenant.tours.type.singleDive"), color: tourTypeColors.single_dive },
+    multi_dive: { label: t("tenant.tours.type.multiDive"), color: tourTypeColors.multi_dive },
+    course: { label: t("tenant.tours.type.course"), color: tourTypeColors.course },
+    snorkel: { label: t("tenant.tours.type.snorkel"), color: tourTypeColors.snorkel },
+    night_dive: { label: t("tenant.tours.type.nightDive"), color: tourTypeColors.night_dive },
+    other: { label: t("tenant.tours.type.other"), color: tourTypeColors.other },
+  };
 
   const {
     tours,
@@ -192,12 +217,12 @@ export default function ToursPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Tours</h1>
+          <h1 className="text-2xl font-bold">{t("nav.tours")}</h1>
           <p className="text-foreground-muted">
-            {total} tour templates
+            {t("tenant.tours.tourTemplates", { count: total })}
             {!isPremium && (
               <span className="ml-2 text-sm text-foreground-subtle">
-                ({usage}/{limit} used)
+                {t("tenant.tours.usageOf", { usage, limit })}
               </span>
             )}
           </p>
@@ -216,7 +241,7 @@ export default function ToursPage() {
           }}
           aria-disabled={!canAddTour}
         >
-          Create Tour
+          {t("tenant.tours.createTour")}
         </Link>
       </div>
 
@@ -226,7 +251,7 @@ export default function ToursPage() {
           type="text"
           name="search"
           defaultValue={search}
-          placeholder="Search tours..."
+          placeholder={t("tenant.tours.searchPlaceholder")}
           className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
         <select
@@ -234,19 +259,19 @@ export default function ToursPage() {
           defaultValue={typeFilter}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
-          <option value="">All Types</option>
-          <option value="single_dive">Single Dive</option>
-          <option value="multi_dive">Multi-Dive</option>
-          <option value="course">Course</option>
-          <option value="snorkel">Snorkel</option>
-          <option value="night_dive">Night Dive</option>
-          <option value="other">Other</option>
+          <option value="">{t("tenant.tours.allTypes")}</option>
+          <option value="single_dive">{t("tenant.tours.type.singleDive")}</option>
+          <option value="multi_dive">{t("tenant.tours.type.multiDive")}</option>
+          <option value="course">{t("tenant.tours.type.course")}</option>
+          <option value="snorkel">{t("tenant.tours.type.snorkel")}</option>
+          <option value="night_dive">{t("tenant.tours.type.nightDive")}</option>
+          <option value="other">{t("tenant.tours.type.other")}</option>
         </select>
         <button
           type="submit"
           className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
-          Filter
+          {t("common.filter")}
         </button>
       </form>
 
@@ -255,8 +280,8 @@ export default function ToursPage() {
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
           <p className="text-foreground-muted">
             {search || typeFilter
-              ? "No tours found matching your filters."
-              : "No tours yet. Create your first tour template to get started."}
+              ? t("tenant.tours.noToursFiltered")
+              : t("tenant.tours.noTours")}
           </p>
         </div>
       ) : (
@@ -289,7 +314,7 @@ export default function ToursPage() {
                   <h3 className="font-semibold text-lg">{tour.name}</h3>
                 {!tour.isActive && (
                   <span className="text-xs bg-surface-inset text-foreground-muted px-2 py-1 rounded">
-                    Inactive
+                    {t("tenant.tours.inactive")}
                   </span>
                 )}
               </div>
@@ -312,7 +337,7 @@ export default function ToursPage() {
 
                 <div className="flex justify-between text-foreground-muted">
                   <span>{formatDuration(tour.duration)}</span>
-                  <span>Max {tour.maxParticipants} pax</span>
+                  <span>{t("tenant.tours.maxPax", { count: tour.maxParticipants })}</span>
                 </div>
 
                 <div className="flex justify-between items-center pt-2 border-t">
@@ -320,7 +345,9 @@ export default function ToursPage() {
                     ${tour.price}
                   </span>
                   <span className="text-foreground-muted">
-                    {tour.tripCount} {Number(tour.tripCount) === 1 ? "trip" : "trips"} run
+                    {Number(tour.tripCount) === 1
+                      ? t("tenant.tours.tripRun", { count: tour.tripCount })
+                      : t("tenant.tours.tripsRun", { count: tour.tripCount })}
                   </span>
                 </div>
               </div>

@@ -3,6 +3,7 @@
  */
 
 import { useEffect } from "react";
+import { useT } from "../../i18n/use-t";
 
 interface Transaction {
   id: string;
@@ -41,6 +42,8 @@ export function ReceiptModal({
   transaction,
   organization,
 }: ReceiptModalProps) {
+  const t = useT();
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -73,7 +76,7 @@ export function ReceiptModal({
         <div className="flex justify-between items-start mb-6 print:mb-8">
           <div>
             <h2 className="text-2xl font-bold">{organization.name}</h2>
-            <p className="text-sm text-foreground-muted">Receipt</p>
+            <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.receipt")}</p>
           </div>
           <button
             onClick={onClose}
@@ -89,22 +92,22 @@ export function ReceiptModal({
         {/* Receipt Info */}
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div>
-            <p className="text-foreground-muted">Receipt Number</p>
+            <p className="text-foreground-muted">{t("tenant.pos.transactions.receiptNumber")}</p>
             <p className="font-medium">{transaction.id}</p>
           </div>
           <div>
-            <p className="text-foreground-muted">Date</p>
+            <p className="text-foreground-muted">{t("tenant.pos.transactions.date")}</p>
             <p className="font-medium">{formattedDate} {formattedTime}</p>
           </div>
           {transaction.customerName && (
             <div>
-              <p className="text-foreground-muted">Customer</p>
+              <p className="text-foreground-muted">{t("tenant.pos.transactions.customer")}</p>
               <p className="font-medium">{transaction.customerName}</p>
             </div>
           )}
           <div>
-            <p className="text-foreground-muted">Payment Method</p>
-            <p className="font-medium capitalize">{transaction.paymentMethod || "N/A"}</p>
+            <p className="text-foreground-muted">{t("tenant.pos.transactions.paymentMethod")}</p>
+            <p className="font-medium capitalize">{transaction.paymentMethod || t("tenant.pos.transactions.na")}</p>
           </div>
         </div>
 
@@ -112,7 +115,7 @@ export function ReceiptModal({
 
         {/* Items */}
         <div className="mb-6">
-          <h3 className="font-medium mb-3">Items</h3>
+          <h3 className="font-medium mb-3">{t("tenant.pos.transactions.items")}</h3>
           {transaction.items && transaction.items.length > 0 ? (
             <div className="space-y-2">
               {transaction.items.map((item, index) => (
@@ -128,7 +131,7 @@ export function ReceiptModal({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-foreground-muted">No itemized details</p>
+            <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.noItemizedDetails")}</p>
           )}
         </div>
 
@@ -137,7 +140,7 @@ export function ReceiptModal({
         {/* Totals */}
         <div className="space-y-2 mb-6">
           <div className="flex justify-between text-sm">
-            <span className="text-foreground-muted">Subtotal</span>
+            <span className="text-foreground-muted">{t("tenant.pos.transactions.subtotal")}</span>
             <span>{organization.currency.toUpperCase()} {subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
@@ -145,14 +148,14 @@ export function ReceiptModal({
             <span>{organization.currency.toUpperCase()} {tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg font-bold pt-2 border-t">
-            <span>Total</span>
+            <span>{t("common.total")}</span>
             <span className="text-success">{organization.currency.toUpperCase()} {transaction.amount.toFixed(2)}</span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="text-center pt-6 border-t">
-          <p className="text-sm text-foreground-muted">Thank you for your business!</p>
+          <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.thankYou")}</p>
         </div>
 
         {/* Actions */}
@@ -161,13 +164,13 @@ export function ReceiptModal({
             onClick={handlePrint}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover font-medium"
           >
-            Print Receipt
+            {t("tenant.pos.transactions.printReceipt")}
           </button>
           <button
             onClick={onClose}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </div>
@@ -192,6 +195,8 @@ export function TransactionDetailsModal({
   transaction,
   organization,
 }: TransactionDetailsModalProps) {
+  const t = useT();
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -220,7 +225,7 @@ export function TransactionDetailsModal({
       <div className="absolute inset-0" onClick={onClose} />
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
         <div className="flex justify-between items-start mb-6">
-          <h2 className="text-xl font-bold">Transaction Details</h2>
+          <h2 className="text-xl font-bold">{t("tenant.pos.transactions.transactionDetails")}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-surface-overlay rounded-lg"
@@ -239,7 +244,7 @@ export function TransactionDetailsModal({
               <svg className="w-5 h-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <p className="text-sm text-warning">This transaction has been refunded</p>
+              <p className="text-sm text-warning">{t("tenant.pos.transactions.transactionRefunded")}</p>
             </div>
           </div>
         )}
@@ -248,21 +253,21 @@ export function TransactionDetailsModal({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4 p-4 bg-surface-inset rounded-lg">
             <div>
-              <p className="text-sm text-foreground-muted">Transaction ID</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.transactionId")}</p>
               <p className="font-medium break-all">{transaction.id}</p>
             </div>
             <div>
-              <p className="text-sm text-foreground-muted">Type</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.type")}</p>
               <span className={`text-xs px-2 py-1 rounded capitalize ${typeColors[transaction.type] || "bg-surface-inset text-foreground"}`}>
                 {transaction.type}
               </span>
             </div>
             <div>
-              <p className="text-sm text-foreground-muted">Date & Time</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.dateTime")}</p>
               <p className="font-medium">{formattedDate} {formattedTime}</p>
             </div>
             <div>
-              <p className="text-sm text-foreground-muted">Amount</p>
+              <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.amount")}</p>
               <p className="font-medium text-lg">
                 {organization.currency.toUpperCase()} {transaction.amount.toFixed(2)}
               </p>
@@ -271,15 +276,15 @@ export function TransactionDetailsModal({
 
           {/* Payment Details */}
           <div className="p-4 bg-surface-inset rounded-lg">
-            <h3 className="font-medium mb-3">Payment Details</h3>
+            <h3 className="font-medium mb-3">{t("tenant.pos.transactions.paymentDetails")}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-foreground-muted">Payment Method</p>
-                <p className="font-medium capitalize">{transaction.paymentMethod || "N/A"}</p>
+                <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.paymentMethod")}</p>
+                <p className="font-medium capitalize">{transaction.paymentMethod || t("tenant.pos.transactions.na")}</p>
               </div>
               {transaction.stripePaymentId && (
                 <div>
-                  <p className="text-sm text-foreground-muted">Stripe Payment ID</p>
+                  <p className="text-sm text-foreground-muted">{t("tenant.pos.transactions.stripePaymentId")}</p>
                   <p className="font-medium text-sm break-all">{transaction.stripePaymentId}</p>
                 </div>
               )}
@@ -289,17 +294,17 @@ export function TransactionDetailsModal({
           {/* Customer Info */}
           {(transaction.customerName || transaction.customerEmail) && (
             <div className="p-4 bg-surface-inset rounded-lg">
-              <h3 className="font-medium mb-3">Customer</h3>
+              <h3 className="font-medium mb-3">{t("tenant.pos.transactions.customer")}</h3>
               <div className="space-y-2">
                 {transaction.customerName && (
                   <div>
-                    <p className="text-sm text-foreground-muted">Name</p>
+                    <p className="text-sm text-foreground-muted">{t("common.name")}</p>
                     <p className="font-medium">{transaction.customerName}</p>
                   </div>
                 )}
                 {transaction.customerEmail && (
                   <div>
-                    <p className="text-sm text-foreground-muted">Email</p>
+                    <p className="text-sm text-foreground-muted">{t("common.email")}</p>
                     <p className="font-medium">{transaction.customerEmail}</p>
                   </div>
                 )}
@@ -310,14 +315,14 @@ export function TransactionDetailsModal({
           {/* Items */}
           {transaction.items && transaction.items.length > 0 && (
             <div className="p-4 bg-surface-inset rounded-lg">
-              <h3 className="font-medium mb-3">Items</h3>
+              <h3 className="font-medium mb-3">{t("tenant.pos.transactions.items")}</h3>
               <div className="space-y-2">
                 {transaction.items.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm pb-2 border-b last:border-0">
                     <div>
                       <p className="font-medium">{item.description}</p>
                       <p className="text-foreground-muted">
-                        Qty: {item.quantity} × {organization.currency.toUpperCase()} {item.unitPrice.toFixed(2)}
+                        {t("tenant.pos.transactions.qty")}: {item.quantity} × {organization.currency.toUpperCase()} {item.unitPrice.toFixed(2)}
                       </p>
                     </div>
                     <p className="font-medium">{organization.currency.toUpperCase()} {item.total.toFixed(2)}</p>
@@ -334,7 +339,7 @@ export function TransactionDetailsModal({
             onClick={onClose}
             className="w-full py-3 border rounded-lg hover:bg-surface-inset"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </div>
@@ -363,6 +368,8 @@ export function EmailConfirmationModal({
   organization,
   isLoading,
 }: EmailConfirmationModalProps) {
+  const t = useT();
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -382,24 +389,24 @@ export function EmailConfirmationModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
       <div className="absolute inset-0" onClick={!isLoading ? onClose : undefined} />
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md relative z-10">
-        <h2 className="text-xl font-bold mb-4">Email Receipt</h2>
+        <h2 className="text-xl font-bold mb-4">{t("tenant.pos.transactions.emailReceipt")}</h2>
 
         <div className="space-y-4 mb-6">
           <p className="text-foreground-muted">
-            Send receipt to <span className="font-medium text-foreground">{transaction.customerEmail}</span>?
+            {t("tenant.pos.transactions.sendReceiptTo")} <span className="font-medium text-foreground">{transaction.customerEmail}</span>?
           </p>
 
           <div className="p-4 bg-surface-inset rounded-lg space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Receipt #</span>
+              <span className="text-foreground-muted">{t("tenant.pos.transactions.receiptHash")}</span>
               <span className="font-medium">{transaction.id.slice(0, 8)}...</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Amount</span>
+              <span className="text-foreground-muted">{t("tenant.pos.transactions.amount")}</span>
               <span className="font-medium">{organization.currency.toUpperCase()} {transaction.amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-foreground-muted">Date</span>
+              <span className="text-foreground-muted">{t("tenant.pos.transactions.date")}</span>
               <span className="font-medium">{formattedDate}</span>
             </div>
           </div>
@@ -411,14 +418,14 @@ export function EmailConfirmationModal({
             disabled={isLoading}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset disabled:cursor-not-allowed"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            {isLoading ? "Sending..." : "Send Email"}
+            {isLoading ? t("tenant.pos.transactions.sending") : t("tenant.pos.transactions.sendEmail")}
           </button>
         </div>
       </div>

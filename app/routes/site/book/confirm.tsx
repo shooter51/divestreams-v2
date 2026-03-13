@@ -25,6 +25,7 @@ import {
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { StatusBadge, type BadgeStatus, Badge } from "../../../components/ui";
+import { useT } from "../../../i18n/use-t";
 
 // ============================================================================
 // TYPES
@@ -147,6 +148,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
 // ============================================================================
 
 export default function BookingConfirmationPage() {
+  const t = useT();
   const data = useLoaderData<typeof loader>();
   const { organizationName, isLoggedIn } = data;
 
@@ -227,10 +229,10 @@ export default function BookingConfirmationPage() {
             </div>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
-            {isEnrollment ? "Enrollment Confirmed!" : "Booking Confirmed!"}
+            {isEnrollment ? t("site.confirm.enrollmentConfirmed") : t("site.confirm.bookingConfirmed")}
           </h1>
           <p className="opacity-90">
-            Thank you for your {isEnrollment ? "enrollment" : "booking"} with {organizationName}
+            {isEnrollment ? t("site.confirm.thankYouEnrollment", { org: organizationName }) : t("site.confirm.thankYouBooking", { org: organizationName })}
           </p>
         </div>
       </div>
@@ -247,7 +249,7 @@ export default function BookingConfirmationPage() {
         >
           <div className="text-center mb-6 pb-6 border-b" style={{ borderColor: "var(--color-border)" }}>
             <p className="text-sm opacity-75 mb-1">
-              {isEnrollment ? "Enrollment Reference" : "Booking Reference"}
+              {isEnrollment ? t("site.confirm.enrollmentReference") : t("site.confirm.bookingReference")}
             </p>
             <p
               className="text-3xl font-bold font-mono tracking-wider"
@@ -256,7 +258,7 @@ export default function BookingConfirmationPage() {
               {displayRef}
             </p>
             <p className="text-sm opacity-60 mt-2">
-              Please save this reference for your records
+              {t("site.confirm.saveReference")}
             </p>
           </div>
 
@@ -269,7 +271,7 @@ export default function BookingConfirmationPage() {
           {/* Details */}
           <div className="space-y-4">
             <h2 className="font-semibold text-lg" style={{ color: "var(--text-color)" }}>
-              {isEnrollment ? "Course Details" : "Booking Details"}
+              {isEnrollment ? t("site.confirm.courseDetails") : t("site.confirm.bookingDetails")}
             </h2>
 
             {/* Item Info */}
@@ -321,23 +323,23 @@ export default function BookingConfirmationPage() {
             {/* Customer Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="opacity-60 mb-1">Booked By</p>
+                <p className="opacity-60 mb-1">{t("site.confirm.bookedBy")}</p>
                 <p className="font-medium">
                   {displayCustomer.firstName} {displayCustomer.lastName}
                 </p>
               </div>
               <div>
-                <p className="opacity-60 mb-1">Email</p>
+                <p className="opacity-60 mb-1">{t("common.email")}</p>
                 <p className="font-medium">{displayCustomer.email}</p>
               </div>
               {displayCustomer.phone && (
                 <div>
-                  <p className="opacity-60 mb-1">Phone</p>
+                  <p className="opacity-60 mb-1">{t("common.phone")}</p>
                   <p className="font-medium">{displayCustomer.phone}</p>
                 </div>
               )}
               <div>
-                <p className="opacity-60 mb-1">{isEnrollment ? "Enrollment Date" : "Booking Date"}</p>
+                <p className="opacity-60 mb-1">{isEnrollment ? t("site.confirm.enrollmentDate") : t("site.confirm.bookingDate")}</p>
                 <p className="font-medium">{formatDateTime(displayCreatedAt)}</p>
               </div>
             </div>
@@ -345,7 +347,7 @@ export default function BookingConfirmationPage() {
             {/* Special Requests */}
             {displaySpecialRequests && (
               <div className="text-sm">
-                <p className="opacity-60 mb-1">{isEnrollment ? "Notes" : "Special Requests"}</p>
+                <p className="opacity-60 mb-1">{isEnrollment ? t("common.notes") : t("site.confirm.specialRequests")}</p>
                 <p className="font-medium">{displaySpecialRequests}</p>
               </div>
             )}
@@ -353,21 +355,21 @@ export default function BookingConfirmationPage() {
             {/* Payment Summary */}
             <div className="pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
               <h3 className="font-semibold mb-3" style={{ color: "var(--text-color)" }}>
-                Payment Summary
+                {t("site.confirm.paymentSummary")}
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="opacity-75">Subtotal</span>
+                  <span className="opacity-75">{t("site.confirm.subtotal")}</span>
                   <span>{formatCurrency(displaySubtotal, displayCurrency)}</span>
                 </div>
                 {parseFloat(displayTax) > 0 && (
                   <div className="flex justify-between">
-                    <span className="opacity-75">Tax</span>
+                    <span className="opacity-75">{t("site.confirm.tax")}</span>
                     <span>{formatCurrency(displayTax, displayCurrency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t" style={{ borderColor: "var(--color-border)" }}>
-                  <span>Total</span>
+                  <span>{t("common.total")}</span>
                   <span style={{ color: "var(--primary-color)" }}>
                     {formatCurrency(displayTotal, displayCurrency)}
                   </span>
@@ -394,7 +396,7 @@ export default function BookingConfirmationPage() {
           </div>
           <div>
             <h3 className="font-semibold mb-1" style={{ color: "var(--text-color)" }}>
-              Confirmation Email Sent
+              {t("site.confirm.emailSent")}
             </h3>
             <p className="text-sm opacity-75">
               A confirmation email has been sent to{" "}
@@ -414,7 +416,7 @@ export default function BookingConfirmationPage() {
           }}
         >
           <h3 className="font-semibold mb-4" style={{ color: "var(--text-color)" }}>
-            What's Next?
+            {t("site.confirm.whatsNext")}
           </h3>
           <div className="space-y-4">
             <NextStep
@@ -455,7 +457,7 @@ export default function BookingConfirmationPage() {
               style={{ backgroundColor: "var(--primary-color)" }}
             >
               <BookingsIcon className="w-5 h-5" />
-              View My Bookings
+              {t("site.confirm.viewMyBookings")}
             </Link>
           ) : (
             <Link
@@ -464,7 +466,7 @@ export default function BookingConfirmationPage() {
               style={{ backgroundColor: "var(--primary-color)" }}
             >
               <UserPlusIcon className="w-5 h-5" />
-              Create Account to Manage Bookings
+              {t("site.confirm.createAccountManage")}
             </Link>
           )}
           <Link
@@ -476,7 +478,7 @@ export default function BookingConfirmationPage() {
             }}
           >
             <HomeIcon className="w-5 h-5" />
-            Back to Homepage
+            {t("common.backToHome")}
           </Link>
         </div>
 
@@ -488,7 +490,7 @@ export default function BookingConfirmationPage() {
             style={{ color: "var(--primary-color)" }}
           >
             <PrintIcon className="w-4 h-4" />
-            Print Confirmation
+            {t("site.confirm.printConfirmation")}
           </button>
         </div>
       </div>

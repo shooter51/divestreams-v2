@@ -1,11 +1,12 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams, useNavigate } from "react-router";
+import { useT } from "../../i18n/use-t";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { trips, bookings, customers, tours } from "../../../lib/db/schema";
 import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
-import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
+import { DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 import { StatusBadge, type BadgeStatus } from "../../components/ui";
 import { formatTime, formatCurrency, formatCapacity, formatLabel, formatDisplayDate } from "../../lib/format";
@@ -199,6 +200,7 @@ export default function DashboardPage() {
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const t = useT();
 
   // Handle upgrade modal from query params
   const upgradeParam = searchParams.get("upgrade");
@@ -219,7 +221,7 @@ export default function DashboardPage() {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">{t("tenant.dashboard.title")}</h1>
           <p className="text-foreground-muted">{orgName}</p>
         </div>
 
@@ -238,7 +240,7 @@ export default function DashboardPage() {
           </div>
           {!isPremium && (
             <Link to="/tenant/settings/billing" className="text-sm text-brand hover:underline mt-1 inline-block">
-              Upgrade for more features
+              {t("tenant.dashboard.upgradeForMore")}
             </Link>
           )}
         </div>
@@ -253,14 +255,14 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-6 mb-8">
-        <StatCard title="Today's Bookings" value={stats.todayBookings} icon="calendar" />
+        <StatCard title={t("tenant.dashboard.stat.todaysBookings")} value={stats.todayBookings} icon="calendar" />
         <StatCard
-          title="This Week's Revenue"
+          title={t("tenant.dashboard.stat.weekRevenue")}
           value={formatCurrency(stats.weekRevenue)}
           icon="dollar"
         />
-        <StatCard title="Active Trips" value={stats.activeTrips} icon="boat" />
-        <StatCard title="Total Customers" value={stats.totalCustomers} icon="users" />
+        <StatCard title={t("tenant.dashboard.stat.activeTrips")} value={stats.activeTrips} icon="boat" />
+        <StatCard title={t("tenant.dashboard.stat.totalCustomers")} value={stats.totalCustomers} icon="users" />
       </div>
 
       {/* Usage Card */}
@@ -276,7 +278,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-6">
         {/* Upcoming Trips */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Upcoming Trips</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("tenant.dashboard.upcomingTrips")}</h2>
           <div className="space-y-3">
             {upcomingTrips.map((trip) => (
               <Link
@@ -294,7 +296,7 @@ export default function DashboardPage() {
                   <p className="font-medium">
                     {formatCapacity(trip.participants, trip.maxParticipants)}
                   </p>
-                  <p className="text-sm text-foreground-muted">participants</p>
+                  <p className="text-sm text-foreground-muted">{t("tenant.dashboard.participants")}</p>
                 </div>
               </Link>
             ))}
@@ -303,13 +305,13 @@ export default function DashboardPage() {
             to="/tenant/trips"
             className="block text-center text-brand mt-4 text-sm hover:underline"
           >
-            View all trips →
+            {t("tenant.dashboard.viewAllTrips")}
           </Link>
         </div>
 
         {/* Recent Bookings */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Recent Bookings</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("tenant.dashboard.recentBookings")}</h2>
           <div className="space-y-3">
             {recentBookings.map((booking) => (
               <Link
@@ -332,7 +334,7 @@ export default function DashboardPage() {
             to="/tenant/bookings"
             className="block text-center text-brand mt-4 text-sm hover:underline"
           >
-            View all bookings →
+            {t("tenant.dashboard.viewAllBookings")}
           </Link>
         </div>
       </div>
@@ -402,33 +404,34 @@ interface UsageCardProps {
 }
 
 function UsageCard({ planName, limitChecks, usage, planLimits, isPremium, hasWarning }: UsageCardProps) {
+  const t = useT();
   const usageItems: Array<{
-    key: keyof typeof LIMIT_LABELS;
+    key: keyof PlanLimits;
     label: string;
     current: number;
     limit: number;
     check: LimitCheck;
     unit?: string;
   }> = [
-    { key: "users", label: LIMIT_LABELS.users, current: usage.users, limit: planLimits.users, check: limitChecks.users },
-    { key: "customers", label: LIMIT_LABELS.customers, current: usage.customers, limit: planLimits.customers, check: limitChecks.customers },
-    { key: "toursPerMonth", label: LIMIT_LABELS.toursPerMonth, current: usage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
-    { key: "storageGb", label: LIMIT_LABELS.storageGb, current: usage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
+    { key: "users", label: t("tenant.dashboard.limits.users"), current: usage.users, limit: planLimits.users, check: limitChecks.users },
+    { key: "customers", label: t("tenant.dashboard.limits.customers"), current: usage.customers, limit: planLimits.customers, check: limitChecks.customers },
+    { key: "toursPerMonth", label: t("tenant.dashboard.limits.toursPerMonth"), current: usage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
+    { key: "storageGb", label: t("tenant.dashboard.limits.storageGb"), current: usage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
   ];
 
   return (
     <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold">Usage Overview</h2>
-          <p className="text-sm text-foreground-muted">Current plan: <span className="font-medium text-foreground">{planName}</span></p>
+          <h2 className="text-lg font-semibold">{t("tenant.dashboard.usage.title")}</h2>
+          <p className="text-sm text-foreground-muted">{t("tenant.dashboard.usage.currentPlan")} <span className="font-medium text-foreground">{planName}</span></p>
         </div>
         {hasWarning && !isPremium && (
           <Link
             to="/tenant/settings/billing"
             className="px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand-hover transition-colors"
           >
-            Upgrade Plan
+            {t("tenant.dashboard.usage.upgradePlan")}
           </Link>
         )}
       </div>
@@ -458,6 +461,7 @@ interface UsageItemProps {
 }
 
 function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
+  const t = useT();
   const isUnlimited = limit === -1;
   const isOverLimit = !check.allowed;
   const isWarning = check.warning;
@@ -510,14 +514,14 @@ function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
             />
           </div>
           <p className="text-xs text-foreground-muted mt-1">
-            {check.percent}% used
-            {check.remaining > 0 && ` - ${check.remaining} remaining`}
+            {t("tenant.dashboard.usage.percentUsed", { percent: check.percent })}
+            {check.remaining > 0 && ` - ${t("tenant.dashboard.usage.remaining", { count: check.remaining })}`}
           </p>
         </div>
       )}
 
       {isUnlimited && (
-        <p className="text-xs text-success mt-2">Unlimited</p>
+        <p className="text-xs text-success mt-2">{t("tenant.dashboard.usage.unlimited")}</p>
       )}
     </div>
   );
@@ -530,11 +534,12 @@ interface UpgradeModalProps {
 }
 
 function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
+  const t = useT();
   const limitLabels: Record<string, string> = {
-    users: "team members",
-    customers: "customers",
-    toursPerMonth: "tours this month",
-    storageGb: "storage",
+    users: t("tenant.dashboard.limits.users"),
+    customers: t("tenant.dashboard.limits.customers"),
+    toursPerMonth: t("tenant.dashboard.limits.toursPerMonth"),
+    storageGb: t("tenant.dashboard.limits.storageGb"),
   };
 
   // Get feature label from centralized FEATURE_LABELS, with fallback formatting
@@ -550,14 +555,16 @@ function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
       .replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
+  const limitLabel = limitExceeded ? (limitLabels[limitExceeded] || limitExceeded) : "";
+
   const title = limitExceeded
-    ? `${limitLabels[limitExceeded] || limitExceeded} Limit Reached`
+    ? t("tenant.dashboard.upgrade.limitReachedTitle", { label: limitLabel })
     : feature
       ? `Upgrade to Access ${getFeatureLabel(feature)}`
       : "Upgrade Your Plan";
 
   const description = limitExceeded
-    ? `You've reached the maximum number of ${limitLabels[limitExceeded] || limitExceeded} for your current plan. Upgrade to get more.`
+    ? t("tenant.dashboard.upgrade.limitReachedDescription", { label: limitLabel })
     : feature
       ? `The ${getFeatureLabel(feature)} feature requires a higher tier plan.`
       : "Unlock more features and higher limits with an upgraded plan.";
@@ -596,13 +603,13 @@ function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
               to="/tenant/settings/billing"
               className="block w-full px-4 py-3 bg-brand text-white font-medium rounded-lg hover:bg-brand-hover transition-colors"
             >
-              View Upgrade Options
+              {t("tenant.dashboard.upgrade.viewOptions")}
             </Link>
             <button
               onClick={onClose}
               className="block w-full px-4 py-3 text-foreground-muted font-medium rounded-lg hover:bg-surface-overlay transition-colors"
             >
-              Maybe Later
+              {t("tenant.dashboard.upgrade.maybeLater")}
             </button>
           </div>
         </div>

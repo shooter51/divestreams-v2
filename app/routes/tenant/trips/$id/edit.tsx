@@ -7,6 +7,7 @@ import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { updateRecurringTrip, getRecurringTemplate } from "../../../../../lib/trips/recurring.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
@@ -157,15 +158,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function EditTripPage() {
   const { trip, boats, tours, staff } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const t = useT();
   const isSubmitting = navigation.state === "submitting";
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to={`/tenant/trips/${trip.id}`} className="text-brand hover:underline text-sm">
-          ← Back to Trip
+          {t("tenant.trips.backToTrip")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Trip</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.trips.editTrip")}</h1>
         <p className="text-foreground-muted">{trip.tourName} - {trip.date}</p>
       </div>
 
@@ -177,8 +179,7 @@ export default function EditTripPage() {
             <input type="hidden" name="recurringTemplateId" value={trip.recurringTemplateId ?? ""} />
             <div className="bg-brand-muted border border-brand rounded-xl p-4">
               <p className="text-sm font-medium text-brand mb-3">
-                This is a recurring trip ({trip.recurrencePattern ?? "series"}).
-                How would you like to save changes?
+                {t("tenant.trips.thisIsRecurring", { pattern: trip.recurrencePattern ?? "series" })}
               </p>
               <div className="flex gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -189,7 +190,7 @@ export default function EditTripPage() {
                     defaultChecked
                     className="accent-brand"
                   />
-                  <span className="text-sm">This trip only</span>
+                  <span className="text-sm">{t("tenant.trips.thisTripOnly")}</span>
                 </label>
                 {trip.recurringTemplateId && (
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -199,7 +200,7 @@ export default function EditTripPage() {
                       value="series"
                       className="accent-brand"
                     />
-                    <span className="text-sm">This and all future trips in the series</span>
+                    <span className="text-sm">{t("tenant.trips.thisAndFuture")}</span>
                   </label>
                 )}
                 {trip.isRecurringTemplate && (
@@ -210,7 +211,7 @@ export default function EditTripPage() {
                       value="series"
                       className="accent-brand"
                     />
-                    <span className="text-sm">All future trips in the series</span>
+                    <span className="text-sm">{t("tenant.trips.allFuture")}</span>
                   </label>
                 )}
               </div>
@@ -219,11 +220,11 @@ export default function EditTripPage() {
         )}
         {/* Trip Details */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Trip Details</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.trips.tripDetails")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="tourId" className="block text-sm font-medium mb-1">
-                Tour *
+                {t("common.tour")} *
               </label>
               <select
                 id="tourId"
@@ -242,7 +243,7 @@ export default function EditTripPage() {
 
             <div>
               <label htmlFor="boatId" className="block text-sm font-medium mb-1">
-                Boat *
+                {t("common.boat")} *
               </label>
               <select
                 id="boatId"
@@ -261,7 +262,7 @@ export default function EditTripPage() {
 
             <div>
               <label htmlFor="date" className="block text-sm font-medium mb-1">
-                Date *
+                {t("common.date")} *
               </label>
               <input
                 type="date"
@@ -276,7 +277,7 @@ export default function EditTripPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="startTime" className="block text-sm font-medium mb-1">
-                  Start Time *
+                  {t("tenant.trips.startTime")} *
                 </label>
                 <input
                   type="time"
@@ -290,7 +291,7 @@ export default function EditTripPage() {
 
               <div>
                 <label htmlFor="endTime" className="block text-sm font-medium mb-1">
-                  End Time *
+                  {t("tenant.trips.endTime")} *
                 </label>
                 <input
                   type="time"
@@ -307,12 +308,12 @@ export default function EditTripPage() {
 
         {/* Capacity & Pricing */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Capacity & Pricing</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.trips.capacityPricing")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="maxParticipants" className="block text-sm font-medium mb-1">
-                Max Participants
-                <span className="text-foreground-muted font-normal text-xs ml-1">(leave blank to use tour default)</span>
+                {t("common.capacity")}
+                <span className="text-foreground-muted font-normal text-xs ml-1">({t("tenant.trips.leaveBlankDefault")})</span>
               </label>
               <input
                 type="number"
@@ -327,7 +328,7 @@ export default function EditTripPage() {
 
             <div>
               <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price per Person ($) *
+                {t("tenant.trips.pricePerPerson")} ($) *
               </label>
               <input
                 type="number"
@@ -345,10 +346,10 @@ export default function EditTripPage() {
 
         {/* Status */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Status</h2>
+          <h2 className="font-semibold mb-4">{t("common.status")}</h2>
           <div>
             <label htmlFor="status" className="block text-sm font-medium mb-1">
-              Trip Status *
+              {t("tenant.trips.tripStatus")} *
             </label>
             <select
               id="status"
@@ -357,28 +358,28 @@ export default function EditTripPage() {
               defaultValue={trip.status}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
-              <option value="open">Open</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="full">Full</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="open">{t("tenant.trips.statusOpen")}</option>
+              <option value="confirmed">{t("tenant.trips.statusConfirmed")}</option>
+              <option value="full">{t("tenant.trips.statusFull")}</option>
+              <option value="completed">{t("tenant.trips.statusCompleted")}</option>
+              <option value="cancelled">{t("tenant.trips.statusCancelled")}</option>
             </select>
           </div>
         </div>
 
         {/* Notes */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Notes</h2>
+          <h2 className="font-semibold mb-4">{t("common.notes")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="weatherNotes" className="block text-sm font-medium mb-1">
-                Weather Notes
+                {t("tenant.trips.weatherNotes")}
               </label>
               <textarea
                 id="weatherNotes"
                 name="weatherNotes"
                 rows={2}
-                placeholder="Weather conditions, forecast..."
+                placeholder={t("tenant.trips.weatherConditionsPlaceholder")}
                 defaultValue={trip.weatherNotes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -386,13 +387,13 @@ export default function EditTripPage() {
 
             <div>
               <label htmlFor="notes" className="block text-sm font-medium mb-1">
-                Internal Notes
+                {t("tenant.trips.internalNotes")}
               </label>
               <textarea
                 id="notes"
                 name="notes"
                 rows={3}
-                placeholder="Notes visible only to staff..."
+                placeholder={t("tenant.trips.notesStaffOnlyPlaceholder")}
                 defaultValue={trip.notes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
@@ -406,10 +407,10 @@ export default function EditTripPage() {
                   defaultChecked={trip.isPublic}
                   className="rounded"
                 />
-                <span className="text-sm font-medium">Show on public website</span>
+                <span className="text-sm font-medium">{t("tenant.trips.showOnPublicSite")}</span>
               </label>
               <p className="text-xs text-foreground-muted mt-1">
-                Make this trip visible on your public booking site
+                {t("tenant.trips.publicSiteDesc")}
               </p>
             </div>
           </div>
@@ -418,8 +419,8 @@ export default function EditTripPage() {
         {/* Dive Sites (from tour, read-only) */}
         {trip.diveSites.length > 0 && (
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-1">Dive Sites</h2>
-            <p className="text-xs text-foreground-muted mb-3">From the selected tour</p>
+            <h2 className="font-semibold mb-1">{t("tenant.trips.diveSites")}</h2>
+            <p className="text-xs text-foreground-muted mb-3">{t("tenant.trips.fromSelectedTour")}</p>
             <div className="space-y-2">
               {trip.diveSites.map((site) => (
                 <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
@@ -436,9 +437,9 @@ export default function EditTripPage() {
 
         {/* Staff Assignment */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Staff Assignment</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.trips.staffAssignment")}</h2>
           {staff.length === 0 ? (
-            <p className="text-sm text-foreground-muted">No staff members found. Add staff in Settings → Team.</p>
+            <p className="text-sm text-foreground-muted">{t("tenant.trips.noStaffFound")}</p>
           ) : (
             <div className="space-y-2">
               {staff.map((member) => (
@@ -465,13 +466,13 @@ export default function EditTripPage() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("common.saving") : t("common.saveChanges")}
           </button>
           <Link
             to={`/tenant/trips/${trip.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </Link>
         </div>
       </form>

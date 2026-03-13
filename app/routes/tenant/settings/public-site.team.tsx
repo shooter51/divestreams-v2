@@ -10,6 +10,7 @@ import {
   reorderTeamMembers,
 } from "../../../../lib/db/team.server";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Team Profiles - Public Site Settings" }];
 
@@ -130,6 +131,7 @@ export async function action({ request }: ActionFunctionArgs) {
 // ============================================================================
 
 export default function PublicSiteTeamPage() {
+  const t = useT();
   const { teamMembers } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showModal, setShowModal] = useState(false);
@@ -149,7 +151,7 @@ export default function PublicSiteTeamPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDelete = (member: any) => {
-    if (confirm(`Are you sure you want to delete ${member.name}?`)) {
+    if (confirm(t("tenant.settings.publicSite.team.confirmDelete", { name: member.name }))) {
       const formData = new FormData();
       formData.append("intent", "delete");
       formData.append("memberId", member.id);
@@ -160,9 +162,9 @@ export default function PublicSiteTeamPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Team Member Profiles</h2>
+        <h2 className="text-xl font-semibold mb-2">{t("tenant.settings.publicSite.team.title")}</h2>
         <p className="text-sm text-foreground-muted">
-          Manage team member profiles that appear on your public About page
+          {t("tenant.settings.publicSite.team.description")}
         </p>
       </div>
 
@@ -172,19 +174,19 @@ export default function PublicSiteTeamPage() {
           onClick={handleNew}
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
-          Add Team Member
+          {t("tenant.settings.publicSite.team.addTeamMember")}
         </button>
       </div>
 
       {/* Team Members List */}
       {teamMembers.length === 0 ? (
         <div className="bg-surface-inset border border-border rounded-lg p-8 text-center">
-          <p className="text-foreground-muted mb-4">No team members yet</p>
+          <p className="text-foreground-muted mb-4">{t("tenant.settings.publicSite.team.noMembers")}</p>
           <button
             onClick={handleNew}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Add Your First Team Member
+            {t("tenant.settings.publicSite.team.addFirstMember")}
           </button>
         </div>
       ) : (
@@ -215,7 +217,7 @@ export default function PublicSiteTeamPage() {
                       <p className="font-medium">{member.name}</p>
                       {!member.isPublic && (
                         <span className="text-xs bg-surface-overlay text-foreground px-2 py-0.5 rounded">
-                          Hidden
+                          {t("tenant.settings.publicSite.team.hidden")}
                         </span>
                       )}
                     </div>
@@ -235,13 +237,13 @@ export default function PublicSiteTeamPage() {
                     onClick={() => handleEdit(member)}
                     className="text-brand hover:bg-brand-muted px-3 py-1 rounded"
                   >
-                    Edit
+                    {t("common.edit")}
                   </button>
                   <button
                     onClick={() => handleDelete(member)}
                     className="text-danger hover:bg-danger-muted px-3 py-1 rounded"
                   >
-                    Delete
+                    {t("common.delete")}
                   </button>
                 </div>
               </div>
@@ -255,7 +257,7 @@ export default function PublicSiteTeamPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
-              {editingMember ? "Edit Team Member" : "Add Team Member"}
+              {editingMember ? t("tenant.settings.publicSite.team.editTeamMember") : t("tenant.settings.publicSite.team.addTeamMember")}
             </h2>
             <fetcher.Form
               method="post"
@@ -270,7 +272,7 @@ export default function PublicSiteTeamPage() {
                 {/* Name */}
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium mb-1">
-                    Name *
+                    {t("common.name")} *
                   </label>
                   <input
                     type="text"
@@ -278,7 +280,7 @@ export default function PublicSiteTeamPage() {
                     name="name"
                     required
                     defaultValue={editingMember?.name}
-                    placeholder="John Smith"
+                    placeholder={t("tenant.settings.publicSite.team.namePlaceholder")}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
@@ -286,7 +288,7 @@ export default function PublicSiteTeamPage() {
                 {/* Role */}
                 <div>
                   <label htmlFor="role" className="block text-sm font-medium mb-1">
-                    Role/Title *
+                    {t("tenant.settings.publicSite.team.roleTitle")} *
                   </label>
                   <input
                     type="text"
@@ -294,7 +296,7 @@ export default function PublicSiteTeamPage() {
                     name="role"
                     required
                     defaultValue={editingMember?.role}
-                    placeholder="Owner & Lead Instructor"
+                    placeholder={t("tenant.settings.publicSite.team.rolePlaceholder")}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
@@ -302,7 +304,7 @@ export default function PublicSiteTeamPage() {
                 {/* Bio */}
                 <div>
                   <label htmlFor="bio" className="block text-sm font-medium mb-1">
-                    Bio
+                    {t("tenant.settings.publicSite.team.bio")}
                   </label>
                   <textarea
                     id="bio"
@@ -317,7 +319,7 @@ export default function PublicSiteTeamPage() {
                 {/* Image URL */}
                 <div>
                   <label htmlFor="imageUrl" className="block text-sm font-medium mb-1">
-                    Image URL
+                    {t("tenant.settings.publicSite.team.imageUrl")}
                   </label>
                   <input
                     type="url"
@@ -333,7 +335,7 @@ export default function PublicSiteTeamPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium mb-1">
-                      Email
+                      {t("common.email")}
                     </label>
                     <input
                       type="email"
@@ -347,7 +349,7 @@ export default function PublicSiteTeamPage() {
 
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium mb-1">
-                      Phone
+                      {t("common.phone")}
                     </label>
                     <input
                       type="tel"
@@ -363,7 +365,7 @@ export default function PublicSiteTeamPage() {
                 {/* Years of Experience */}
                 <div>
                   <label htmlFor="yearsExperience" className="block text-sm font-medium mb-1">
-                    Years of Experience
+                    {t("tenant.settings.publicSite.team.yearsExperience")}
                   </label>
                   <input
                     type="number"
@@ -380,7 +382,7 @@ export default function PublicSiteTeamPage() {
                 {/* Certifications */}
                 <div>
                   <label htmlFor="certifications" className="block text-sm font-medium mb-1">
-                    Certifications (comma-separated)
+                    {t("tenant.settings.publicSite.team.certifications")}
                   </label>
                   <input
                     type="text"
@@ -391,14 +393,14 @@ export default function PublicSiteTeamPage() {
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">
-                    Separate multiple certifications with commas
+                    {t("tenant.settings.publicSite.team.separateWithCommas")}
                   </p>
                 </div>
 
                 {/* Specialties */}
                 <div>
                   <label htmlFor="specialties" className="block text-sm font-medium mb-1">
-                    Specialties (comma-separated)
+                    {t("tenant.settings.publicSite.team.specialties")}
                   </label>
                   <input
                     type="text"
@@ -409,7 +411,7 @@ export default function PublicSiteTeamPage() {
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">
-                    Separate multiple specialties with commas
+                    {t("tenant.settings.publicSite.team.separateSpecialtiesWithCommas")}
                   </p>
                 </div>
 
@@ -425,7 +427,7 @@ export default function PublicSiteTeamPage() {
                       className="w-4 h-4 text-brand rounded focus:ring-2 focus:ring-brand"
                     />
                     <label htmlFor="isPublic" className="text-sm font-medium">
-                      Show on public About page
+                      {t("tenant.settings.publicSite.team.showOnAboutPage")}
                     </label>
                   </div>
                 )}
@@ -436,14 +438,14 @@ export default function PublicSiteTeamPage() {
                   type="submit"
                   className="flex-1 bg-brand text-white py-2 rounded-lg hover:bg-brand-hover"
                 >
-                  {editingMember ? "Update" : "Add"} Team Member
+                  {editingMember ? t("tenant.settings.publicSite.team.updateTeamMember") : t("tenant.settings.publicSite.team.addTeamMember")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   className="flex-1 border py-2 rounded-lg hover:bg-surface-inset"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </div>
             </fetcher.Form>

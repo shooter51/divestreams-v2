@@ -11,7 +11,10 @@ import {
 import { getTenantDb } from "../../../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../../components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../../lib/use-notification";
+import { useT } from "../../../../../i18n/use-t";
 import { CsrfInput } from "../../../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../../i18n/types";
 
 export const meta: MetaFunction = () => [{ title: "Edit Course - DiveStreams" }];
 
@@ -171,6 +174,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
     requiredItems,
   });
 
+  // Enqueue auto-translation for non-default locales
+  const fieldsToTranslate = [
+    { field: "name", text: name.trim() },
+    { field: "description", text: description },
+  ].filter((f) => f.text?.trim());
+
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    await enqueueTranslation({
+      orgId: ctx.org.id,
+      entityType: "course",
+      entityId: courseId,
+      fields: fieldsToTranslate,
+      targetLocale: locale,
+    });
+  }
+
   const courseName = name.trim();
   return redirect(redirectWithNotification(`/tenant/training/courses/${courseId}`, `Course "${courseName}" has been successfully updated`, "success"));
 }
@@ -180,6 +200,7 @@ export default function EditCoursePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -191,21 +212,21 @@ export default function EditCoursePage() {
           to={`/tenant/training/courses/${course.id}`}
           className="text-brand hover:underline text-sm"
         >
-          &larr; Back to Course
+          &larr; {t("tenant.training.courses.backToCourse")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Course</h1>
-        <p className="text-foreground-muted">Update course details.</p>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.training.courses.editCourse")}</h1>
+        <p className="text-foreground-muted">{t("tenant.training.courses.updateCourseDetails")}</p>
       </div>
 
       <form method="post" className="space-y-6">
         <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <h2 className="font-semibold mb-4">{t("common.basicInfo")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Course Name *
+                {t("tenant.training.courses.courseName")} *
               </label>
               <input
                 type="text"
@@ -222,21 +243,21 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="code" className="block text-sm font-medium mb-1">
-                Course Code
+                {t("tenant.training.courses.courseCode")}
               </label>
               <input
                 type="text"
                 id="code"
                 name="code"
                 defaultValue={actionData?.values?.code || course.code || ""}
-                placeholder="e.g., OWD, AOWD, EFR"
+                placeholder={t("tenant.training.courses.codePlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 id="description"
@@ -250,7 +271,7 @@ export default function EditCoursePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="agencyId" className="block text-sm font-medium mb-1">
-                  Certification Agency
+                  {t("tenant.training.courses.certificationAgency")}
                 </label>
                 <select
                   id="agencyId"
@@ -258,7 +279,7 @@ export default function EditCoursePage() {
                   defaultValue={actionData?.values?.agencyId || course.agencyId || ""}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
-                  <option value="">Select Agency</option>
+                  <option value="">{t("tenant.training.courses.selectAgency")}</option>
                   {agencies.map((agency) => (
                     <option key={agency.id} value={agency.id}>
                       {agency.name}
@@ -269,7 +290,7 @@ export default function EditCoursePage() {
 
               <div>
                 <label htmlFor="levelId" className="block text-sm font-medium mb-1">
-                  Certification Level
+                  {t("tenant.training.courses.certificationLevel")}
                 </label>
                 <select
                   id="levelId"
@@ -277,7 +298,7 @@ export default function EditCoursePage() {
                   defaultValue={actionData?.values?.levelId || course.levelId || ""}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
-                  <option value="">Select Level</option>
+                  <option value="">{t("tenant.training.courses.selectLevel")}</option>
                   {levels.map((level) => (
                     <option key={level.id} value={level.id}>
                       {level.name} {level.agencyName ? `(${level.agencyName})` : ""}
@@ -291,7 +312,7 @@ export default function EditCoursePage() {
 
         {/* Course Images */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Course Images</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.courseImages")}</h2>
           <ImageManager
             entityType="course"
             entityId={course.id}
@@ -302,11 +323,11 @@ export default function EditCoursePage() {
 
         {/* Duration & Structure */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Duration & Structure</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.durationStructure")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="durationDays" className="block text-sm font-medium mb-1">
-                Duration (days)
+                {t("tenant.training.courses.durationDays")}
               </label>
               <input
                 type="number"
@@ -320,7 +341,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="classroomHours" className="block text-sm font-medium mb-1">
-                Classroom Hours
+                {t("tenant.training.courses.classroomHours")}
               </label>
               <input
                 type="number"
@@ -334,7 +355,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="poolHours" className="block text-sm font-medium mb-1">
-                Pool/Confined Water Hours
+                {t("tenant.training.courses.poolHours")}
               </label>
               <input
                 type="number"
@@ -348,7 +369,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="openWaterDives" className="block text-sm font-medium mb-1">
-                Open Water Dives
+                {t("tenant.training.courses.openWaterDives")}
               </label>
               <input
                 type="number"
@@ -364,11 +385,11 @@ export default function EditCoursePage() {
 
         {/* Pricing & Capacity */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.pricingCapacity")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Price *
+                {t("common.price")} *
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -390,7 +411,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="currency" className="block text-sm font-medium mb-1">
-                Currency
+                {t("tenant.training.courses.currency")}
               </label>
               <select
                 id="currency"
@@ -410,7 +431,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="maxStudents" className="block text-sm font-medium mb-1">
-                Max Students per Session
+                {t("tenant.training.courses.maxStudentsPerSession")}
               </label>
               <input
                 type="number"
@@ -424,7 +445,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="minAge" className="block text-sm font-medium mb-1">
-                Minimum Age
+                {t("tenant.training.courses.minimumAge")}
               </label>
               <input
                 type="number"
@@ -440,7 +461,7 @@ export default function EditCoursePage() {
 
         {/* What's Included */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">What's Included</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.whatsIncluded")}</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4">
               <label className="flex items-center gap-2">
@@ -454,7 +475,7 @@ export default function EditCoursePage() {
                   }
                   className="rounded"
                 />
-                <span className="text-sm">Course Materials</span>
+                <span className="text-sm">{t("tenant.training.courses.courseMaterials")}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -467,19 +488,19 @@ export default function EditCoursePage() {
                   }
                   className="rounded"
                 />
-                <span className="text-sm">Equipment</span>
+                <span className="text-sm">{t("tenant.training.courses.equipment")}</span>
               </label>
             </div>
 
             <div>
               <label htmlFor="includedItemsStr" className="block text-sm font-medium mb-1">
-                Additional Included Items
+                {t("tenant.training.courses.additionalIncludedItems")}
               </label>
               <input
                 type="text"
                 id="includedItemsStr"
                 name="includedItemsStr"
-                placeholder="Logbook, Certification card, Photos (comma-separated)"
+                placeholder={t("tenant.training.courses.includedItemsPlaceholder")}
                 defaultValue={
                   actionData?.values?.includedItemsStr ||
                   course.includedItems?.join(", ") ||
@@ -491,13 +512,13 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="requiredItemsStr" className="block text-sm font-medium mb-1">
-                Students Must Bring
+                {t("tenant.training.courses.studentsMustBring")}
               </label>
               <input
                 type="text"
                 id="requiredItemsStr"
                 name="requiredItemsStr"
-                placeholder="Swimsuit, Towel, Sunscreen (comma-separated)"
+                placeholder={t("tenant.training.courses.studentsMustBringPlaceholder")}
                 defaultValue={
                   actionData?.values?.requiredItemsStr ||
                   course.requiredItems?.join(", ") ||
@@ -511,17 +532,17 @@ export default function EditCoursePage() {
 
         {/* Prerequisites & Requirements */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Prerequisites & Requirements</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.training.courses.prerequisitesRequirements")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="requiredCertLevel" className="block text-sm font-medium mb-1">
-                Required Certification Level
+                {t("tenant.training.courses.requiredCertificationLevel")}
               </label>
               <input
                 type="text"
                 id="requiredCertLevel"
                 name="requiredCertLevel"
-                placeholder="e.g., Open Water Diver"
+                placeholder={t("tenant.training.courses.namePlaceholder")}
                 defaultValue={
                   actionData?.values?.requiredCertLevel || course.requiredCertLevel || ""
                 }
@@ -531,7 +552,7 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="prerequisites" className="block text-sm font-medium mb-1">
-                Prerequisites
+                {t("tenant.training.courses.prerequisites")}
               </label>
               <textarea
                 id="prerequisites"
@@ -546,13 +567,13 @@ export default function EditCoursePage() {
 
             <div>
               <label htmlFor="medicalRequirements" className="block text-sm font-medium mb-1">
-                Medical Requirements
+                {t("tenant.training.courses.medicalRequirements")}
               </label>
               <textarea
                 id="medicalRequirements"
                 name="medicalRequirements"
                 rows={2}
-                placeholder="e.g., Medical questionnaire required, physician clearance if over 45"
+                placeholder={t("tenant.training.courses.medicalPlaceholder")}
                 defaultValue={
                   actionData?.values?.medicalRequirements || course.medicalRequirements || ""
                 }
@@ -564,7 +585,7 @@ export default function EditCoursePage() {
 
         {/* Status */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Status</h2>
+          <h2 className="font-semibold mb-4">{t("common.status")}</h2>
           <div className="space-y-3">
             <label className="flex items-center gap-2">
               <input
@@ -576,9 +597,9 @@ export default function EditCoursePage() {
                 }
                 className="rounded"
               />
-              <span className="font-medium">Active</span>
+              <span className="font-medium">{t("common.active")}</span>
               <span className="text-foreground-muted text-sm">
-                (Inactive courses cannot be scheduled)
+                ({t("tenant.training.courses.inactiveCannotSchedule")})
               </span>
             </label>
             <label className="flex items-center gap-2">
@@ -591,9 +612,9 @@ export default function EditCoursePage() {
                 }
                 className="rounded"
               />
-              <span className="font-medium">Public</span>
+              <span className="font-medium">{t("tenant.training.courses.public")}</span>
               <span className="text-foreground-muted text-sm">
-                (Visible on public booking pages)
+                ({t("tenant.training.courses.visibleOnPublicPages")})
               </span>
             </label>
           </div>

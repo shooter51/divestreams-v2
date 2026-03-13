@@ -16,6 +16,10 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
+import { getTranslatedEntity } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { useT } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -150,13 +154,15 @@ function formatDuration(days: number): string {
 }
 
 /**
- * Format price for display
+ * Format price for display.
+ * Returns the i18n key "site.courses.contactForPricing" when price is zero,
+ * null, or unparseable — so callers can pass it through t() for translation.
  */
-function formatPrice(price: string | null, currency = "USD"): string {
-  if (!price) return "Price on request";
+export function formatCourseDetailPrice(price: string | null, currency = "USD"): string {
+  if (!price) return "site.courses.contactForPricing";
 
   const numericPrice = parseFloat(price);
-  if (isNaN(numericPrice)) return "Price on request";
+  if (isNaN(numericPrice) || numericPrice === 0) return "site.courses.contactForPricing";
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -166,18 +172,6 @@ function formatPrice(price: string | null, currency = "USD"): string {
   }).format(numericPrice);
 }
 
-/**
- * Format date for display
- */
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 /**
  * Format time for display
@@ -222,6 +216,17 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<L
     throw new Response("Course not found", { status: 404 });
   }
 
+  // Apply content translations
+  const locale = resolveLocale(request);
+  const translatedCourse = await getTranslatedEntity(
+    org.id,
+    "course",
+    course.id,
+    locale,
+    course,
+    ["name", "description"]
+  );
+
   // Get scheduled sessions for this course
   const sessionsResult = await getCourseScheduledTrips(
     org.id,
@@ -230,7 +235,7 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<L
   );
 
   return {
-    course,
+    course: translatedCourse,
     sessions: sessionsResult.trips,
     totalSessions: sessionsResult.total,
     organizationSlug: subdomain || org.slug,
@@ -264,6 +269,7 @@ function AgencyCertificationCard({
 }: {
   agency: { id: string; name: string; colorVar: string; colorObj: { light: string; dark: string }; description: string };
 }) {
+  const t = useT();
   return (
     <div
       className="rounded-xl p-6 text-white"
@@ -274,13 +280,12 @@ function AgencyCertificationCard({
           <span className="text-xl font-bold">{agency.name.charAt(0)}</span>
         </div>
         <div>
-          <h3 className="text-lg font-bold">{agency.name} Certification</h3>
+          <h3 className="text-lg font-bold">{t("site.courses.agencyCertification", { agency: agency.name })}</h3>
           <p className="text-sm opacity-90">{agency.description}</p>
         </div>
       </div>
       <p className="text-sm opacity-90">
-        Upon successful completion, you will receive an internationally recognized
-        {" "}{agency.name} certification card.
+        {t("site.courses.certificationCardMessage", { agency: agency.name })}
       </p>
     </div>
   );
@@ -290,17 +295,18 @@ function AgencyCertificationCard({
  * What's included section
  */
 function WhatsIncludedSection({ course }: { course: CourseDetail }) {
+  const t = useT();
   const includedItems: { icon: string; label: string }[] = [];
   const excludedItems: string[] = [];
 
   if (course.equipmentIncluded) {
-    includedItems.push({ icon: "equipment", label: "All dive equipment" });
+    includedItems.push({ icon: "equipment", label: t("site.courses.allDiveEquipment") });
   } else {
-    excludedItems.push("Dive equipment (available for rent)");
+    excludedItems.push(t("site.courses.equipmentForRent"));
   }
 
   if (course.materialsIncluded) {
-    includedItems.push({ icon: "book", label: "Course materials & manuals" });
+    includedItems.push({ icon: "book", label: t("site.courses.courseMaterials") });
   }
 
   // Add custom inclusions
@@ -312,8 +318,8 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
 
   // Add standard course items
   includedItems.push(
-    { icon: "card", label: "Certification fee" },
-    { icon: "instructor", label: "Professional instruction" }
+    { icon: "card", label: t("site.courses.certificationFee") },
+    { icon: "instructor", label: t("site.courses.professionalInstruction") }
   );
 
   // Add required items as exclusions (things student must bring)
@@ -371,7 +377,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
   return (
     <div className="bg-surface-raised dark:bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6">
       <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
-        What's Included
+        {t("site.trips.included")}
       </h2>
 
       <ul className="space-y-3 mb-6">
@@ -390,7 +396,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
 
       {excludedItems.length > 0 && (
         <>
-          <h3 className="text-sm font-semibold mb-2 opacity-75">Not Included:</h3>
+          <h3 className="text-sm font-semibold mb-2 opacity-75">{t("site.courses.notIncluded")}</h3>
           <ul className="space-y-2 text-sm opacity-75">
             {excludedItems.map((item, index) => (
               <li key={index} className="flex items-center gap-2">
@@ -411,6 +417,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
  * Prerequisites section
  */
 function PrerequisitesSection({ course }: { course: CourseDetail }) {
+  const t = useT();
   const prerequisites: string[] = [];
 
   if (course.minAge) {
@@ -441,7 +448,7 @@ function PrerequisitesSection({ course }: { course: CourseDetail }) {
   return (
     <div className="bg-surface-raised dark:bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6">
       <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
-        Prerequisites
+        {t("site.courses.prerequisites")}
       </h2>
       <ul className="space-y-3">
         {prerequisites.map((prereq, index) => (
@@ -483,6 +490,8 @@ function SessionCard({
   isSelected?: boolean;
   onSelect?: (sessionId: string) => void;
 }) {
+  const t = useT();
+  const { formatDisplayDate: formatDate } = useFormat();
   const price = session.price || defaultPrice;
 
   const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -534,14 +543,14 @@ function SessionCard({
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              Max {session.maxParticipants} participants
+              {t("site.courses.maxParticipants", { count: String(session.maxParticipants) })}
             </span>
           )}
         </div>
       </div>
       <div className="flex items-center gap-4">
         <span className="text-lg font-bold" style={{ color: "var(--primary-color)" }}>
-          {formatPrice(price, currency)}
+          {t(formatCourseDetailPrice(price, currency))}
         </span>
         <Link
           to={`/embed/${organizationSlug}/courses/${courseId}/enroll?sessionId=${session.id}`}
@@ -549,7 +558,7 @@ function SessionCard({
           style={{ backgroundColor: "var(--primary-color)" }}
           onClick={(e) => e.stopPropagation()}
         >
-          Enroll
+          {t("site.courses.enroll")}
         </Link>
       </div>
     </div>
@@ -578,6 +587,7 @@ function SessionsSection({
   selectedSessionId?: string | null;
   onSelectSession?: (sessionId: string) => void;
 }) {
+  const t = useT();
   if (sessions.length === 0) {
     return (
       <div className="bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6 text-center">
@@ -590,16 +600,16 @@ function SessionsSection({
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
-        <h3 className="text-lg font-semibold mb-2">No Scheduled Sessions</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("site.courses.noScheduledSessions")}</h3>
         <p className="text-sm opacity-75 mb-4">
-          Contact us to arrange a private course or be notified when new sessions are available.
+          {t("site.courses.contactForSessions")}
         </p>
         <Link
           to="/site/contact"
           className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors hover:opacity-90"
           style={{ borderColor: "var(--primary-color)", color: "var(--primary-color)" }}
         >
-          Contact Us
+          {t("site.contact.title")}
         </Link>
       </div>
     );
@@ -608,7 +618,7 @@ function SessionsSection({
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold" style={{ color: "var(--text-color)" }}>
-        Available Sessions ({totalSessions})
+        {t("site.courses.availableSessions", { count: String(totalSessions) })}
       </h2>
       <div className="space-y-3">
         {sessions.map((session) => (
@@ -626,7 +636,7 @@ function SessionsSection({
       </div>
       {totalSessions > sessions.length && (
         <p className="text-sm text-center opacity-75">
-          Showing {sessions.length} of {totalSessions} available sessions
+          {t("site.courses.showingXofY", { count: String(sessions.length), total: String(totalSessions) })}
         </p>
       )}
     </div>
@@ -638,6 +648,7 @@ function SessionsSection({
 // ============================================================================
 
 export default function SiteCourseDetailPage() {
+  const t = useT();
   const { course, sessions, totalSessions, organizationSlug } = useLoaderData<typeof loader>();
 
   // Session selection state
@@ -697,13 +708,13 @@ export default function SiteCourseDetailPage() {
         <ol className="flex items-center gap-2 text-sm">
           <li>
             <Link to="/site" className="opacity-75 hover:opacity-100">
-              Home
+              {t("nav.home")}
             </Link>
           </li>
           <li className="opacity-50">/</li>
           <li>
             <Link to="/site/courses" className="opacity-75 hover:opacity-100">
-              Courses
+              {t("nav.courses")}
             </Link>
           </li>
           <li className="opacity-50">/</li>
@@ -840,14 +851,14 @@ export default function SiteCourseDetailPage() {
             style={{ borderColor: "var(--primary-color)" }}
           >
             <div className="text-center mb-6">
-              <span className="text-sm opacity-75">Starting from</span>
+              <span className="text-sm opacity-75">{t("site.courses.startingFrom")}</span>
               <div
                 className="text-4xl font-bold"
                 style={{ color: "var(--primary-color)" }}
               >
-                {formatPrice(course.price, course.currency)}
+                {t(formatCourseDetailPrice(course.price, course.currency))}
               </div>
-              <span className="text-sm opacity-75">per person</span>
+              <span className="text-sm opacity-75">{t("site.trips.perPerson")}</span>
             </div>
 
             {/* Enroll Button */}
@@ -858,7 +869,7 @@ export default function SiteCourseDetailPage() {
                 className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
                 style={{ backgroundColor: "var(--primary-color)" }}
               >
-                Contact Us
+                {t("site.contact.title")}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -870,7 +881,7 @@ export default function SiteCourseDetailPage() {
                 className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
                 style={{ backgroundColor: "var(--primary-color)" }}
               >
-                Enroll Now
+                {t("site.courses.enrollNow")}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -885,13 +896,13 @@ export default function SiteCourseDetailPage() {
                   className="w-full py-3 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
-                  Enroll Now
+                  {t("site.courses.enrollNow")}
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </button>
                 <p id="enroll-helper-text" className="mt-2 text-sm text-center opacity-75">
-                  Select a session below to enroll
+                  {t("site.courses.selectSessionToEnroll")}
                 </p>
               </div>
             )}
@@ -908,14 +919,14 @@ export default function SiteCourseDetailPage() {
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                <span>Certification included</span>
+                <span>{t("site.courses.certificationIncluded")}</span>
               </div>
               {course.materialsIncluded && (
                 <div className="flex items-center gap-3 text-sm">
                   <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  <span>Materials included</span>
+                  <span>{t("site.courses.materialsIncluded")}</span>
                 </div>
               )}
               {course.equipmentIncluded && (
@@ -923,7 +934,7 @@ export default function SiteCourseDetailPage() {
                   <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
-                  <span>Equipment included</span>
+                  <span>{t("site.courses.equipmentIncluded")}</span>
                 </div>
               )}
             </div>
@@ -935,7 +946,7 @@ export default function SiteCourseDetailPage() {
                 className="text-sm hover:underline"
                 style={{ color: "var(--primary-color)" }}
               >
-                Questions? Contact us
+                {t("site.courses.questionsContactUs")}
               </Link>
             </div>
           </div>
@@ -966,7 +977,7 @@ export default function SiteCourseDetailPage() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to all courses
+          {t("site.courses.backToAllCourses")}
         </Link>
       </div>
     </div>

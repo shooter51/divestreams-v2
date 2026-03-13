@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { PasswordDisplayModal } from "./PasswordDisplayModal";
+import { useT } from "../../i18n/use-t";
 
 export type PasswordResetMethod = "auto_generated" | "manual_entry" | "email_reset";
 
@@ -25,6 +26,7 @@ interface ResetPasswordModalProps {
 }
 
 export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPasswordModalProps) {
+  const t = useT();
   const [method, setMethod] = useState<PasswordResetMethod>("auto_generated");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -243,7 +245,7 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
             onClick={onClose}
             disabled={isSubmitting}
             className="px-4 py-2 text-foreground-muted hover:text-foreground"
-            aria-label="Cancel password reset"
+            aria-label={t("components.resetPasswordModal.cancelAriaLabel")}
           >
             Cancel
           </button>
@@ -252,7 +254,7 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover disabled:opacity-50"
-            aria-label={isSubmitting ? "Resetting password" : "Reset password"}
+            aria-label={isSubmitting ? t("components.resetPasswordModal.resettingAriaLabel") : t("components.resetPasswordModal.resetAriaLabel")}
           >
             {isSubmitting ? "Resetting..." : "Reset Password"}
           </button>

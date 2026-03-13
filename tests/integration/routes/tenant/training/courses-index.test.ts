@@ -1,6 +1,44 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
 
+// Mock drizzle-orm operators
+vi.mock("drizzle-orm", () => ({
+  eq: vi.fn((...args: unknown[]) => args),
+  and: vi.fn((...args: unknown[]) => args),
+  asc: vi.fn((col: unknown) => col),
+  inArray: vi.fn((...args: unknown[]) => args),
+}));
+
+// Mock the tenant DB module
+vi.mock("../../../../../lib/db/tenant.server", () => ({
+  getTenantDb: vi.fn().mockReturnValue({
+    db: {
+      select: vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      }),
+    },
+    schema: {
+      images: {
+        entityId: "entityId",
+        url: "url",
+        isPrimary: "isPrimary",
+        sortOrder: "sortOrder",
+        organizationId: "organizationId",
+        entityType: "entityType",
+      },
+    },
+  }),
+}));
+
+// Mock content translations
+vi.mock("../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+}));
+
 // Mock the org-context module
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
@@ -25,7 +63,7 @@ describe("tenant/training/courses/index route", () => {
   const mockOrgContext = {
     user: { id: "user-1", name: "Test User", email: "test@example.com" },
     session: { id: "session-1" },
-    org: { id: "org-uuid", name: "Demo Dive Shop", slug: "demo" },
+    org: { id: "00000000-0000-0000-0000-000000000099", name: "Demo Dive Shop", slug: "demo" },
     membership: { role: "owner" },
     subscription: null,
     limits: { customers: 50, tours: 3, bookingsPerMonth: 20 },
@@ -43,7 +81,7 @@ describe("tenant/training/courses/index route", () => {
 
   const mockCourseList = [
     {
-      id: "course-1",
+      id: "00000000-0000-0000-0000-000000000001",
       name: "Open Water Diver",
       code: "OWD",
       description: "Learn the basics of scuba diving",
@@ -59,7 +97,7 @@ describe("tenant/training/courses/index route", () => {
       isPublic: true,
     },
     {
-      id: "course-2",
+      id: "00000000-0000-0000-0000-000000000002",
       name: "Advanced Open Water",
       code: "AOWD",
       description: "Advance your diving skills",
@@ -75,7 +113,7 @@ describe("tenant/training/courses/index route", () => {
       isPublic: false,
     },
     {
-      id: "course-3",
+      id: "00000000-0000-0000-0000-000000000003",
       name: "Dive Master",
       code: "DM",
       description: "Become a professional diver",
@@ -114,8 +152,8 @@ describe("tenant/training/courses/index route", () => {
       expect(result.courses).toHaveLength(3);
       expect(result.agencies).toEqual(mockAgencies);
       expect(result.total).toBe(3);
-      expect(getCourses).toHaveBeenCalledWith("org-uuid");
-      expect(getAgencies).toHaveBeenCalledWith("org-uuid");
+      expect(getCourses).toHaveBeenCalledWith("00000000-0000-0000-0000-000000000099");
+      expect(getAgencies).toHaveBeenCalledWith("00000000-0000-0000-0000-000000000099");
     });
 
     it("filters courses by search term matching name", async () => {
@@ -123,7 +161,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(2);
-      expect(result.courses.map((c: Record<string, unknown>) => c.id)).toEqual(["course-1", "course-2"]);
+      expect(result.courses.map((c: Record<string, unknown>) => c.id)).toEqual(["00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"]);
       expect(result.search).toBe("open water");
     });
 
@@ -132,7 +170,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
-      expect(result.courses[0].id).toBe("course-3");
+      expect(result.courses[0].id).toBe("00000000-0000-0000-0000-000000000003");
     });
 
     it("filters courses by search term matching description", async () => {
@@ -140,7 +178,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
-      expect(result.courses[0].id).toBe("course-3");
+      expect(result.courses[0].id).toBe("00000000-0000-0000-0000-000000000003");
     });
 
     it("filters courses by agency", async () => {
@@ -148,7 +186,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
-      expect(result.courses[0].id).toBe("course-3");
+      expect(result.courses[0].id).toBe("00000000-0000-0000-0000-000000000003");
       expect(result.agencyFilter).toBe("agency-2");
     });
 
@@ -167,7 +205,7 @@ describe("tenant/training/courses/index route", () => {
 
       expect(result.courses).toHaveLength(1);
       expect(result.courses[0].isActive).toBe(false);
-      expect(result.courses[0].id).toBe("course-3");
+      expect(result.courses[0].id).toBe("00000000-0000-0000-0000-000000000003");
     });
 
     it("combines multiple filters", async () => {
@@ -175,13 +213,13 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(2);
-      expect(result.courses.map((c: Record<string, unknown>) => c.id)).toEqual(["course-1", "course-2"]);
+      expect(result.courses.map((c: Record<string, unknown>) => c.id)).toEqual(["00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"]);
     });
 
     it("transforms courses with default values for missing fields", async () => {
       const coursesWithNulls = [
         {
-          id: "course-4",
+          id: "00000000-0000-0000-0000-000000000004",
           name: "Basic Course",
           code: null,
           description: null,
@@ -203,7 +241,7 @@ describe("tenant/training/courses/index route", () => {
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses[0]).toMatchObject({
-        id: "course-4",
+        id: "00000000-0000-0000-0000-000000000004",
         name: "Basic Course",
         code: "",
         description: "",

@@ -11,6 +11,7 @@ import { getBaseDomain, getTenantUrl } from "../../../lib/utils/url";
 import { hashPassword, generateRandomPassword } from "../../../lib/auth/password.server";
 import { auth } from "../../../lib/auth";
 import { invalidateSubscriptionCache } from "../../../lib/cache/subscription.server";
+import { PLAN_FEATURES, FEATURE_LABELS, type PlanFeatureKey } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
@@ -87,6 +88,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .where(eq(bookings.organizationId, org.id));
 
   const sub = subWithPlan?.subscription;
+  const planFeatures = subWithPlan?.plan?.features as Record<string, boolean> | null;
+  const featureOverrides = (sub as Record<string, unknown>)?.featureOverrides as Record<string, boolean | null> | null;
 
   // Pre-compute URLs server-side where process.env.APP_URL is available
   const tenantUrl = getTenantUrl(org.slug, "/tenant");
@@ -131,6 +134,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       bookings: bookingCount?.count || 0,
       members: members.length,
     },
+    planFeatures: planFeatures || {},
+    featureOverrides: featureOverrides || {},
   };
 }
 
@@ -255,6 +260,64 @@ export async function action({ request, params }: ActionFunctionArgs) {
     await invalidateSubscriptionCache(org.id);
 
     return { success: true };
+  }
+
+  if (intent === "updateFeatureOverrides") {
+    const overridesJson = formData.get("overrides") as string;
+    let parsedOverrides: Record<string, boolean | null> = {};
+
+    try {
+      parsedOverrides = JSON.parse(overridesJson || "{}");
+    } catch {
+      return { error: "Invalid overrides data" };
+    }
+
+    const [existingSub] = await db
+      .select()
+      .from(subscription)
+      .where(eq(subscription.organizationId, org.id))
+      .limit(1);
+
+    if (!existingSub) {
+      return { error: "No subscription found for this tenant" };
+    }
+
+    // Fetch the plan's default features so we can compare against them.
+    // Only save overrides where the value differs from the plan default.
+    // This lets mergeFeatureOverrides fall through to plan defaults for matching values.
+    let planFeatures: Record<string, boolean> = {};
+    if (existingSub.planId) {
+      const [plan] = await db
+        .select({ features: subscriptionPlans.features })
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, existingSub.planId))
+        .limit(1);
+      if (plan?.features) {
+        planFeatures = plan.features as Record<string, boolean>;
+      }
+    }
+
+    // Filter out: (1) null values (user chose "Plan Default"), and
+    // (2) explicit values that match the plan default (no meaningful override).
+    const filtered = Object.fromEntries(
+      Object.entries(parsedOverrides).filter(([key, v]) => {
+        if (v === null) return false; // "Plan Default" — no override needed
+        const planDefault = planFeatures[key] ?? false;
+        return v !== planDefault; // only keep if it actually differs
+      })
+    );
+    const overrides = Object.keys(filtered).length > 0 ? filtered as Record<string, boolean> : null;
+
+    await db
+      .update(subscription)
+      .set({
+        featureOverrides: overrides,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscription.id, existingSub.id));
+
+    await invalidateSubscriptionCache(org.id);
+    return { success: true, message: "Feature overrides updated" };
   }
 
   if (intent === "removeMember") {
@@ -438,15 +501,17 @@ type ModalState = {
 };
 
 export default function OrganizationDetailsPage() {
-  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain, isActive } = useLoaderData<typeof loader>();
+  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain, isActive, planFeatures, featureOverrides } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const fetcher = useFetcher<typeof action>();
+  const featureOverridesFetcher = useFetcher<typeof action>();
   const isSubmitting = navigation.state === "submitting";
 
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [localOverrides, setLocalOverrides] = useState<Record<string, boolean | null>>(featureOverrides || {});
 
   const closeModal = () => {
     setModal({ type: null, user: null });
@@ -648,6 +713,85 @@ export default function OrganizationDetailsPage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Feature Overrides */}
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-2">Feature Overrides</h2>
+            <p className="text-xs text-foreground-muted mb-4">
+              Override plan defaults for this tenant. "Plan Default" uses the plan's setting.
+            </p>
+
+            <div className="space-y-2">
+              {(["has_tours_bookings", "has_equipment_boats", "has_training", "has_pos", "has_public_site", "has_advanced_notifications", "has_integrations", "has_api_access"] as PlanFeatureKey[]).map((featureKey) => {
+                const planDefault = (planFeatures as Record<string, boolean>)?.[featureKey] ?? false;
+                const override = localOverrides[featureKey];
+                const _effective = override !== null && override !== undefined ? override : planDefault;
+
+                return (
+                  <div key={featureKey} className="flex items-center justify-between py-2 border-b last:border-0">
+                    <div>
+                      <span className="text-sm font-medium">{FEATURE_LABELS[featureKey]}</span>
+                      <span className={`ml-2 text-xs ${planDefault ? "text-success" : "text-foreground-muted"}`}>
+                        (plan: {planDefault ? "on" : "off"})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {([
+                        { label: "Plan Default", value: null },
+                        { label: "Force On", value: true },
+                        { label: "Force Off", value: false },
+                      ] as { label: string; value: boolean | null }[]).map((option) => (
+                        <button
+                          key={option.label}
+                          type="button"
+                          onClick={() => {
+                            setLocalOverrides(prev => {
+                              const next = { ...prev };
+                              if (option.value === null) {
+                                delete next[featureKey];
+                              } else {
+                                next[featureKey] = option.value;
+                              }
+                              return next;
+                            });
+                          }}
+                          className={`px-2 py-1 text-xs rounded ${
+                            (option.value === null && (override === null || override === undefined))
+                              ? "bg-brand text-white"
+                              : option.value === override
+                              ? option.value
+                                ? "bg-success text-white"
+                                : "bg-danger text-white"
+                              : "bg-surface-inset text-foreground-muted hover:bg-surface-overlay"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <featureOverridesFetcher.Form method="post" className="mt-4">
+              <input type="hidden" name="intent" value="updateFeatureOverrides" />
+              <input type="hidden" name="overrides" value={JSON.stringify(localOverrides)} />
+              {featureOverridesFetcher.data && "error" in featureOverridesFetcher.data && featureOverridesFetcher.data.error && (
+                <p className="text-danger text-sm mb-2">{featureOverridesFetcher.data.error}</p>
+              )}
+              {featureOverridesFetcher.data && "success" in featureOverridesFetcher.data && featureOverridesFetcher.data.success && "message" in featureOverridesFetcher.data && (
+                <p className="text-success text-sm mb-2">{featureOverridesFetcher.data.message as string}</p>
+              )}
+              <button
+                type="submit"
+                disabled={featureOverridesFetcher.state === "submitting"}
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled text-sm"
+              >
+                {featureOverridesFetcher.state === "submitting" ? "Saving..." : "Save Overrides"}
+              </button>
+            </featureOverridesFetcher.Form>
           </div>
 
           {/* Members */}

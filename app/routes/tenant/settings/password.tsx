@@ -7,6 +7,7 @@ import { account } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams" }];
 
@@ -118,21 +119,22 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function PasswordSettingsPage() {
   const { forced, message } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const t = useT();
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         {!forced && (
           <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-            ← Back to Settings
+            {t("tenant.settings.backToSettings")}
           </Link>
         )}
-        <h1 className="text-2xl font-bold mt-2">Change Password</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.password.title")}</h1>
       </div>
 
       {forced && (
         <div className="mb-6 p-4 bg-warning-muted border border-warning rounded">
-          <p className="font-medium">⚠️ Password Change Required</p>
+          <p className="font-medium">{t("tenant.settings.password.changeRequired")}</p>
           <p className="text-sm mt-1">{message}</p>
         </div>
       )}
@@ -150,7 +152,7 @@ export default function PasswordSettingsPage() {
             {!forced && (
               <div>
                 <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
-                  Current Password
+                  {t("tenant.settings.password.currentPassword")}
                 </label>
                 <input
                   type="password"
@@ -158,14 +160,14 @@ export default function PasswordSettingsPage() {
                   name="currentPassword"
                   required={!forced}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                  placeholder="Enter current password"
+                  placeholder={t("tenant.settings.password.enterCurrentPassword")}
                 />
               </div>
             )}
 
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
-                New Password
+                {t("tenant.settings.password.newPassword")}
               </label>
               <input
                 type="password"
@@ -174,16 +176,16 @@ export default function PasswordSettingsPage() {
                 required
                 minLength={8}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                placeholder="Enter new password"
+                placeholder={t("tenant.settings.password.enterNewPassword")}
               />
               <p className="text-sm text-foreground-muted mt-1">
-                Minimum 8 characters
+                {t("tenant.settings.password.minChars")}
               </p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-                Confirm New Password
+                {t("tenant.settings.password.confirmNewPassword")}
               </label>
               <input
                 type="password"
@@ -192,7 +194,7 @@ export default function PasswordSettingsPage() {
                 required
                 minLength={8}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                placeholder="Confirm new password"
+                placeholder={t("tenant.settings.password.confirmNewPasswordPlaceholder")}
               />
             </div>
           </div>
@@ -202,14 +204,14 @@ export default function PasswordSettingsPage() {
               type="submit"
               className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
-              Update Password
+              {t("tenant.settings.password.updatePassword")}
             </button>
             {!forced && (
               <Link
                 to="/tenant/settings"
                 className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
               >
-                Cancel
+                {t("common.cancel")}
               </Link>
             )}
           </div>
@@ -217,11 +219,11 @@ export default function PasswordSettingsPage() {
       </div>
 
       <div className="mt-6 p-4 bg-info-muted border border-info rounded">
-        <h3 className="font-medium mb-2">Password Requirements</h3>
+        <h3 className="font-medium mb-2">{t("tenant.settings.password.requirements")}</h3>
         <ul className="text-sm space-y-1 list-disc list-inside">
-          <li>At least 8 characters long</li>
-          <li>Use a mix of letters, numbers, and symbols</li>
-          <li>Avoid common words and patterns</li>
+          <li>{t("tenant.settings.password.req8Chars")}</li>
+          <li>{t("tenant.settings.password.reqMix")}</li>
+          <li>{t("tenant.settings.password.reqAvoidCommon")}</li>
         </ul>
       </div>
     </div>

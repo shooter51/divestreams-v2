@@ -1,5 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useT } from "../../../i18n/use-t";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { eq, and, asc } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
@@ -110,6 +113,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     averageRating: stats.averageRating,
   };
 
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "tour", tourId, locale);
+    if (tr.name) tour.name = tr.name;
+    if (tr.description) tour.description = tr.description;
+  }
+
   // Format images for the component
   const images: Image[] = tourImages.map((img) => ({
     id: img.id,
@@ -157,15 +168,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-const tourTypes: Record<string, string> = {
-  single_dive: "Single Dive",
-  multi_dive: "Multi-Dive",
-  course: "Course",
-  snorkel: "Snorkel",
-  night_dive: "Night Dive",
-  other: "Other",
-};
-
 function formatTime(t: string | null | undefined): string {
   if (!t) return "TBD";
   const [h, m] = t.split(":").map(Number);
@@ -178,6 +180,16 @@ export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
+  const t = useT();
+
+  const tourTypes: Record<string, string> = {
+    single_dive: t("tenant.tours.type.singleDive"),
+    multi_dive: t("tenant.tours.type.multiDive"),
+    course: t("tenant.tours.type.course"),
+    snorkel: t("tenant.tours.type.snorkel"),
+    night_dive: t("tenant.tours.type.nightDive"),
+    other: t("tenant.tours.type.other"),
+  };
 
   // Show notifications from URL params
   useNotification();
@@ -191,7 +203,7 @@ export default function TourDetailPage() {
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this tour? This cannot be undone.")) {
+    if (confirm(t("tenant.tours.confirmDelete"))) {
       fetcher.submit({ intent: "delete" }, { method: "post" });
     }
   };
@@ -200,14 +212,14 @@ export default function TourDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/tours" className="text-brand hover:underline text-sm">
-          ← Back to Tours
+          {t("tenant.tours.backToTours")}
         </Link>
       </div>
 
       {/* Show delete error if any */}
       {actionData?.deleteError && (
         <div className="mb-6 p-4 bg-danger-muted border border-danger rounded-lg">
-          <p className="text-danger font-medium">Cannot delete tour</p>
+          <p className="text-danger font-medium">{t("tenant.tours.cannotDelete")}</p>
           <p className="text-danger text-sm mt-1">{actionData.deleteError}</p>
         </div>
       )}
@@ -218,7 +230,7 @@ export default function TourDetailPage() {
             <h1 className="text-2xl font-bold">{tour.name}</h1>
             {!tour.isActive && (
               <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
-                Inactive
+                {t("common.inactive")}
               </span>
             )}
           </div>
@@ -229,19 +241,19 @@ export default function TourDetailPage() {
             to={`/tenant/trips/new?tourId=${tour.id}`}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Schedule Trip
+            {t("tenant.tours.scheduleTrip")}
           </Link>
           <Link
             to={`/tenant/tours/${tour.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           <button
             onClick={handleDelete}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -253,33 +265,33 @@ export default function TourDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${tour.price}</p>
-              <p className="text-foreground-muted text-sm">Price</p>
+              <p className="text-foreground-muted text-sm">{t("common.price")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{tour.tripCount}</p>
-              <p className="text-foreground-muted text-sm">{tour.tripCount !== 1 ? "Trips" : "Trip"} Run</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.tours.tripsRun")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${tour.totalRevenue}</p>
-              <p className="text-foreground-muted text-sm">Total Revenue</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.tours.totalRevenue")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 {tour.averageRating !== null ? tour.averageRating : "-"}
               </p>
-              <p className="text-foreground-muted text-sm">Avg Rating</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.tours.avgRating")}</p>
             </div>
           </div>
 
           {/* Description */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-3">Description</h2>
-            <p className="text-foreground">{tour.description || "No description provided."}</p>
+            <h2 className="font-semibold mb-3">{t("common.description")}</h2>
+            <p className="text-foreground">{tour.description || t("tenant.tours.noDescription")}</p>
           </div>
 
           {/* Images */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Tour Images</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.tours.tourImages")}</h2>
             <ImageManager
               entityType="tour"
               entityId={tour.id}
@@ -290,52 +302,52 @@ export default function TourDetailPage() {
 
           {/* Details */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Tour Details</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.tours.tourDetails")}</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-foreground-muted">Duration</p>
+                <p className="text-foreground-muted">{t("common.duration")}</p>
                 <p>{formatDuration(tour.duration)}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Capacity</p>
+                <p className="text-foreground-muted">{t("common.capacity")}</p>
                 <p>
-                  {tour.minParticipants}-{tour.maxParticipants} participants
+                  {tour.minParticipants}-{tour.maxParticipants} {t("tenant.tours.participants")}
                 </p>
               </div>
               <div>
-                <p className="text-foreground-muted">Min Certification</p>
-                <p>{tour.minCertLevel || "None required"}</p>
+                <p className="text-foreground-muted">{t("tenant.tours.minCertification")}</p>
+                <p>{tour.minCertLevel || t("tenant.tours.noneRequired")}</p>
               </div>
               <div>
-                <p className="text-foreground-muted">Min Age</p>
-                <p>{tour.minAge ? `${tour.minAge} years` : "No minimum"}</p>
+                <p className="text-foreground-muted">{t("tenant.tours.minimumAge")}</p>
+                <p>{tour.minAge ? t("tenant.tours.yearsOld", { age: tour.minAge }) : t("tenant.tours.noMinimum")}</p>
               </div>
             </div>
           </div>
 
           {/* Inclusions/Exclusions */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">What's Included</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.tours.whatsIncluded")}</h2>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <h3 className="text-sm font-medium text-success mb-2">Included</h3>
+                <h3 className="text-sm font-medium text-success mb-2">{t("tenant.tours.includedLabel")}</h3>
                 <ul className="space-y-1 text-sm">
-                  {tour.includesEquipment && <li>✓ Equipment rental</li>}
-                  {tour.includesMeals && <li>✓ Meals/snacks</li>}
-                  {tour.includesTransport && <li>✓ Transport</li>}
+                  {tour.includesEquipment && <li>✓ {t("tenant.tours.equipmentRental")}</li>}
+                  {tour.includesMeals && <li>✓ {t("tenant.tours.mealsSnacks")}</li>}
+                  {tour.includesTransport && <li>✓ {t("tenant.tours.transport")}</li>}
                   {(Array.isArray(tour.inclusions) ? tour.inclusions : []).map((item: string, i: number) => (
                     <li key={i}>✓ {item}</li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-foreground-muted mb-2">Not Included</h3>
+                <h3 className="text-sm font-medium text-foreground-muted mb-2">{t("tenant.tours.notIncluded")}</h3>
                 <ul className="space-y-1 text-sm text-foreground-muted">
                   {(Array.isArray(tour.exclusions) ? tour.exclusions : []).map((item: string, i: number) => (
                     <li key={i}>• {item}</li>
                   ))}
                   {(!Array.isArray(tour.exclusions) || tour.exclusions.length === 0) && (
-                    <li className="text-foreground-subtle">None specified</li>
+                    <li className="text-foreground-subtle">{t("tenant.tours.noneSpecified")}</li>
                   )}
                 </ul>
               </div>
@@ -345,16 +357,16 @@ export default function TourDetailPage() {
           {/* Dive Sites Visited */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Dive Sites Visited</h2>
+              <h2 className="font-semibold">{t("tenant.tours.diveSitesVisited")}</h2>
               <Link
                 to={`/tenant/dive-sites`}
                 className="text-brand text-sm hover:underline"
               >
-                View all sites
+                {t("tenant.tours.viewAllSites")}
               </Link>
             </div>
             {diveSites.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No dive sites assigned to this tour yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.tours.noDiveSites")}</p>
             ) : (
               <div className="space-y-2">
                 {diveSites.map((site) => (
@@ -367,7 +379,7 @@ export default function TourDetailPage() {
                       <div>
                         <p className="font-medium">{site.name}</p>
                         {site.difficulty && (
-                          <p className="text-sm text-foreground-muted capitalize">{site.difficulty} difficulty</p>
+                          <p className="text-sm text-foreground-muted capitalize">{t("tenant.tours.difficultyLevel", { level: site.difficulty })}</p>
                         )}
                       </div>
                       {site.maxDepth && (
@@ -383,16 +395,16 @@ export default function TourDetailPage() {
           {/* Upcoming Trips */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Upcoming Trips</h2>
+              <h2 className="font-semibold">{t("tenant.tours.upcomingTrips")}</h2>
               <Link
                 to={`/tenant/trips?tourId=${tour.id}`}
                 className="text-brand text-sm hover:underline"
               >
-                View all
+                {t("tenant.tours.viewAll")}
               </Link>
             </div>
             {upcomingTrips.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No upcoming trips scheduled.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.tours.noUpcomingTrips")}</p>
             ) : (
               <div className="space-y-3">
                 {upcomingTrips.map((trip) => (
@@ -420,7 +432,7 @@ export default function TourDetailPage() {
                             : "bg-brand-muted text-brand"
                         }`}
                       >
-                        {trip.bookedParticipants >= trip.maxParticipants ? "Full" : trip.bookedParticipants > 0 ? "Booked" : "Open"}
+                        {trip.bookedParticipants >= trip.maxParticipants ? t("tenant.tours.tripFull") : trip.bookedParticipants > 0 ? t("tenant.tours.tripBooked") : t("tenant.tours.tripOpen")}
                       </span>
                     </div>
                   </Link>
@@ -434,13 +446,13 @@ export default function TourDetailPage() {
         <div className="space-y-6">
           {/* Quick Actions */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Quick Actions</h2>
+            <h2 className="font-semibold mb-4">{t("common.quickActions")}</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/trips/new?tourId=${tour.id}`}
                 className="block w-full text-center bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
               >
-                Schedule Trip
+                {t("tenant.tours.scheduleTrip")}
               </Link>
               <fetcher.Form method="post">
                 <CsrfInput />
@@ -449,7 +461,7 @@ export default function TourDetailPage() {
                   type="submit"
                   className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
-                  {tour.isActive ? "Deactivate Tour" : "Activate Tour"}
+                  {tour.isActive ? t("tenant.tours.deactivateTour") : t("tenant.tours.activateTour")}
                 </button>
               </fetcher.Form>
               <fetcher.Form method="post" action={`/tenant/tours/${tour.id}/duplicate`}>
@@ -457,7 +469,7 @@ export default function TourDetailPage() {
                   type="submit"
                   className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
-                  Duplicate Tour
+                  {t("tenant.tours.duplicateTour")}
                 </button>
               </fetcher.Form>
             </div>
@@ -466,7 +478,7 @@ export default function TourDetailPage() {
           {/* Requirements */}
           {Array.isArray(tour.requirements) && tour.requirements.length > 0 && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Requirements</h2>
+              <h2 className="font-semibold mb-4">{t("tenant.tours.requirements")}</h2>
               <ul className="space-y-2 text-sm">
                 {(Array.isArray(tour.requirements) ? tour.requirements : []).map((req: string, i: number) => (
                   <li key={i} className="flex items-start gap-2">
@@ -480,8 +492,8 @@ export default function TourDetailPage() {
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle">
-            <p>Created {tour.createdAt}</p>
-            <p>Tour ID: {tour.id}</p>
+            <p>{t("tenant.tours.created", { date: tour.createdAt })}</p>
+            <p>{t("tenant.tours.tourId")}: {tour.id}</p>
           </div>
         </div>
       </div>

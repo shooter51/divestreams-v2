@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 
@@ -27,12 +27,15 @@ export function TwilioIntegration({
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;
 
-  if (fetcherData && "showTwilioModal" in fetcherData && fetcherData.showTwilioModal) {
-    if (!showConnectModal) setShowConnectModal(true);
-  }
+  useEffect(() => {
+    if (!fetcherData) return;
 
-  if (fetcherData && "success" in fetcherData && fetcherData.success && "message" in fetcherData) {
-    if (showConnectModal || showTestSmsModal) {
+    if ("showTwilioModal" in fetcherData && fetcherData.showTwilioModal) {
+      setShowConnectModal(true);
+      return;
+    }
+
+    if ("success" in fetcherData && fetcherData.success && "message" in fetcherData) {
       onNotification({ type: "success", message: fetcherData.message as string });
       setShowConnectModal(false);
       setShowTestSmsModal(false);
@@ -41,12 +44,13 @@ export function TwilioIntegration({
       setPhoneNumber("");
       setMessagingServiceSid("");
       setTestSmsNumber("");
+      return;
     }
-  }
 
-  if (fetcherData && "error" in fetcherData && !("success" in fetcherData)) {
-    onNotification({ type: "error", message: fetcherData.error as string });
-  }
+    if ("error" in fetcherData && !("success" in fetcherData)) {
+      onNotification({ type: "error", message: fetcherData.error as string });
+    }
+  }, [fetcherData, onNotification]);
 
   return (
     <>

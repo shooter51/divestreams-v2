@@ -168,6 +168,7 @@ export function mapTour(row: TourInput) {
     exclusions: row.exclusions || [],
     requirements: row.requirements || [],
     isActive: pick(row.isActive, r.is_active) as boolean,
+    requiresTankSelection: (pick(row.requiresTankSelection, r.requires_tank_selection) ?? false) as boolean,
     createdAt: pick(row.createdAt, r.created_at) as Date,
     updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
@@ -254,6 +255,7 @@ export function mapEquipment(row: EquipmentInput) {
     serialNumber: pick(row.serialNumber, r.serial_number) as string | null,
     barcode: row.barcode,
     size: row.size,
+    gasType: pick(row.gasType, r.gas_type) as string | null,
     status: row.status,
     condition: row.condition,
     rentalPrice: rentalPriceRaw != null ? Number(rentalPriceRaw) : null,

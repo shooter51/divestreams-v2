@@ -30,6 +30,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect("/site");
   }
 
+  // If on a custom domain (not divestreams.com, not localhost), redirect to public site
+  const host = new URL(request.url).hostname;
+  if (!host.includes("divestreams.com") && !host.includes("localhost")) {
+    throw redirect("/site");
+  }
+
   return null;
 }
 
@@ -38,7 +44,9 @@ export default function HomePage() {
     <div className="min-h-screen" style={{ backgroundImage: 'linear-gradient(to bottom, var(--brand-muted), var(--surface))' }}>
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="text-2xl font-bold text-brand">DiveStreams</div>
+        <a href="/" className="flex items-center">
+          <img src="/logo-horizontal.png" alt="DiveStreams" className="h-8" />
+        </a>
         <div className="flex gap-6 items-center">
           <a href="/features" className="text-foreground-muted hover:text-brand">
             Features
@@ -146,7 +154,9 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="container mx-auto px-4 py-12">
         <div className="flex justify-between items-center text-foreground-muted">
-          <div className="text-xl font-bold text-brand">DiveStreams</div>
+          <a href="/" className="flex items-center">
+            <img src="/logo-horizontal.png" alt="DiveStreams" className="h-6" />
+          </a>
           <div className="flex gap-6">
             <a href="/pricing">Pricing</a>
             <a href="/features">Features</a>

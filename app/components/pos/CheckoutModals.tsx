@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useFetcher } from "react-router";
+import { useT } from "../../i18n/use-t";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export function CardModal({
   hasTerminalReaders,
   customerId,
 }: CardModalProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const [step, setStep] = useState<CardModalStep>("method-select");
   const [error, setError] = useState<string | null>(null);
@@ -248,10 +250,10 @@ export function CardModal({
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Card Payment</h2>
+          <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.cardPayment")}</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.totalDue")}</label>
               <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
             <div className="p-6 bg-warning-muted border border-warning rounded-lg text-center">
@@ -260,13 +262,13 @@ export function CardModal({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <p className="text-warning font-medium mb-2">Stripe Not Connected</p>
-              <p className="text-sm text-warning">Connect Stripe in Settings → Integrations to accept card payments</p>
+              <p className="text-warning font-medium mb-2">{t("tenant.pos.checkout.stripeNotConnected")}</p>
+              <p className="text-sm text-warning">{t("tenant.pos.checkout.connectStripeMessage")}</p>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-surface-inset">
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -279,10 +281,10 @@ export function CardModal({
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Card Payment</h2>
+          <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.cardPayment")}</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.totalDue")}</label>
               <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
             <div className="space-y-3">
@@ -297,8 +299,8 @@ export function CardModal({
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium">Enter Card Manually</p>
-                    <p className="text-sm text-foreground-muted">Type card number, expiry, and CVC</p>
+                    <p className="font-medium">{t("tenant.pos.checkout.enterCardManually")}</p>
+                    <p className="text-sm text-foreground-muted">{t("tenant.pos.checkout.typeCardDetails")}</p>
                   </div>
                 </div>
               </button>
@@ -320,9 +322,9 @@ export function CardModal({
                     </svg>
                   </div>
                   <div>
-                    <p className={`font-medium ${!hasTerminalReaders && "text-foreground-subtle"}`}>Use Card Reader</p>
+                    <p className={`font-medium ${!hasTerminalReaders && "text-foreground-subtle"}`}>{t("tenant.pos.checkout.useCardReader")}</p>
                     <p className={`text-sm ${hasTerminalReaders ? "text-foreground-muted" : "text-foreground-subtle"}`}>
-                      {hasTerminalReaders ? "Tap, insert, or swipe card" : "No reader connected"}
+                      {hasTerminalReaders ? t("tenant.pos.checkout.tapInsertSwipe") : t("tenant.pos.checkout.noReaderConnected")}
                     </p>
                   </div>
                 </div>
@@ -331,7 +333,7 @@ export function CardModal({
           </div>
           <div className="flex gap-3 mt-6">
             <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-surface-inset">
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -344,14 +346,14 @@ export function CardModal({
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Enter Card Details</h2>
+          <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.enterCardDetails")}</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.totalDue")}</label>
               <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Card Information</label>
+              <label className="block text-sm font-medium mb-2">{t("tenant.pos.checkout.cardInformation")}</label>
               <div
                 id="stripe-card-element"
                 className="p-3 border rounded-lg bg-surface-raised min-h-[44px]"
@@ -364,14 +366,14 @@ export function CardModal({
               onClick={() => setStep("method-select")}
               className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
             >
-              Back
+              {t("common.back")}
             </button>
             <button
               onClick={handlePaymentSubmit}
               disabled={!cardComplete || fetcher.state !== "idle"}
               className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
             >
-              Pay ${total.toFixed(2)}
+              {t("tenant.pos.checkout.pay")} ${total.toFixed(2)}
             </button>
           </div>
         </div>
@@ -384,10 +386,10 @@ export function CardModal({
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Card Reader</h2>
+          <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.cardReader")}</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.totalDue")}</label>
               <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
             <div className="p-8 bg-surface-inset rounded-lg text-center">
@@ -396,8 +398,8 @@ export function CardModal({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                 </svg>
               </div>
-              <p className="text-lg font-medium text-foreground">Present Card on Reader</p>
-              <p className="text-sm text-foreground-muted mt-1">Tap, insert, or swipe the customer's card</p>
+              <p className="text-lg font-medium text-foreground">{t("tenant.pos.checkout.presentCard")}</p>
+              <p className="text-sm text-foreground-muted mt-1">{t("tenant.pos.checkout.tapInsertSwipeCustomer")}</p>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
@@ -405,7 +407,7 @@ export function CardModal({
               onClick={() => setStep("method-select")}
               className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -420,8 +422,8 @@ export function CardModal({
         <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <div className="text-center py-8">
             <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-lg font-medium">Processing Payment...</p>
-            <p className="text-sm text-foreground-muted mt-1">Please wait</p>
+            <p className="text-lg font-medium">{t("tenant.pos.checkout.processingPayment")}</p>
+            <p className="text-sm text-foreground-muted mt-1">{t("tenant.pos.checkout.pleaseWait")}</p>
           </div>
         </div>
       </div>
@@ -439,7 +441,7 @@ export function CardModal({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-lg font-medium text-success">Payment Approved</p>
+            <p className="text-lg font-medium text-success">{t("tenant.pos.checkout.paymentApproved")}</p>
             <p className="text-3xl font-bold mt-2">${total.toFixed(2)}</p>
           </div>
         </div>
@@ -458,18 +460,18 @@ export function CardModal({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-lg font-medium text-danger">Payment Failed</p>
-            <p className="text-sm text-foreground-muted mt-2">{error || "An error occurred"}</p>
+            <p className="text-lg font-medium text-danger">{t("tenant.pos.checkout.paymentFailed")}</p>
+            <p className="text-sm text-foreground-muted mt-2">{error || t("tenant.pos.checkout.anErrorOccurred")}</p>
           </div>
           <div className="flex gap-3 mt-4">
             <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-surface-inset">
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleRetry}
               className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover font-medium"
             >
-              Try Again
+              {t("tenant.pos.checkout.tryAgain")}
             </button>
           </div>
         </div>
@@ -482,6 +484,7 @@ export function CardModal({
 
 // Cash Payment Modal
 export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalProps) {
+  const t = useT();
   const [tendered, setTendered] = useState("");
   const tenderedAmount = parseFloat(tendered) || 0;
   const change = tenderedAmount - total;
@@ -491,16 +494,16 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Cash Payment</h2>
+        <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.cashPayment")}</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Total Due</label>
+            <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.totalDue")}</label>
             <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Amount Tendered</label>
+            <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.amountTendered")}</label>
             <input
               type="number"
               step="0.01"
@@ -514,7 +517,7 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
 
           {tenderedAmount >= total && (
             <div className="p-4 bg-success-muted rounded-lg">
-              <label className="block text-sm font-medium mb-1">Change Due</label>
+              <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.changeDue")}</label>
               <p className="text-3xl font-bold text-success">${change.toFixed(2)}</p>
             </div>
           )}
@@ -541,14 +544,14 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
             }}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={() => onComplete([{ method: "cash", amount: total, tendered: tenderedAmount, change: Math.max(0, change) }])}
             disabled={tenderedAmount < total}
             className="flex-1 py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            Complete Sale
+            {t("tenant.pos.checkout.completeSale")}
           </button>
         </div>
       </div>
@@ -572,6 +575,7 @@ export function SplitModal({
   stripePublishableKey,
   customerId
 }: SplitModalProps) {
+  const t = useT();
   const fetcher = useFetcher();
   const amountInputRef = useRef<HTMLInputElement>(null);
   const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>>([]);
@@ -774,26 +778,26 @@ export function SplitModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Split Payment</h2>
+        <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.splitPayment")}</h2>
 
         <div className="space-y-4">
           <div className="flex justify-between">
-            <span>Total</span>
+            <span>{t("common.total")}</span>
             <span className="font-bold">${total.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-success">
-            <span>Paid</span>
+            <span>{t("tenant.pos.checkout.paid")}</span>
             <span className="font-bold">${paidAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg">
-            <span>Remaining</span>
+            <span>{t("tenant.pos.checkout.remaining")}</span>
             <span className="font-bold text-brand">${remaining.toFixed(2)}</span>
           </div>
 
           {/* Existing payments */}
           {payments.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground-muted">Payments Added:</p>
+              <p className="text-sm font-medium text-foreground-muted">{t("tenant.pos.checkout.paymentsAdded")}</p>
               {payments.map((payment, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-surface-inset rounded-lg">
                   <div className="flex items-center gap-2">
@@ -825,7 +829,7 @@ export function SplitModal({
           {/* Add payment */}
           {remaining > 0 && (
             <div className="p-4 border-2 border-brand rounded-lg space-y-3 max-w-full break-words">
-              <p className="text-sm font-medium">Add Payment</p>
+              <p className="text-sm font-medium">{t("tenant.pos.checkout.addPayment")}</p>
 
               {/* Payment method tabs */}
               <div className="flex gap-2">
@@ -837,7 +841,7 @@ export function SplitModal({
                       : "bg-surface-inset hover:bg-surface-overlay"
                   }`}
                 >
-                  Cash
+                  {t("tenant.pos.cart.cash")}
                 </button>
                 <button
                   onClick={() => setCurrentMethod("card")}
@@ -850,7 +854,7 @@ export function SplitModal({
                       : "bg-surface-inset opacity-50 cursor-not-allowed"
                   }`}
                 >
-                  Card
+                  {t("tenant.pos.cart.card")}
                 </button>
               </div>
 
@@ -862,7 +866,7 @@ export function SplitModal({
                   inputMode="decimal"
                   value={currentAmount}
                   onChange={(e) => setCurrentAmount(e.target.value)}
-                  placeholder="Amount"
+                  placeholder={t("tenant.pos.checkout.amount")}
                   className="flex-1 px-3 py-2 border rounded-lg"
                   disabled={processingCard}
                 />
@@ -871,14 +875,14 @@ export function SplitModal({
                   disabled={processingCard}
                   className="px-3 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay text-sm"
                 >
-                  Remaining
+                  {t("tenant.pos.checkout.remaining")}
                 </button>
               </div>
 
               {/* Card details (only show when card method selected) */}
               {currentMethod === "card" && stripeConnected && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Card Information</label>
+                  <label className="block text-sm font-medium mb-2">{t("tenant.pos.checkout.cardInformation")}</label>
                   <div
                     id="split-stripe-card-element"
                     className="p-3 border rounded-lg bg-surface-raised min-h-[44px]"
@@ -903,7 +907,7 @@ export function SplitModal({
                     : "bg-brand text-white hover:bg-brand-hover disabled:bg-surface-overlay"
                 } disabled:cursor-not-allowed`}
               >
-                {processingCard ? "Processing..." : `Add ${currentMethod === "cash" ? "Cash" : "Card"} Payment`}
+                {processingCard ? t("tenant.pos.checkout.processing") : currentMethod === "cash" ? t("tenant.pos.checkout.addCashPayment") : t("tenant.pos.checkout.addCardPayment")}
               </button>
             </div>
           )}
@@ -914,14 +918,14 @@ export function SplitModal({
             onClick={handleClose}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={() => onComplete(payments)}
             disabled={remaining > 0.005 || processingCard}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            Complete Sale
+            {t("tenant.pos.checkout.completeSale")}
           </button>
         </div>
       </div>
@@ -955,6 +959,7 @@ export function RentalAgreementModal({
   shopName,
   agreementNumber,
 }: RentalAgreementModalProps) {
+  const t = useT();
   const [staffName, setStaffName] = useState("");
   const [agreementSigned, setAgreementSigned] = useState(false);
 
@@ -971,41 +976,41 @@ export function RentalAgreementModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Rental Agreement Required</h2>
+        <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.rentalAgreementRequired")}</h2>
 
         {/* Printable Agreement Preview */}
         <div id="rental-agreement" className="p-6 border rounded-lg mb-4 print:border-none">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">{shopName}</h1>
-            <h2 className="text-lg">Equipment Rental Agreement</h2>
+            <h2 className="text-lg">{t("tenant.pos.checkout.equipmentRentalAgreement")}</h2>
             <p className="text-sm text-foreground-muted">Agreement #: {agreementNumber}</p>
             <p className="text-sm text-foreground-muted">{new Date().toLocaleDateString()}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <h3 className="font-bold mb-2">Customer</h3>
+              <h3 className="font-bold mb-2">{t("tenant.pos.checkout.customer")}</h3>
               <p>{customer.firstName} {customer.lastName}</p>
               <p>{customer.email}</p>
               {customer.phone && <p>{customer.phone}</p>}
             </div>
             <div>
-              <h3 className="font-bold mb-2">Rental Period</h3>
-              <p>From: {new Date().toLocaleDateString()}</p>
-              <p>Due: {dueDate.toLocaleDateString()}</p>
+              <h3 className="font-bold mb-2">{t("tenant.pos.checkout.rentalPeriod")}</h3>
+              <p>{t("tenant.pos.checkout.from")}: {new Date().toLocaleDateString()}</p>
+              <p>{t("tenant.pos.checkout.due")}: {dueDate.toLocaleDateString()}</p>
             </div>
           </div>
 
           <div className="mb-6">
-            <h3 className="font-bold mb-2">Equipment</h3>
+            <h3 className="font-bold mb-2">{t("tenant.pos.checkout.equipment")}</h3>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-2">Item</th>
-                  <th className="text-left py-2">Size</th>
-                  <th className="text-right py-2">Days</th>
-                  <th className="text-right py-2">Rate</th>
-                  <th className="text-right py-2">Total</th>
+                  <th className="text-left py-2">{t("tenant.pos.checkout.item")}</th>
+                  <th className="text-left py-2">{t("tenant.pos.checkout.size")}</th>
+                  <th className="text-right py-2">{t("tenant.pos.checkout.daysHeader")}</th>
+                  <th className="text-right py-2">{t("tenant.pos.checkout.rate")}</th>
+                  <th className="text-right py-2">{t("common.total")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1023,24 +1028,24 @@ export function RentalAgreementModal({
           </div>
 
           <div className="mb-6 text-sm">
-            <h3 className="font-bold mb-2">Terms and Conditions</h3>
+            <h3 className="font-bold mb-2">{t("tenant.pos.checkout.termsAndConditions")}</h3>
             <ol className="list-decimal list-inside space-y-1 text-foreground">
-              <li>Equipment must be returned by the due date in the same condition.</li>
-              <li>Customer is responsible for any damage or loss of equipment.</li>
-              <li>Late returns will incur additional daily charges.</li>
-              <li>Equipment should not be used beyond certified limits.</li>
-              <li>Customer has inspected equipment and confirms it is in good working condition.</li>
+              <li>{t("tenant.pos.checkout.term1")}</li>
+              <li>{t("tenant.pos.checkout.term2")}</li>
+              <li>{t("tenant.pos.checkout.term3")}</li>
+              <li>{t("tenant.pos.checkout.term4")}</li>
+              <li>{t("tenant.pos.checkout.term5")}</li>
             </ol>
           </div>
 
           <div className="grid grid-cols-2 gap-6 mt-8">
             <div>
-              <p className="mb-8">Customer Signature: _______________________</p>
-              <p>Date: _______________________</p>
+              <p className="mb-8">{t("tenant.pos.checkout.customerSignature")}: _______________________</p>
+              <p>{t("tenant.pos.checkout.date")}: _______________________</p>
             </div>
             <div>
-              <p className="mb-8">Staff Signature: _______________________</p>
-              <p>Date: _______________________</p>
+              <p className="mb-8">{t("tenant.pos.checkout.staffSignature")}: _______________________</p>
+              <p>{t("tenant.pos.checkout.date")}: _______________________</p>
             </div>
           </div>
         </div>
@@ -1051,7 +1056,7 @@ export function RentalAgreementModal({
             onClick={handlePrint}
             className="w-full py-3 border-2 border-brand text-brand rounded-lg hover:bg-brand-muted font-medium"
           >
-            Print Agreement
+            {t("tenant.pos.checkout.printAgreement")}
           </button>
 
           <div className="p-4 bg-surface-inset rounded-lg space-y-3">
@@ -1062,16 +1067,16 @@ export function RentalAgreementModal({
                 onChange={(e) => setAgreementSigned(e.target.checked)}
                 className="w-5 h-5"
               />
-              <span>Customer has signed the rental agreement</span>
+              <span>{t("tenant.pos.checkout.customerSignedAgreement")}</span>
             </label>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Staff Name</label>
+              <label className="block text-sm font-medium mb-1">{t("tenant.pos.checkout.staffName")}</label>
               <input
                 type="text"
                 value={staffName}
                 onChange={(e) => setStaffName(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("tenant.pos.checkout.yourName")}
                 className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
@@ -1083,14 +1088,14 @@ export function RentalAgreementModal({
             onClick={onClose}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={() => onConfirm(staffName)}
             disabled={!agreementSigned || !staffName.trim()}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
-            Continue to Payment
+            {t("tenant.pos.checkout.continueToPayment")}
           </button>
         </div>
       </div>
@@ -1118,6 +1123,7 @@ export function CustomerSearchModal({
   onSearch,
   isSearching,
 }: CustomerSearchModalProps) {
+  const t = useT();
   const [query, setQuery] = useState("");
 
   const handleSearch = (value: string) => {
@@ -1132,20 +1138,20 @@ export function CustomerSearchModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Select Customer</h2>
+        <h2 className="text-xl font-bold mb-4">{t("tenant.pos.checkout.selectCustomer")}</h2>
 
         <input
           type="text"
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Search by name, email, or phone..."
+          placeholder={t("tenant.pos.checkout.searchCustomerPlaceholder")}
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand mb-4"
           autoFocus
         />
 
         <div className="max-h-64 overflow-y-auto space-y-2 mb-4">
           {isSearching ? (
-            <p className="text-center text-foreground-muted py-4">Searching...</p>
+            <p className="text-center text-foreground-muted py-4">{t("tenant.pos.checkout.searching")}</p>
           ) : searchResults.length > 0 ? (
             searchResults.map(customer => (
               <button
@@ -1159,9 +1165,9 @@ export function CustomerSearchModal({
               </button>
             ))
           ) : query.length >= 2 ? (
-            <p className="text-center text-foreground-muted py-4">No customers found</p>
+            <p className="text-center text-foreground-muted py-4">{t("tenant.pos.checkout.noCustomersFound")}</p>
           ) : (
-            <p className="text-center text-foreground-muted py-4">Type to search...</p>
+            <p className="text-center text-foreground-muted py-4">{t("tenant.pos.checkout.typeToSearch")}</p>
           )}
         </div>
 
@@ -1170,13 +1176,13 @@ export function CustomerSearchModal({
             onClick={onClose}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onCreateNew}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover font-medium"
           >
-            New Customer
+            {t("tenant.pos.checkout.newCustomer")}
           </button>
         </div>
       </div>

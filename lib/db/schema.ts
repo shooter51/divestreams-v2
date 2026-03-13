@@ -57,6 +57,7 @@ export {
 export * from "./schema/stripe";
 export * from "./schema/zapier";
 export * from "./schema/onboarding";
+export * from "./schema/translations";
 
 // Import organization for foreign key references
 import { organization, user } from "./schema/auth";
@@ -296,6 +297,7 @@ export const tours = pgTable("tours", {
 
   images: jsonb("images").$type<string[]>(),
   isActive: boolean("is_active").notNull().default(true),
+  requiresTankSelection: boolean("requires_tank_selection").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => [
@@ -365,6 +367,7 @@ export const trips = pgTable("trips", {
   index("trips_org_date_idx").on(table.organizationId, table.date),
   index("trips_org_status_idx").on(table.organizationId, table.status),
   index("trips_org_date_status_idx").on(table.organizationId, table.date, table.status),
+  index("trips_org_public_status_date_idx").on(table.organizationId, table.isPublic, table.status, table.date),
   index("trips_recurring_template_idx").on(table.recurringTemplateId),
 ]);
 
@@ -383,6 +386,8 @@ export const bookings = pgTable("bookings", {
     name: string;
     certLevel?: string;
     equipment?: string[];
+    bringOwnTanks?: boolean;
+    tanks?: { type: string; gasType: string; quantity: number }[];
   }[]>(),
 
   status: text("status").notNull().default("pending"), // pending, confirmed, checked_in, completed, cancelled, no_show
@@ -407,6 +412,7 @@ export const bookings = pgTable("bookings", {
   equipmentRental: jsonb("equipment_rental").$type<{
     item: string;
     size?: string;
+    gasType?: string;
     quantity?: number;
     price: number;
   }[]>(),
@@ -447,6 +453,7 @@ export const equipment = pgTable("equipment", {
   serialNumber: text("serial_number"),
   barcode: text("barcode"), // Barcode for quick equipment lookup/check-in/check-out
   size: text("size"),
+  gasType: text("gas_type"), // air, nitrox32, nitrox36, trimix, oxygen — only relevant for category="tank"
 
   status: text("status").notNull().default("available"), // available, rented, maintenance, retired
   condition: text("condition").default("good"), // excellent, good, fair, poor
@@ -474,6 +481,7 @@ export const equipment = pgTable("equipment", {
   index("equipment_org_idx").on(table.organizationId),
   index("equipment_org_category_idx").on(table.organizationId, table.category),
   index("equipment_org_status_idx").on(table.organizationId, table.status),
+  index("equipment_org_public_status_idx").on(table.organizationId, table.isPublic, table.status, table.category),
   index("equipment_org_barcode_idx").on(table.organizationId, table.barcode),
 ]);
 
@@ -620,6 +628,32 @@ export const discountCodes = pgTable("discount_codes", {
   index("discount_codes_org_active_idx").on(table.organizationId, table.isActive),
 ]);
 
+// Subscription coupon codes (platform-level, managed by admin)
+export const subscriptionCoupons = pgTable("subscription_coupons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull(),
+  stripeCouponId: text("stripe_coupon_id"),
+  stripePromotionCodeId: text("stripe_promotion_code_id"),
+  name: text("name").notNull(),
+  discountType: text("discount_type").notNull(), // 'percentage' | 'fixed'
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+  duration: text("duration").notNull().default("once"), // 'once' | 'repeating' | 'forever'
+  durationInMonths: integer("duration_in_months"),
+  maxRedemptions: integer("max_redemptions"),
+  redemptionCount: integer("redemption_count").notNull().default(0),
+  expiresAt: timestamp("expires_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: text("created_by"), // admin user ID
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("subscription_coupons_code_idx").on(table.code),
+  index("subscription_coupons_active_idx").on(table.isActive),
+]);
+
+export type SubscriptionCoupon = typeof subscriptionCoupons.$inferSelect;
+export type NewSubscriptionCoupon = typeof subscriptionCoupons.$inferInsert;
+
 // Customer Communications (email logs)
 export const customerCommunications = pgTable("customer_communications", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -678,6 +712,7 @@ export const images = pgTable("images", {
 }, (table) => [
   index("images_org_idx").on(table.organizationId),
   index("images_org_entity_idx").on(table.organizationId, table.entityType, table.entityId),
+  index("images_org_entity_primary_idx").on(table.organizationId, table.entityType, table.entityId, table.isPrimary),
 ]);
 
 // ============================================================================

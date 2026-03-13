@@ -68,6 +68,7 @@ vi.mock("../../../../lib/db", () => ({
   db: dbMock,
 }));
 
+
 // Mock the schema
 vi.mock("../../../../lib/db/schema", () => ({
   __esModule: true,
@@ -600,6 +601,19 @@ describe("queries.server database functions", () => {
       (dbMock.where as unknown as Mock).mockReturnValue(dbMock);
       mockReturning.mockResolvedValueOnce([{ id: "book-1" }]);
 
+      // Mock capacity validation dependencies
+      const tripsModule = await import("../../../../lib/db/queries/trips.server");
+      vi.spyOn(tripsModule, "getTripById").mockResolvedValue({
+        id: "trip-1", maxParticipants: null, tourId: "tour-1", boatId: null,
+        date: "2026-03-10", startTime: "08:00", endTime: null, status: "scheduled",
+        price: null, notes: null, weatherNotes: null, isPublic: false,
+        isRecurring: false, recurrencePattern: null, recurringTemplateId: null,
+        recurrenceDays: null, recurrenceEndDate: null, recurrenceCount: null,
+        tourName: "Test", tourType: "dive", boatName: null, bookedParticipants: 0,
+        staffIds: null, createdAt: new Date(), updatedAt: new Date(),
+      });
+      vi.spyOn(tripsModule, "getTripBookedParticipants").mockResolvedValue(0);
+
       const { createBooking } = await import("../../../../lib/db/queries.server");
 
       const data = {
@@ -616,6 +630,8 @@ describe("queries.server database functions", () => {
       expect(dbMock.insert).toHaveBeenCalled();
       expect(dbMock.values).toHaveBeenCalled();
       expect(mockReturning).toHaveBeenCalled();
+
+      vi.restoreAllMocks();
     });
   });
 

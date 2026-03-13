@@ -30,6 +30,8 @@ export default function AdminLayout() {
   const navItems = [
     { href: "/dashboard", label: "Organizations", icon: "🏢" },
     { href: "/plans", label: "Plans", icon: "💳" },
+    { href: "/coupons", label: "Coupons", icon: "🏷️" },
+    { href: "/course-catalog", label: "Courses", icon: "📚" },
     { href: "/settings/team", label: "Settings", icon: "⚙️" },
   ];
 

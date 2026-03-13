@@ -22,6 +22,12 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Domain check (used by Caddy on_demand_tls to validate custom domains)
+  route("api/domain-check", "routes/api/domain-check.tsx"),
+
+  // Locale switcher (works from any context — tenant, site, or admin)
+  route("api/set-locale", "routes/api/set-locale.tsx"),
+
   // Demo seed reset endpoint (protected by SEED_KEY)
   route("api/seed/reset", "routes/api/seed/reset.ts"),
 
@@ -146,13 +152,15 @@ export default [
       route("training/courses/new", "routes/tenant/training/courses/new.tsx"),
       route("training/courses/:id/edit", "routes/tenant/training/courses/$id/edit.tsx"),
       route("training/courses/:id", "routes/tenant/training/courses/$id.tsx"),
+      route("training/series", "routes/tenant/training/series/index.tsx"),
+      route("training/series/new", "routes/tenant/training/series/new.tsx"),
+      route("training/series/:id", "routes/tenant/training/series/$id.tsx"),
       route("training/sessions", "routes/tenant/training/sessions/index.tsx"),
       route("training/sessions/new", "routes/tenant/training/sessions/new.tsx"),
       route("training/sessions/:id", "routes/tenant/training/sessions/$id.tsx"),
       route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
       route("training/enrollments/new", "routes/tenant/training/enrollments/new.tsx"),
       route("training/enrollments/:id", "routes/tenant/training/enrollments/$id.tsx"),
-
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
 
@@ -174,7 +182,13 @@ export default [
         route("settings/public-site", "routes/tenant/settings/public-site.general.tsx"),
         route("settings/public-site/content", "routes/tenant/settings/public-site.content.tsx"),
         route("settings/public-site/appearance", "routes/tenant/settings/public-site.appearance.tsx"),
+        route("settings/public-site/pages", "routes/tenant/settings/public-site.pages.tsx"),
+        route("settings/public-site/pages/:pageId/edit", "routes/tenant/settings/public-site.pages.$pageId.edit.tsx"),
+        route("settings/public-site/team", "routes/tenant/settings/public-site.team.tsx"),
       ]),
+
+      // Translations Settings
+      route("settings/translations", "routes/tenant/settings/translations.tsx"),
 
       // Training Settings
       route("settings/training/agencies", "routes/tenant/settings/training/agencies.tsx"),
@@ -204,9 +218,15 @@ export default [
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
+    route("coupons", "routes/admin/coupons.tsx"),
     route("settings", "routes/admin/settings.tsx"),
     route("settings/team", "routes/admin/settings.team.tsx"),
     route("contact-messages", "routes/admin/contact-messages.tsx"),
+
+    // Course Catalog Management
+    route("course-catalog", "routes/admin/course-catalog.tsx"),
+    route("course-catalog/:agencyCode", "routes/admin/course-catalog.$agencyCode.tsx"),
+    route("course-catalog/:agencyCode/:templateId", "routes/admin/course-catalog.$agencyCode.$templateId.tsx"),
   ]),
   // Public site routes (accessed via subdomain/site)
   // These routes are for the customer-facing public website

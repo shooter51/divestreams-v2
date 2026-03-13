@@ -51,6 +51,8 @@ vi.mock("../../../../lib/db/pos.server", () => ({
   processPOSCheckout: vi.fn(),
   generateAgreementNumber: vi.fn(),
   getProductByBarcode: vi.fn(),
+  getTransactionById: vi.fn(),
+  processPOSRefund: vi.fn(),
 }));
 
 // Mock the Stripe integration functions
@@ -60,6 +62,7 @@ vi.mock("../../../../lib/integrations/stripe.server", () => ({
   createPOSPaymentIntent: vi.fn(),
   createTerminalConnectionToken: vi.fn(),
   listTerminalReaders: vi.fn(),
+  createStripeRefund: vi.fn(),
 }));
 
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
@@ -214,6 +217,30 @@ describe("tenant/pos route", () => {
       expect(result.hasTerminalReaders).toBe(true);
     });
 
+    // DS-zkvi: Loader must return taxName and currency for ReceiptModal organization data
+    it("DS-zkvi: returns taxName and currency from organization settings for receipt modal", async () => {
+      (getPOSProducts as Mock).mockResolvedValue([]);
+      (getPOSEquipment as Mock).mockResolvedValue([]);
+      (getPOSTrips as Mock).mockResolvedValue([]);
+      (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
+      (getStripeSettings as Mock).mockResolvedValue(null);
+
+      const { db } = await import("../../../../lib/db/index");
+      (db.select as Mock).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([{ taxRate: "8.25", taxName: "Sales Tax", currency: "USD" }]),
+          }),
+        }),
+      });
+
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+
+      expect(result.taxName).toBe("Sales Tax");
+      expect(result.currency).toBe("USD");
+    });
+
     it("returns hasTerminalReaders false when no readers registered", async () => {
       (getPOSProducts as Mock).mockResolvedValue([]);
       (getPOSEquipment as Mock).mockResolvedValue([]);
@@ -348,6 +375,56 @@ describe("tenant/pos route", () => {
         expect(result).toMatchObject({
           success: true,
           receiptNumber: "R-0001",
+        });
+      });
+
+      // DS-zkvi: Receipt not printing after POS sale
+      // The action must return transaction data so the UI can open the ReceiptModal and trigger window.print()
+      it("DS-zkvi: checkout response includes transaction data for receipt modal", async () => {
+        const mockTransaction = {
+          id: "txn-00000000-0000-0000-0000-000000000001",
+          type: "sale",
+          amount: "100.00",
+          paymentMethod: "cash",
+          customerId: null,
+          userId: "user-1",
+          items: [{ description: "Tank", quantity: 2, unitPrice: 50, total: 100 }],
+          createdAt: new Date("2026-03-10T10:00:00Z"),
+          stripePaymentId: null,
+          refundedTransactionId: null,
+        };
+        (processPOSCheckout as Mock).mockResolvedValue({
+          receiptNumber: "R-0002",
+          transaction: mockTransaction,
+        });
+
+        const checkoutData = {
+          items: [{ type: "product", productId: "00000000-0000-0000-0000-000000000001", name: "Tank", quantity: 2, unitPrice: 50, total: 100 }],
+          payments: [{ method: "cash", amount: 100, tendered: 100, change: 0 }],
+          subtotal: 100,
+          tax: 0,
+          total: 100,
+        };
+
+        const formData = new FormData();
+        formData.append("intent", "checkout");
+        formData.append("data", JSON.stringify(checkoutData));
+
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toMatchObject({
+          success: true,
+          receiptNumber: "R-0002",
+          transaction: expect.objectContaining({
+            id: "R-0002",
+            amount: 100,
+            paymentMethod: "cash",
+          }),
         });
       });
 

@@ -18,6 +18,9 @@ import {
 } from "../../../../lib/db/page-content.server";
 import type { PageContent } from "../../../../lib/db/schema/page-content";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { useT } from "../../../i18n/use-t";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -75,6 +78,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
       userId: ctx.user.id,
     });
 
+    // Enqueue auto-translation for non-default locales
+    const fieldsToTranslate = [
+      ...(metaTitle ? [{ field: "metaTitle", text: metaTitle }] : []),
+      ...(metaDescription ? [{ field: "metaDescription", text: metaDescription }] : []),
+    ].filter((f) => f.text?.trim());
+
+    if (fieldsToTranslate.length > 0) {
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "page",
+          entityId: pageId,
+          fields: fieldsToTranslate,
+          targetLocale: locale,
+        });
+      }
+    }
+
     return { success: true, message: "Page saved successfully" };
   }
 
@@ -119,6 +141,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function PageEditPage() {
+  const t = useT();
   const { page, history, orgSlug } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
@@ -157,7 +180,7 @@ export default function PageEditPage() {
           href={`/tenant/${orgSlug}/settings/public-site/pages`}
           className="text-foreground-muted hover:text-foreground"
         >
-          ← Back to Pages
+          {t("tenant.settings.publicSite.pages.backToPages")}
         </a>
       </div>
 
@@ -169,22 +192,22 @@ export default function PageEditPage() {
 
         {/* SEO Metadata */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">SEO Metadata</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.publicSite.pages.seoMetadata")}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="metaTitle" className="block text-sm font-medium mb-1">
-                Meta Title
+                {t("tenant.settings.publicSite.pages.metaTitle")}
               </label>
               <input
                 type="text"
                 id="metaTitle"
                 name="metaTitle"
                 defaultValue={page.metaTitle || ""}
-                placeholder="Page title for search engines"
+                placeholder={t("tenant.settings.publicSite.pages.metaTitlePlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Recommended: 50-60 characters
+                {t("tenant.settings.publicSite.pages.metaTitleHint")}
               </p>
             </div>
 
@@ -193,18 +216,18 @@ export default function PageEditPage() {
                 htmlFor="metaDescription"
                 className="block text-sm font-medium mb-1"
               >
-                Meta Description
+                {t("tenant.settings.publicSite.pages.metaDescription")}
               </label>
               <textarea
                 id="metaDescription"
                 name="metaDescription"
                 rows={3}
                 defaultValue={page.metaDescription || ""}
-                placeholder="Brief description for search engines"
+                placeholder={t("tenant.settings.publicSite.pages.metaDescriptionPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand resize-y"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Recommended: 150-160 characters
+                {t("tenant.settings.publicSite.pages.metaDescriptionHint")}
               </p>
             </div>
           </div>
@@ -212,15 +235,14 @@ export default function PageEditPage() {
 
         {/* Content Editor */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Page Content</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.publicSite.pages.pageContent")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Edit the page content as JSON. A visual block editor will be added in a
-            future update.
+            {t("tenant.settings.publicSite.pages.pageContentDescription")}
           </p>
 
           <div>
             <label htmlFor="content" className="block text-sm font-medium mb-2">
-              Content Blocks (JSON)
+              {t("tenant.settings.publicSite.pages.contentBlocksJson")}
             </label>
             <textarea
               id="content"
@@ -242,13 +264,13 @@ export default function PageEditPage() {
         {/* Change Description */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label htmlFor="changeDescription" className="block text-sm font-medium mb-2">
-            Change Description (Optional)
+            {t("tenant.settings.publicSite.pages.changeDescription")}
           </label>
           <input
             type="text"
             id="changeDescription"
             name="changeDescription"
-            placeholder="Describe what you changed..."
+            placeholder={t("tenant.settings.publicSite.pages.changeDescriptionPlaceholder")}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
         </div>
@@ -261,7 +283,7 @@ export default function PageEditPage() {
               disabled={isSubmitting}
               className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
             >
-              {isSubmitting ? "Saving..." : "Save Draft"}
+              {isSubmitting ? t("common.saving") : t("tenant.settings.publicSite.pages.saveDraft")}
             </button>
 
             {page.status !== "published" && (
@@ -272,7 +294,7 @@ export default function PageEditPage() {
                 disabled={isSubmitting}
                 className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-success-muted"
               >
-                Publish
+                {t("tenant.settings.publicSite.pages.publish")}
               </button>
             )}
 
@@ -284,7 +306,7 @@ export default function PageEditPage() {
                 disabled={isSubmitting}
                 className="bg-warning text-white px-6 py-2 rounded-lg hover:bg-warning disabled:bg-warning-muted"
               >
-                Unpublish
+                {t("tenant.settings.publicSite.pages.unpublish")}
               </button>
             )}
           </div>
@@ -296,7 +318,7 @@ export default function PageEditPage() {
               rel="noopener noreferrer"
               className="text-brand hover:text-brand font-medium"
             >
-              Preview Live Page →
+              {t("tenant.settings.publicSite.pages.previewLivePage")}
             </a>
           )}
         </div>
@@ -305,7 +327,7 @@ export default function PageEditPage() {
       {/* Version History */}
       {history.length > 0 && (
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Version History</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.publicSite.pages.versionHistory")}</h2>
           <div className="space-y-3">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {history.slice(0, 5).map((entry: any) => (
@@ -314,9 +336,9 @@ export default function PageEditPage() {
                 className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
               >
                 <div>
-                  <div className="font-medium">Version {entry.version}</div>
+                  <div className="font-medium">{t("tenant.settings.publicSite.pages.versionLabel", { version: entry.version })}</div>
                   <div className="text-sm text-foreground-muted">
-                    {entry.changeDescription || "No description"}
+                    {entry.changeDescription || t("tenant.settings.publicSite.pages.noDescription")}
                   </div>
                   <div className="text-xs text-foreground-muted mt-1">
                     {new Date(entry.createdAt).toLocaleString()}
@@ -332,13 +354,13 @@ export default function PageEditPage() {
                     disabled={isSubmitting}
                     onClick={(e) => {
                       if (!confirm(
-                        `Restore to version ${entry.version}? This will create a new version with the old content.`
+                        t("tenant.settings.publicSite.pages.confirmRestore", { version: entry.version })
                       )) {
                         e.preventDefault();
                       }
                     }}
                   >
-                    {isSubmitting ? "Restoring..." : "Restore"}
+                    {isSubmitting ? t("tenant.settings.publicSite.pages.restoring") : t("tenant.settings.publicSite.pages.restore")}
                   </button>
                 </Form>
               </div>
@@ -349,7 +371,7 @@ export default function PageEditPage() {
 
       {/* Help */}
       <div className="bg-brand-muted rounded-xl p-6 border border-brand">
-        <h3 className="font-semibold mb-3">Content Block Types</h3>
+        <h3 className="font-semibold mb-3">{t("tenant.settings.publicSite.pages.contentBlockTypes")}</h3>
         <div className="space-y-2 text-sm text-foreground">
           <p>
             <code className="bg-surface-raised px-2 py-0.5 rounded">heading</code> - Text

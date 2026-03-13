@@ -1,11 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
 import { eq, ilike, and, or } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Dive Sites - DiveStreams" }];
 
@@ -72,6 +75,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     imageUrl: imageMap.get(s.id),
   }));
 
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && diveSites.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "dive_site", diveSites.map(s => s.id), locale);
+    for (const site of diveSites) {
+      const tr = translations.get(site.id);
+      if (tr) {
+        if (tr.name) site.name = tr.name;
+        if (tr.description) site.description = tr.description;
+      }
+    }
+  }
+
   return {
     diveSites,
     total: diveSites.length,
@@ -80,13 +96,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isPremium: ctx.isPremium,
   };
 }
-
-const difficultyLabels: Record<string, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-  expert: "Expert",
-};
 
 const difficultyColors: Record<string, string> = {
   beginner: "bg-success-muted text-success",
@@ -98,6 +107,14 @@ const difficultyColors: Record<string, string> = {
 export default function DiveSitesPage() {
   const { diveSites, total, search, difficulty } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const t = useT();
+
+  const difficultyLabels: Record<string, string> = {
+    beginner: t("tenant.diveSites.difficulty.beginner"),
+    intermediate: t("tenant.diveSites.difficulty.intermediate"),
+    advanced: t("tenant.diveSites.difficulty.advanced"),
+    expert: t("tenant.diveSites.difficulty.expert"),
+  };
 
   // Show notifications from URL params
   useNotification();
@@ -123,14 +140,14 @@ export default function DiveSitesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Dive Sites</h1>
-          <p className="text-foreground-muted">{total} sites</p>
+          <h1 className="text-2xl font-bold">{t("tenant.diveSites.title")}</h1>
+          <p className="text-foreground-muted">{total} {t("tenant.diveSites.title").toLowerCase()}</p>
         </div>
         <Link
           to="/tenant/dive-sites/new"
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
-          Add Site
+          {t("tenant.diveSites.addSite")}
         </Link>
       </div>
 
@@ -140,7 +157,7 @@ export default function DiveSitesPage() {
           <input
             type="search"
             name="q"
-            placeholder="Search dive sites..."
+            placeholder={t("tenant.diveSites.searchSites")}
             defaultValue={search}
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
@@ -150,7 +167,7 @@ export default function DiveSitesPage() {
           onChange={(e) => setDifficulty(e.target.value)}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
-          <option value="">All Levels</option>
+          <option value="">{t("tenant.diveSites.allLevels")}</option>
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>
           <option value="advanced">Advanced</option>
@@ -161,12 +178,12 @@ export default function DiveSitesPage() {
       {/* Sites List */}
       {diveSites.length === 0 ? (
         <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
-          <p className="text-foreground-muted">No dive sites found.</p>
+          <p className="text-foreground-muted">{t("tenant.diveSites.noSitesFound")}</p>
           <Link
             to="/tenant/dive-sites/new"
             className="inline-block mt-4 text-brand hover:underline"
           >
-            Add your first dive site
+            {t("tenant.diveSites.addFirstSite")}
           </Link>
         </div>
       ) : (
@@ -228,12 +245,12 @@ export default function DiveSitesPage() {
 
               <div className="flex justify-between items-center text-sm border-t pt-3">
                 <span className="text-foreground-muted">
-                  Max depth: <strong>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</strong>
+                  {t("tenant.diveSites.maxDepth")}: <strong>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</strong>
                 </span>
               </div>
 
               {!site.isActive && (
-                <div className="mt-2 text-xs text-accent">Inactive</div>
+                <div className="mt-2 text-xs text-accent">{t("common.inactive")}</div>
               )}
               </div>
             </Link>

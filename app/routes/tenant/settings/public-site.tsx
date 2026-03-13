@@ -3,6 +3,7 @@ import { Link, useLoaderData, Outlet, useLocation } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getPublicSiteSettings } from "../../../../lib/db/public-site.server";
 import { getBaseDomain, getTenantUrl } from "../../../../lib/utils/url";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Public Site Settings - DiveStreams" }];
 
@@ -39,13 +40,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const tabs = [
-  { id: "general", label: "General", href: "/tenant/settings/public-site" },
-  { id: "content", label: "Content", href: "/tenant/settings/public-site/content" },
-  { id: "appearance", label: "Appearance", href: "/tenant/settings/public-site/appearance" },
+const tabKeys = [
+  { id: "general", key: "tenant.settings.publicSite.tabGeneral", href: "/tenant/settings/public-site" },
+  { id: "content", key: "tenant.settings.publicSite.tabContent", href: "/tenant/settings/public-site/content" },
+  { id: "appearance", key: "tenant.settings.publicSite.tabAppearance", href: "/tenant/settings/public-site/appearance" },
 ];
 
 export default function PublicSiteSettingsLayout() {
+  const t = useT();
   const { orgSlug, baseDomain, publicSiteUrl, customDomain, settings, isPremium } = useLoaderData<typeof loader>();
   const location = useLocation();
 
@@ -61,11 +63,11 @@ export default function PublicSiteSettingsLayout() {
     <div className="max-w-4xl">
       <div className="mb-6">
         <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
-          &larr; Back to Settings
+          &larr; {t("common.backToSettings")}
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Public Site Settings</h1>
+        <h1 className="text-2xl font-bold mt-2">{t("tenant.settings.publicSite.title")}</h1>
         <p className="text-foreground-muted">
-          Configure your public-facing website at{" "}
+          {t("tenant.settings.publicSite.configureAt")}{" "}
           <a
             href={publicSiteUrl}
             target="_blank"
@@ -91,14 +93,14 @@ export default function PublicSiteSettingsLayout() {
               settings.enabled ? "bg-success" : "bg-surface-overlay"
             }`}
           />
-          {settings.enabled ? "Site Enabled" : "Site Disabled"}
+          {settings.enabled ? t("tenant.settings.publicSite.siteEnabled") : t("tenant.settings.publicSite.siteDisabled")}
         </span>
       </div>
 
       {/* Tab Navigation */}
       <div className="border-b border-border mb-6">
         <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => (
+          {tabKeys.map((tab) => (
             <Link
               key={tab.id}
               to={tab.href}
@@ -108,7 +110,7 @@ export default function PublicSiteSettingsLayout() {
                   : "border-transparent text-foreground-muted hover:text-foreground-muted hover:border-border"
               }`}
             >
-              {tab.label}
+              {t(tab.key)}
             </Link>
           ))}
         </nav>

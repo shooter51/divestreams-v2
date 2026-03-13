@@ -2,18 +2,36 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
 import { useNotification } from "../../../../lib/use-notification";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Gallery - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
   const albums = await getAllGalleryAlbums(ctx.org.id);
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en" && albums.length > 0) {
+    const translations = await bulkGetContentTranslations(ctx.org.id, "gallery_album", albums.map(a => a.id), locale);
+    for (const album of albums) {
+      const tr = translations.get(album.id);
+      if (tr) {
+        if (tr.name) album.name = tr.name;
+        if (tr.description) album.description = tr.description;
+      }
+    }
+  }
+
   return { albums };
 }
 
 export default function GalleryIndexPage() {
   const { albums } = useLoaderData<typeof loader>();
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
@@ -22,29 +40,29 @@ export default function GalleryIndexPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Gallery</h1>
-          <p className="text-foreground-muted">Manage your photo albums and images</p>
+          <h1 className="text-2xl font-bold">{t("tenant.gallery.title")}</h1>
+          <p className="text-foreground-muted">{t("tenant.gallery.subtitle")}</p>
         </div>
         <Link
           to="/tenant/gallery/new"
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
-          + New Album
+          {t("tenant.gallery.newAlbum")}
         </Link>
       </div>
 
       {albums.length === 0 ? (
         <div className="bg-surface-raised rounded-xl p-12 text-center shadow-sm">
           <div className="text-6xl mb-4">📸</div>
-          <h2 className="text-xl font-semibold mb-2">No albums yet</h2>
+          <h2 className="text-xl font-semibold mb-2">{t("tenant.gallery.noAlbumsYet")}</h2>
           <p className="text-foreground-muted mb-6">
-            Create your first photo album to showcase your dive trips and underwater photography
+            {t("tenant.gallery.noAlbumsDescription")}
           </p>
           <Link
             to="/tenant/gallery/new"
             className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
           >
-            Create Album
+            {t("tenant.gallery.createAlbum")}
           </Link>
         </div>
       ) : (
@@ -82,7 +100,7 @@ export default function GalleryIndexPage() {
                         : "bg-surface-inset text-foreground-muted"
                     }`}
                   >
-                    {album.isPublic ? "Public" : "Private"}
+                    {album.isPublic ? t("tenant.gallery.public") : t("tenant.gallery.private")}
                   </span>
                 </div>
               </div>
@@ -96,8 +114,8 @@ export default function GalleryIndexPage() {
                   </p>
                 )}
                 <div className="flex items-center gap-4 text-sm text-foreground-muted">
-                  <span>📷 {album.imageCount} photos</span>
-                  <span>Position {(album.sortOrder ?? 0) + 1}</span>
+                  <span>{t("tenant.gallery.photoCount", { count: album.imageCount })}</span>
+                  <span>{t("tenant.gallery.position", { position: (album.sortOrder ?? 0) + 1 })}</span>
                 </div>
               </div>
             </Link>

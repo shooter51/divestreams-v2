@@ -7,9 +7,13 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
+import { useT } from "../../../i18n/use-t";
+import { useFormat } from "../../../i18n/use-format";
+import { eq, and, gte, lte, sql, asc, inArray } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
+import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Trips" }];
@@ -18,6 +22,11 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: "description", content: `Explore upcoming dive trips and adventures with ${data.organizationName}` },
   ];
 };
+
+/** Strip HTML tags from a string (e.g. tour names stored with HTML markup) */
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]*>/g, "").trim();
+}
 
 // ============================================================================
 // TYPES
@@ -141,62 +150,93 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const total = Number(countResult[0]?.count ?? 0);
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  // Get booking counts and images for each trip
-  const tripCards: TripCard[] = await Promise.all(
-    tripsData.map(async (trip) => {
-      // Get booking count
-      const bookingCount = await db
-        .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-        .from(bookings)
-        .where(
-          and(
-            eq(bookings.tripId, trip.id),
-            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
+  // Batch-fetch booking counts and images (eliminates N+1 queries)
+  const tripIds = tripsData.map((t) => t.id);
+  const tourIds = [...new Set(tripsData.map((t) => t.tourId))];
+
+  const [bookingCounts, tourImages] = await Promise.all([
+    // Single query for all booking counts
+    tripIds.length > 0
+      ? db
+          .select({
+            tripId: bookings.tripId,
+            total: sql<number>`COALESCE(SUM(participants), 0)`,
+          })
+          .from(bookings)
+          .where(
+            and(
+              inArray(bookings.tripId, tripIds),
+              sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
+            )
           )
-        );
-
-      // Get primary image for the tour
-      const tourImages = await db
-        .select({ url: images.url })
-        .from(images)
-        .where(
-          and(
-            eq(images.organizationId, org.id),
-            eq(images.entityType, "tour"),
-            eq(images.entityId, trip.tourId),
-            eq(images.isPrimary, true)
+          .groupBy(bookings.tripId)
+      : Promise.resolve([]),
+    // Single query for all primary images
+    tourIds.length > 0
+      ? db
+          .select({ entityId: images.entityId, url: images.url })
+          .from(images)
+          .where(
+            and(
+              eq(images.organizationId, org.id),
+              eq(images.entityType, "tour"),
+              inArray(images.entityId, tourIds),
+              eq(images.isPrimary, true)
+            )
           )
-        )
-        .limit(1);
+      : Promise.resolve([]),
+  ]);
 
-      const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
-      const bookedParticipants = Number(bookingCount[0]?.total || 0);
+  const bookingMap = new Map(bookingCounts.map((b) => [b.tripId, Number(b.total)]));
+  const imageMap = new Map(tourImages.map((i) => [i.entityId, i.url]));
 
-      return {
-        id: trip.id,
-        tourId: trip.tourId,
-        tourName: trip.tourName,
-        tourDescription: trip.tourDescription,
-        tourType: trip.tourType,
-        date: trip.date,
-        startTime: trip.startTime,
-        endTime: trip.endTime,
-        maxParticipants,
-        availableSpots: Math.max(0, maxParticipants - bookedParticipants),
-        price: trip.tripPrice || trip.tourPrice,
-        currency: trip.currency || "USD",
-        duration: trip.duration,
-        minCertLevel: trip.minCertLevel,
-        primaryImage: tourImages[0]?.url || null,
-        includesEquipment: trip.includesEquipment || false,
-        includesMeals: trip.includesMeals || false,
-        includesTransport: trip.includesTransport || false,
-      };
-    })
-  );
+  const tripCards: TripCard[] = tripsData.map((trip) => {
+    const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+    const bookedParticipants = bookingMap.get(trip.id) || 0;
+
+    return {
+      id: trip.id,
+      tourId: trip.tourId,
+      tourName: trip.tourName,
+      tourDescription: trip.tourDescription,
+      tourType: trip.tourType,
+      date: trip.date,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      maxParticipants,
+      availableSpots: Math.max(0, maxParticipants - bookedParticipants),
+      price: trip.tripPrice || trip.tourPrice,
+      currency: trip.currency || "USD",
+      duration: trip.duration,
+      minCertLevel: trip.minCertLevel,
+      primaryImage: imageMap.get(trip.tourId) || null,
+      includesEquipment: trip.includesEquipment || false,
+      includesMeals: trip.includesMeals || false,
+      includesTransport: trip.includesTransport || false,
+    };
+  });
+
+  // Apply content translations for tour names/descriptions
+  const locale = resolveLocale(request);
+  let translatedTripCards = tripCards;
+  if (locale !== "en" && tripCards.length > 0) {
+    const tourIds = [...new Set(tripCards.map((t) => t.tourId))];
+    const translations = await bulkGetContentTranslations(
+      org.id,
+      "tour",
+      tourIds,
+      locale
+    );
+    translatedTripCards = tripCards.map((t) => {
+      const tr = translations.get(t.tourId);
+      return tr
+        ? { ...t, tourName: tr.name || t.tourName, tourDescription: tr.description || t.tourDescription }
+        : t;
+    });
+  }
 
   return {
-    trips: tripCards,
+    trips: translatedTripCards,
     total,
     page,
     totalPages,
@@ -210,27 +250,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // COMPONENT
 // ============================================================================
 
-const tourTypes: Record<string, { label: string; icon: string }> = {
-  single_dive: { label: "Single Dive", icon: "diving-mask" },
-  multi_dive: { label: "Multi-Dive", icon: "waves" },
-  course: { label: "Course", icon: "book" },
-  snorkel: { label: "Snorkel", icon: "sun" },
-  night_dive: { label: "Night Dive", icon: "moon" },
-  other: { label: "Dive Trip", icon: "anchor" },
+const tourTypeKeys: Record<string, { key: string; icon: string }> = {
+  single_dive: { key: "site.trips.type.singleDive", icon: "diving-mask" },
+  multi_dive: { key: "site.trips.type.multiDive", icon: "waves" },
+  course: { key: "site.trips.type.course", icon: "book" },
+  snorkel: { key: "site.trips.type.snorkel", icon: "sun" },
+  night_dive: { key: "site.trips.type.nightDive", icon: "moon" },
+  other: { key: "site.trips.type.diveTrip", icon: "anchor" },
 };
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString + "T00:00:00");
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function formatTime(timeString: string | null): string {
-  if (!timeString) return "Time TBA";
+  if (!timeString) return "";
   const [hours, minutes] = timeString.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -260,6 +291,7 @@ function formatPrice(price: string, currency: string): string {
 export default function SiteTripsPage() {
   const { trips, total, page, totalPages, fromDate, toDate } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const t = useT();
 
   const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -294,11 +326,10 @@ export default function SiteTripsPage() {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ color: "var(--primary-color)" }}
           >
-            Upcoming Dive Trips
+            {t("site.trips.upcomingTitle")}
           </h1>
           <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-            Explore our scheduled dive adventures. Book your spot today and dive into an
-            unforgettable experience.
+            {t("site.trips.upcomingDescription")}
           </p>
         </div>
       </section>
@@ -308,7 +339,7 @@ export default function SiteTripsPage() {
         <div className="max-w-7xl mx-auto">
           <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>From Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>{t("site.trips.fromDate")}</label>
               <input
                 type="date"
                 name="from"
@@ -324,7 +355,7 @@ export default function SiteTripsPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>To Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>{t("site.trips.toDate")}</label>
               <input
                 type="date"
                 name="to"
@@ -345,7 +376,7 @@ export default function SiteTripsPage() {
                 className="px-6 py-2 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "var(--primary-color)" }}
               >
-                Filter
+                {t("site.trips.filter")}
               </button>
               {(searchParams.get("from") || searchParams.get("to")) && (
                 <button
@@ -358,13 +389,13 @@ export default function SiteTripsPage() {
                     backgroundColor: "var(--color-card-bg)"
                   }}
                 >
-                  Clear
+                  {t("site.trips.clear")}
                 </button>
               )}
             </div>
           </form>
           <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
-            Showing {trips.length} of {total} trips
+            {t("site.trips.showingXofY", { count: trips.length, total })}
           </p>
         </div>
       </section>
@@ -393,11 +424,11 @@ export default function SiteTripsPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Trips Found</h2>
+              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>{t("site.trips.noTripsFound")}</h2>
               <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                 {searchParams.get("from") || searchParams.get("to")
-                  ? "Try adjusting your date filters to see more trips."
-                  : "Check back soon for upcoming dive adventures!"}
+                  ? t("site.trips.adjustDateFilters")
+                  : t("site.trips.checkBackSoon")}
               </p>
               {(searchParams.get("from") || searchParams.get("to")) && (
                 <button
@@ -405,7 +436,7 @@ export default function SiteTripsPage() {
                   className="px-6 py-2 rounded-lg text-white font-medium"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
-                  Clear Filters
+                  {t("site.trips.clearFilters")}
                 </button>
               )}
             </div>
@@ -430,7 +461,7 @@ export default function SiteTripsPage() {
                       backgroundColor: "var(--color-card-bg)"
                     }}
                   >
-                    Previous
+                    {t("common.previous")}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -457,7 +488,7 @@ export default function SiteTripsPage() {
                       backgroundColor: "var(--color-card-bg)"
                     }}
                   >
-                    Next
+                    {t("common.next")}
                   </button>
                 </div>
               )}
@@ -474,7 +505,9 @@ export default function SiteTripsPage() {
 // ============================================================================
 
 function TripCard({ trip }: { trip: TripCard }) {
-  const typeInfo = tourTypes[trip.tourType] || tourTypes.other;
+  const t = useT();
+  const { formatDisplayDate: formatDate } = useFormat();
+  const typeInfo = tourTypeKeys[trip.tourType] || tourTypeKeys.other;
   const isFull = trip.availableSpots === 0;
 
   return (
@@ -491,7 +524,7 @@ function TripCard({ trip }: { trip: TripCard }) {
         {trip.primaryImage ? (
           <img
             src={trip.primaryImage}
-            alt={trip.tourName}
+            alt={stripHtml(trip.tourName)}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
@@ -530,7 +563,7 @@ function TripCard({ trip }: { trip: TripCard }) {
               : "var(--success)",
           }}
         >
-          {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
+          {isFull ? t("site.trips.soldOut") : t("site.trips.spotsLeft", { count: trip.availableSpots })}
         </div>
       </div>
 
@@ -545,13 +578,13 @@ function TripCard({ trip }: { trip: TripCard }) {
               color: "var(--primary-color)",
             }}
           >
-            {typeInfo.label}
+            {t(typeInfo.key)}
           </span>
           <span className="text-sm opacity-60">{formatDate(trip.date)}</span>
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold mb-2 line-clamp-1" style={{ color: "var(--text-color)" }}>{trip.tourName}</h3>
+        <h3 className="text-lg font-semibold mb-2 line-clamp-1" style={{ color: "var(--text-color)" }}>{stripHtml(trip.tourName)}</h3>
 
         {/* Description */}
         {trip.tourDescription && (
@@ -569,7 +602,7 @@ function TripCard({ trip }: { trip: TripCard }) {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            {formatTime(trip.startTime)}
+            {trip.startTime ? formatTime(trip.startTime) : t("site.trips.timeTba")}
           </span>
           {trip.duration && (
             <span className="flex items-center gap-1">
@@ -603,17 +636,17 @@ function TripCard({ trip }: { trip: TripCard }) {
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>
-              Equipment
+              {t("site.trips.includesEquipment")}
             </span>
           )}
           {trip.includesMeals && (
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>
-              Meals
+              {t("site.trips.includesMeals")}
             </span>
           )}
           {trip.includesTransport && (
             <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">
-              Transport
+              {t("site.trips.includesTransport")}
             </span>
           )}
         </div>
@@ -627,13 +660,13 @@ function TripCard({ trip }: { trip: TripCard }) {
             >
               {formatPrice(trip.price, trip.currency)}
             </p>
-            <p className="text-xs opacity-50">per person</p>
+            <p className="text-xs opacity-50">{t("site.trips.perPerson")}</p>
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
             style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
           >
-            {isFull ? "Join Waitlist" : "View Details"}
+            {isFull ? t("site.trips.joinWaitlist") : t("site.trips.viewDetails")}
           </span>
         </div>
       </div>

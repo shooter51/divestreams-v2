@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-03-12T16:27:59.388Z",
+  "elapsed": "14.5",
+  "results": [
+    {
+      "slug": "scale-200",
+      "success": true,
+      "boats": 3,
+      "diveSites": 5,
+      "tours": 4,
+      "equipment": 3,
+      "customers": 10,
+      "trips": 12,
+      "bookings": 24,
+      "products": 5,
+      "durationMs": 14542
+    }
+  ]
+}

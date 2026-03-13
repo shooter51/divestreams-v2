@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc, desc } from "drizzle-orm";
+import { resolveLocale } from "../../../i18n/resolve-locale";
+import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getBoatById,
@@ -15,6 +17,7 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 import { maintenanceLogs } from "../../../../lib/db/schema";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
@@ -89,6 +92,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
     return String(date);
   };
+
+  // Apply content translations for non-English locales
+  const locale = resolveLocale(request);
+  if (locale !== "en") {
+    const tr = await getContentTranslations(organizationId, "boat", boatId, locale);
+    if (tr.name) boat.name = tr.name;
+    if (tr.description) boat.description = tr.description;
+  }
 
   // Format boat data with dates as strings
   const formattedBoat = {
@@ -213,12 +224,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function BoatDetailPage() {
   const { boat, recentTrips, upcomingTrips, stats, images, maintenanceHistory, maintenanceDue } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const t = useT();
 
   // Show notifications from URL params
   useNotification();
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this boat?")) {
+    if (confirm(t("tenant.boats.confirmDelete"))) {
       fetcher.submit({ intent: "delete" }, { method: "post" });
     }
   };
@@ -229,7 +241,7 @@ export default function BoatDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/boats" className="text-brand hover:underline text-sm">
-          ← Back to Boats
+          {t("tenant.boats.backToBoats")}
         </Link>
       </div>
 
@@ -244,16 +256,16 @@ export default function BoatDetailPage() {
                   : "bg-surface-inset text-foreground-muted"
               }`}
             >
-              {boat.isActive ? "Active" : "Inactive"}
+              {boat.isActive ? t("common.active") : t("common.inactive")}
             </span>
             {maintenanceDue && (
               <span className="text-sm px-3 py-1 rounded-full bg-warning-muted text-warning">
-                Maintenance Due
+                {t("tenant.boats.maintenanceDue")}
               </span>
             )}
           </div>
           <p className="text-foreground-muted">
-            {boat.type} • {boat.capacity} passengers
+            {boat.type} • {boat.capacity} {t("tenant.boats.passengers")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -261,7 +273,7 @@ export default function BoatDetailPage() {
             to={`/tenant/boats/${boat.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
-            Edit
+            {t("common.edit")}
           </Link>
           <fetcher.Form method="post">
             <CsrfInput />
@@ -270,14 +282,14 @@ export default function BoatDetailPage() {
               type="submit"
               className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
             >
-              {boat.isActive ? "Deactivate" : "Activate"}
+              {boat.isActive ? t("tenant.boats.deactivate") : t("tenant.boats.activate")}
             </button>
           </fetcher.Form>
           <button
             onClick={handleDelete}
             className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -289,31 +301,31 @@ export default function BoatDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalTrips}</p>
-              <p className="text-foreground-muted text-sm">Total Trips</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.boats.totalTrips")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalPassengers}</p>
-              <p className="text-foreground-muted text-sm">Passengers</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.boats.passengers")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold text-success">{stats.totalRevenue}</p>
-              <p className="text-foreground-muted text-sm">Revenue</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.boats.revenue")}</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.avgOccupancy}%</p>
-              <p className="text-foreground-muted text-sm">Avg Occupancy</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.boats.avgOccupancy")}</p>
             </div>
           </div>
 
           {/* Description */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-3">Description</h2>
+            <h2 className="font-semibold mb-3">{t("common.description")}</h2>
             <p className="text-foreground">{boat.description}</p>
           </div>
 
           {/* Images */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Boat Images</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.boats.boatImages")}</h2>
             <ImageManager
               entityType="boat"
               entityId={boat.id}
@@ -325,7 +337,7 @@ export default function BoatDetailPage() {
           {/* Amenities */}
           {Array.isArray(amenities) && amenities.length > 0 && (
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-              <h2 className="font-semibold mb-3">Amenities</h2>
+              <h2 className="font-semibold mb-3">{t("tenant.boats.amenities")}</h2>
               <div className="flex flex-wrap gap-2">
                 {(Array.isArray(amenities) ? amenities : []).map((a: string) => (
                   <span
@@ -342,16 +354,16 @@ export default function BoatDetailPage() {
           {/* Upcoming Trips */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Upcoming Trips</h2>
+              <h2 className="font-semibold">{t("tenant.boats.upcomingTrips")}</h2>
               <Link
                 to={`/tenant/trips/new?boatId=${boat.id}`}
                 className="text-sm text-brand hover:underline"
               >
-                + Schedule Trip
+                + {t("tenant.boats.scheduleTrip")}
               </Link>
             </div>
             {upcomingTrips.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No upcoming trips.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.boats.noUpcomingTrips")}</p>
             ) : (
               <div className="space-y-3">
                 {upcomingTrips.map((trip) => (
@@ -365,7 +377,7 @@ export default function BoatDetailPage() {
                       <p className="text-sm text-foreground-muted">{trip.date}</p>
                     </div>
                     <span className="text-sm">
-                      {trip.bookedParticipants}/{trip.maxParticipants} booked
+                      {trip.bookedParticipants}/{trip.maxParticipants} {t("tenant.boats.booked")}
                     </span>
                   </Link>
                 ))}
@@ -376,16 +388,16 @@ export default function BoatDetailPage() {
           {/* Recent Trips */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Recent Trips</h2>
+              <h2 className="font-semibold">{t("tenant.boats.recentTrips")}</h2>
               <Link
                 to={`/tenant/trips?boatId=${boat.id}`}
                 className="text-sm text-brand hover:underline"
               >
-                View All
+                {t("tenant.boats.viewAll")}
               </Link>
             </div>
             {recentTrips.length === 0 ? (
-              <p className="text-foreground-muted text-sm">No trips yet.</p>
+              <p className="text-foreground-muted text-sm">{t("tenant.boats.noTripsYet")}</p>
             ) : (
               <div className="space-y-3">
                 {recentTrips.map((trip) => (
@@ -397,7 +409,7 @@ export default function BoatDetailPage() {
                     <div>
                       <p className="font-medium">{trip.tourName}</p>
                       <p className="text-sm text-foreground-muted">
-                        {trip.date} • {trip.participants} passengers
+                        {trip.date} • {trip.participants} {t("tenant.boats.passengers")}
                       </p>
                     </div>
                     <span className="text-sm text-success">{trip.revenue}</span>
@@ -412,19 +424,19 @@ export default function BoatDetailPage() {
         <div className="space-y-6">
           {/* Details */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Details</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.boats.details")}</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Type</span>
+                <span className="text-foreground-muted">{t("tenant.boats.type")}</span>
                 <span>{boat.type}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-foreground-muted">Capacity</span>
-                <span>{boat.capacity} passengers</span>
+                <span className="text-foreground-muted">{t("common.capacity")}</span>
+                <span>{boat.capacity} {t("tenant.boats.passengers")}</span>
               </div>
               {boat.registrationNumber && (
                 <div className="flex justify-between">
-                  <span className="text-foreground-muted">Registration</span>
+                  <span className="text-foreground-muted">{t("tenant.boats.registration")}</span>
                   <span>{boat.registrationNumber}</span>
                 </div>
               )}
@@ -433,7 +445,7 @@ export default function BoatDetailPage() {
 
           {/* Maintenance */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Maintenance</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.boats.maintenance")}</h2>
             {maintenanceHistory.length > 0 ? (
               <div className="space-y-3 text-sm mb-4">
                 {maintenanceHistory.slice(0, 3).map((log) => (
@@ -452,50 +464,50 @@ export default function BoatDetailPage() {
                 ))}
                 {maintenanceHistory.length > 3 && (
                   <p className="text-foreground-muted text-xs">
-                    +{maintenanceHistory.length - 3} more records
+                    +{t("tenant.boats.moreRecords", { count: maintenanceHistory.length - 3 })}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-foreground-muted text-sm mb-4">No maintenance records yet.</p>
+              <p className="text-foreground-muted text-sm mb-4">{t("tenant.boats.noMaintenanceRecords")}</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
               <CsrfInput />
               <input type="hidden" name="intent" value="log-maintenance" />
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Type</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.boats.type")}</label>
                 <select
                   name="type"
                   className="w-full text-sm border rounded-lg px-3 py-2"
                   required
                 >
-                  <option value="routine">Routine</option>
-                  <option value="repair">Repair</option>
-                  <option value="inspection">Inspection</option>
-                  <option value="emergency">Emergency</option>
+                  <option value="routine">{t("tenant.boats.routine")}</option>
+                  <option value="repair">{t("tenant.boats.repair")}</option>
+                  <option value="inspection">{t("tenant.boats.inspection")}</option>
+                  <option value="emergency">{t("tenant.boats.emergency")}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Description</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("common.description")}</label>
                 <input
                   type="text"
                   name="description"
-                  placeholder="What was done?"
+                  placeholder={t("tenant.boats.whatWasDone")}
                   className="w-full text-sm border rounded-lg px-3 py-2"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Performed By</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.boats.performedBy")}</label>
                 <input
                   type="text"
                   name="performedBy"
-                  placeholder="Name or company"
+                  placeholder={t("tenant.boats.nameOrCompany")}
                   className="w-full text-sm border rounded-lg px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Cost</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.boats.cost")}</label>
                 <input
                   type="number"
                   name="cost"
@@ -505,7 +517,7 @@ export default function BoatDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-foreground-muted mb-1">Next Maintenance Date</label>
+                <label className="block text-xs text-foreground-muted mb-1">{t("tenant.boats.nextMaintenanceDate")}</label>
                 <input
                   type="date"
                   name="nextMaintenanceDate"
@@ -516,41 +528,41 @@ export default function BoatDetailPage() {
                 type="submit"
                 className="w-full text-center py-2 text-sm text-white bg-brand rounded-lg hover:bg-brand-hover"
               >
-                Log Maintenance
+                {t("tenant.boats.logMaintenance")}
               </button>
             </fetcher.Form>
           </div>
 
           {/* Quick Actions */}
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold mb-4">Actions</h2>
+            <h2 className="font-semibold mb-4">{t("tenant.boats.actions")}</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/trips/new?boatId=${boat.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                Schedule Trip
+                {t("tenant.boats.scheduleTrip")}
               </Link>
               <Link
                 to={`/tenant/calendar?boatId=${boat.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                View Calendar
+                {t("tenant.boats.viewCalendar")}
               </Link>
               <Link
                 to={`/tenant/reports?boat=${boat.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
-                Export Report
+                {t("tenant.boats.exportReport")}
               </Link>
             </div>
           </div>
 
           {/* Meta */}
           <div className="text-xs text-foreground-subtle space-y-1">
-            <p>Created: {boat.createdAt}</p>
-            <p>Updated: {boat.updatedAt}</p>
-            <p>ID: {boat.id}</p>
+            <p>{t("tenant.boats.created")}: {boat.createdAt}</p>
+            <p>{t("tenant.boats.updated")}: {boat.updatedAt}</p>
+            <p>{t("tenant.boats.boatId")}: {boat.id}</p>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react
 import { Form, Link, useActionData, useNavigation, useSearchParams, useLoaderData, redirect } from "react-router";
 import { useState } from "react";
 import { auth } from "../../../lib/auth";
+import { useT } from "../../i18n/use-t";
 
 // Email validation regex
 
@@ -134,6 +135,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ResetPasswordPage() {
+  const t = useT();
   const _loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
@@ -166,10 +168,10 @@ export default function ResetPasswordPage() {
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-            Password reset successful
+            {t("tenant.auth.resetPassword.success")}
           </h2>
           <p className="mt-2 text-center text-sm text-foreground-muted">
-            Your password has been reset. You can now sign in with your new password.
+            {t("tenant.auth.resetPassword.successMessage")}
           </p>
         </div>
 
@@ -179,7 +181,7 @@ export default function ResetPasswordPage() {
               to="/login"
               className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors"
             >
-              Continue to login
+              {t("tenant.auth.resetPassword.continueToLogin")}
             </Link>
           </div>
         </div>
@@ -197,10 +199,10 @@ export default function ResetPasswordPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
-          Reset your password
+          {t("tenant.auth.resetPassword.title")}
         </h2>
         <p className="mt-2 text-center text-sm text-foreground-muted">
-          Enter your new password below.
+          {t("tenant.auth.resetPassword.subtitle")}
         </p>
       </div>
 
@@ -214,7 +216,7 @@ export default function ResetPasswordPage() {
                 to="/forgot-password"
                 className="text-sm text-brand hover:text-brand mt-2 inline-block"
               >
-                Request a new reset link
+                {t("common.requestNewResetLink")}
               </Link>
             </div>
           )}
@@ -224,7 +226,7 @@ export default function ResetPasswordPage() {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground">
-                New password <span className="text-danger">*</span>
+                {t("common.newPassword")} <span className="text-danger">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -238,7 +240,7 @@ export default function ResetPasswordPage() {
                   className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
                     errors.password ? "border-danger" : "border-border-strong"
                   }`}
-                  placeholder="Enter new password"
+                  placeholder={t("tenant.resetPassword.newPasswordPlaceholder")}
                 />
                 <button
                   type="button"
@@ -264,12 +266,12 @@ export default function ResetPasswordPage() {
               {/* Password Requirements */}
               {password.length > 0 && (
                 <div className="mt-2 space-y-1">
-                  <p className="text-xs text-foreground-muted font-medium">Password requirements:</p>
+                  <p className="text-xs text-foreground-muted font-medium">{t("common.passwordRequirements")}</p>
                   <div className="grid grid-cols-2 gap-1">
-                    <RequirementCheck met={hasMinLength} text="8+ characters" />
-                    <RequirementCheck met={hasUppercase} text="Uppercase letter" />
-                    <RequirementCheck met={hasLowercase} text="Lowercase letter" />
-                    <RequirementCheck met={hasNumber} text="Number" />
+                    <RequirementCheck met={hasMinLength} text={t("common.passwordMinLength")} />
+                    <RequirementCheck met={hasUppercase} text={t("common.passwordUppercase")} />
+                    <RequirementCheck met={hasLowercase} text={t("common.passwordLowercase")} />
+                    <RequirementCheck met={hasNumber} text={t("common.passwordNumber")} />
                   </div>
                 </div>
               )}
@@ -278,7 +280,7 @@ export default function ResetPasswordPage() {
             {/* Confirm Password Field */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
-                Confirm new password <span className="text-danger">*</span>
+                {t("common.confirmNewPassword")} <span className="text-danger">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -290,7 +292,7 @@ export default function ResetPasswordPage() {
                   className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
                     errors.confirmPassword ? "border-danger" : "border-border-strong"
                   }`}
-                  placeholder="Confirm new password"
+                  placeholder={t("tenant.resetPassword.confirmPasswordPlaceholder")}
                 />
                 <button
                   type="button"

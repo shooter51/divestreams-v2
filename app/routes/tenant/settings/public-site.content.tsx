@@ -5,6 +5,7 @@ import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server"
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 import { sanitizeIframeEmbed } from "../../../../lib/security/sanitize";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { useT } from "../../../i18n/use-t";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -48,6 +49,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function PublicSiteContentSettings() {
+  const t = useT();
   const { settings } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string }>();
   const isSubmitting = fetcher.state === "submitting";
@@ -66,58 +68,58 @@ export default function PublicSiteContentSettings() {
 
         {/* Branding */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-4">Branding</h2>
+          <h2 className="font-semibold mb-4">{t("tenant.settings.publicSite.content.branding")}</h2>
 
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label htmlFor="logoUrl" className="block text-sm font-medium mb-1">
-                Logo URL
+                {t("tenant.settings.publicSite.content.logoUrl")}
               </label>
               <input
                 type="url"
                 id="logoUrl"
                 name="logoUrl"
                 defaultValue={settings.logoUrl || ""}
-                placeholder="https://example.com/logo.png"
+                placeholder={t("tenant.settings.publicSite.content.logoUrlPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Recommended size: 200x60px, PNG or SVG
+                {t("tenant.settings.publicSite.content.logoHint")}
               </p>
             </div>
 
             <div>
               <label htmlFor="heroImageUrl" className="block text-sm font-medium mb-1">
-                Hero Image URL
+                {t("tenant.settings.publicSite.appearance.heroImageUrl")}
               </label>
               <input
                 type="url"
                 id="heroImageUrl"
                 name="heroImageUrl"
                 defaultValue={settings.heroImageUrl || ""}
-                placeholder="https://example.com/hero.jpg"
+                placeholder={t("tenant.settings.publicSite.content.heroImagePlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Recommended size: 1920x600px, JPG
+                {t("tenant.settings.publicSite.content.heroImageHint")}
               </p>
             </div>
           </div>
 
           <div className="mt-6">
             <label htmlFor="heroVideoUrl" className="block text-sm font-medium mb-1">
-              Hero Video URL (Optional)
+              {t("tenant.settings.publicSite.content.heroVideoUrl")}
             </label>
             <input
               type="url"
               id="heroVideoUrl"
               name="heroVideoUrl"
               defaultValue={settings.heroVideoUrl || ""}
-              placeholder="https://example.com/video.mp4"
+              placeholder={t("tenant.settings.publicSite.content.heroVideoPlaceholder")}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Video displayed below hero section. Formats: MP4 (H.264) or WebM. Max 50MB. 16:9 aspect ratio recommended. Will autoplay muted and loop.
+              {t("tenant.settings.publicSite.content.heroVideoHint")}
             </p>
           </div>
 
@@ -128,11 +130,11 @@ export default function PublicSiteContentSettings() {
                 <div className="grid grid-cols-2 gap-6">
                   {settings.logoUrl && (
                     <div>
-                      <p className="text-sm font-medium text-foreground-muted mb-2">Logo Preview</p>
+                      <p className="text-sm font-medium text-foreground-muted mb-2">{t("tenant.settings.publicSite.content.logoPreview")}</p>
                       <div className="border rounded-lg p-4 bg-surface-inset">
                         <img
                           src={settings.logoUrl}
-                          alt="Logo preview"
+                          alt={t("tenant.settings.publicSite.content.logoPreview")}
                           className="max-h-16 object-contain"
                         />
                       </div>
@@ -140,11 +142,11 @@ export default function PublicSiteContentSettings() {
                   )}
                   {settings.heroImageUrl && (
                     <div>
-                      <p className="text-sm font-medium text-foreground-muted mb-2">Hero Preview</p>
+                      <p className="text-sm font-medium text-foreground-muted mb-2">{t("tenant.settings.publicSite.content.heroPreview")}</p>
                       <div className="border rounded-lg overflow-hidden">
                         <img
                           src={settings.heroImageUrl}
-                          alt="Hero preview"
+                          alt={t("tenant.settings.publicSite.content.heroPreview")}
                           className="w-full h-24 object-cover"
                         />
                       </div>
@@ -154,7 +156,7 @@ export default function PublicSiteContentSettings() {
               )}
               {settings.heroVideoUrl && (
                 <div>
-                  <p className="text-sm font-medium text-foreground-muted mb-2">Hero Video Preview</p>
+                  <p className="text-sm font-medium text-foreground-muted mb-2">{t("tenant.settings.publicSite.content.heroVideoPreview")}</p>
                   <div className="border rounded-lg overflow-hidden">
                     <video
                       src={settings.heroVideoUrl}
@@ -172,47 +174,47 @@ export default function PublicSiteContentSettings() {
 
         {/* About Content */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-2">About Page Content</h2>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.publicSite.content.aboutPageContent")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Write about your dive shop, history, and team
+            {t("tenant.settings.publicSite.content.aboutPageDescription")}
           </p>
 
           <div>
             <label htmlFor="aboutContent" className="block text-sm font-medium mb-1">
-              About Us Content
+              {t("tenant.settings.publicSite.content.aboutUsContent")}
             </label>
             <textarea
               id="aboutContent"
               name="aboutContent"
               rows={8}
               defaultValue={settings.aboutContent || ""}
-              placeholder="Tell visitors about your dive shop, your history, your team, and what makes you unique..."
+              placeholder={t("tenant.settings.publicSite.content.aboutPlaceholder")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand resize-y"
             />
             <p className="text-xs text-foreground-muted mt-1">
-              Plain text for now. Rich text editor coming soon.
+              {t("tenant.settings.publicSite.content.aboutContentHint")}
             </p>
           </div>
         </div>
 
         {/* Contact Information */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
-          <h2 className="font-semibold mb-2">Contact Information</h2>
+          <h2 className="font-semibold mb-2">{t("tenant.settings.publicSite.content.contactInformation")}</h2>
           <p className="text-sm text-foreground-muted mb-4">
-            Information displayed on your contact page
+            {t("tenant.settings.publicSite.content.contactDescription")}
           </p>
 
           <div className="space-y-4">
             <div>
               <label htmlFor="contactAddress" className="block text-sm font-medium mb-1">
-                Address
+                {t("common.address")}
               </label>
               <textarea
                 id="contactAddress"
                 name="contactAddress"
                 rows={2}
                 defaultValue={settings.contactInfo?.address || ""}
-                placeholder="123 Ocean Drive, Key Largo, FL 33037"
+                placeholder={t("tenant.settings.publicSite.content.addressPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
@@ -220,28 +222,28 @@ export default function PublicSiteContentSettings() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="contactPhone" className="block text-sm font-medium mb-1">
-                  Phone Number
+                  {t("common.phone")}
                 </label>
                 <input
                   type="tel"
                   id="contactPhone"
                   name="contactPhone"
                   defaultValue={settings.contactInfo?.phone || ""}
-                  placeholder="+1 (305) 555-0123"
+                  placeholder={t("tenant.settings.publicSite.content.phonePlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
               <div>
                 <label htmlFor="contactEmail" className="block text-sm font-medium mb-1">
-                  Email Address
+                  {t("common.email")}
                 </label>
                 <input
                   type="email"
                   id="contactEmail"
                   name="contactEmail"
                   defaultValue={settings.contactInfo?.email || ""}
-                  placeholder="info@yourdiveshop.com"
+                  placeholder={t("tenant.settings.publicSite.content.emailPlaceholder")}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -249,48 +251,39 @@ export default function PublicSiteContentSettings() {
 
             <div>
               <label htmlFor="contactHours" className="block text-sm font-medium mb-1">
-                Business Hours
+                {t("tenant.settings.publicSite.content.businessHours")}
               </label>
               <textarea
                 id="contactHours"
                 name="contactHours"
                 rows={3}
                 defaultValue={settings.contactInfo?.hours || ""}
-                placeholder="Mon-Fri: 8am-6pm, Sat-Sun: 7am-7pm"
+                placeholder={t("tenant.settings.publicSite.content.hoursPlaceholder")}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
             <div>
               <label htmlFor="mapEmbed" className="block text-sm font-medium mb-1">
-                Google Maps Embed Code
+                {t("tenant.settings.publicSite.content.googleMapsEmbed")}
               </label>
               <textarea
                 id="mapEmbed"
                 name="mapEmbed"
                 rows={4}
                 defaultValue={settings.contactInfo?.mapEmbed || ""}
-                placeholder='<iframe src="https://www.google.com/maps/embed?..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'
+                placeholder={t("tenant.settings.publicSite.content.mapEmbedPlaceholder")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
               />
               <p className="text-xs text-foreground-muted mt-1">
-                Get embed code from{" "}
-                <a
-                  href="https://www.google.com/maps"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand hover:underline"
-                >
-                  Google Maps
-                </a>{" "}
-                &rarr; Share &rarr; Embed a map
+                {t("tenant.settings.publicSite.content.googleMapsHint")}
               </p>
             </div>
 
             {/* Map Preview */}
             {settings.contactInfo?.mapEmbed && (
               <div>
-                <p className="text-sm font-medium text-foreground-muted mb-2">Map Preview</p>
+                <p className="text-sm font-medium text-foreground-muted mb-2">{t("tenant.settings.publicSite.content.mapPreview")}</p>
                 <div
                   className="border rounded-lg overflow-hidden"
                   suppressHydrationWarning
@@ -311,7 +304,7 @@ export default function PublicSiteContentSettings() {
             disabled={isSubmitting}
             className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
           >
-            {isSubmitting ? "Saving..." : "Save Content Settings"}
+            {isSubmitting ? t("common.saving") : t("tenant.settings.publicSite.content.saveContent")}
           </button>
         </div>
       </fetcher.Form>

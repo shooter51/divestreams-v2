@@ -14,7 +14,7 @@ import { mapBooking } from "./mappers";
 import { formatRelativeTime } from "./formatters";
 import { getOrganizationById } from "./reports.server";
 import { getCustomerById } from "./customers.server";
-import { getTripById } from "./trips.server";
+import { getTripById, getTripBookedParticipants } from "./trips.server";
 
 // ============================================================================
 // Booking Number Generation
@@ -203,7 +203,29 @@ export async function createBooking(organizationId: string, data: {
   currency?: string;
   specialRequests?: string;
   source?: string;
+  participantDetails?: { name: string; certLevel?: string; equipment?: string[]; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[];
 }) {
+  const participants = data.participants || 1;
+
+  // Validate capacity before inserting — uses getTripById which
+  // falls back to tour maxParticipants via mapTrip when the trip
+  // has no explicit capacity set.
+  const trip = await getTripById(organizationId, data.tripId);
+  if (!trip) {
+    throw new Error("Trip not found");
+  }
+
+  const effectiveMax = trip.maxParticipants;
+  if (effectiveMax != null && effectiveMax > 0) {
+    const bookedParticipants = await getTripBookedParticipants(organizationId, data.tripId);
+    const availableSpots = effectiveMax - bookedParticipants;
+    if (participants > availableSpots) {
+      throw new Error(
+        `Only ${availableSpots} spots available on this trip`
+      );
+    }
+  }
+
   const bookingNumber = await getNextBookingNumber(organizationId);
 
   const [booking] = await db
@@ -213,7 +235,7 @@ export async function createBooking(organizationId: string, data: {
       bookingNumber,
       tripId: data.tripId,
       customerId: data.customerId,
-      participants: data.participants || 1,
+      participants,
       subtotal: String(data.subtotal),
       discount: String(data.discount || 0),
       tax: String(data.tax || 0),
@@ -221,6 +243,7 @@ export async function createBooking(organizationId: string, data: {
       currency: data.currency || "USD",
       specialRequests: data.specialRequests || null,
       source: data.source || "direct",
+      participantDetails: data.participantDetails || null,
     })
     .returning();
 

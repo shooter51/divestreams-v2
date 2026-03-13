@@ -9,7 +9,10 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useRouteLoaderData, useLoaderData } from "react-router";
 import type { SiteLoaderData } from "./_layout";
 import { getPublicPageContent } from "../../../lib/db/page-content.server";
+import { getContentTranslations } from "../../../lib/db/translations.server";
+import { resolveLocale } from "../../i18n/resolve-locale";
 import { ContentBlockRenderer } from "../../components/ContentBlockRenderer";
+import { useT } from "../../i18n/use-t";
 
 // ============================================================================
 // LOADER
@@ -60,7 +63,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Try to get page content from CMS
   const pageContent = await getPublicPageContent(org.id, "about");
 
-  return { pageContent };
+  // Translate aboutContent for non-English locales
+  const locale = resolveLocale(request);
+  let translatedAboutContent: string | null = null;
+  if (locale !== "en") {
+    const translations = await getContentTranslations(org.id, "site_settings", org.id, locale);
+    if (translations.aboutContent) {
+      translatedAboutContent = translations.aboutContent;
+    }
+  }
+
+  return { pageContent, translatedAboutContent };
 }
 
 // ============================================================================
@@ -68,24 +81,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // ============================================================================
 
 export default function SiteAboutPage() {
+  const t = useT();
   // Get data from parent layout loader
   const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
-  const { pageContent } = useLoaderData<typeof loader>();
+  const { pageContent, translatedAboutContent } = useLoaderData<typeof loader>();
 
   if (!loaderData) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold">About Us</h1>
-        <p className="mt-4 text-lg opacity-75">Loading...</p>
+        <h1 className="text-4xl font-bold">{t("site.about.title")}</h1>
+        <p className="mt-4 text-lg opacity-75">{t("common.loading")}</p>
       </div>
     );
   }
 
   const { organization, settings } = loaderData;
 
-  // Priority: CMS content > settings.aboutContent > hardcoded fallback
+  // Priority: CMS content > translated aboutContent > settings.aboutContent > hardcoded fallback
   const useCmsContent = pageContent && pageContent.content.blocks.length > 0;
-  const useSettingsContent = !useCmsContent && settings.aboutContent;
+  const aboutText = translatedAboutContent || settings.aboutContent;
+  const useSettingsContent = !useCmsContent && aboutText;
 
   return (
     <div className="min-h-screen">
@@ -97,11 +112,10 @@ export default function SiteAboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-bold">
-              About {organization.name}
+              {t("site.about.aboutOrg", { name: organization.name })}
             </h1>
             <p className="mt-6 text-xl opacity-75">
-              Discover our passion for diving and commitment to providing
-              unforgettable underwater experiences.
+              {t("site.about.subtitle")}
             </p>
           </div>
         </div>
@@ -116,23 +130,18 @@ export default function SiteAboutPage() {
           // Render content from Settings → Public Site → Content
           <div className="prose prose-lg max-w-none">
             <div className="whitespace-pre-line opacity-85">
-              {settings.aboutContent}
+              {aboutText}
             </div>
           </div>
         ) : (
           // Fallback - shown when no content has been configured
           <div className="prose prose-lg max-w-none">
-            <h2 className="text-2xl font-bold mb-6">About {organization.name}</h2>
+            <h2 className="text-2xl font-bold mb-6">{t("site.about.aboutOrg", { name: organization.name })}</h2>
             <p className="opacity-75">
-              Welcome to {organization.name}! We are passionate about sharing the
-              wonders of the underwater world with divers of all experience levels.
+              {t("site.about.fallback.welcome", { name: organization.name })}
             </p>
             <p className="opacity-75">
-              Our team of experienced instructors and dive professionals is
-              dedicated to providing safe, educational, and exciting diving
-              experiences. Whether you're taking your first breath underwater or
-              exploring advanced technical diving, we're here to guide you every
-              step of the way.
+              {t("site.about.fallback.team")}
             </p>
           </div>
         )}

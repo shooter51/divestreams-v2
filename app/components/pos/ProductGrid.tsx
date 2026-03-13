@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { formatLabel, formatCurrency } from "../../lib/format";
+import { useT } from "../../i18n/use-t";
 
 interface Product {
   id: string;
@@ -77,6 +78,7 @@ export function ProductGrid({
   searchQuery,
   onSearchChange,
 }: ProductGridProps) {
+  const t = useT();
   // Track which products are on sale (calculated client-side to avoid hydration mismatch)
   const [productsOnSale, setProductsOnSale] = useState<Set<string>>(new Set());
 
@@ -123,7 +125,7 @@ export function ProductGrid({
       <div className="p-4">
         <input
           type="text"
-          placeholder={`Search ${tab}...`}
+          placeholder={t(`tenant.pos.grid.search${tab.charAt(0).toUpperCase() + tab.slice(1)}`)}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
@@ -141,7 +143,7 @@ export function ProductGrid({
                 : "bg-surface-inset text-foreground hover:bg-surface-overlay"
             }`}
           >
-            All
+            {t("tenant.pos.grid.all")}
           </button>
           {categories.map(cat => (
             <button
@@ -176,7 +178,7 @@ export function ProductGrid({
             >
               {onSale && (
                 <span className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-danger text-white rounded-full font-semibold">
-                  SALE
+                  {t("tenant.pos.grid.sale")}
                 </span>
               )}
               {product.imageUrl && (
@@ -213,7 +215,7 @@ export function ProductGrid({
               ) : (
                 <p className="text-lg font-bold text-brand">{formatCurrency(product.price)}</p>
               )}
-              <p className="text-xs text-foreground-muted">{product.stockQuantity} in stock</p>
+              <p className="text-xs text-foreground-muted">{t("tenant.pos.grid.inStock", { count: product.stockQuantity })}</p>
             </button>
             );
           })}
@@ -237,13 +239,13 @@ export function ProductGrid({
 
         {/* Empty states */}
         {tab === "retail" && filteredProducts.length === 0 && (
-          <p className="text-center text-foreground-muted py-8">No products found</p>
+          <p className="text-center text-foreground-muted py-8">{t("tenant.pos.grid.noProducts")}</p>
         )}
         {tab === "rentals" && filteredEquipment.length === 0 && (
-          <p className="text-center text-foreground-muted py-8">No equipment available</p>
+          <p className="text-center text-foreground-muted py-8">{t("tenant.pos.grid.noEquipment")}</p>
         )}
         {tab === "trips" && filteredTrips.length === 0 && (
-          <p className="text-center text-foreground-muted py-8">No trips scheduled today</p>
+          <p className="text-center text-foreground-muted py-8">{t("tenant.pos.grid.noTrips")}</p>
         )}
       </div>
     </div>
@@ -258,6 +260,7 @@ function RentalCard({
   equipment: Equipment;
   onAddRental: (equipment: Equipment, days: number) => void;
 }) {
+  const t = useT();
   const [showDays, setShowDays] = useState(false);
   const [days, setDays] = useState(1);
 
@@ -268,15 +271,15 @@ function RentalCard({
   return (
     <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">
       <p className="font-medium truncate">{equipment.name}</p>
-      {equipment.size && <p className="text-sm text-foreground-muted">Size: {equipment.size}</p>}
-      <p className="text-lg font-bold text-success">{formatCurrency(equipment.rentalPrice)}/day</p>
+      {equipment.size && <p className="text-sm text-foreground-muted">{t("tenant.pos.grid.size")}: {equipment.size}</p>}
+      <p className="text-lg font-bold text-success">{formatCurrency(equipment.rentalPrice)}/{t("tenant.pos.grid.day")}</p>
 
       {!showDays ? (
         <button
           onClick={() => setShowDays(true)}
           className="mt-2 w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
         >
-          Add Rental
+          {t("tenant.pos.grid.addRental")}
         </button>
       ) : (
         <div className="mt-2 space-y-2">
@@ -287,7 +290,7 @@ function RentalCard({
             >
               -
             </button>
-            <span className="flex-1 text-center">{days} day{days > 1 ? "s" : ""}</span>
+            <span className="flex-1 text-center">{days} {days > 1 ? t("tenant.pos.grid.days") : t("tenant.pos.grid.day")}</span>
             <button
               onClick={() => setDays(days + 1)}
               className="w-8 h-8 rounded bg-surface-overlay hover:bg-border"
@@ -303,7 +306,7 @@ function RentalCard({
             }}
             className="w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
           >
-            Add {formatCurrency(Number(equipment.rentalPrice) * days)}
+            {t("tenant.pos.grid.add")} {formatCurrency(Number(equipment.rentalPrice) * days)}
           </button>
         </div>
       )}
@@ -319,6 +322,7 @@ function TripCard({
   trip: Trip;
   onAddBooking: (trip: Trip, participants: number) => void;
 }) {
+  const t = useT();
   const [showParticipants, setShowParticipants] = useState(false);
   const [participants, setParticipants] = useState(1);
 
@@ -327,16 +331,16 @@ function TripCard({
       <p className="font-medium">{trip.tour.name}</p>
       <p className="text-sm text-foreground-muted">{trip.startTime}</p>
       <p className="text-lg font-bold text-info">{formatCurrency(trip.tour.price)}</p>
-      <p className="text-xs text-foreground-muted">{trip.available} spots left</p>
+      <p className="text-xs text-foreground-muted">{t("tenant.pos.grid.spotsLeft", { count: trip.available })}</p>
 
       {trip.available <= 0 ? (
-        <p className="mt-2 text-center text-danger text-sm">Fully booked</p>
+        <p className="mt-2 text-center text-danger text-sm">{t("tenant.pos.grid.fullyBooked")}</p>
       ) : !showParticipants ? (
         <button
           onClick={() => setShowParticipants(true)}
           className="mt-2 w-full py-2 bg-info text-white rounded-lg hover:bg-info-hover text-sm"
         >
-          Book Now
+          {t("tenant.pos.grid.bookNow")}
         </button>
       ) : (
         <div className="mt-2 space-y-2">
@@ -363,7 +367,7 @@ function TripCard({
             }}
             className="w-full py-2 bg-info text-white rounded-lg hover:bg-info-hover text-sm"
           >
-            Add {formatCurrency(Number(trip.tour.price) * participants)}
+            {t("tenant.pos.grid.add")} {formatCurrency(Number(trip.tour.price) * participants)}
           </button>
         </div>
       )}

@@ -8,6 +8,7 @@ import { useState, useCallback, useRef } from "react";
 import { useRouteLoaderData } from "react-router";
 import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 import { Button } from "./Button";
+import { useT } from "../../i18n/use-t";
 
 export interface Image {
   id: string;
@@ -36,6 +37,7 @@ export function ImageManager({
   maxImages = 5,
   onImagesChange,
 }: ImageManagerProps) {
+  const t = useT();
   const [images, setImages] = useState<Image[]>(initialImages);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -46,7 +48,7 @@ export function ImageManager({
 
   const handleUpload = useCallback(async (file: File) => {
     if (images.length >= maxImages) {
-      setError(`Maximum ${maxImages} images allowed`);
+      setError(t("common.images.maxImages", { count: String(maxImages) }));
       return;
     }
 
@@ -244,7 +246,7 @@ export function ImageManager({
       {images.length === 0 ? (
         <div className="border-2 border-dashed border-border-strong rounded-lg p-8 text-center">
           <div className="text-foreground-subtle text-4xl mb-2">📷</div>
-          <p className="text-foreground-muted text-sm">No images yet</p>
+          <p className="text-foreground-muted text-sm">{t("common.images.noImages")}</p>
           <Button
             type="button"
             variant="ghost"
@@ -253,7 +255,7 @@ export function ImageManager({
             onClick={() => fileInputRef.current?.click()}
             loading={uploading}
           >
-            Upload your first image
+            {t("common.images.uploadFirst")}
           </Button>
         </div>
       ) : (
@@ -280,7 +282,7 @@ export function ImageManager({
               {/* Primary badge */}
               {image.isPrimary && (
                 <div className="absolute top-1 left-1 bg-brand text-white text-xs px-1.5 py-0.5 rounded">
-                  Primary
+                  {t("common.images.primary")}
                 </div>
               )}
 
@@ -291,7 +293,7 @@ export function ImageManager({
                     type="button"
                     onClick={() => handleSetPrimary(image.id)}
                     className="p-1.5 bg-white rounded-full text-brand hover:bg-brand-muted"
-                    title="Set as primary"
+                    title={t("common.images.setAsPrimary")}
                   >
                     ⭐
                   </button>
@@ -300,7 +302,7 @@ export function ImageManager({
                   type="button"
                   onClick={() => handleDelete(image.id)}
                   className="p-1.5 bg-white rounded-full text-danger hover:bg-danger-muted"
-                  title="Delete image"
+                  title={t("common.images.deleteImage")}
                 >
                   🗑️
                 </button>
@@ -316,8 +318,7 @@ export function ImageManager({
       )}
 
       <p className="text-xs text-foreground-muted">
-        Drag images to reorder. The primary image will be shown first in listings.
-        Supported formats: JPEG, PNG, WebP, GIF. Max 10MB per image.
+        {t("common.images.dragToReorder")}
       </p>
     </div>
   );

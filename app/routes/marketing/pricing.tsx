@@ -1,5 +1,5 @@
-import type { MetaFunction } from "react-router";
-import { useLoaderData } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs } from "react-router";
+import { redirect, useLoaderData } from "react-router";
 import { useState } from "react";
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
@@ -83,7 +83,11 @@ export const headers = () => ({
   "Cache-Control": "public, max-age=3600, s-maxage=86400",
 });
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const host = new URL(request.url).hostname;
+  if (!host.includes("divestreams.com") && !host.includes("localhost")) {
+    throw redirect("/site");
+  }
   try {
     const plans = await db
       .select()
@@ -122,8 +126,8 @@ export default function PricingPage() {
     <div className="min-h-screen bg-surface-inset">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-brand">
-          DiveStreams
+        <a href="/" className="flex items-center">
+          <img src="/logo-horizontal.png" alt="DiveStreams" className="h-8" />
         </a>
         <div className="flex gap-6 items-center">
           <a href="/features" className="text-foreground-muted hover:text-brand">
