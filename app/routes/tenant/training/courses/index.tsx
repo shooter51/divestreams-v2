@@ -310,7 +310,7 @@ export default function CoursesIndexPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-medium">
-                      ${course.price} {course.currency}
+                      {parseFloat(course.price) === 0 ? t("site.courses.contactForPricing") : `$${course.price} ${course.currency}`}
                     </span>
                   </td>
                   <td className="px-6 py-4">

@@ -291,5 +291,33 @@ describe("tenant/training/courses/index route", () => {
       expect(result.agencyFilter).toBe("");
       expect(result.statusFilter).toBe("");
     });
+
+    it("DS-pln5: preserves price '0.00' for imported catalog courses (UI renders as 'Contact for pricing')", async () => {
+      const importedCatalogCourse = [
+        {
+          id: "00000000-0000-0000-0000-000000000010",
+          name: "Open Water Diver",
+          code: "OWD",
+          description: "Entry level",
+          images: null,
+          agencyId: "agency-1",
+          agencyName: "SSI",
+          levelName: "Beginner",
+          durationDays: 4,
+          price: "0.00",
+          currency: "USD",
+          maxStudents: 6,
+          isActive: true,
+          isPublic: false,
+        },
+      ];
+      (getCourses as Mock).mockResolvedValue(importedCatalogCourse);
+
+      const request = new Request("https://demo.divestreams.com/tenant/training/courses");
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
+
+      // Loader should preserve "0.00" so the UI can render "Contact for pricing"
+      expect(result.courses[0].price).toBe("0.00");
+    });
   });
 });

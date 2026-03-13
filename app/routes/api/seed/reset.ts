@@ -13,7 +13,9 @@ import {
   customerCommunications,
   tourDiveSites,
   serviceRecords,
+  subscriptionPlans,
 } from "../../../../lib/db/schema";
+import { subscription } from "../../../../lib/db/schema/subscription";
 import {
   trainingCourses,
   trainingSessions,
@@ -131,6 +133,35 @@ export async function action({ request }: ActionFunctionArgs) {
   const galleryAlbumsDeleted = await deleteAndCount(
     db.delete(galleryAlbums).where(eq(galleryAlbums.organizationId, orgId)).returning({ id: galleryAlbums.id })
   );
+
+  // Ensure demo tenant has the pro plan so all features (POS, training, etc.) work during seeding
+  const [proPlan] = await db
+    .select({ id: subscriptionPlans.id })
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.name, "pro"))
+    .limit(1);
+
+  if (proPlan) {
+    const [existingSub] = await db
+      .select({ id: subscription.id })
+      .from(subscription)
+      .where(eq(subscription.organizationId, orgId))
+      .limit(1);
+
+    if (existingSub) {
+      await db
+        .update(subscription)
+        .set({ planId: proPlan.id, plan: "pro", status: "active" })
+        .where(eq(subscription.organizationId, orgId));
+    } else {
+      await db.insert(subscription).values({
+        organizationId: orgId,
+        planId: proPlan.id,
+        plan: "pro",
+        status: "active",
+      });
+    }
+  }
 
   return Response.json({
     ok: true,

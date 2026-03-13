@@ -74,9 +74,17 @@ export async function seedDiscounts(client: SeedClient): Promise<void> {
 
     const result = await client.post("/tenant/discounts", formData);
 
-    if (result.ok || result.status === 302) {
+    if (result.ok) {
       created++;
       console.log(`  Created discount: "${spec.code}"`);
+    } else if (result.status === 302) {
+      // 302 from the discounts page means the feature gate (HAS_POS) redirected to upgrade.
+      // This is NOT a success — the discount was NOT created.
+      throw new Error(
+        `Discount seeding blocked by feature gate (302 redirect). ` +
+        `Ensure the demo tenant is on the pro plan before seeding. ` +
+        `The seed reset endpoint now handles this automatically.`
+      );
     } else {
       console.warn(`  Warning: discount "${spec.code}" returned status ${result.status}`);
     }

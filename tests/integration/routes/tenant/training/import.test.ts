@@ -272,6 +272,45 @@ describe("tenant/training/import route", () => {
         expect(enableCatalogCourse).toHaveBeenCalled();
       });
 
+      it("DS-pln5: calls enableCatalogCourse with price '0.00' as unset-price default", async () => {
+        const mockTemplates = [
+          {
+            id: "template-1",
+            name: "Open Water Diver",
+            code: "OWD",
+            description: "Entry level",
+            durationDays: 4,
+            requiredItems: [],
+          },
+        ];
+        (getGlobalAgencyCourseTemplates as Mock).mockResolvedValue(mockTemplates);
+        (getAgencies as Mock).mockResolvedValue([
+          { id: "agency-1", code: "padi", name: "PADI" },
+        ]);
+        (enableCatalogCourse as Mock).mockResolvedValue({
+          id: "course-1",
+          name: "(from catalog)",
+          templateId: "template-1",
+        });
+
+        const formData = new FormData();
+        formData.append("step", "execute-import");
+        formData.append("agencyCode", "padi");
+        formData.append("agencyName", "PADI");
+        formData.append("courseCodes", JSON.stringify(["OWD"]));
+
+        const request = new Request("https://demo.divestreams.com/tenant/training/import", {
+          method: "POST",
+          body: formData,
+        });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
+
+        // Import should use "0.00" for price (displayed as "Contact for pricing" in the tenant admin UI)
+        expect(enableCatalogCourse).toHaveBeenCalledWith(
+          expect.objectContaining({ price: "0.00" })
+        );
+      });
+
       it("handles errors during import", async () => {
         const mockTemplates = [
           {
