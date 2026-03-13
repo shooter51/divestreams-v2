@@ -346,7 +346,7 @@ async function globalSetup(_config: FullConfig) {
 
     // Create platform admin user
     const platformAdminEmail = "admin@divestreams.com";
-    const platformAdminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
+    const platformAdminPassword = process.env.ADMIN_PASSWORD || "PlatformAdmin2026!";
 
     const [existingPlatformAdmin] = await db
       .select()

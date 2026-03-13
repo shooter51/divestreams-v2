@@ -13,7 +13,7 @@ import { getAdminUrl, getTenantUrl } from "../helpers/urls";
  */
 
 const adminEmail = process.env.ADMIN_EMAIL || "admin@divestreams.com";
-const adminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
+const adminPassword = process.env.ADMIN_PASSWORD || "PlatformAdmin2026!";
 const testUser = {
   email: "e2e-tester@demo.com",
   password: "DemoPass1234",

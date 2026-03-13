@@ -54,7 +54,7 @@ const testData = {
   },
   admin: {
     email: process.env.ADMIN_EMAIL || "admin@divestreams.com",
-    password: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
+    password: process.env.ADMIN_PASSWORD || "PlatformAdmin2026!",
   },
   // Created entity IDs - populated during tests
   createdIds: {
