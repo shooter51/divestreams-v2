@@ -477,6 +477,60 @@ describe("mappers", () => {
       const result = mapTrip(row);
       expect(result.isPublic).toBe(false);
     });
+
+    it("DS-ijq9: should fall back to tour maxParticipants when trip maxParticipants is null", () => {
+      const row = {
+        id: "trip-123",
+        tourId: "tour-123",
+        date: "2024-06-15",
+        startTime: "09:00",
+        status: "scheduled",
+        maxParticipants: null,
+        tourMaxParticipants: 12,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        organizationId: "org-123",
+      } as Record<string, unknown>;
+
+      const result = mapTrip(row);
+      expect(result.maxParticipants).toBe(12);
+    });
+
+    it("DS-ijq9: should use trip maxParticipants when set, ignoring tour default", () => {
+      const row = {
+        id: "trip-123",
+        tourId: "tour-123",
+        date: "2024-06-15",
+        startTime: "09:00",
+        status: "scheduled",
+        maxParticipants: 6,
+        tourMaxParticipants: 12,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        organizationId: "org-123",
+      } as Record<string, unknown>;
+
+      const result = mapTrip(row);
+      expect(result.maxParticipants).toBe(6);
+    });
+
+    it("DS-ijq9: should also fall back via snake_case tour_max_participants", () => {
+      const row = {
+        id: "trip-123",
+        tour_id: "tour-123",
+        date: "2024-06-15",
+        start_time: "09:00",
+        status: "scheduled",
+        max_participants: null,
+        tour_max_participants: 8,
+        created_at: new Date(),
+        updated_at: new Date(),
+        organization_id: "org-123",
+      } as Record<string, unknown>;
+
+      const result = mapTrip(row);
+      expect(result.maxParticipants).toBe(8);
+    });
   });
 
   describe("mapBooking", () => {
