@@ -43,6 +43,7 @@
   "auth.login.invalidCredentials": "Invalid email or password",
   "auth.login.invalidFormSubmission": "Invalid form submission. Please refresh and try again.",
   "auth.login.tooManyAttempts": "Too many login attempts. Please try again later.",
+  "auth.login.emailRequired": "Email is required",
   "auth.login.mustBeLoggedIn": "You must be logged in to join an organization",
   "auth.login.unableToDetermineOrg": "Unable to determine organization",
   "auth.login.orgNotFound": "Organization not found",
