@@ -175,20 +175,19 @@ See [TESTING.md](./docs/guides/testing.md) for:
 **IMPORTANT: NEVER deploy directly. ALWAYS use the CI/CD pipeline via git push.**
 
 ```
-Feature PR → develop     ci-pr.yml: lint + typecheck + unit (no DB) + pact consumer + build check → auto-merge
-Push to develop          deploy-dev.yml: build :dev → deploy Dev VPS → create PR develop→test
-PR to test               ci-test.yml: lint + typecheck + unit + integration (DB) + pact consumer+provider → auto-merge
+Feature PR → develop     ci.yml: lint + typecheck + unit + integration (DB service container) + build check → auto-merge
+Push to develop          promote.yml: auto-create PR develop→test with auto-merge
+PR to test               ci.yml: same checks → auto-merge
 Push to test             deploy-test.yml: build :test → deploy Test VPS → E2E against test.divestreams.com
 Manual PR test→main      No automated tests (Tom reviews on test.divestreams.com)
 Push to main             deploy-prod.yml: retag :test→:latest → deploy Production VPS
 ```
 
-### Three Environments
+### Two Environments
 
 | Environment | Purpose | Users |
 |-------------|---------|-------|
-| **Dev** | AI agent sandbox - remote development, feature testing, defect reproduction. Supports multiple simultaneous Docker instances. | AI agents |
-| **Test** | Human QA - manual product testing, feedback, QA tasks. Stable always-on instance. | Tom, QA team |
+| **Test** | QA - manual product testing, feedback, CI/CD integration tests. | Tom, QA team, AI agents |
 | **Production** | Live production environment. | End users |
 
 ### Auto-Promotion Pipeline
@@ -197,14 +196,13 @@ The pipeline is fully automated from feature PR to test, with a manual gate at p
 
 **1. Feature PR → develop** (developer action)
 - Open PR targeting `develop`
-- `ci-pr.yml` runs: lint, typecheck, unit tests, pact consumer, Docker build check
+- `ci.yml` runs: lint, typecheck, unit tests, integration tests (DB service container), Docker build check
 - Branch protection requires `test` check to pass
 - Auto-merge enabled on pass
 
 **2. develop → test** (automatic)
-- `deploy-dev.yml` builds `:dev` image, deploys to Dev VPS
-- Auto-creates PR `develop → test` with auto-merge enabled
-- `ci-test.yml` runs full suite: lint, typecheck, unit+integration (with DB), pact consumer+provider
+- `promote.yml` auto-creates PR `develop → test` with auto-merge enabled
+- `ci.yml` runs same checks on test PR
 - Auto-merge fires when checks pass
 
 **3. test → main** (manual)
@@ -216,64 +214,38 @@ The pipeline is fully automated from feature PR to test, with a manual gate at p
 
 ### VPS Infrastructure
 
-| Environment | VPS ID | IP Address | Docker Project | Image Tag | Domain |
-|-------------|--------|------------|----------------|-----------|--------|
-| **Dev** | 1296511 | 62.72.3.35 | divestreams-dev | :dev | dev.divestreams.com |
-| **Test** | 1271895 | 76.13.28.28 | divestreams-test | :test | test.divestreams.com |
-| **Production** | 1239852 | 72.62.166.128 | divestreams-prod | :latest | divestreams.com |
+| VPS | Role | VPS ID | Public IP | Tailscale IP | Docker Project | Image Tag | Domain |
+|-----|------|--------|-----------|--------------|----------------|-----------|--------|
+| **Production** | App | 1296511 | 62.72.3.35 | 100.109.71.112 | divestreams-prod | :latest | divestreams.com |
+| **Test** | App | 1271895 | 76.13.28.28 | 100.112.155.18 | divestreams-test | :test | test.divestreams.com |
+| **Database** | PostgreSQL | 1239852 | 72.62.166.128 | 100.104.105.34 | divestreams-db | postgres:16-alpine | N/A |
 
-VPS IDs are stored as GitHub environment variables (`DEV_VPS_ID`, `TEST_VPS_ID`, `PROD_VPS_ID`).
+All VPSs are on Tailscale (tailnet). DB connections use Tailscale IPs. Port 5432 on DB VPS is blocked from public access.
 
-**Containers (Test & Production):**
+VPS IDs are stored as GitHub environment variables (`TEST_VPS_ID`, `PROD_VPS_ID`).
+
+**App VPS Containers (Test & Production):**
 | Container | Image | Purpose |
 |-----------|-------|---------|
 | app | ghcr.io/shooter51/divestreams-app | Main React Router application (port 3000 internal) |
 | worker | ghcr.io/shooter51/divestreams-app | Background job processor |
 | zapier-worker | ghcr.io/shooter51/divestreams-app | Zapier integration worker |
-| db | postgres:16-alpine | PostgreSQL database |
 | redis | redis:7-alpine | Redis cache/queue |
 | caddy | caddy:2-alpine | Reverse proxy with SSL (ports 80/443) |
 
-### Dev VPS - Multi-Instance Architecture
-
-The Dev VPS supports multiple simultaneous DiveStreams instances for AI agent use. Shared `dev-postgres` and `dev-redis` containers provide infrastructure, while each instance gets its own app + worker containers and its own database within the shared PostgreSQL.
-
-**Shared Infrastructure:**
-- `dev-postgres` (port 5432) — shared PostgreSQL, each instance gets its own database (`ds_<name>`)
-- `dev-redis` (port 6379) — shared Redis
-- Started automatically on first `create`, or manually with `infra-up`
-
-**Instance Management (run on Dev VPS):**
-```bash
-scripts/dev-instance.sh create <name> [--tag <image-tag>]  # Create instance
-scripts/dev-instance.sh destroy <name>                      # Destroy instance
-scripts/dev-instance.sh list                                # List all instances
-scripts/dev-instance.sh logs <name> [--follow]              # View logs
-scripts/dev-instance.sh status <name>                       # Show status
-scripts/dev-instance.sh pull [--tag <image-tag>]            # Pull latest image
-scripts/dev-instance.sh infra-up                            # Start shared postgres + redis
-scripts/dev-instance.sh infra-down                          # Stop shared infra (no instances running)
-```
-
-**Examples:**
-```bash
-scripts/dev-instance.sh create default                     # Default instance at default.dev.divestreams.com
-scripts/dev-instance.sh create feature-dark-mode --tag dev-abc123  # Specific commit
-scripts/dev-instance.sh destroy feature-dark-mode          # Clean up when done
-```
-
-Max ~8 simultaneous instances (depends on VPS RAM).
+**DB VPS Container:**
+| Container | Image | Purpose |
+|-----------|-------|---------|
+| divestreams-db | postgres:16-alpine | Shared PostgreSQL (serves both test and production databases) |
 
 ### Docker Compose Files
 
 | File | Environment | Usage |
 |------|-------------|-------|
-| `docker-compose.prod.yml` | Production VPS | Pre-built `:latest` image |
-| `docker-compose.test.yml` | Test VPS | Pre-built `:test` image |
-| `docker-compose.dev-infra.yml` | Dev VPS | Shared postgres + redis infrastructure |
-| `docker-compose.dev-vps.yml` | Dev VPS | Per-instance app + worker template |
+| `docker-compose.prod.yml` | Production VPS | Pre-built `:latest` image, no local DB |
+| `docker-compose.test.yml` | Test VPS | Pre-built `:test` image, no local DB |
+| `docker-compose.db.yml` | DB VPS | PostgreSQL-only, shared by test and prod |
 | `docker-compose.yml` | Local | Builds from Dockerfile |
-| `docker-compose.dev.yml` | Local | Infrastructure only (postgres, redis, minio) |
 
 ### Caddyfiles
 
@@ -281,7 +253,6 @@ Max ~8 simultaneous instances (depends on VPS RAM).
 |------|-------------|---------|
 | `Caddyfile` | Production | Handles `divestreams.com` + `*.divestreams.com` with on-demand TLS |
 | `Caddyfile.test` | Test VPS | Handles `test.divestreams.com` + `*.test.divestreams.com` |
-| `Caddyfile.dev` | Dev VPS | System-level Caddy, routes `*.dev.divestreams.com` to instances |
 
 ### Check Deployment Status
 ```bash
@@ -306,10 +277,10 @@ Migrations run automatically on container startup via `scripts/docker-entrypoint
 4. Migrations will run on next container restart
 
 ### Fresh Deployment
-Use `mcp__hostinger-mcp__VPS_createNewProjectV1` with the appropriate docker-compose file:
+SSH into the relevant VPS and deploy using the appropriate docker-compose file:
 - Production: `docker-compose.prod.yml`
 - Test: `docker-compose.test.yml`
-- Dev: `docker-compose.dev-vps.yml` (managed via `scripts/dev-instance.sh`)
+- Database VPS: `docker-compose.db.yml`
 
 ### VPS Docker Auth (Emergency Only)
 All VPSs must be authenticated with GHCR. If auth expires (unauthorized errors in logs):
@@ -322,7 +293,7 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 - **origin**: `https://github.com/shooter51/divestreams-v2.git`
 
 ### Branch Strategy
-- `develop` → Dev VPS (AI agent work)
+- `develop` → CI only (no VPS deployment, auto-promotes to test)
 - `test` → Test VPS (human QA)
 - `main` → Production (live)
 
@@ -371,12 +342,11 @@ All three branches are protected. Direct pushes are blocked — changes must go 
 ### AI Agent Workflow (Vibe Coding)
 ```
 1. Agent creates feature branch and opens PR to develop
-2. ci-pr.yml runs: lint, typecheck, unit, pact consumer, build check → auto-merge
-3. deploy-dev.yml: build :dev + deploy Dev → auto-create PR develop→test
-4. ci-test.yml runs full suite on test PR → auto-merge
-5. deploy-test.yml: build :test + deploy Test → E2E runs (non-blocking)
-6. Tom creates PR test→main, reviews on test.divestreams.com → merges
-7. deploy-prod.yml: retag :test→:latest → deploy Production
+2. ci.yml runs: lint, typecheck, unit, integration, build check → auto-merge
+3. promote.yml: auto-create PR develop→test → ci.yml runs → auto-merge
+4. deploy-test.yml: build :test + deploy Test → E2E runs (non-blocking)
+5. Tom creates PR test→main, reviews on test.divestreams.com → merges
+6. deploy-prod.yml: retag :test→:latest → deploy Production
 ```
 
 ### Auto-Promotion Prerequisites
@@ -423,26 +393,21 @@ Set in `.env` files on each VPS:
 - `CDN_URL` - CDN URL for images
 
 ### GitHub Repository Configuration
-**Environments:** `dev`, `test`, `production`
-**Environment Variables:** `DEV_VPS_ID`, `TEST_VPS_ID`, `PROD_VPS_ID`, `TEST_VPS_IP`
-**Secrets:** `HOSTINGER_API_TOKEN`, `TEST_VPS_SSH_KEY` (environment-level), `PROMOTION_PAT` (repo-level)
+**Environments:** `test`, `production`
+**Environment Variables:** `TEST_VPS_ID`, `PROD_VPS_ID`, `TEST_VPS_IP`, `PROD_VPS_IP`, `DB_VPS_IP`, `PLATFORM_ADMIN_NAME`
+**Secrets:** `HOSTINGER_API_TOKEN`, `VPS_SSH_KEY`, all app secrets (environment-level), `PROMOTION_PAT`, `HOSTINGER_API_TOKEN` (repo-level)
 
 ### Check VPS Status (Monitoring Only)
-```
-# Dev VPS
-mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1296511, projectName: "divestreams-dev")
-mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1296511, projectName: "divestreams-dev")
+```bash
+# Production VPS
+ssh root@62.72.3.35 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
 
 # Test VPS
-mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1271895, projectName: "divestreams-test")
-mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1271895, projectName: "divestreams-test")
+ssh root@76.13.28.28 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
 
-# Production VPS
-mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1239852, projectName: "divestreams-prod")
-mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1239852, projectName: "divestreams-prod")
+# DB VPS
+ssh root@72.62.166.128 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
 ```
-
-**DO NOT use `VPS_updateProjectV1` directly - always deploy via CI/CD pipeline (git push).**
 
 ## Tech Stack
 - **Framework**: React Router v7 (Remix-style)
@@ -452,6 +417,7 @@ mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1239852, projectName:
 - **Testing**: Vitest + Playwright (80 E2E workflow tests)
 - **Reverse Proxy**: Caddy (auto SSL)
 - **CI/CD**: GitHub Actions
+- **Private Networking**: Tailscale (VPS-to-VPS communication)
 
 ## Multi-Tenant Architecture
 - **PUBLIC schema with organization_id filtering** for data isolation

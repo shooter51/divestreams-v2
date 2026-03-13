@@ -1,0 +1,31 @@
+name: Promote
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create promotion PR
+        run: |
+          # Check if PR already exists
+          EXISTING=$(gh pr list --base test --head develop --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already exists for develop → test"
+            exit 0
+          fi
+          gh pr create \
+            --base test \
+            --head develop \
+            --title "Promote develop → test" \
+            --body "Automated promotion from develop to test." \
+            --label "auto-promotion"
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTION_PAT }}
