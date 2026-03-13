@@ -367,6 +367,7 @@ export const trips = pgTable("trips", {
   index("trips_org_date_idx").on(table.organizationId, table.date),
   index("trips_org_status_idx").on(table.organizationId, table.status),
   index("trips_org_date_status_idx").on(table.organizationId, table.date, table.status),
+  index("trips_org_public_status_date_idx").on(table.organizationId, table.isPublic, table.status, table.date),
   index("trips_recurring_template_idx").on(table.recurringTemplateId),
 ]);
 
@@ -480,6 +481,7 @@ export const equipment = pgTable("equipment", {
   index("equipment_org_idx").on(table.organizationId),
   index("equipment_org_category_idx").on(table.organizationId, table.category),
   index("equipment_org_status_idx").on(table.organizationId, table.status),
+  index("equipment_org_public_status_idx").on(table.organizationId, table.isPublic, table.status, table.category),
   index("equipment_org_barcode_idx").on(table.organizationId, table.barcode),
 ]);
 
@@ -710,6 +712,7 @@ export const images = pgTable("images", {
 }, (table) => [
   index("images_org_idx").on(table.organizationId),
   index("images_org_entity_idx").on(table.organizationId, table.entityType, table.entityId),
+  index("images_org_entity_primary_idx").on(table.organizationId, table.entityType, table.entityId, table.isPrimary),
 ]);
 
 // ============================================================================
