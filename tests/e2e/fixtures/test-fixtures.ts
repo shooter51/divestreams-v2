@@ -5,12 +5,12 @@ import { getTenantUrl, getAdminUrl } from "../helpers/urls";
  * Test credentials and configuration
  */
 export const testConfig = {
-  adminPassword: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
-  adminEmail: "admin@divestreams.com",
-  tenantSubdomain: "demo",
+  adminPassword: process.env.ADMIN_PASSWORD || "PlatformAdmin2026!",
+  adminEmail: process.env.ADMIN_EMAIL || "admin@divestreams.com",
+  tenantSubdomain: process.env.SMOKE_TENANT || "demo",
   tenantCredentials: {
-    email: "e2e-tester@demo.com",
-    password: "DemoPass1234",
+    email: process.env.SMOKE_TENANT_EMAIL || "e2e-tester@demo.com",
+    password: process.env.SMOKE_TENANT_PASSWORD || "DemoPass1234",
   },
   testUser: {
     email: `test${Date.now()}@example.com`,
