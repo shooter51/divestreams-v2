@@ -156,6 +156,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Sign in using Better Auth - use asResponse to get full response with cookies
     const response = await auth.api.signInEmail({
       body: { email, password },
+      headers: request.headers,
       asResponse: true,
     });
 

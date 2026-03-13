@@ -104,6 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
       try {
         const signInResponse = await auth.api.signInEmail({
           body: { email: validatedEmail, password: validatedPassword },
+          headers: request.headers,
           asResponse: true,
         });
 
