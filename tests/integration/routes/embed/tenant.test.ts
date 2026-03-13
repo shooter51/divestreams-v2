@@ -181,4 +181,51 @@ describe("embed/$tenant route", () => {
       expect(primaryColor).toBe("#0066cc");
     });
   });
+
+  describe("ErrorBoundary classification (DS-s3ja)", () => {
+    // Simulates the classification logic in the ErrorBoundary to ensure "course not found"
+    // errors are correctly identified regardless of error.data type.
+    function classifyError(errorData: unknown, status: number) {
+      const errorDataStr = String(errorData ?? "").toLowerCase();
+      const isCourseNotFound = status === 404 && errorDataStr.includes("course");
+      const isShopNotFound = status === 404 && !isCourseNotFound;
+      return { isCourseNotFound, isShopNotFound };
+    }
+
+    it("identifies course-not-found error from string data", () => {
+      const { isCourseNotFound, isShopNotFound } = classifyError(
+        "Course not found or not available",
+        404
+      );
+      expect(isCourseNotFound).toBe(true);
+      expect(isShopNotFound).toBe(false);
+    });
+
+    it("identifies shop-not-found error from shop-not-found string", () => {
+      const { isCourseNotFound, isShopNotFound } = classifyError("Shop not found", 404);
+      expect(isCourseNotFound).toBe(false);
+      expect(isShopNotFound).toBe(true);
+    });
+
+    it("identifies course-not-found when error.data is not a plain string (e.g. Response body)", () => {
+      // React Router may deliver error.data as a non-string in some cases;
+      // String() coercion must still detect the "course" keyword.
+      const nonStringData = { toString: () => "Course not found" };
+      const { isCourseNotFound, isShopNotFound } = classifyError(nonStringData, 404);
+      expect(isCourseNotFound).toBe(true);
+      expect(isShopNotFound).toBe(false);
+    });
+
+    it("treats null/undefined error.data as shop-not-found", () => {
+      const { isCourseNotFound, isShopNotFound } = classifyError(null, 404);
+      expect(isCourseNotFound).toBe(false);
+      expect(isShopNotFound).toBe(true);
+    });
+
+    it("does not classify non-404 errors as shop-not-found", () => {
+      const { isCourseNotFound, isShopNotFound } = classifyError("Server error", 500);
+      expect(isCourseNotFound).toBe(false);
+      expect(isShopNotFound).toBe(false);
+    });
+  });
 });

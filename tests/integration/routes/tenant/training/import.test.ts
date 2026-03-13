@@ -272,6 +272,45 @@ describe("tenant/training/import route", () => {
         expect(enableCatalogCourse).toHaveBeenCalled();
       });
 
+      it("sets isPublic=true when importing catalog courses (DS-s3ja)", async () => {
+        const mockTemplates = [
+          {
+            id: "template-2",
+            name: "Advanced Open Water",
+            code: "AOWD",
+            description: "Advanced course",
+            durationDays: 3,
+            classroomHours: 4,
+            poolHours: 0,
+            openWaterDives: 5,
+            minAge: 12,
+            prerequisites: null,
+            medicalRequirements: null,
+            materialsIncluded: true,
+            requiredItems: [],
+          },
+        ];
+        (getGlobalAgencyCourseTemplates as Mock).mockResolvedValue(mockTemplates);
+        (getAgencies as Mock).mockResolvedValue([{ id: "agency-1", code: "padi", name: "PADI" }]);
+        (enableCatalogCourse as Mock).mockResolvedValue({ id: "course-2", templateId: "template-2" });
+
+        const formData = new FormData();
+        formData.append("step", "execute-import");
+        formData.append("agencyCode", "padi");
+        formData.append("agencyName", "PADI");
+        formData.append("courseCodes", JSON.stringify(["AOWD"]));
+
+        const request = new Request("https://demo.divestreams.com/tenant/training/import", {
+          method: "POST",
+          body: formData,
+        });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
+
+        expect(enableCatalogCourse).toHaveBeenCalledWith(
+          expect.objectContaining({ isPublic: true })
+        );
+      });
+
       it("handles errors during import", async () => {
         const mockTemplates = [
           {
