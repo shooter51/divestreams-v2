@@ -16,9 +16,17 @@ const buildInsertChain = () => {
   return { values, _onConflictDoUpdate: onConflictDoUpdate };
 };
 
-const buildDeleteChain = () => ({
-  where: vi.fn().mockResolvedValue(undefined),
-});
+const buildDeleteChain = (returningRows: unknown[] = []) => {
+  const returning = vi.fn().mockResolvedValue(returningRows);
+  // where() returns an object with .returning() AND is thenable (resolves undefined)
+  // so both `await db.delete().where()` and `await db.delete().where().returning()` work.
+  const whereResult = {
+    returning,
+    then: (resolve: (v: undefined) => unknown) => resolve(undefined),
+  };
+  const where = vi.fn().mockReturnValue(whereResult);
+  return { where, returning };
+};
 
 let selectChain = buildSelectChain();
 let insertChain = buildInsertChain();
@@ -49,6 +57,12 @@ vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ eq: [a, b] })),
   and: vi.fn((...args: unknown[]) => ({ and: args.filter(Boolean) })),
   inArray: vi.fn((a, b) => ({ inArray: [a, b] })),
+  sql: vi.fn((strings: TemplateStringsArray) => ({ sql: strings[0] })),
+}));
+
+// Mock stripHtmlTags so it actually works in unit tests (no Bedrock client needed)
+vi.mock("../../../../lib/translation/bedrock.server", () => ({
+  stripHtmlTags: (text: string) => text.replace(/<\/?[^>]+(>|$)/g, "").trim(),
 }));
 
 // ============================================================================
@@ -100,6 +114,30 @@ describe("translations.server", () => {
       const result = await getContentTranslations("org-1", "tour", "tour-2", "fr");
       expect(Object.keys(result)).toHaveLength(3);
       expect(result.name).toBe("Nom");
+    });
+
+    it("strips HTML tags from stored translation values (DS-vlcg)", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "<p>Snorkel Safari</p>" },
+        { field: "description", value: "<div>Some description</div>" },
+      ]);
+      const { getContentTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const result = await getContentTranslations("org-1", "tour", "tour-1", "es");
+      expect(result.name).toBe("Snorkel Safari");
+      expect(result.description).toBe("Some description");
+    });
+
+    it("passes clean translation values through unchanged", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "Safari de Snorkel" },
+      ]);
+      const { getContentTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const result = await getContentTranslations("org-1", "tour", "tour-1", "es");
+      expect(result.name).toBe("Safari de Snorkel");
     });
   });
 
@@ -213,6 +251,26 @@ describe("translations.server", () => {
       expect(result.name).toBe("Translated");
       expect(result.description).toBe("Original desc");
     });
+
+    it("strips HTML from translations read via getTranslatedEntity (DS-vlcg)", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "<p>Snorkel Safari</p>" },
+      ]);
+      const entity = { id: "tour-1", name: "Snorkel Safari", description: null };
+      const { getTranslatedEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const result = await getTranslatedEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        "es",
+        entity,
+        ["name"]
+      );
+      expect(result.name).toBe("Snorkel Safari");
+      expect(result.name).not.toContain("<p>");
+    });
   });
 
   describe("upsertContentTranslation", () => {
@@ -295,6 +353,125 @@ describe("translations.server", () => {
     });
   });
 
+  describe("cleanupCorruptedTranslations", () => {
+    it("calls delete with a where clause and returns the number of deleted rows", async () => {
+      deleteChain = buildDeleteChain([
+        { id: "row-1" },
+        { id: "row-2" },
+      ]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupCorruptedTranslations();
+      expect(count).toBe(2);
+
+      const { db } = await import("../../../../lib/db/index");
+      expect(db.delete).toHaveBeenCalled();
+      expect(deleteChain.returning).toHaveBeenCalled();
+    });
+
+    it("returns 0 when no corrupted rows exist", async () => {
+      deleteChain = buildDeleteChain([]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupCorruptedTranslations();
+      expect(count).toBe(0);
+    });
+  });
+
+  describe("cleanupSourceContaminationForEntity", () => {
+    it("returns 0 when no translations found for entity", async () => {
+      selectChain = buildSelectChain([]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(count).toBe(0);
+    });
+
+    it("returns 0 when translation has no source contamination", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "Descubre el Buceo" },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(count).toBe(0);
+    });
+
+    it("deletes rows where translation ends with original English text (DS-u6vq)", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "Descubre el Buceo Discovery Scuba Diving" },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(count).toBe(1);
+
+      const { db } = await import("../../../../lib/db/index");
+      expect(db.delete).toHaveBeenCalled();
+      expect(deleteChain.where).toHaveBeenCalled();
+    });
+
+    it("deletes rows where translation starts with original English text", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "Discovery Scuba Diving Descubre el Buceo" },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(count).toBe(1);
+
+      const { db } = await import("../../../../lib/db/index");
+      expect(db.delete).toHaveBeenCalled();
+    });
+
+    it("handles multiple fields, deleting only contaminated ones", async () => {
+      selectChain = buildSelectChain([
+        { field: "name", value: "Descubre el Buceo Discovery Scuba Diving" },
+        { field: "description", value: "Descripción limpia" },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const count = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "tour",
+        "tour-1",
+        {
+          name: "Discovery Scuba Diving",
+          description: "Clean description",
+        }
+      );
+      // Only the name field is contaminated
+      expect(count).toBe(1);
+    });
+  });
+
   describe("bulkGetContentTranslations", () => {
     it("returns empty Map and skips DB when entityIds is empty", async () => {
       const { bulkGetContentTranslations } = await import(
@@ -328,6 +505,24 @@ describe("translations.server", () => {
         description: "Desc Uno",
       });
       expect(result.get("tour-2")).toEqual({ name: "Tour Dos" });
+    });
+
+    it("strips HTML tags from bulk translation values (DS-vlcg)", async () => {
+      selectChain = buildSelectChain([
+        { entityId: "tour-1", field: "name", value: "<p>Snorkel Safari</p>" },
+        { entityId: "tour-2", field: "name", value: "Tour Normal" },
+      ]);
+      const { bulkGetContentTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const result = await bulkGetContentTranslations(
+        "org-1",
+        "tour",
+        ["tour-1", "tour-2"],
+        "es"
+      );
+      expect(result.get("tour-1")?.name).toBe("Snorkel Safari");
+      expect(result.get("tour-2")?.name).toBe("Tour Normal");
     });
 
     it("returns empty Map when no translations exist for the entities", async () => {
