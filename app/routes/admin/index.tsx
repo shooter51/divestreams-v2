@@ -4,7 +4,7 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { subscriptionPlans } from "../../../lib/db/schema";
-import { eq, ilike, desc, sql, count, ne } from "drizzle-orm";
+import { eq, ilike, asc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
 import { getTenantUrl } from "../../../lib/utils/url";
 
@@ -29,7 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       })
       .from(organization)
       .where(ne(organization.slug, PLATFORM_ORG_SLUG))
-      .orderBy(desc(organization.createdAt));
+      .orderBy(asc(organization.name));
 
     // Apply search filter if provided
     let orgs;
@@ -49,7 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             ${ilike(organization.name, `%${search}%`)}
           )`
         )
-        .orderBy(desc(organization.createdAt));
+        .orderBy(asc(organization.name));
     } else {
       orgs = await baseQuery;
     }

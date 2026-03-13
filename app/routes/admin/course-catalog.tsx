@@ -1,9 +1,10 @@
-import type { LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useLoaderData, Link, useFetcher } from "react-router";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import {
   getAvailableAgencies,
   getAgencyTemplateCounts,
+  refreshCatalogFromJson,
 } from "../../../lib/db/training-templates.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -14,7 +15,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getAgencyTemplateCounts(),
   ]);
 
-  // Build agency list with counts
   const agenciesWithCounts = agencies.map((agency) => {
     const countRow = templateCounts.find((c) => c.agencyCode === agency.code);
     return {
@@ -26,8 +26,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { agencies: agenciesWithCounts };
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  await requirePlatformContext(request);
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "refresh-catalog") {
+    const result = await refreshCatalogFromJson();
+    return {
+      success: true,
+      totalTemplates: result.totalTemplates,
+      imagesUploaded: result.imagesUploaded,
+      imagesFailed: result.imagesFailed,
+      errors: result.errors,
+    };
+  }
+
+  return { error: "Unknown action" };
+}
+
 export default function CourseCatalog() {
   const { agencies } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher<typeof action>();
+  const isRefreshing = fetcher.state !== "idle";
+  const result = fetcher.data;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -39,7 +62,47 @@ export default function CourseCatalog() {
             instead of copying course data.
           </p>
         </div>
+        <fetcher.Form method="post">
+          <input type="hidden" name="intent" value="refresh-catalog" />
+          <button
+            type="submit"
+            disabled={isRefreshing}
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh Catalog"}
+          </button>
+        </fetcher.Form>
       </div>
+
+      {result && "success" in result && (
+        <div className="mb-6 p-4 bg-success-muted border border-success rounded-lg text-sm">
+          <p className="font-medium text-success">Catalog refreshed</p>
+          <p className="text-foreground-muted mt-1">
+            {result.totalTemplates} templates synced. {result.imagesUploaded} images uploaded to S3.
+            {(result.imagesFailed ?? 0) > 0 && (
+              <span className="text-warning"> {result.imagesFailed} images failed.</span>
+            )}
+          </p>
+          {result.errors && result.errors.length > 0 && (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-warning">
+                {result.errors.length} error(s)
+              </summary>
+              <ul className="mt-1 list-disc list-inside text-xs text-foreground-muted">
+                {result.errors.map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
+
+      {result && "error" in result && (
+        <div className="mb-6 p-4 bg-danger-muted border border-danger rounded-lg text-sm text-danger">
+          {result.error}
+        </div>
+      )}
 
       {/* Agency grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -67,8 +130,7 @@ export default function CourseCatalog() {
 
       {agencies.length === 0 && (
         <div className="text-center py-12 text-muted">
-          <p>No agency templates found. Run the seed script to populate.</p>
-          <code className="text-xs mt-2 block">npm run seed:templates</code>
+          <p>No agency templates found. Click "Refresh Catalog" to import from catalog files.</p>
         </div>
       )}
     </div>

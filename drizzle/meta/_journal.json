@@ -386,6 +386,13 @@
             "when": 1773332712000,
             "tag": "0053_add_training_course_image_override",
             "breakpoints": true
+        },
+        {
+            "idx": 55,
+            "version": "7",
+            "when": 1773356800000,
+            "tag": "0054_add_agency_template_translations",
+            "breakpoints": true
         }
     ]
 }
