@@ -31,6 +31,8 @@ import {
 } from "./config";
 
 const BASE_DOMAIN = process.env.SCALE_BASE_DOMAIN || "test.divestreams.com";
+// Optional: set SCALE_PROXY_URL=http://localhost:13000 to bypass TLS via SSH tunnel
+const PROXY_URL = process.env.SCALE_PROXY_URL || "";
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -49,12 +51,34 @@ const dryRun = args.includes("--dry-run");
 
 class SeedClient {
   baseUrl: string;
+  private proxyUrl: string;
+  private hostHeader: string;
   private cookies: Map<string, string> = new Map();
   private csrfToken: string | null = null;
   private csrfTokenExpiry: number = 0;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+    if (PROXY_URL) {
+      // Use proxy URL for actual requests, send Host header for routing
+      const url = new URL(baseUrl);
+      this.proxyUrl = PROXY_URL;
+      this.hostHeader = url.hostname;
+    } else {
+      this.proxyUrl = baseUrl;
+      this.hostHeader = "";
+    }
+  }
+
+  private fetchUrl(path: string): string {
+    return `${this.proxyUrl}${path}`;
+  }
+
+  private addHostHeader(headers: Record<string, string>): Record<string, string> {
+    if (this.hostHeader) {
+      headers["Host"] = this.hostHeader;
+    }
+    return headers;
   }
 
   private buildCookieHeader(): string {
@@ -80,19 +104,21 @@ class SeedClient {
   }
 
   async getHtml(path: string): Promise<string> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      headers: { Cookie: this.buildCookieHeader() },
+    const res = await fetch(this.fetchUrl(path), {
+      headers: this.addHostHeader({ Cookie: this.buildCookieHeader() }),
+      signal: AbortSignal.timeout(30_000),
     });
     this.storeCookies(res);
     return res.text();
   }
 
   async post(path: string, formData: FormData): Promise<{ ok: boolean; status: number; location: string | null; html: string }> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
+    const res = await fetch(this.fetchUrl(path), {
       method: "POST",
       body: formData,
       redirect: "manual",
-      headers: { Cookie: this.buildCookieHeader() },
+      headers: this.addHostHeader({ Cookie: this.buildCookieHeader() }),
+      signal: AbortSignal.timeout(30_000),
     });
     this.storeCookies(res);
     const html = await res.text();
@@ -105,15 +131,16 @@ class SeedClient {
   }
 
   async postJson(path: string, body: unknown): Promise<{ ok: boolean; status: number; body: unknown }> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
+    const res = await fetch(this.fetchUrl(path), {
       method: "POST",
       body: JSON.stringify(body),
       redirect: "manual",
-      headers: {
+      headers: this.addHostHeader({
         "Content-Type": "application/json",
         Origin: this.baseUrl,
         Cookie: this.buildCookieHeader(),
-      },
+      }),
+      signal: AbortSignal.timeout(30_000),
     });
     this.storeCookies(res);
     let responseBody: unknown;

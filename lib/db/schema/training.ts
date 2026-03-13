@@ -287,6 +287,7 @@ export const trainingSessions = pgTable(
   (table) => [
     index("training_sessions_org_idx").on(table.organizationId),
     index("training_sessions_course_idx").on(table.courseId),
+    index("training_sessions_course_status_date_idx").on(table.courseId, table.status, table.startDate),
     index("training_sessions_series_idx").on(table.seriesId),
     index("training_sessions_date_idx").on(table.organizationId, table.startDate),
     index("training_sessions_status_idx").on(table.organizationId, table.status),
