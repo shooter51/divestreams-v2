@@ -171,9 +171,8 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (!rateLimitResult.allowed) {
-    const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
     const rateLimitErrors: ActionErrors = {
-      form: `Too many login attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+      form: "auth.login.tooManyAttempts",
     };
     return { errors: rateLimitErrors, email: "" };
   }
@@ -183,7 +182,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // CSRF validation (DS-30f)
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (!validateAnonCsrfToken(csrfToken)) {
-    return { errors: { form: "Invalid CSRF token. Please refresh the page and try again." } as ActionErrors, email: "" };
+    return { errors: { form: "auth.login.invalidFormSubmission" } as ActionErrors, email: "" };
   }
 
   const email = formData.get("email") as string;
@@ -194,13 +193,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const errors: ActionErrors = {};
 
   if (!email || !email.trim()) {
-    errors.email = "Email is required";
+    errors.email = "auth.login.emailRequired";
   } else if (!isValidEmail(email)) {
-    errors.email = "Please enter a valid email address";
+    errors.email = "auth.login.invalidEmail";
   }
 
   if (!password) {
-    errors.password = "Password is required";
+    errors.password = "auth.login.passwordRequired";
   }
 
   if (Object.keys(errors).length > 0) {
@@ -227,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch {
     // Login failed
-    const loginErrors: ActionErrors = { form: "Invalid email or password" };
+    const loginErrors: ActionErrors = { form: "auth.login.invalidCredentials" };
     return {
       errors: loginErrors,
       email,
@@ -354,7 +353,7 @@ export default function SiteLoginPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span>{actionData.errors.form}</span>
+                  <span>{t(actionData.errors.form)}</span>
                 </div>
               </div>
             )}
@@ -387,7 +386,7 @@ export default function SiteLoginPage() {
               />
               {actionData?.errors?.email && (
                 <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
-                  {actionData.errors.email}
+                  {t(actionData.errors.email)}
                 </p>
               )}
             </div>
@@ -450,7 +449,7 @@ export default function SiteLoginPage() {
               </div>
               {actionData?.errors?.password && (
                 <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
-                  {actionData.errors.password}
+                  {t(actionData.errors.password)}
                 </p>
               )}
             </div>

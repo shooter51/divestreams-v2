@@ -43,6 +43,7 @@
   "auth.login.invalidCredentials": "Correo electrónico o contraseña inválidos",
   "auth.login.invalidFormSubmission": "Envío de formulario inválido. Por favor, actualiza la página e intenta de nuevo.",
   "auth.login.tooManyAttempts": "Demasiados intentos de inicio de sesión. Por favor, intenta más tarde.",
+  "auth.login.emailRequired": "El correo electrónico es obligatorio",
   "auth.login.mustBeLoggedIn": "Debes iniciar sesión para unirte a una organización",
   "auth.login.unableToDetermineOrg": "No se pudo determinar la organización",
   "auth.login.orgNotFound": "Organización no encontrada",
