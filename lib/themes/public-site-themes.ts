@@ -314,16 +314,28 @@ export function getThemeStyleBlock(
   const finalAccent = sanitizeCSSColor(overrides?.accentColor ?? baseTheme.accentColor);
   const darkFinal = baseTheme.name === "dark";
 
+  // For light themes, card text must always be dark regardless of theme accent colors
+  const cardBgLight = darkFinal ? "#1E293B" : baseTheme.backgroundColor;
+  const cardTextLight = darkFinal ? "#E2E8F0" : "#1F2937";
+  // Surface inset: a slightly tinted version of the page background for badges/inset areas
+  const surfaceInsetLight = darkFinal ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.85)";
+  // Accent text: computed contrast color for the accent background
+  const accentTextLight = getContrastColor(finalAccent);
+  const darkAccentText = getContrastColor(overrides?.accentColor ? finalAccent : dark.accentColor);
+
   return `.site-theme {
   --primary-color: ${finalPrimary};
   --secondary-color: ${finalSecondary};
   --background-color: ${baseTheme.backgroundColor};
   --text-color: ${baseTheme.textColor};
   --accent-color: ${finalAccent};
-  --color-card-bg: ${darkFinal ? "#1E293B" : baseTheme.backgroundColor};
+  --color-card-bg: ${cardBgLight};
+  --color-card-text: ${cardTextLight};
+  --color-accent-text: ${accentTextLight};
   --color-border: ${darkFinal ? "#334155" : "#E5E7EB"};
   --color-primary-hover: ${adjustBrightness(finalPrimary, -10)};
   --color-primary-text: ${getContrastColor(finalPrimary)};
+  --surface-inset: ${surfaceInsetLight};
   --danger-bg: #FEE2E2;
   --danger-text: #991B1B;
   --danger-border: #FCA5A5;
@@ -338,9 +350,12 @@ export function getThemeStyleBlock(
     --background-color: ${dark.backgroundColor};
     --text-color: ${dark.textColor};
     --color-card-bg: ${dark.cardBg};
+    --color-card-text: #E2E8F0;
+    --color-accent-text: ${darkAccentText};
     --color-border: ${dark.borderColor};
     --color-primary-hover: ${adjustBrightness(overrides?.primaryColor ? finalPrimary : dark.primaryColor, 15)};
     --color-primary-text: ${getContrastColor(overrides?.primaryColor ? finalPrimary : dark.primaryColor)};
+    --surface-inset: rgba(0,0,0,0.3);
     --danger-bg: #7F1D1D;
     --danger-text: #FCA5A5;
     --danger-border: #991B1B;
