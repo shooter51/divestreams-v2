@@ -247,6 +247,7 @@ export default function SiteLayout() {
         style={{
           backgroundColor: "var(--color-card-bg)",
           borderColor: "var(--color-border)",
+          color: "var(--color-card-text)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -257,11 +258,11 @@ export default function SiteLayout() {
                 <img
                   src={organization.logo}
                   alt={organization.name}
-                  className="h-10 w-auto"
+                  className="h-14 w-auto"
                 />
               ) : (
                 <div
-                  className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                  className="h-14 w-14 rounded-lg flex items-center justify-center text-white font-bold text-lg"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
                   {organization.name.charAt(0)}
@@ -381,6 +382,7 @@ export default function SiteLayout() {
         style={{
           backgroundColor: "var(--color-card-bg)",
           borderColor: "var(--color-border)",
+          color: "var(--color-card-text)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -392,11 +394,11 @@ export default function SiteLayout() {
                   <img
                     src={organization.logo}
                     alt={organization.name}
-                    className="h-10 w-auto"
+                    className="h-12 w-auto"
                   />
                 ) : (
                   <div
-                    className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                    className="h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
                     style={{ backgroundColor: "var(--primary-color)" }}
                   >
                     {organization.name.charAt(0)}

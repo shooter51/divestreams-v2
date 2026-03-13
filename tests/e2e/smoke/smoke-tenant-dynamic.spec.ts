@@ -27,7 +27,7 @@ test.describe("Smoke: Tenant dynamic pages", () => {
     listPath: string,
     linkPattern: RegExp
   ): Promise<string | null> {
-    await page.goto(getTenantUrl("demo", listPath), {
+    await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", listPath), {
       waitUntil: "domcontentloaded",
     });
     const links = page.locator("a").filter({ has: page.locator(`[href]`) });
@@ -42,7 +42,7 @@ test.describe("Smoke: Tenant dynamic pages", () => {
 
   // Helper: visit a route and assert no errors
   async function assertRouteOk(path: string, name: string, expect200 = false) {
-    const response = await page.goto(getTenantUrl("demo", path), {
+    const response = await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", path), {
       waitUntil: "domcontentloaded",
     });
     if (expect200) {

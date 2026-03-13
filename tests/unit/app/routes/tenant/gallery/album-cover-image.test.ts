@@ -1,11 +1,58 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock dependencies before imports
+// Mock react-router (used by the route modules)
+vi.mock("react-router", () => ({
+  redirect: vi.fn((url: string) => new Response(null, { status: 302, headers: { Location: url } })),
+  useActionData: vi.fn(),
+  useNavigation: vi.fn(() => ({ state: "idle" })),
+  useLoaderData: vi.fn(),
+  useFetcher: vi.fn(() => ({ submit: vi.fn(), Form: vi.fn(), data: null })),
+  Link: vi.fn(),
+}));
+
+// Mock i18n helpers used by the route components
+vi.mock("../../../../../../app/i18n/use-t", () => ({
+  useT: vi.fn(() => (key: string) => key),
+}));
+
+// Mock CsrfInput component
+vi.mock("../../../../../../app/components/CsrfInput", () => ({
+  CsrfInput: vi.fn(() => null),
+}));
+
+// Mock use-notification
+vi.mock("../../../../../../lib/use-notification", () => ({
+  useNotification: vi.fn(),
+}));
+
+// Mock enqueueTranslation job
+vi.mock("../../../../../../lib/jobs/index", () => ({
+  enqueueTranslation: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock i18n types
+vi.mock("../../../../../../app/i18n/types", () => ({
+  SUPPORTED_LOCALES: ["en"],
+  DEFAULT_LOCALE: "en",
+}));
+
+// Mock resolve-locale
+vi.mock("../../../../../../app/i18n/resolve-locale", () => ({
+  resolveLocale: vi.fn(() => "en"),
+}));
+
+// Mock translations server
+vi.mock("../../../../../../lib/db/translations.server", () => ({
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+}));
+
+// Mock auth
 vi.mock("../../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
   requireRole: vi.fn(),
 }));
 
+// Mock gallery DB functions
 vi.mock("../../../../../../lib/db/gallery.server", () => ({
   createGalleryAlbum: vi.fn(),
   getGalleryAlbum: vi.fn(),
@@ -17,6 +64,7 @@ vi.mock("../../../../../../lib/db/gallery.server", () => ({
   deleteGalleryImage: vi.fn(),
 }));
 
+// Mock storage
 vi.mock("../../../../../../lib/storage", () => ({
   uploadToS3: vi.fn(),
   getWebPMimeType: vi.fn().mockReturnValue("image/webp"),
@@ -25,6 +73,7 @@ vi.mock("../../../../../../lib/storage", () => ({
   getS3Client: vi.fn(),
 }));
 
+// Mock logger
 vi.mock("../../../../../../lib/logger", () => ({
   storageLogger: {
     error: vi.fn(),
@@ -33,12 +82,23 @@ vi.mock("../../../../../../lib/logger", () => ({
   },
 }));
 
+// Static imports — must come after vi.mock() calls
+import { action as newAlbumAction } from "../../../../../../app/routes/tenant/gallery/new";
+import { action as editAlbumAction } from "../../../../../../app/routes/tenant/gallery/$id";
+import { requireOrgContext } from "../../../../../../lib/auth/org-context.server";
+import {
+  createGalleryAlbum,
+  updateGalleryAlbum,
+} from "../../../../../../lib/db/gallery.server";
+import {
+  uploadToS3,
+  processImage,
+  isValidImageType,
+  getS3Client,
+} from "../../../../../../lib/storage";
+
 // Helper to create a mock File
-function createMockFile(
-  name: string,
-  size: number,
-  type: string
-): File {
+function createMockFile(name: string, size: number, type: string): File {
   const buffer = new ArrayBuffer(size);
   return new File([buffer], name, { type });
 }
@@ -53,34 +113,20 @@ function createAlbumFormData(fields: Record<string, string | File>): FormData {
 }
 
 // Helper to create a Request with FormData
-function createFormRequest(
-  formData: FormData,
-  method = "POST"
-): Request {
+function createFormRequest(formData: FormData, method = "POST"): Request {
   return new Request("http://localhost/tenant/gallery/new", {
     method,
     body: formData,
   });
 }
 
-// Skip on CI — dynamic imports hang indefinitely on self-hosted runner
-const run = process.env.CI ? describe.skip : describe;
-run("Gallery Album Cover Image", () => {
+describe("Gallery Album Cover Image", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("Album Creation with Cover Image", () => {
     it("should create album with cover image when file is provided", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { createGalleryAlbum } = await import(
-        "../../../../../../lib/db/gallery.server"
-      );
-      const { uploadToS3, processImage, isValidImageType, getS3Client } =
-        await import("../../../../../../lib/storage");
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -99,7 +145,8 @@ run("Gallery Album Cover Image", () => {
       vi.mocked(uploadToS3).mockResolvedValue({
         key: "test-shop/gallery/covers/12345-cover.jpg.webp",
         url: "https://s3.example.com/test-shop/gallery/covers/12345-cover.jpg.webp",
-        cdnUrl: "https://cdn.example.com/test-shop/gallery/covers/12345-cover.jpg.webp",
+        cdnUrl:
+          "https://cdn.example.com/test-shop/gallery/covers/12345-cover.jpg.webp",
       });
       vi.mocked(createGalleryAlbum).mockResolvedValue({
         id: "album-1",
@@ -127,10 +174,7 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/new"
-      );
-      const response = await action({
+      const response = await newAlbumAction({
         request,
         params: {},
         context: {},
@@ -163,13 +207,6 @@ run("Gallery Album Cover Image", () => {
     });
 
     it("should create album without cover image when no file provided", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { createGalleryAlbum } = await import(
-        "../../../../../../lib/db/gallery.server"
-      );
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -198,10 +235,7 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/new"
-      );
-      const response = await action({
+      const response = await newAlbumAction({
         request,
         params: {},
         context: {},
@@ -221,13 +255,6 @@ run("Gallery Album Cover Image", () => {
     });
 
     it("should reject invalid image type for cover image", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { isValidImageType } = await import(
-        "../../../../../../lib/storage"
-      );
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -247,10 +274,7 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/new"
-      );
-      const result = await action({
+      const result = await newAlbumAction({
         request,
         params: {},
         context: {},
@@ -258,17 +282,10 @@ run("Gallery Album Cover Image", () => {
 
       // Should return errors, not redirect
       expect(result).toHaveProperty("errors");
-      expect((result as unknown).errors.coverImage).toContain("Invalid image type");
+      expect((result as unknown as { errors: { coverImage: string } }).errors.coverImage).toContain("Invalid image type");
     });
 
     it("should reject oversized cover image", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { isValidImageType } = await import(
-        "../../../../../../lib/storage"
-      );
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -277,11 +294,7 @@ run("Gallery Album Cover Image", () => {
       vi.mocked(isValidImageType).mockReturnValue(true);
 
       // Create a file exceeding 10MB
-      const bigFile = createMockFile(
-        "huge.jpg",
-        11 * 1024 * 1024,
-        "image/jpeg"
-      );
+      const bigFile = createMockFile("huge.jpg", 11 * 1024 * 1024, "image/jpeg");
       const formData = createAlbumFormData({
         name: "Test Album",
         description: "",
@@ -293,27 +306,17 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/new"
-      );
-      const result = await action({
+      const result = await newAlbumAction({
         request,
         params: {},
         context: {},
       } as unknown);
 
       expect(result).toHaveProperty("errors");
-      expect((result as unknown).errors.coverImage).toContain("under 10MB");
+      expect((result as unknown as { errors: { coverImage: string } }).errors.coverImage).toContain("under 10MB");
     });
 
     it("should return error when storage is not configured", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { isValidImageType, getS3Client } = await import(
-        "../../../../../../lib/storage"
-      );
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -334,29 +337,19 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/new"
-      );
-      const result = await action({
+      const result = await newAlbumAction({
         request,
         params: {},
         context: {},
       } as unknown);
 
       expect(result).toHaveProperty("errors");
-      expect((result as unknown).errors.coverImage).toContain("not configured");
+      expect((result as unknown as { errors: { coverImage: string } }).errors.coverImage).toContain("not configured");
     });
   });
 
   describe("Album Edit with Cover Image Update", () => {
     it("should update album with new cover image", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { updateGalleryAlbum } = await import("../../../../../../lib/db/gallery.server");
-      const { uploadToS3, processImage, isValidImageType, getS3Client } =
-        await import("../../../../../../lib/storage");
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -392,11 +385,7 @@ run("Gallery Album Cover Image", () => {
         updatedAt: new Date(),
       });
 
-      const coverFile = createMockFile(
-        "new-cover.jpg",
-        2048,
-        "image/jpeg"
-      );
+      const coverFile = createMockFile("new-cover.jpg", 2048, "image/jpeg");
       const formData = createAlbumFormData({
         intent: "update-album",
         name: "Updated Album",
@@ -408,10 +397,7 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/$id"
-      );
-      const result = await action({
+      const result = await editAlbumAction({
         request,
         params: { id: "album-1" },
         context: {},
@@ -431,13 +417,6 @@ run("Gallery Album Cover Image", () => {
     });
 
     it("should remove cover image when removeCover is checked", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { updateGalleryAlbum } = await import(
-        "../../../../../../lib/db/gallery.server"
-      );
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -467,10 +446,7 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/$id"
-      );
-      const result = await action({
+      const result = await editAlbumAction({
         request,
         params: { id: "album-1" },
         context: {},
@@ -488,13 +464,6 @@ run("Gallery Album Cover Image", () => {
     });
 
     it("should update album without changing cover when no file provided", async () => {
-      const { requireOrgContext } = await import(
-        "../../../../../../lib/auth/org-context.server"
-      );
-      const { updateGalleryAlbum } = await import(
-        "../../../../../../lib/db/gallery.server"
-      );
-
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
@@ -523,10 +492,7 @@ run("Gallery Album Cover Image", () => {
 
       const request = createFormRequest(formData);
 
-      const { action } = await import(
-        "../../../../../../app/routes/tenant/gallery/$id"
-      );
-      const result = await action({
+      const result = await editAlbumAction({
         request,
         params: { id: "album-1" },
         context: {},
@@ -623,23 +589,15 @@ run("Gallery Album Cover Image", () => {
         ? album.images[0].thumbnailUrl || album.images[0].imageUrl
         : null;
 
-      expect(displayedSrc).toBe(
-        "https://cdn.example.com/explicit-cover.webp"
-      );
+      expect(displayedSrc).toBe("https://cdn.example.com/explicit-cover.webp");
     });
   });
 
   describe("Image Validation", () => {
-    it("should validate image types correctly", async () => {
-      const { isValidImageType } = await import(
-        "../../../../../../lib/storage"
-      );
-
-      // Restore real implementation for this test
+    it("should validate image types correctly", () => {
+      // Use mock implementation directly — no dynamic import needed
       vi.mocked(isValidImageType).mockImplementation((mimeType: string) =>
-        ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
-          mimeType
-        )
+        ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mimeType)
       );
 
       expect(isValidImageType("image/jpeg")).toBe(true);

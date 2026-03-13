@@ -21,7 +21,7 @@ test.describe("Smoke: Public site pages", () => {
 
   for (const { path, name } of publicRoutes) {
     test(`${name} (${path}) renders without error`, async ({ page }) => {
-      const response = await page.goto(getTenantUrl("demo", path), {
+      const response = await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", path), {
         waitUntil: "domcontentloaded",
       });
       expect(response?.status(), `${name} should return 200`).toBe(200);
@@ -39,7 +39,7 @@ test.describe("Smoke: Public site pages", () => {
   // Dynamic public site routes — extract IDs from list pages
   test.describe("Dynamic public site pages", () => {
     test("Trip detail page renders", async ({ page }) => {
-      await page.goto(getTenantUrl("demo", "/site/trips"), {
+      await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", "/site/trips"), {
         waitUntil: "domcontentloaded",
       });
       const tripLink = page.locator('a[href*="/site/trips/"]').first();
@@ -57,7 +57,7 @@ test.describe("Smoke: Public site pages", () => {
     });
 
     test("Course detail page renders", async ({ page }) => {
-      await page.goto(getTenantUrl("demo", "/site/courses"), {
+      await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", "/site/courses"), {
         waitUntil: "domcontentloaded",
       });
       const courseLink = page.locator('a[href*="/site/courses/"]').first();
@@ -75,7 +75,7 @@ test.describe("Smoke: Public site pages", () => {
     });
 
     test("Equipment detail page renders", async ({ page }) => {
-      await page.goto(getTenantUrl("demo", "/site/equipment"), {
+      await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", "/site/equipment"), {
         waitUntil: "domcontentloaded",
       });
       const eqLink = page.locator('a[href*="/site/equipment/"]').first();

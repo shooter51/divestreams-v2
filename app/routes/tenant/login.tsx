@@ -200,6 +200,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Call Better Auth sign in API
     const response = await auth.api.signInEmail({
       body: { email, password },
+      headers: request.headers,
       asResponse: true,
     });
 

@@ -317,7 +317,7 @@ export async function action({ request }: ActionFunctionArgs) {
           price: "0.00", // Default price - user will set
           currency: "USD",
           isActive: true,
-          isPublic: false, // Default to private - user will publish
+          isPublic: true, // Default to public - user imported these intentionally
         });
 
         importedCourses.push(template.name);

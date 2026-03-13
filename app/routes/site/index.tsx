@@ -262,6 +262,7 @@ function TripCard({
       style={{
         backgroundColor: "var(--color-card-bg)",
         borderColor: "var(--color-border)",
+        color: "var(--color-card-text)",
       }}
     >
       {/* Trip Image */}
@@ -346,6 +347,7 @@ function CourseCard({
       style={{
         backgroundColor: "var(--color-card-bg)",
         borderColor: "var(--color-border)",
+        color: "var(--color-card-text)",
       }}
     >
       {/* Course Image */}
@@ -607,7 +609,7 @@ export default function SiteHomePage() {
       {enabledPages?.courses && featuredCourses.length > 0 && (
         <section
           className="py-16 px-4"
-          style={{ backgroundColor: "var(--accent-color)" }}
+          style={{ backgroundColor: "var(--accent-color)", color: "var(--color-accent-text)" }}
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
@@ -714,7 +716,7 @@ export default function SiteHomePage() {
       {enabledPages?.contact && contactInfo && (
         <section
           className="py-16 px-4"
-          style={{ backgroundColor: "var(--accent-color)" }}
+          style={{ backgroundColor: "var(--accent-color)", color: "var(--color-accent-text)" }}
         >
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-10">

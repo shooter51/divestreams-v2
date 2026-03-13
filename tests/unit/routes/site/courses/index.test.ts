@@ -52,7 +52,7 @@ vi.mock("drizzle-orm", async (importOriginal) => {
   };
 });
 
-import { loader } from "../../../../../app/routes/site/courses/index";
+import { loader, formatPrice } from "../../../../../app/routes/site/courses/index";
 
 // ============================================================================
 // HELPERS
@@ -77,6 +77,32 @@ function queueResults(...results: unknown[][]) {
 // ============================================================================
 // TESTS
 // ============================================================================
+
+// ============================================================================
+// I18N HELPER TESTS (DS-szjz)
+// ============================================================================
+
+describe("formatPrice (DS-szjz)", () => {
+  it("uses the provided contactForPricingLabel when price is zero", () => {
+    const result = formatPrice("0.00", "USD", "Consultar precio");
+    expect(result).toBe("Consultar precio");
+  });
+
+  it("uses the provided contactForPricingLabel when price is NaN", () => {
+    const result = formatPrice("not-a-price", "USD", "Contact for pricing");
+    expect(result).toBe("Contact for pricing");
+  });
+
+  it("defaults to English fallback when no label is provided and price is zero", () => {
+    const result = formatPrice("0.00", "USD");
+    expect(result).toBe("Contact for pricing");
+  });
+
+  it("formats a valid price without using the label", () => {
+    const result = formatPrice("450.00", "USD", "Consultar precio");
+    expect(result).toBe("$450");
+  });
+});
 
 describe("Site Courses Loader (DS-rf2e)", () => {
   beforeEach(() => {
