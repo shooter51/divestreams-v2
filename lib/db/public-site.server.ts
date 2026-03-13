@@ -22,6 +22,7 @@ import {
   type PublicSiteSettings,
 } from "./schema";
 import { AGENCY_METADATA } from "./training-templates.server";
+import { getCached, setCache } from "../cache/public-site.server";
 
 // ============================================================================
 // Types
@@ -157,6 +158,9 @@ async function getCourseImagesMap(
 export async function getPublicSiteSettings(
   organizationId: string
 ): Promise<PublicSiteSettings | null> {
+  const cached = await getCached<PublicSiteSettings>(organizationId, "settings");
+  if (cached) return cached;
+
   const result = await db
     .select({
       publicSiteSettings: organization.publicSiteSettings,
@@ -169,7 +173,11 @@ export async function getPublicSiteSettings(
     return null;
   }
 
-  return result[0].publicSiteSettings ?? null;
+  const settings = result[0].publicSiteSettings ?? null;
+  if (settings) {
+    await setCache(organizationId, "settings", settings);
+  }
+  return settings;
 }
 
 /**
@@ -220,6 +228,10 @@ export async function getPublicTrips(
 ): Promise<PaginatedTripsResult> {
   const { limit = 20, page = 1 } = options;
   const offset = (page - 1) * limit;
+
+  const cacheResource = `trips:${page}:${limit}`;
+  const cached = await getCached<PaginatedTripsResult>(organizationId, cacheResource);
+  if (cached) return cached;
 
   // Get public trips with tour information
   const tripsData = await db
@@ -273,7 +285,7 @@ export async function getPublicTrips(
 
   const total = Number(countResult[0]?.count ?? 0);
 
-  return {
+  const result: PaginatedTripsResult = {
     trips: tripsData.map((row) => ({
       id: row.trip.id,
       date: row.trip.date,
@@ -299,6 +311,9 @@ export async function getPublicTrips(
     })),
     total,
   };
+
+  await setCache(organizationId, cacheResource, result);
+  return result;
 }
 
 /**
@@ -311,6 +326,10 @@ export async function getPublicCourses(
 ): Promise<PaginatedCoursesResult> {
   const { limit = 20, page = 1, onlyWithUpcomingSessions = false } = options;
   const offset = (page - 1) * limit;
+
+  const cacheResource = `courses:${page}:${limit}:${onlyWithUpcomingSessions}`;
+  const cached = await getCached<PaginatedCoursesResult>(organizationId, cacheResource);
+  if (cached) return cached;
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -386,7 +405,7 @@ export async function getPublicCourses(
   const courseIds = coursesData.map((c) => c.id);
   const imageMap = await getCourseImagesMap(organizationId, courseIds);
 
-  return {
+  const result: PaginatedCoursesResult = {
     courses: coursesData.map((course) => {
       const resolvedImages = course.imageOverride ?? course.templateImages ?? course.courseImages;
       return {
@@ -408,6 +427,9 @@ export async function getPublicCourses(
     }),
     total,
   };
+
+  await setCache(organizationId, cacheResource, result);
+  return result;
 }
 
 /**
@@ -420,6 +442,10 @@ export async function getPublicEquipment(
 ): Promise<PaginatedEquipmentResult> {
   const { limit = 20, page = 1 } = options;
   const offset = (page - 1) * limit;
+
+  const cacheResource = `equipment:${page}:${limit}`;
+  const cached = await getCached<PaginatedEquipmentResult>(organizationId, cacheResource);
+  if (cached) return cached;
 
   // Get public equipment
   const equipmentData = await db
@@ -458,7 +484,7 @@ export async function getPublicEquipment(
 
   const total = Number(countResult[0]?.count ?? 0);
 
-  return {
+  const result: PaginatedEquipmentResult = {
     equipment: equipmentData.map((item) => ({
       id: item.id,
       category: item.category,
@@ -472,6 +498,9 @@ export async function getPublicEquipment(
     })),
     total,
   };
+
+  await setCache(organizationId, cacheResource, result);
+  return result;
 }
 
 /**
