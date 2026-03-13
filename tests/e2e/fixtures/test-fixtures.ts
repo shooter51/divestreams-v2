@@ -5,7 +5,7 @@ import { getTenantUrl, getAdminUrl } from "../helpers/urls";
  * Test credentials and configuration
  */
 export const testConfig = {
-  adminPassword: process.env.ADMIN_PASSWORD || "PlatformAdmin2026!",
+  adminPassword: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
   adminEmail: process.env.ADMIN_EMAIL || "admin@divestreams.com",
   tenantSubdomain: process.env.SMOKE_TENANT || "demo",
   tenantCredentials: {
