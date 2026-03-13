@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getBookingWithFullDetails, getEquipment } from "../../../../../lib/db/queries.server";
+import { getBookingWithFullDetails, getEquipment, getTripById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
@@ -81,6 +81,39 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const status = formData.get("status") as string;
   const specialRequests = formData.get("specialRequests") as string;
   const internalNotes = formData.get("internalNotes") as string;
+
+  // Fetch booking to get tripId, then validate tank selection if required
+  const booking = await getBookingWithFullDetails(organizationId, bookingId);
+  if (!booking) {
+    throw new Response("Booking not found", { status: 404 });
+  }
+
+  const trip = await getTripById(organizationId, booking.tripId);
+  if (trip?.requiresTankSelection) {
+    const participantDetails: { bringOwn: boolean; hasTanks: boolean }[] = [];
+    for (let i = 0; i < participants; i++) {
+      const bringOwn = formData.get(`participantTanks[${i}].bringOwn`) === "true";
+      let hasTanks = false;
+      for (let j = 0; j < 4; j++) {
+        const tankType = formData.get(`participantTanks[${i}].tanks[${j}].type`) as string | null;
+        const gasType = formData.get(`participantTanks[${i}].tanks[${j}].gasType`) as string | null;
+        const qty = formData.get(`participantTanks[${i}].tanks[${j}].quantity`) as string | null;
+        if (tankType && gasType && qty) {
+          hasTanks = true;
+          break;
+        }
+      }
+      participantDetails.push({ bringOwn, hasTanks });
+    }
+    const coveredParticipants = participantDetails.filter((p) => p.bringOwn || p.hasTanks).length;
+    if (coveredParticipants < participants) {
+      return {
+        errors: {
+          tanks: "Tank and gas selection is required for each participant on this trip",
+        },
+      };
+    }
+  }
 
   // Parse equipment rental selections
   const selectedEquipmentIds = formData.getAll("equipment") as string[];

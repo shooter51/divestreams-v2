@@ -146,6 +146,21 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
+  // Validate tank selection when the trip requires it
+  if (trip.requiresTankSelection) {
+    const coveredParticipants = participantDetails.filter(
+      (p) => p.bringOwnTanks === true || (p.tanks && p.tanks.length > 0)
+    ).length;
+    if (coveredParticipants < participants) {
+      return {
+        errors: {
+          tanks: "Tank and gas selection is required for each participant on this trip",
+        },
+        values: getFormValues(formData),
+      };
+    }
+  }
+
   // Create the booking (transactional with availability check)
   let booking;
   try {
