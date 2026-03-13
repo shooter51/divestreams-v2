@@ -67,7 +67,16 @@ vi.mock("drizzle-orm", () => ({
   gte: vi.fn((a, b) => ({ type: "gte", field: a, value: b })),
   lte: vi.fn((a, b) => ({ type: "lte", field: a, value: b })),
   asc: vi.fn((a) => ({ type: "asc", field: a })),
+  inArray: vi.fn((a, b) => ({ type: "inArray", field: a, values: b })),
   sql: vi.fn((strings: unknown, ...values: unknown[]) => ({ type: "sql", strings, values })),
+}));
+
+vi.mock("../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+}));
+
+vi.mock("../../../../../app/i18n/resolve-locale", () => ({
+  resolveLocale: vi.fn().mockReturnValue("en"),
 }));
 
 import { db } from "../../../../../lib/db";
@@ -84,6 +93,79 @@ function resetDbChain() {
   }
 }
 
+/**
+ * Setup mocks for the new batched query pattern:
+ * 1. Org lookup: select->from->where->limit (terminal)
+ * 2. Main trips: select->from->innerJoin->where->orderBy->limit->offset (terminal)
+ * 3. Count query: select->from->innerJoin->where (terminal)
+ * 4. Booking batch: select->from->where->groupBy (terminal) — runs in Promise.all
+ * 5. Image batch: select->from->where (terminal) — runs in Promise.all
+ *
+ * With the new batched approach, queries 4 and 5 run once (not per-trip).
+ */
+function setupLoaderMocks(options: {
+  org?: Record<string, unknown> | null;
+  tripsData?: Record<string, unknown>[];
+  totalCount?: number;
+  bookingCounts?: Array<{ tripId: string; total: number }>;
+  tourImages?: Array<{ entityId: string; url: string }>;
+}) {
+  const {
+    org = { id: "org-1", name: "Reef Divers", slug: "demo" },
+    tripsData = [],
+    totalCount = 0,
+    bookingCounts = [],
+    tourImages = [],
+  } = options;
+
+  // Track call counts for each method to return different values
+  let limitCallCount = 0;
+  let whereCallCount = 0;
+  let groupByCallCount = 0;
+
+  (db.limit as Mock).mockImplementation(() => {
+    limitCallCount++;
+    if (limitCallCount === 1) {
+      // Org lookup — terminal
+      return org ? Promise.resolve([org]) : Promise.resolve([]);
+    }
+    // Main trips query limit -> chains to offset
+    return db;
+  });
+
+  (db.offset as Mock).mockResolvedValue(tripsData);
+
+  (db.where as Mock).mockImplementation(() => {
+    whereCallCount++;
+    if (whereCallCount <= 2) {
+      // 1: org lookup where -> chain, 2: main trips where -> chain
+      return db;
+    }
+    if (whereCallCount === 3) {
+      // Count query -> terminal
+      return Promise.resolve([{ count: totalCount }]);
+    }
+    if (whereCallCount === 4) {
+      // Booking batch where -> chains to groupBy
+      return db;
+    }
+    if (whereCallCount === 5) {
+      // Image batch where -> terminal
+      return Promise.resolve(tourImages);
+    }
+    return db;
+  });
+
+  (db.groupBy as Mock).mockImplementation(() => {
+    groupByCallCount++;
+    if (groupByCallCount === 1) {
+      // Booking counts batch -> terminal
+      return Promise.resolve(bookingCounts);
+    }
+    return db;
+  });
+}
+
 describe("site/trips/index route", () => {
   const mockOrg = { id: "org-1", name: "Reef Divers", slug: "demo" };
 
@@ -94,7 +176,6 @@ describe("site/trips/index route", () => {
 
   describe("loader", () => {
     it("throws 404 when organization not found", async () => {
-      // Org lookup: select -> from -> where -> limit (terminal)
       (db.limit as Mock).mockResolvedValueOnce([]);
 
       const request = new Request("https://demo.divestreams.com/site/trips");
@@ -109,20 +190,7 @@ describe("site/trips/index route", () => {
     });
 
     it("returns empty trips array when none found", async () => {
-      // 1. Org lookup: limit is terminal
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg]) // org lookup
-        .mockReturnValue(db); // trips query limit chains to offset
-
-      // 2. Main trips query: offset is terminal
-      (db.offset as Mock).mockResolvedValueOnce([]);
-
-      // 3. Count query: where is terminal (the innerJoin->where after the main query)
-      // The where calls: (1) org lookup, (2) main trips query, (3) count query
-      (db.where as Mock)
-        .mockReturnValueOnce(db) // org lookup where -> chains to limit
-        .mockReturnValueOnce(db) // main trips where -> chains to orderBy
-        .mockResolvedValueOnce([{ count: 0 }]); // count query where (terminal)
+      setupLoaderMocks({ org: mockOrg, tripsData: [], totalCount: 0 });
 
       const request = new Request("https://demo.divestreams.com/site/trips");
 
@@ -156,27 +224,13 @@ describe("site/trips/index route", () => {
         includesTransport: false,
       };
 
-      // 1. Org lookup: limit terminal
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg]) // org lookup
-        .mockReturnValueOnce(db) // main trips query limit -> chains to offset
-        .mockResolvedValueOnce([{ url: "https://cdn.example.com/reef.jpg" }]); // image query limit terminal
-
-      // 2. Main trips query: offset terminal
-      (db.offset as Mock).mockResolvedValueOnce([mockTripRow]);
-
-      // 3. where calls:
-      //   (1) org lookup -> chain
-      //   (2) main trips query -> chain
-      //   (3) count query -> terminal
-      //   (4) booking count for trip-1 -> terminal
-      //   (5) image query for trip-1 -> chain to limit
-      (db.where as Mock)
-        .mockReturnValueOnce(db) // org lookup
-        .mockReturnValueOnce(db) // main trips
-        .mockResolvedValueOnce([{ count: 1 }]) // count query
-        .mockResolvedValueOnce([{ total: 3 }]) // booking count
-        .mockReturnValueOnce(db); // image query -> chain to limit
+      setupLoaderMocks({
+        org: mockOrg,
+        tripsData: [mockTripRow],
+        totalCount: 1,
+        bookingCounts: [{ tripId: "trip-1", total: 3 }],
+        tourImages: [{ entityId: "tour-1", url: "https://cdn.example.com/reef.jpg" }],
+      });
 
       const request = new Request("https://demo.divestreams.com/site/trips");
 
@@ -197,16 +251,7 @@ describe("site/trips/index route", () => {
     });
 
     it("applies date range filters from query params", async () => {
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg])
-        .mockReturnValue(db);
-
-      (db.offset as Mock).mockResolvedValueOnce([]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db)
-        .mockReturnValueOnce(db)
-        .mockResolvedValueOnce([{ count: 0 }]);
+      setupLoaderMocks({ org: mockOrg, tripsData: [], totalCount: 0 });
 
       const request = new Request(
         "https://demo.divestreams.com/site/trips?from=2026-07-01&to=2026-07-31"
@@ -240,19 +285,13 @@ describe("site/trips/index route", () => {
         includesTransport: false,
       };
 
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg]) // org
-        .mockReturnValueOnce(db) // trips query limit -> offset
-        .mockResolvedValueOnce([]); // image query (no image)
-
-      (db.offset as Mock).mockResolvedValueOnce([mockTripRow]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db) // org
-        .mockReturnValueOnce(db) // trips
-        .mockResolvedValueOnce([{ count: 1 }]) // count
-        .mockResolvedValueOnce([{ total: 4 }]) // booking count: 4 of 6
-        .mockReturnValueOnce(db); // image where -> chain
+      setupLoaderMocks({
+        org: mockOrg,
+        tripsData: [mockTripRow],
+        totalCount: 1,
+        bookingCounts: [{ tripId: "trip-1", total: 4 }],
+        tourImages: [],
+      });
 
       const request = new Request("https://demo.divestreams.com/site/trips");
 
@@ -285,19 +324,13 @@ describe("site/trips/index route", () => {
         includesTransport: true,
       };
 
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg]) // org
-        .mockReturnValueOnce(db) // trips limit -> offset
-        .mockResolvedValueOnce([{ url: "https://cdn.example.com/wreck.jpg" }]); // image
-
-      (db.offset as Mock).mockResolvedValueOnce([mockTripRow]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db) // org
-        .mockReturnValueOnce(db) // trips
-        .mockResolvedValueOnce([{ count: 1 }]) // count
-        .mockResolvedValueOnce([{ total: 0 }]) // booking
-        .mockReturnValueOnce(db); // image where -> chain
+      setupLoaderMocks({
+        org: mockOrg,
+        tripsData: [mockTripRow],
+        totalCount: 1,
+        bookingCounts: [],
+        tourImages: [{ entityId: "tour-2", url: "https://cdn.example.com/wreck.jpg" }],
+      });
 
       const request = new Request("https://demo.divestreams.com/site/trips");
 
@@ -307,16 +340,7 @@ describe("site/trips/index route", () => {
     });
 
     it("defaults fromDate to today when not specified", async () => {
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg])
-        .mockReturnValue(db);
-
-      (db.offset as Mock).mockResolvedValueOnce([]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db)
-        .mockReturnValueOnce(db)
-        .mockResolvedValueOnce([{ count: 0 }]);
+      setupLoaderMocks({ org: mockOrg, tripsData: [], totalCount: 0 });
 
       const request = new Request("https://demo.divestreams.com/site/trips");
 
@@ -328,16 +352,7 @@ describe("site/trips/index route", () => {
     });
 
     it("parses page query parameter", async () => {
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg])
-        .mockReturnValue(db);
-
-      (db.offset as Mock).mockResolvedValueOnce([]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db)
-        .mockReturnValueOnce(db)
-        .mockResolvedValueOnce([{ count: 0 }]);
+      setupLoaderMocks({ org: mockOrg, tripsData: [], totalCount: 0 });
 
       const request = new Request("https://demo.divestreams.com/site/trips?page=3");
 
@@ -347,16 +362,7 @@ describe("site/trips/index route", () => {
     });
 
     it("defaults page to 1 for invalid page param", async () => {
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg])
-        .mockReturnValue(db);
-
-      (db.offset as Mock).mockResolvedValueOnce([]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db)
-        .mockReturnValueOnce(db)
-        .mockResolvedValueOnce([{ count: 0 }]);
+      setupLoaderMocks({ org: mockOrg, tripsData: [], totalCount: 0 });
 
       const request = new Request("https://demo.divestreams.com/site/trips?page=-5");
 
@@ -387,19 +393,13 @@ describe("site/trips/index route", () => {
         includesTransport: true,
       };
 
-      (db.limit as Mock)
-        .mockResolvedValueOnce([mockOrg]) // org
-        .mockReturnValueOnce(db) // trips limit -> offset
-        .mockResolvedValueOnce([]); // image query: no image
-
-      (db.offset as Mock).mockResolvedValueOnce([mockTripRow]);
-
-      (db.where as Mock)
-        .mockReturnValueOnce(db) // org
-        .mockReturnValueOnce(db) // trips
-        .mockResolvedValueOnce([{ count: 1 }]) // count
-        .mockResolvedValueOnce([{ total: 0 }]) // booking
-        .mockReturnValueOnce(db); // image where -> chain
+      setupLoaderMocks({
+        org: mockOrg,
+        tripsData: [mockTripRow],
+        totalCount: 1,
+        bookingCounts: [],
+        tourImages: [], // No images
+      });
 
       const request = new Request("https://demo.divestreams.com/site/trips");
 
