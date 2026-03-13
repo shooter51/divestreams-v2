@@ -224,16 +224,26 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   });
 
   test("[KAN-2] 2.3 Create tenant via signup @critical", async ({ page, context }) => {
-    // Check if tenant already exists (created by global-setup for parallel execution)
+    // Check if tenant already exists by trying to login (not just checking for login form,
+    // because the app shows a login form for any subdomain, even non-existent ones)
     const tenantCheck = await context.newPage();
     await tenantCheck.goto(getTenantUrl("/auth/login"));
     await tenantCheck.waitForLoadState("domcontentloaded");
     const loginFormExists = await tenantCheck.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
-    await tenantCheck.close();
-
     if (loginFormExists) {
-      console.log("Tenant already exists (created by global-setup) - this is OK");
-      return;
+      // Try an actual login to verify the tenant truly exists (not just a generic login page)
+      await tenantCheck.getByRole("textbox", { name: /email/i }).fill(testData.tenant.email);
+      await tenantCheck.locator('input[type="password"]').first().fill(testData.user.password);
+      await tenantCheck.getByRole("button", { name: /sign in/i }).click();
+      const loginOk = await tenantCheck.waitForURL(/\/tenant/, { timeout: 5000 }).then(() => true).catch(() => false);
+      await tenantCheck.close();
+      if (loginOk) {
+        console.log("Tenant already exists (verified via login) - this is OK");
+        return;
+      }
+      console.log("Login form visible but login failed - tenant may not exist, attempting creation");
+    } else {
+      await tenantCheck.close();
     }
 
     await page.goto(getMarketingUrl("/signup"));
