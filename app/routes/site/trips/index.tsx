@@ -9,7 +9,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { useT } from "../../../i18n/use-t";
 import { useFormat } from "../../../i18n/use-format";
-import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
+import { eq, and, gte, lte, sql, asc, inArray } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
 import { bulkGetContentTranslations } from "../../../../lib/db/translations.server";
@@ -150,59 +150,71 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const total = Number(countResult[0]?.count ?? 0);
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  // Get booking counts and images for each trip
-  const tripCards: TripCard[] = await Promise.all(
-    tripsData.map(async (trip) => {
-      // Get booking count
-      const bookingCount = await db
-        .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-        .from(bookings)
-        .where(
-          and(
-            eq(bookings.tripId, trip.id),
-            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
+  // Batch-fetch booking counts and images (eliminates N+1 queries)
+  const tripIds = tripsData.map((t) => t.id);
+  const tourIds = [...new Set(tripsData.map((t) => t.tourId))];
+
+  const [bookingCounts, tourImages] = await Promise.all([
+    // Single query for all booking counts
+    tripIds.length > 0
+      ? db
+          .select({
+            tripId: bookings.tripId,
+            total: sql<number>`COALESCE(SUM(participants), 0)`,
+          })
+          .from(bookings)
+          .where(
+            and(
+              inArray(bookings.tripId, tripIds),
+              sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
+            )
           )
-        );
-
-      // Get primary image for the tour
-      const tourImages = await db
-        .select({ url: images.url })
-        .from(images)
-        .where(
-          and(
-            eq(images.organizationId, org.id),
-            eq(images.entityType, "tour"),
-            eq(images.entityId, trip.tourId),
-            eq(images.isPrimary, true)
+          .groupBy(bookings.tripId)
+      : Promise.resolve([]),
+    // Single query for all primary images
+    tourIds.length > 0
+      ? db
+          .select({ entityId: images.entityId, url: images.url })
+          .from(images)
+          .where(
+            and(
+              eq(images.organizationId, org.id),
+              eq(images.entityType, "tour"),
+              inArray(images.entityId, tourIds),
+              eq(images.isPrimary, true)
+            )
           )
-        )
-        .limit(1);
+      : Promise.resolve([]),
+  ]);
 
-      const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
-      const bookedParticipants = Number(bookingCount[0]?.total || 0);
+  const bookingMap = new Map(bookingCounts.map((b) => [b.tripId, Number(b.total)]));
+  const imageMap = new Map(tourImages.map((i) => [i.entityId, i.url]));
 
-      return {
-        id: trip.id,
-        tourId: trip.tourId,
-        tourName: trip.tourName,
-        tourDescription: trip.tourDescription,
-        tourType: trip.tourType,
-        date: trip.date,
-        startTime: trip.startTime,
-        endTime: trip.endTime,
-        maxParticipants,
-        availableSpots: Math.max(0, maxParticipants - bookedParticipants),
-        price: trip.tripPrice || trip.tourPrice,
-        currency: trip.currency || "USD",
-        duration: trip.duration,
-        minCertLevel: trip.minCertLevel,
-        primaryImage: tourImages[0]?.url || null,
-        includesEquipment: trip.includesEquipment || false,
-        includesMeals: trip.includesMeals || false,
-        includesTransport: trip.includesTransport || false,
-      };
-    })
-  );
+  const tripCards: TripCard[] = tripsData.map((trip) => {
+    const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+    const bookedParticipants = bookingMap.get(trip.id) || 0;
+
+    return {
+      id: trip.id,
+      tourId: trip.tourId,
+      tourName: trip.tourName,
+      tourDescription: trip.tourDescription,
+      tourType: trip.tourType,
+      date: trip.date,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      maxParticipants,
+      availableSpots: Math.max(0, maxParticipants - bookedParticipants),
+      price: trip.tripPrice || trip.tourPrice,
+      currency: trip.currency || "USD",
+      duration: trip.duration,
+      minCertLevel: trip.minCertLevel,
+      primaryImage: imageMap.get(trip.tourId) || null,
+      includesEquipment: trip.includesEquipment || false,
+      includesMeals: trip.includesMeals || false,
+      includesTransport: trip.includesTransport || false,
+    };
+  });
 
   // Apply content translations for tour names/descriptions
   const locale = resolveLocale(request);
