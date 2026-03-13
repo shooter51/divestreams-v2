@@ -76,25 +76,31 @@ async function runMigrations() {
       const journalPath = path.join(migrationsFolder, 'meta', '_journal.json');
       const journal = JSON.parse(fs.readFileSync(journalPath, 'utf-8'));
 
-      // Get the latest applied migration timestamp
-      const lastApplied = await sql`
-        SELECT created_at FROM drizzle."__drizzle_migrations"
-        ORDER BY created_at DESC LIMIT 1
+      // Get all applied migration hashes for tag-based deduplication
+      const appliedRows = await sql`
+        SELECT hash, created_at FROM drizzle."__drizzle_migrations"
       `;
-      const lastTimestamp = lastApplied.length > 0 ? Number(lastApplied[0].created_at) : -1;
+      const appliedHashes = new Set(appliedRows.map(r => r.hash));
 
       let applied = 0;
       let skipped = 0;
 
-      for (const entry of journal.entries) {
-        if (entry.when <= lastTimestamp) {
-          skipped++;
-          continue;
-        }
+      // Sort entries by their `when` timestamp so we apply in chronological order.
+      // The journal may contain out-of-order entries (e.g. a migration backfilled
+      // with a corrected timestamp after other entries had already been written).
+      // Sorting ensures we never skip a legitimately new entry simply because its
+      // `when` value falls below the highest timestamp already recorded.
+      const sortedEntries = [...journal.entries].sort((a, b) => a.when - b.when);
 
+      for (const entry of sortedEntries) {
         const migrationPath = path.join(migrationsFolder, `${entry.tag}.sql`);
         const content = fs.readFileSync(migrationPath, 'utf-8');
         const hash = crypto.createHash('sha256').update(content).digest('hex');
+
+        if (appliedHashes.has(hash)) {
+          skipped++;
+          continue;
+        }
 
         console.log(`Applying migration: ${entry.tag}`);
 
@@ -125,6 +131,7 @@ async function runMigrations() {
           VALUES (${hash}, ${entry.when})
         `;
 
+        appliedHashes.add(hash);
         applied++;
         console.log(`  Completed: ${entry.tag}`);
       }
