@@ -182,6 +182,9 @@ export async function getAgencyTemplateCounts() {
   return result;
 }
 
+// Placeholder used when a course image cannot be fetched (e.g. hotlink protection)
+export const COURSE_PLACEHOLDER_IMAGE = "/images/course-placeholder.svg";
+
 // ── Catalog Refresh ─────────────────────────────────────────────────────────
 
 interface CatalogCourse {
@@ -345,8 +348,9 @@ export async function refreshCatalogFromJson(): Promise<RefreshCatalogResult> {
                 changed = true;
               }
             } catch (err) {
-              migratedImages.push(imgUrl); // keep original on failure
+              migratedImages.push(COURSE_PLACEHOLDER_IMAGE);
               imagesFailed++;
+              changed = true;
               errors.push(`${catalogInfo.code}/${course.code}: ${err instanceof Error ? err.message : String(err)}`);
             }
           }
