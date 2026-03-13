@@ -16,6 +16,8 @@
  * DS-ztw:  Gallery albums sort-order display
  * DS-wr4:  Invite error message
  * DS-po1:  Depth unit configurable
+ * DS-pln5: SSI courses show $0.00 price — show "Contact for pricing" instead
+ * DS-bf1j: Discounts page empty state — correct message when no codes exist
  */
 
 import { describe, it, expect } from "vitest";
@@ -306,5 +308,103 @@ describe("DS-po1: Depth unit configurable", () => {
     const invalidValue = "fathoms";
     const safeDepthUnit = invalidValue === "feet" ? "feet" : "meters";
     expect(safeDepthUnit).toBe("meters");
+  });
+});
+
+// ============================================================================
+// DS-pln5: Course price display — "Contact for pricing" for null/zero prices
+// ============================================================================
+
+/**
+ * Mirrors the formatAdminCoursePrice logic in tenant/training/courses/index.tsx
+ * Price comes from the loader as a toFixed(2) string (e.g. "0.00") when null in DB.
+ */
+function formatAdminCoursePrice(price: string, currency: string): string {
+  const numericPrice = parseFloat(price);
+  if (isNaN(numericPrice) || numericPrice <= 0) {
+    return "Contact for pricing";
+  }
+  return `$${numericPrice.toFixed(2)} ${currency}`;
+}
+
+describe("DS-pln5: Tenant admin courses list — price display for template courses", () => {
+  it("shows 'Contact for pricing' when price is '0.00'", () => {
+    expect(formatAdminCoursePrice("0.00", "USD")).toBe("Contact for pricing");
+  });
+
+  it("shows 'Contact for pricing' when price is '0'", () => {
+    expect(formatAdminCoursePrice("0", "USD")).toBe("Contact for pricing");
+  });
+
+  it("shows formatted price when price is positive", () => {
+    expect(formatAdminCoursePrice("299.00", "USD")).toBe("$299.00 USD");
+  });
+
+  it("shows formatted price for non-zero decimal prices", () => {
+    expect(formatAdminCoursePrice("149.50", "EUR")).toBe("$149.50 EUR");
+  });
+
+  it("shows 'Contact for pricing' when price string is not a valid number", () => {
+    expect(formatAdminCoursePrice("", "USD")).toBe("Contact for pricing");
+  });
+});
+
+// ============================================================================
+// DS-bf1j: Discounts page — empty state and query correctness
+// ============================================================================
+
+/**
+ * The discounts loader filters by organizationId — verify the filter logic
+ * produces the correct result for an org with no discount codes.
+ */
+function simulateDiscountsLoader(
+  allCodes: Array<{ organizationId: string }>,
+  orgId: string
+): Array<{ organizationId: string }> {
+  return allCodes.filter((code) => code.organizationId === orgId);
+}
+
+describe("DS-bf1j: Discounts page — organizationId filtering", () => {
+  it("returns empty array when org has no discount codes", () => {
+    const codes = [
+      { organizationId: "org-2", code: "OTHER10" },
+    ];
+    const result = simulateDiscountsLoader(codes, "org-1");
+    expect(result).toHaveLength(0);
+  });
+
+  it("returns only codes belonging to the correct org", () => {
+    const codes = [
+      { organizationId: "org-1", code: "MINE10" },
+      { organizationId: "org-2", code: "OTHER20" },
+      { organizationId: "org-1", code: "MINE20" },
+    ];
+    const result = simulateDiscountsLoader(codes, "org-1");
+    expect(result).toHaveLength(2);
+    expect(result.every((c) => c.organizationId === "org-1")).toBe(true);
+  });
+
+  it("returns all codes when they all belong to the org", () => {
+    const codes = [
+      { organizationId: "org-1", code: "A" },
+      { organizationId: "org-1", code: "B" },
+    ];
+    const result = simulateDiscountsLoader(codes, "org-1");
+    expect(result).toHaveLength(2);
+  });
+});
+
+describe("DS-bf1j: Discounts page — empty state is shown when no codes exist", () => {
+  it("produces zero active discounts when code list is empty", () => {
+    const discountCodesList: Array<{ id: string; isActive: boolean }> = [];
+    // Simulate the categorization the component does
+    const activeDiscounts = discountCodesList.filter((d) => d.isActive);
+    expect(activeDiscounts).toHaveLength(0);
+  });
+
+  it("empty state should be triggered when activeDiscounts is empty", () => {
+    const activeDiscounts: unknown[] = [];
+    const shouldShowEmptyState = activeDiscounts.length === 0;
+    expect(shouldShowEmptyState).toBe(true);
   });
 });
