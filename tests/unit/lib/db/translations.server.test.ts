@@ -20,20 +20,30 @@ const buildDeleteChain = () => ({
   where: vi.fn().mockResolvedValue(undefined),
 });
 
+const buildUpdateChain = () => {
+  const where = vi.fn().mockResolvedValue(undefined);
+  const set = vi.fn().mockReturnValue({ where });
+  return { set, _where: where };
+};
+
 let selectChain = buildSelectChain();
 let insertChain = buildInsertChain();
 let deleteChain = buildDeleteChain();
+let updateChain = buildUpdateChain();
 
 vi.mock("../../../../lib/db/index", () => ({
   db: {
     select: vi.fn(() => selectChain),
     insert: vi.fn(() => insertChain),
     delete: vi.fn(() => deleteChain),
+    update: vi.fn(() => updateChain),
+    selectDistinct: vi.fn(() => selectChain),
   },
 }));
 
 vi.mock("../../../../lib/db/schema/translations", () => ({
   contentTranslations: {
+    id: "id",
     organizationId: "organizationId",
     entityType: "entityType",
     entityId: "entityId",
@@ -49,6 +59,22 @@ vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ eq: [a, b] })),
   and: vi.fn((...args: unknown[]) => ({ and: args.filter(Boolean) })),
   inArray: vi.fn((a, b) => ({ inArray: [a, b] })),
+  like: vi.fn((a, b) => ({ like: [a, b] })),
+}));
+
+vi.mock("../../../../lib/translation/bedrock.server", () => ({
+  stripHtmlTags: vi.fn((text: string) =>
+    text.replace(/<\/?[^>]+(>|$)/g, "").trim()
+  ),
+  removeSourceContamination: vi.fn((translated: string, original: string) => {
+    if (!original || !translated) return translated;
+    const t = translated.trim();
+    const o = original.trim();
+    if (t === o) return t;
+    if (t.length > o.length && t.endsWith(o)) return t.slice(0, -o.length).trim();
+    if (t.length > o.length && t.startsWith(o)) return t.slice(o.length).trim();
+    return t;
+  }),
 }));
 
 // ============================================================================
@@ -61,6 +87,7 @@ describe("translations.server", () => {
     selectChain = buildSelectChain();
     insertChain = buildInsertChain();
     deleteChain = buildDeleteChain();
+    updateChain = buildUpdateChain();
   });
 
   describe("getContentTranslations", () => {
@@ -359,6 +386,198 @@ describe("translations.server", () => {
       );
       expect(result.size).toBe(1);
       expect(result.get("tour-5")).toEqual({ name: "Solo Tour" });
+    });
+  });
+
+  // ==========================================================================
+  // DS-vlcg: cleanupCorruptedTranslations
+  // ==========================================================================
+
+  describe("cleanupCorruptedTranslations", () => {
+    it("returns 0 when there are no rows with HTML tags", async () => {
+      selectChain = buildSelectChain([
+        { id: "t-1", value: "Snorkel Safari" },
+        { id: "t-2", value: "Ocean Adventure" },
+      ]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupCorruptedTranslations();
+      expect(fixed).toBe(0);
+    });
+
+    it("updates row when value contains HTML tags", async () => {
+      selectChain = buildSelectChain([
+        { id: "t-1", value: "<p>Snorkel Safari</p>" },
+      ]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupCorruptedTranslations();
+      expect(fixed).toBe(1);
+      const { db } = await import("../../../../lib/db/index");
+      expect(db.update).toHaveBeenCalled();
+      expect(updateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ value: "Snorkel Safari" })
+      );
+    });
+
+    it("deletes row when stripping HTML leaves empty string", async () => {
+      selectChain = buildSelectChain([{ id: "t-2", value: "<br/>" }]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupCorruptedTranslations();
+      expect(fixed).toBe(1);
+      const { db } = await import("../../../../lib/db/index");
+      expect(db.delete).toHaveBeenCalled();
+    });
+
+    it("fixes multiple HTML-tagged rows in one call", async () => {
+      selectChain = buildSelectChain([
+        { id: "t-1", value: "<p>Nombre</p>" },
+        { id: "t-2", value: "<span>Descripción</span>" },
+        { id: "t-3", value: "Clean value" },
+      ]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupCorruptedTranslations();
+      expect(fixed).toBe(2);
+    });
+
+    it("returns 0 when there are no rows at all", async () => {
+      selectChain = buildSelectChain([]);
+      const { cleanupCorruptedTranslations } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupCorruptedTranslations();
+      expect(fixed).toBe(0);
+    });
+  });
+
+  // ==========================================================================
+  // DS-u6vq: cleanupSourceContaminationForEntity
+  // ==========================================================================
+
+  describe("cleanupSourceContaminationForEntity", () => {
+    it("returns 0 when sourceFields is empty", async () => {
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "trip",
+        "trip-1",
+        {}
+      );
+      expect(fixed).toBe(0);
+    });
+
+    it("returns 0 when no rows exist for the entity", async () => {
+      selectChain = buildSelectChain([]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "trip",
+        "trip-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(fixed).toBe(0);
+    });
+
+    it("fixes row with source text appended as suffix", async () => {
+      selectChain = buildSelectChain([
+        {
+          id: "t-1",
+          field: "name",
+          value: "Descubre el Buceo Discovery Scuba Diving",
+        },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "trip",
+        "trip-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(fixed).toBe(1);
+      const { db } = await import("../../../../lib/db/index");
+      expect(db.update).toHaveBeenCalled();
+      expect(updateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ value: "Descubre el Buceo" })
+      );
+    });
+
+    it("does not update rows with clean translations", async () => {
+      selectChain = buildSelectChain([
+        { id: "t-1", field: "name", value: "Safari de Snorkel" },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "trip",
+        "trip-1",
+        { name: "Snorkel Safari" }
+      );
+      expect(fixed).toBe(0);
+    });
+
+    it("skips rows whose field is not in sourceFields", async () => {
+      selectChain = buildSelectChain([
+        {
+          id: "t-1",
+          field: "description",
+          value: "Some description Discovery Scuba Diving",
+        },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      // sourceFields only has 'name', not 'description'
+      const fixed = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "trip",
+        "trip-1",
+        { name: "Discovery Scuba Diving" }
+      );
+      expect(fixed).toBe(0);
+    });
+
+    it("fixes multiple contaminated fields in one call", async () => {
+      selectChain = buildSelectChain([
+        {
+          id: "t-1",
+          field: "name",
+          value: "Descubre el Buceo Discovery Scuba Diving",
+        },
+        {
+          id: "t-2",
+          field: "shortDescription",
+          value: "Descripción breve Short Desc",
+        },
+        { id: "t-3", field: "description", value: "Desc larga Long Desc" },
+      ]);
+      const { cleanupSourceContaminationForEntity } = await import(
+        "../../../../lib/db/translations.server"
+      );
+      const fixed = await cleanupSourceContaminationForEntity(
+        "org-1",
+        "trip",
+        "trip-1",
+        {
+          name: "Discovery Scuba Diving",
+          shortDescription: "Short Desc",
+          description: "Long Desc",
+        }
+      );
+      expect(fixed).toBe(3);
     });
   });
 });

@@ -1,6 +1,10 @@
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, like } from "drizzle-orm";
 import { db } from "./index";
 import { contentTranslations } from "./schema/translations";
+import {
+  stripHtmlTags,
+  removeSourceContamination,
+} from "../translation/bedrock.server";
 
 /**
  * Get all translated fields for a specific entity in a locale.
@@ -155,4 +159,89 @@ export async function bulkGetContentTranslations(
     result.get(row.entityId)![row.field] = row.value;
   }
   return result;
+}
+
+/**
+ * Remove translations that contain HTML tags (e.g. "<p>Snorkel Safari</p>").
+ * Strips the tags and updates the stored value in place. If stripping results
+ * in an empty string the row is deleted instead.
+ *
+ * Returns the number of rows fixed.
+ */
+export async function cleanupCorruptedTranslations(): Promise<number> {
+  // Fetch all auto translations that contain an opening HTML tag
+  const rows = await db
+    .select({
+      id: contentTranslations.id,
+      value: contentTranslations.value,
+    })
+    .from(contentTranslations)
+    .where(like(contentTranslations.value, "%<%"));
+
+  let fixed = 0;
+  for (const row of rows) {
+    // Only act when there is actually a tag in the value
+    if (!/<\/?[^>]+(>|$)/.test(row.value)) continue;
+
+    const cleaned = stripHtmlTags(row.value);
+    if (!cleaned) {
+      await db
+        .delete(contentTranslations)
+        .where(eq(contentTranslations.id, row.id));
+    } else {
+      await db
+        .update(contentTranslations)
+        .set({ value: cleaned, updatedAt: new Date() })
+        .where(eq(contentTranslations.id, row.id));
+    }
+    fixed++;
+  }
+  return fixed;
+}
+
+/**
+ * Remove source contamination from translations for a specific entity.
+ * Compares each translated value against the supplied source fields map
+ * (fieldName -> sourceText) and strips any suffix/prefix contamination.
+ *
+ * Returns the number of rows fixed.
+ */
+export async function cleanupSourceContaminationForEntity(
+  orgId: string,
+  entityType: string,
+  entityId: string,
+  sourceFields: Record<string, string>
+): Promise<number> {
+  if (Object.keys(sourceFields).length === 0) return 0;
+
+  const rows = await db
+    .select({
+      id: contentTranslations.id,
+      field: contentTranslations.field,
+      value: contentTranslations.value,
+    })
+    .from(contentTranslations)
+    .where(
+      and(
+        eq(contentTranslations.organizationId, orgId),
+        eq(contentTranslations.entityType, entityType),
+        eq(contentTranslations.entityId, entityId)
+      )
+    );
+
+  let fixed = 0;
+  for (const row of rows) {
+    const sourceText = sourceFields[row.field];
+    if (!sourceText) continue;
+
+    const cleaned = removeSourceContamination(row.value, sourceText);
+    if (cleaned !== row.value) {
+      await db
+        .update(contentTranslations)
+        .set({ value: cleaned, updatedAt: new Date() })
+        .where(eq(contentTranslations.id, row.id));
+      fixed++;
+    }
+  }
+  return fixed;
 }
