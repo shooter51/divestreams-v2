@@ -274,6 +274,42 @@ describe("getThemeStyleBlock", () => {
     expect(css).toContain("--success-text: #065F46");
   });
 
+  it("should include --color-card-text for contrast on card backgrounds", () => {
+    const css = getThemeStyleBlock("minimal");
+    expect(css).toContain("--color-card-text:");
+  });
+
+  it("should include --color-accent-text for contrast on accent backgrounds", () => {
+    const css = getThemeStyleBlock("minimal");
+    expect(css).toContain("--color-accent-text:");
+  });
+
+  it("should include --surface-inset for badge backgrounds", () => {
+    const css = getThemeStyleBlock("ocean");
+    expect(css).toContain("--surface-inset:");
+  });
+
+  it("should set --color-card-text to dark for light themes", () => {
+    // Light themes have white/near-white card backgrounds — text must be dark
+    const css = getThemeStyleBlock("minimal");
+    expect(css).toContain("--color-card-text: #1F2937");
+  });
+
+  it("should set --color-card-text to light for dark theme", () => {
+    const css = getThemeStyleBlock("dark");
+    expect(css).toContain("--color-card-text: #E2E8F0");
+  });
+
+  it("should include --color-card-text in dark mode media query", () => {
+    const css = getThemeStyleBlock("ocean");
+    expect(css).toMatch(/@media.*--color-card-text: #E2E8F0/s);
+  });
+
+  it("should include --color-accent-text in dark mode media query", () => {
+    const css = getThemeStyleBlock("ocean");
+    expect(css).toMatch(/@media.*--color-accent-text:/s);
+  });
+
   it("should include dark mode danger colors", () => {
     const css = getThemeStyleBlock("dark");
 

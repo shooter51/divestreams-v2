@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import {
   ReceiptModal,
   TransactionDetailsModal,
@@ -145,6 +145,29 @@ describe("ReceiptModal", () => {
   it("renders customer name when provided", () => {
     renderReceipt();
     expect(screen.getByText("Bob Coral")).toBeInTheDocument();
+  });
+
+  it("calls window.print() after two animation frames when Print Receipt is clicked", async () => {
+    // JSDOM does not implement window.print — define it so spyOn can wrap it
+    window.print = () => {};
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
+    vi.useFakeTimers();
+
+    renderReceipt();
+    fireEvent.click(screen.getByText("Print Receipt"));
+
+    // window.print() must NOT have been called synchronously
+    expect(printSpy).not.toHaveBeenCalled();
+
+    // Flush both queued requestAnimationFrame callbacks
+    await act(async () => {
+      vi.runAllTimers();
+    });
+
+    expect(printSpy).toHaveBeenCalledTimes(1);
+
+    printSpy.mockRestore();
+    vi.useRealTimers();
   });
 });
 

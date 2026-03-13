@@ -65,7 +65,14 @@ export function ReceiptModal({
   const formattedTime = new Date(transaction.createdAt).toLocaleTimeString();
 
   const handlePrint = () => {
-    window.print();
+    // Defer print until after the browser has fully painted the modal content.
+    // A single rAF is not enough — the second frame guarantees layout and paint
+    // are both complete before the print dialog is opened.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+      });
+    });
   };
 
   return (

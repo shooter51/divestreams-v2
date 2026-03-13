@@ -40,7 +40,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       date: tripsTable.date,
       startTime: tripsTable.startTime,
       endTime: tripsTable.endTime,
-      maxParticipants: tripsTable.maxParticipants,
+      tripMaxParticipants: tripsTable.maxParticipants,
+      tourMaxParticipants: tours.maxParticipants,
       status: tripsTable.status,
       tourId: tripsTable.tourId,
       boatId: tripsTable.boatId,
@@ -80,7 +81,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
     .map((t) => {
       const bookedParticipants = bookingCountMap.get(t.id) || 0;
-      const maxParticipants = t.maxParticipants || 0;
+      const maxParticipants = t.tripMaxParticipants ?? t.tourMaxParticipants ?? 0;
       return {
         id: t.id,
         tour: { id: t.tourId, name: t.tourName || "Unknown Tour" },

@@ -131,10 +131,9 @@ export function ErrorBoundary() {
   const error = useRouteError();
 
   if (isRouteErrorResponse(error)) {
+    const errorDataStr = String(error.data ?? "").toLowerCase();
     const isCourseNotFound =
-      error.status === 404 &&
-      typeof error.data === "string" &&
-      error.data.toLowerCase().includes("course");
+      error.status === 404 && errorDataStr.includes("course");
     const isShopNotFound =
       error.status === 404 && !isCourseNotFound;
 
