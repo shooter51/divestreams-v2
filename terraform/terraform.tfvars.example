@@ -1,0 +1,89 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored and must NEVER be committed.
+# Store real values in Vault or a secrets manager.
+
+# ── Cloudflare ────────────────────────────────────────────────────────────────
+cloudflare_api_token = "CLOUDFLARE_API_TOKEN_HERE"
+cloudflare_zone_id   = "912605970a7d6bf122bf6b7430b2d2ea"
+
+# ── AWS ───────────────────────────────────────────────────────────────────────
+aws_access_key_id     = "AWS_ACCESS_KEY_ID_HERE"
+aws_secret_access_key = "AWS_SECRET_ACCESS_KEY_HERE"
+aws_region            = "us-east-1"
+
+# ── GitHub ────────────────────────────────────────────────────────────────────
+github_token = "GITHUB_FINE_GRAINED_PAT_HERE"
+
+# ── VPS IPs (update after any VPS rebuild) ────────────────────────────────────
+prod_vps_ip = "PROD_VPS_IP_HERE"
+test_vps_ip = "TEST_VPS_IP_HERE"
+db_vps_ip   = "DB_VPS_IP_HERE"
+
+# ── VPS IDs (Hostinger) ───────────────────────────────────────────────────────
+prod_vps_id = "1296511"
+test_vps_id = "1271895"
+db_vps_id   = "1239852"
+
+# ── Hostinger ─────────────────────────────────────────────────────────────────
+hostinger_api_token = "HOSTINGER_API_TOKEN_HERE"
+
+# ── Domain ────────────────────────────────────────────────────────────────────
+domain = "divestreams.com"
+
+# ── Shared Secrets ────────────────────────────────────────────────────────────
+vps_ssh_key    = "-----BEGIN OPENSSH PRIVATE KEY-----\nSSH_PRIVATE_KEY_HERE\n-----END OPENSSH PRIVATE KEY-----"
+promotion_pat  = "GITHUB_PROMOTION_PAT_HERE"
+
+# ── Production Secrets ────────────────────────────────────────────────────────
+db_password_prod             = "STRONG_PASSWORD_HERE"
+redis_password_prod          = "STRONG_PASSWORD_HERE"
+auth_secret_prod             = "RANDOM_SECRET_HERE"
+better_auth_secret_prod      = "RANDOM_SECRET_HERE"
+
+stripe_secret_key_prod       = "sk_live_STRIPE_SECRET_KEY_HERE"
+stripe_publishable_key_prod  = "pk_live_STRIPE_PUBLISHABLE_KEY_HERE"
+stripe_webhook_secret_prod   = "whsec_STRIPE_WEBHOOK_SECRET_HERE"
+
+smtp_host_prod               = "smtp.example.com"
+smtp_port_prod               = "587"
+smtp_user_prod               = "noreply@divestreams.com"
+smtp_pass_prod               = "SMTP_PASSWORD_HERE"
+smtp_from_prod               = "DiveStreams <noreply@divestreams.com>"
+
+s3_access_key_id_prod        = "AKIAX6O4WR2JTG5SBDOB"
+s3_secret_access_key_prod    = "S3_SECRET_HERE"
+s3_bucket_prod               = "divestreams-images"
+s3_region_prod               = "us-east-1"
+s3_endpoint_prod             = "https://s3.amazonaws.com"
+cdn_url_prod                 = "https://cdn.divestreams.com"
+
+admin_password_prod          = "STRONG_PASSWORD_HERE"
+platform_admin_email_prod    = "admin@divestreams.com"
+platform_admin_password_prod = "STRONG_PASSWORD_HERE"
+
+# ── Test Secrets ──────────────────────────────────────────────────────────────
+db_password_test             = "STRONG_PASSWORD_HERE"
+redis_password_test          = "STRONG_PASSWORD_HERE"
+auth_secret_test             = "RANDOM_SECRET_HERE"
+better_auth_secret_test      = "RANDOM_SECRET_HERE"
+
+stripe_secret_key_test       = "sk_test_STRIPE_SECRET_KEY_HERE"
+stripe_publishable_key_test  = "pk_test_STRIPE_PUBLISHABLE_KEY_HERE"
+stripe_webhook_secret_test   = "whsec_STRIPE_WEBHOOK_SECRET_HERE"
+
+smtp_host_test               = "smtp.example.com"
+smtp_port_test               = "587"
+smtp_user_test               = "noreply@test.divestreams.com"
+smtp_pass_test               = "SMTP_PASSWORD_HERE"
+smtp_from_test               = "DiveStreams Test <noreply@test.divestreams.com>"
+
+s3_access_key_id_test        = "AKIAX6O4WR2JTG5SBDOB"
+s3_secret_access_key_test    = "S3_SECRET_HERE"
+s3_bucket_test               = "divestreams-images"
+s3_region_test               = "us-east-1"
+s3_endpoint_test             = "https://s3.amazonaws.com"
+cdn_url_test                 = "https://cdn.divestreams.com"
+
+admin_password_test          = "STRONG_PASSWORD_HERE"
+platform_admin_email_test    = "admin@test.divestreams.com"
+platform_admin_password_test = "STRONG_PASSWORD_HERE"

@@ -63,13 +63,14 @@ orchestrator/dist/
 # 1Password import files
 github-secrets-1password*.csv
 
-# Terraform
-terraform/
-.terraform/
-.terraform.lock.hcl
-terraform.tfstate
-terraform.tfstate.backup
-terraform.tfvars
+# Terraform — ignore secrets/state, not the config files themselves
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+terraform/*.tfstate
+terraform/*.tfstate.backup
 
 # Transient files
 plan.md
