@@ -257,11 +257,11 @@ export default function SiteLayout() {
                 <img
                   src={organization.logo}
                   alt={organization.name}
-                  className="h-10 w-auto"
+                  className="h-14 w-auto"
                 />
               ) : (
                 <div
-                  className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                  className="h-14 w-14 rounded-lg flex items-center justify-center text-white font-bold text-lg"
                   style={{ backgroundColor: "var(--primary-color)" }}
                 >
                   {organization.name.charAt(0)}
@@ -392,11 +392,11 @@ export default function SiteLayout() {
                   <img
                     src={organization.logo}
                     alt={organization.name}
-                    className="h-10 w-auto"
+                    className="h-12 w-auto"
                   />
                 ) : (
                   <div
-                    className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                    className="h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
                     style={{ backgroundColor: "var(--primary-color)" }}
                   >
                     {organization.name.charAt(0)}
