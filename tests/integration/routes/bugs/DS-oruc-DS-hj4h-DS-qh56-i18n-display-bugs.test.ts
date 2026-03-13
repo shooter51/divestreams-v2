@@ -19,18 +19,20 @@ function readSource(relPath: string): string {
 // ============================================================================
 
 describe("DS-oruc: Equipment rental available count translation", () => {
-  it("translation key 'tenant.bookings.availableCount' contains parentheses in en.json", () => {
+  it("translation key 'tenant.bookings.availableCount' does not contain parentheses in en.json", () => {
     const en = JSON.parse(readSource("app/i18n/locales/en.json")) as Record<string, string>;
     const value = en["tenant.bookings.availableCount"];
-    expect(value).toMatch(/^\(/); // starts with (
-    expect(value).toMatch(/\)$/); // ends with )
+    expect(value).not.toMatch(/^\(/); // must not start with (
+    expect(value).not.toMatch(/\)$/); // must not end with )
+    expect(value).toContain("{{count}}");
   });
 
-  it("translation key 'tenant.bookings.availableCount' contains parentheses in es.json", () => {
+  it("translation key 'tenant.bookings.availableCount' does not contain parentheses in es.json", () => {
     const es = JSON.parse(readSource("app/i18n/locales/es.json")) as Record<string, string>;
     const value = es["tenant.bookings.availableCount"];
-    expect(value).toMatch(/^\(/); // starts with (
-    expect(value).toMatch(/\)$/); // ends with )
+    expect(value).not.toMatch(/^\(/); // must not start with (
+    expect(value).not.toMatch(/\)$/); // must not end with )
+    expect(value).toContain("{{count}}");
   });
 
   it("edit booking JSX does not wrap the i18n value in extra parentheses", () => {
