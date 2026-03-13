@@ -1,23 +1,46 @@
-name: CI PR
-
-# Feature PR gate — lint, typecheck, unit tests (no DB), pact consumer, build check.
-# Provides the required "test" check name for develop branch protection.
+name: CI
 
 on:
   pull_request:
-    branches: [develop]
+    branches: [develop, test]
 
 concurrency:
-  group: ci-pr-${{ github.event.pull_request.number }}
+  group: ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   test:
-    runs-on: [self-hosted, linux, divestreams]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
       pull-requests: write
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: divestreams_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -32,25 +55,25 @@ jobs:
       - name: Validate directory structure
         run: npm run validate:structure
 
-      - name: Run lint
+      - name: Lint
         run: npm run lint
 
-      - name: Run typecheck
+      - name: Typecheck
         run: npm run typecheck
 
-      - name: Run unit tests
+      - name: Unit tests
         run: npm run test:unit
 
-      - name: Run contract tests
-        run: npx vitest run tests/contract
-
-      - name: Run Pact consumer tests
-        run: npm run pact:consumer
+      - name: Integration tests
+        run: npm test -- --run
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          REDIS_URL: redis://localhost:6379
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image (no push)
+      - name: Docker build check
         uses: docker/build-push-action@v5
         with:
           context: .
