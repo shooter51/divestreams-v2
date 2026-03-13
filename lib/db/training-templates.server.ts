@@ -272,7 +272,7 @@ export interface RefreshCatalogResult {
 }
 
 export async function refreshCatalogFromJson(): Promise<RefreshCatalogResult> {
-  const catalogsDir = join(__dirname, "../data/catalogs");
+  const catalogsDir = join(process.cwd(), "lib/data/catalogs");
   const storageReady = isStorageConfigured();
   let totalTemplates = 0;
   let imagesUploaded = 0;
