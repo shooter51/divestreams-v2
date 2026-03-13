@@ -272,18 +272,18 @@ describe("tenant/training/import route", () => {
         expect(enableCatalogCourse).toHaveBeenCalled();
       });
 
-      it("sets isPublic=true when importing catalog courses (DS-s3ja)", async () => {
+      it("imports courses as public by default (DS-wap2)", async () => {
         const mockTemplates = [
           {
-            id: "template-2",
-            name: "Advanced Open Water",
-            code: "AOWD",
-            description: "Advanced course",
-            durationDays: 3,
-            classroomHours: 4,
-            poolHours: 0,
-            openWaterDives: 5,
-            minAge: 12,
+            id: "template-1",
+            name: "Open Water Diver",
+            code: "OWD",
+            description: "Entry level",
+            durationDays: 4,
+            classroomHours: 8,
+            poolHours: 4,
+            openWaterDives: 4,
+            minAge: 10,
             prerequisites: null,
             medicalRequirements: null,
             materialsIncluded: true,
@@ -292,13 +292,13 @@ describe("tenant/training/import route", () => {
         ];
         (getGlobalAgencyCourseTemplates as Mock).mockResolvedValue(mockTemplates);
         (getAgencies as Mock).mockResolvedValue([{ id: "agency-1", code: "padi", name: "PADI" }]);
-        (enableCatalogCourse as Mock).mockResolvedValue({ id: "course-2", templateId: "template-2" });
+        (enableCatalogCourse as Mock).mockResolvedValue({ id: "course-1" });
 
         const formData = new FormData();
         formData.append("step", "execute-import");
         formData.append("agencyCode", "padi");
         formData.append("agencyName", "PADI");
-        formData.append("courseCodes", JSON.stringify(["AOWD"]));
+        formData.append("courseCodes", JSON.stringify(["OWD"]));
 
         const request = new Request("https://demo.divestreams.com/tenant/training/import", {
           method: "POST",

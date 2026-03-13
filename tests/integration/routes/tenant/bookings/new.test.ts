@@ -572,5 +572,220 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
         tripDate: "2024-02-01",
       }));
     });
+
+    it("should return validation error when trip requiresTankSelection and no tanks provided", async () => {
+      const mockCustomer = {
+        id: "cust-1",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+      };
+
+      const mockTrip = {
+        id: "trip-1",
+        tourName: "Tank Required Dive",
+        date: "2024-02-01",
+        startTime: "09:00",
+        price: 100,
+        requiresTankSelection: true,
+      };
+
+      vi.mocked(validation.validateFormData).mockReturnValue({
+        success: true,
+        data: {
+          customerId: "cust-1",
+          tripId: "trip-1",
+          participants: 2,
+        },
+      } as unknown);
+
+      vi.mocked(validation.getFormValues).mockReturnValue({});
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
+      vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+
+      const formData = new FormData();
+      formData.append("customerId", "cust-1");
+      formData.append("tripId", "trip-1");
+      formData.append("participants", "2");
+      // No tank selections provided
+
+      const request = new Request("http://test.com/tenant/bookings/new", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {} });
+
+      expect(result).toEqual(expect.objectContaining({
+        errors: expect.objectContaining({
+          tanks: expect.any(String),
+        }),
+      }));
+      expect(queries.createBooking).not.toHaveBeenCalled();
+    });
+
+    it("should accept booking when trip requiresTankSelection and tanks are provided", async () => {
+      const mockCustomer = {
+        id: "cust-1",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+      };
+
+      const mockTrip = {
+        id: "trip-1",
+        tourName: "Tank Required Dive",
+        date: "2024-02-01",
+        startTime: "09:00",
+        price: 100,
+        requiresTankSelection: true,
+      };
+
+      const mockBooking = {
+        id: "booking-1",
+        bookingNumber: "BK-001",
+      };
+
+      vi.mocked(validation.validateFormData).mockReturnValue({
+        success: true,
+        data: {
+          customerId: "cust-1",
+          tripId: "trip-1",
+          participants: 1,
+        },
+      } as unknown);
+
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
+      vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+      vi.mocked(queries.createBooking).mockResolvedValue(mockBooking as unknown);
+      vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
+
+      const formData = new FormData();
+      formData.append("customerId", "cust-1");
+      formData.append("tripId", "trip-1");
+      formData.append("participants", "1");
+      formData.append("participantTanks[0].tanks[0].type", "aluminum-80");
+      formData.append("participantTanks[0].tanks[0].gasType", "air");
+      formData.append("participantTanks[0].tanks[0].quantity", "1");
+
+      const request = new Request("http://test.com/tenant/bookings/new", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {} });
+
+      expect(queries.createBooking).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Response);
+      expect(result.status).toBe(302);
+    });
+
+    it("should accept booking when trip requiresTankSelection and participant brings own tanks", async () => {
+      const mockCustomer = {
+        id: "cust-1",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+      };
+
+      const mockTrip = {
+        id: "trip-1",
+        tourName: "Tank Required Dive",
+        date: "2024-02-01",
+        startTime: "09:00",
+        price: 100,
+        requiresTankSelection: true,
+      };
+
+      const mockBooking = {
+        id: "booking-1",
+        bookingNumber: "BK-001",
+      };
+
+      vi.mocked(validation.validateFormData).mockReturnValue({
+        success: true,
+        data: {
+          customerId: "cust-1",
+          tripId: "trip-1",
+          participants: 1,
+        },
+      } as unknown);
+
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
+      vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+      vi.mocked(queries.createBooking).mockResolvedValue(mockBooking as unknown);
+      vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
+
+      const formData = new FormData();
+      formData.append("customerId", "cust-1");
+      formData.append("tripId", "trip-1");
+      formData.append("participants", "1");
+      formData.append("participantTanks[0].bringOwn", "true");
+
+      const request = new Request("http://test.com/tenant/bookings/new", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {} });
+
+      expect(queries.createBooking).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Response);
+      expect(result.status).toBe(302);
+    });
+
+    it("should not require tank selection when trip does not requiresTankSelection", async () => {
+      const mockCustomer = {
+        id: "cust-1",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john@example.com",
+      };
+
+      const mockTrip = {
+        id: "trip-1",
+        tourName: "Standard Dive",
+        date: "2024-02-01",
+        startTime: "09:00",
+        price: 100,
+        requiresTankSelection: false,
+      };
+
+      const mockBooking = {
+        id: "booking-1",
+        bookingNumber: "BK-001",
+      };
+
+      vi.mocked(validation.validateFormData).mockReturnValue({
+        success: true,
+        data: {
+          customerId: "cust-1",
+          tripId: "trip-1",
+          participants: 2,
+        },
+      } as unknown);
+
+      vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
+      vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+      vi.mocked(queries.createBooking).mockResolvedValue(mockBooking as unknown);
+      vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
+
+      const formData = new FormData();
+      formData.append("customerId", "cust-1");
+      formData.append("tripId", "trip-1");
+      formData.append("participants", "2");
+      // No tank selections — should be fine
+
+      const request = new Request("http://test.com/tenant/bookings/new", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: {}, context: {} });
+
+      expect(queries.createBooking).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Response);
+      expect(result.status).toBe(302);
+    });
   });
 });

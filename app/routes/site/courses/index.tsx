@@ -7,10 +7,12 @@
 
 import { Link, useLoaderData, useSearchParams } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { useState } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema/auth";
 import { getPublicCourses } from "../../../../lib/db/public-site.server";
+import { useT } from "../../../i18n/use-t";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -67,17 +69,17 @@ interface LoaderData {
 /**
  * Format duration in days to readable string
  */
-function formatDuration(days: number): string {
-  if (days === 1) return "1 day";
-  return `${days} days`;
+function formatDuration(days: number, t: (key: string, params?: Record<string, string | number>) => string): string {
+  if (days === 1) return t("site.courses.duration.day", { count: 1 });
+  return t("site.courses.duration.days", { count: days });
 }
 
 /**
  * Format price for display
  */
-export function formatPrice(price: string, currency: string): string {
+export function formatPrice(price: string, currency: string, contactForPricingLabel = "Contact for pricing"): string {
   const numericPrice = parseFloat(price);
-  if (isNaN(numericPrice) || numericPrice <= 0) return "Contact for pricing";
+  if (isNaN(numericPrice) || numericPrice <= 0) return contactForPricingLabel;
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -234,10 +236,39 @@ function LevelBadge({ levelName }: { levelName: string | null }) {
 }
 
 /**
+ * Placeholder shown when a course has no image or the image fails to load
+ */
+function CourseImagePlaceholder() {
+  return (
+    <div
+      className="h-48 flex items-center justify-center"
+      style={{ backgroundColor: "var(--accent-color)" }}
+    >
+      <svg
+        className="w-16 h-16 opacity-50"
+        style={{ color: "var(--primary-color)" }}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/**
  * Course card component
  */
 function CourseCard({ course }: { course: Course }) {
+  const t = useT();
   const hasImage = course.images && course.images.length > 0;
+  const [imageError, setImageError] = useState(false);
 
   return (
     <Link
@@ -249,30 +280,16 @@ function CourseCard({ course }: { course: Course }) {
       }}
     >
       {/* Course Image */}
-      <div
-        className="h-48 flex items-center justify-center bg-cover bg-center"
-        style={hasImage
-          ? { backgroundImage: `url(${course.images![0]})` }
-          : { backgroundColor: "var(--accent-color)" }
-        }
-      >
-        {!hasImage && (
-          <svg
-            className="w-16 h-16 opacity-50"
-            style={{ color: "var(--primary-color)" }}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
-        )}
-      </div>
+      {hasImage && !imageError ? (
+        <img
+          src={course.images![0]}
+          alt={course.name}
+          className="h-48 w-full object-cover"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <CourseImagePlaceholder />
+      )}
 
       {/* Card Content */}
       <div className="p-5">
@@ -301,12 +318,12 @@ function CourseCard({ course }: { course: Course }) {
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
           {course.materialsIncluded && (
             <span className="px-2 py-1 bg-success-muted text-success rounded">
-              Materials included
+              {t("site.courses.materialsIncluded")}
             </span>
           )}
           {course.equipmentIncluded && (
             <span className="px-2 py-1 bg-info-muted text-info rounded">
-              Equipment included
+              {t("site.courses.equipmentIncluded")}
             </span>
           )}
         </div>
@@ -318,7 +335,7 @@ function CourseCard({ course }: { course: Course }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>{formatDuration(course.durationDays)}</span>
+            <span>{formatDuration(course.durationDays, t)}</span>
           </div>
 
           {/* Price */}
@@ -326,7 +343,7 @@ function CourseCard({ course }: { course: Course }) {
             className="text-lg font-bold"
             style={{ color: "var(--primary-color)" }}
           >
-            {formatPrice(course.price, course.currency)}
+            {formatPrice(course.price, course.currency, t("site.courses.contactForPricing"))}
           </span>
         </div>
       </div>
@@ -346,6 +363,7 @@ function FilterSection({
   availableAgencies: string[];
   availableLevels: string[];
 }) {
+  const t = useT();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const updateFilter = (key: string, value: string | null) => {
@@ -372,7 +390,7 @@ function FilterSection({
         {availableAgencies.length > 1 && (
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
-              Certification Agency
+              {t("site.courses.certificationAgency")}
             </label>
             <select
               value={filters.agency || ""}
@@ -387,7 +405,7 @@ function FilterSection({
                 "--tw-ring-color": "var(--primary-color)",
               }}
             >
-              <option value="">All Agencies</option>
+              <option value="">{t("site.courses.allAgencies")}</option>
               {availableAgencies.map((agencyName) => (
                 <option key={agencyName} value={agencyName}>
                   {agencyName}
@@ -401,7 +419,7 @@ function FilterSection({
         {availableLevels.length > 1 && (
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
-              Course Level
+              {t("site.courses.courseLevel")}
             </label>
             <select
               value={filters.level || ""}
@@ -416,7 +434,7 @@ function FilterSection({
                 "--tw-ring-color": "var(--primary-color)",
               }}
             >
-              <option value="">All Levels</option>
+              <option value="">{t("site.courses.allLevels")}</option>
               {availableLevels.map((levelName) => (
                 <option key={levelName} value={levelName}>
                   {levelName}
@@ -438,7 +456,7 @@ function FilterSection({
                 color: "var(--text-color)",
               }}
             >
-              Clear Filters
+              {t("site.courses.clearFilters")}
             </button>
           </div>
         )}
@@ -513,6 +531,7 @@ function Pagination({
  * Empty state component
  */
 function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  const t = useT();
   return (
     <div className="text-center py-16">
       <svg
@@ -530,12 +549,12 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
         />
       </svg>
       <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>
-        {hasFilters ? "No courses match your filters" : "No courses available"}
+        {hasFilters ? t("site.courses.noCoursesFiltered") : t("site.courses.noCourses")}
       </h3>
       <p className="opacity-75 max-w-md mx-auto" style={{ color: "var(--text-color)" }}>
         {hasFilters
-          ? "Try adjusting your filters to find more courses."
-          : "Check back soon for upcoming training courses and certifications."}
+          ? t("site.courses.adjustFilters")
+          : t("site.courses.checkBackSoon")}
       </p>
     </div>
   );
@@ -547,6 +566,7 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
 
 export default function SiteCoursesPage() {
   const { courses, total, page, limit, filters, availableAgencies, availableLevels } = useLoaderData<typeof loader>();
+  const t = useT();
 
   const hasFilters = Boolean(filters.agency || filters.level);
 
@@ -575,11 +595,10 @@ export default function SiteCoursesPage() {
           className="text-4xl font-bold mb-4"
           style={{ color: "var(--text-color)" }}
         >
-          Dive Courses
+          {t("site.courses.diveCourses")}
         </h1>
         <p className="text-lg opacity-75 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
-          Start your underwater adventure with our professional training courses.
-          From beginner to instructor level, we have the perfect course for you.
+          {t("site.courses.subtitle")}
         </p>
       </div>
 
@@ -589,7 +608,7 @@ export default function SiteCoursesPage() {
       {/* Results Count */}
       {courses.length > 0 && (
         <p className="text-sm opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
-          Showing {courses.length} of {total} courses
+          {t("site.courses.showingXofY", { count: courses.length, total })}
         </p>
       )}
 
@@ -616,18 +635,17 @@ export default function SiteCoursesPage() {
           className="text-2xl font-bold mb-4"
           style={{ color: "var(--text-color)" }}
         >
-          Not sure which course is right for you?
+          {t("site.courses.notSure")}
         </h2>
         <p className="opacity-75 mb-6 max-w-xl mx-auto" style={{ color: "var(--text-color)" }}>
-          Our team of experienced instructors can help you choose the perfect course
-          based on your experience level and diving goals.
+          {t("site.courses.notSureDescription")}
         </p>
         <Link
           to="/site/contact"
           className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--primary-color)" }}
         >
-          Contact Us
+          {t("site.courses.questionsContactUs")}
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>

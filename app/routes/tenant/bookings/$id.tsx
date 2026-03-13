@@ -306,7 +306,7 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
             <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
-          <p className="text-foreground-muted">{t("tenant.bookings.created", { date: formatDate(booking.createdAt) })}</p>
+          <p className="text-foreground-muted">{t("tenant.bookings.created", { date: formatDate(booking.createdAt) || "—" })}</p>
         </div>
         <div className="flex gap-2">
           {booking.status === "pending" && (

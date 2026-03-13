@@ -13,6 +13,7 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
 vi.mock("../../../../../lib/db/queries.server", () => ({
   getBookingWithFullDetails: vi.fn(),
   getEquipment: vi.fn(),
+  getTripById: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/tenant.server", () => {
@@ -39,7 +40,7 @@ vi.mock("../../../../../lib/use-notification", () => ({
   redirectWithNotification: vi.fn((path, msg, type) => `${path}?notification=${msg}`),
 }));
 
-import { getBookingWithFullDetails, getEquipment } from "../../../../../lib/db/queries.server";
+import { getBookingWithFullDetails, getEquipment, getTripById } from "../../../../../lib/db/queries.server";
 import { loader, action } from "../../../../../app/routes/tenant/bookings/$id/edit";
 
 const mockBookingData = {
@@ -98,6 +99,7 @@ describe("Edit Booking - Equipment Rental", () => {
     vi.clearAllMocks();
     (getBookingWithFullDetails as Mock).mockResolvedValue(mockBookingData);
     (getEquipment as Mock).mockResolvedValue(mockEquipment);
+    (getTripById as Mock).mockResolvedValue({ id: "trip-1", requiresTankSelection: false });
   });
 
   describe("loader", () => {
@@ -203,6 +205,121 @@ describe("Edit Booking - Equipment Rental", () => {
 
       // getEquipment should NOT be called when no equipment selected
       expect(getEquipment).not.toHaveBeenCalled();
+    });
+
+    it("returns validation error when trip requiresTankSelection and no tanks provided", async () => {
+      (getTripById as Mock).mockResolvedValue({
+        id: "trip-1",
+        requiresTankSelection: true,
+      });
+
+      const formData = new FormData();
+      formData.set("participants", "2");
+      formData.set("status", "confirmed");
+      formData.set("specialRequests", "");
+      formData.set("internalNotes", "");
+      // No tank selections
+
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/booking-1/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({
+        request,
+        params: { id: "booking-1" },
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      expect(result).toEqual(expect.objectContaining({
+        errors: expect.objectContaining({
+          tanks: expect.any(String),
+        }),
+      }));
+    });
+
+    it("succeeds when trip requiresTankSelection and tanks are provided for all participants", async () => {
+      (getTripById as Mock).mockResolvedValue({
+        id: "trip-1",
+        requiresTankSelection: true,
+      });
+
+      const formData = new FormData();
+      formData.set("participants", "1");
+      formData.set("status", "confirmed");
+      formData.set("specialRequests", "");
+      formData.set("internalNotes", "");
+      formData.append("participantTanks[0].tanks[0].type", "aluminum-80");
+      formData.append("participantTanks[0].tanks[0].gasType", "air");
+      formData.append("participantTanks[0].tanks[0].quantity", "1");
+
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/booking-1/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({
+        request,
+        params: { id: "booking-1" },
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      // Should redirect, not return errors
+      expect(result).toBeInstanceOf(Response);
+    });
+
+    it("succeeds when trip requiresTankSelection and participant brings own tanks", async () => {
+      (getTripById as Mock).mockResolvedValue({
+        id: "trip-1",
+        requiresTankSelection: true,
+      });
+
+      const formData = new FormData();
+      formData.set("participants", "1");
+      formData.set("status", "confirmed");
+      formData.set("specialRequests", "");
+      formData.set("internalNotes", "");
+      formData.append("participantTanks[0].bringOwn", "true");
+
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/booking-1/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({
+        request,
+        params: { id: "booking-1" },
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      expect(result).toBeInstanceOf(Response);
+    });
+
+    it("does not require tanks when trip does not requiresTankSelection", async () => {
+      (getTripById as Mock).mockResolvedValue({
+        id: "trip-1",
+        requiresTankSelection: false,
+      });
+
+      const formData = new FormData();
+      formData.set("participants", "2");
+      formData.set("status", "confirmed");
+      formData.set("specialRequests", "");
+      formData.set("internalNotes", "");
+      // No tank data — should be fine
+
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/booking-1/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({
+        request,
+        params: { id: "booking-1" },
+        context: {},
+      } as Parameters<typeof action>[0]);
+
+      expect(result).toBeInstanceOf(Response);
     });
   });
 });

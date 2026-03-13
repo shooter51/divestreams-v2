@@ -213,7 +213,7 @@ describe("site/login route", () => {
       } as Parameters<typeof action>[0]);
 
       expect(result).toHaveProperty("errors");
-      expect((result as unknown).errors.email).toBe("Email is required");
+      expect((result as unknown).errors.email).toBe("auth.login.emailRequired");
     });
 
     it("validates email format", async () => {
@@ -234,7 +234,7 @@ describe("site/login route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors.email).toBe("Please enter a valid email address");
+      expect((result as unknown).errors.email).toBe("auth.login.invalidEmail");
     });
 
     it("validates required password field", async () => {
@@ -255,7 +255,7 @@ describe("site/login route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors.password).toBe("Password is required");
+      expect((result as unknown).errors.password).toBe("auth.login.passwordRequired");
     });
 
     it("returns rate limit error when too many attempts", async () => {
@@ -280,7 +280,7 @@ describe("site/login route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors.form).toContain("Too many login attempts");
+      expect((result as unknown).errors.form).toBe("auth.login.tooManyAttempts");
     });
 
     it("redirects on successful login with session cookie", async () => {
@@ -334,7 +334,7 @@ describe("site/login route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors.form).toBe("Invalid email or password");
+      expect((result as unknown).errors.form).toBe("auth.login.invalidCredentials");
       expect((result as unknown).email).toBe("test@example.com");
     });
 
@@ -414,7 +414,7 @@ describe("site/login route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as unknown).errors.form).toContain("CSRF");
+      expect((result as unknown).errors.form).toBe("auth.login.invalidFormSubmission");
     });
   });
 });

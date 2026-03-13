@@ -45,7 +45,7 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
         <a href="/" className="flex items-center">
-          <img src="/logo-horizontal.png" alt="DiveStreams" className="h-8" />
+          <img src="/logo-horizontal.png" alt="DiveStreams" className="h-10" />
         </a>
         <div className="flex gap-6 items-center">
           <a href="/features" className="text-foreground-muted hover:text-brand">
@@ -155,7 +155,7 @@ export default function HomePage() {
       <footer className="container mx-auto px-4 py-12">
         <div className="flex justify-between items-center text-foreground-muted">
           <a href="/" className="flex items-center">
-            <img src="/logo-horizontal.png" alt="DiveStreams" className="h-6" />
+            <img src="/logo-horizontal.png" alt="DiveStreams" className="h-8" />
           </a>
           <div className="flex gap-6">
             <a href="/pricing">Pricing</a>

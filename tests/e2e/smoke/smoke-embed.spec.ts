@@ -13,7 +13,7 @@ test.describe("Smoke: Embed widget pages", () => {
 
   for (const { path, name } of routes) {
     test(`${name} renders without error`, async ({ page }) => {
-      const response = await page.goto(getEmbedUrl("demo", path), {
+      const response = await page.goto(getEmbedUrl(process.env.SMOKE_TENANT || "demo", path), {
         waitUntil: "domcontentloaded",
       });
       expect(response?.status(), `${name} should return 200`).toBe(200);
