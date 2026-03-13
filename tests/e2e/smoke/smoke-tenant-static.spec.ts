@@ -19,7 +19,7 @@ test.describe("Smoke: Tenant static pages", () => {
 
     for (const { path, name } of authRoutes) {
       test(`${name} (${path}) renders`, async ({ page }) => {
-        const response = await page.goto(getTenantUrl("demo", path), {
+        const response = await page.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", path), {
           waitUntil: "domcontentloaded",
         });
         // Login pages may redirect, so accept 200 or redirect target
@@ -136,7 +136,7 @@ test.describe("Smoke: Tenant static pages", () => {
 
     for (const { path, name } of routes) {
       test(`${name} (${path}) renders without error`, async () => {
-        const response = await authedPage.goto(getTenantUrl("demo", path), {
+        const response = await authedPage.goto(getTenantUrl(process.env.SMOKE_TENANT || "demo", path), {
           waitUntil: "domcontentloaded",
         });
         expect(response?.status(), `${name} should return 200`).toBe(200);

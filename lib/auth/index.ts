@@ -34,20 +34,6 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    password: {
-      // TEMP DEBUG: Wrap verify to log what Better Auth receives from the DB
-      verify: async ({ hash, password }: { hash: string; password: string }) => {
-        const { verifyPassword } = await import("better-auth/crypto");
-        console.log("[AUTH DEBUG] verifyPassword called:", {
-          hashLength: hash?.length,
-          hashPrefix: hash?.substring(0, 40),
-          passwordLength: password?.length,
-        });
-        const result = await verifyPassword({ hash, password });
-        console.log("[AUTH DEBUG] verifyPassword result:", result);
-        return result;
-      },
-    },
     sendVerificationEmail: async ({ user, url }: { user: { email: string; name: string | null }; url: string }) => {
       if (isTestEnv) return;
       await sendEmail({
