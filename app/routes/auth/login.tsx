@@ -122,6 +122,9 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
+  // TEMP DEBUG: Log password details for debugging sign-in failure
+  console.log("[AUTH DEBUG] Login attempt:", { email, passwordLength: password?.length, passwordFirstChar: password?.[0], passwordLastChar: password?.slice(-1) });
+
   // Validate CSRF token
   const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
   if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
@@ -154,11 +157,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     // Sign in using Better Auth - use asResponse to get full response with cookies
+    console.log("[AUTH DEBUG] Calling signInEmail with:", { email, passwordLen: password.length, password: password.replace(/./g, (c, i) => i < 3 || i >= password.length - 1 ? c : '*') });
     const response = await auth.api.signInEmail({
       body: { email, password },
       headers: request.headers,
       asResponse: true,
     });
+    console.log("[AUTH DEBUG] signInEmail response:", { status: response.status, ok: response.ok });
 
     // Get cookies FIRST before reading body
     const cookies = response.headers.get("set-cookie");
