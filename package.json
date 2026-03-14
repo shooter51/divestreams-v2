@@ -8,7 +8,7 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "dev:coverage": "E2E_COVERAGE=true react-router dev",
-    "start": "node --import ./lib/telemetry.mjs server/app.js",
+    "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "lint": "eslint .",
     "test": "vitest",
