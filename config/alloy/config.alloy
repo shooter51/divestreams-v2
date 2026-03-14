@@ -1,77 +1,56 @@
-// Grafana Alloy configuration for DiveStreams log shipping
-// Ships Docker container logs to Grafana Cloud Loki
-//
-// Required env vars:
-//   GRAFANA_LOKI_URL      - Loki push endpoint
-//   GRAFANA_LOKI_USERNAME - Grafana Cloud instance ID
-//   GRAFANA_LOKI_API_KEY  - Service account token
-//   ALLOY_ENV             - "production" or "test"
-//   ALLOY_HOST            - "ds-prod" or "ds-test"
-
-// ─── Discovery ──────────────────────────────────────────────
-
-discovery.docker "containers" {
-  host = "unix:///var/run/docker.sock"
+// ─── Prometheus metrics scraping ───────────────────────────
+prometheus.scrape "app_metrics" {
+  targets = [{
+    __address__ = "app:3000",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
-discovery.relabel "containers" {
-  targets = discovery.docker.containers.targets
-
-  // Extract the compose service name as "service" label
-  rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
-    target_label  = "service"
-  }
-
-  // Add static environment label
-  rule {
-    target_label = "env"
-    replacement  = env("ALLOY_ENV")
-  }
-
-  // Add static host label
-  rule {
-    target_label = "host"
-    replacement  = env("ALLOY_HOST")
-  }
-
-  // Use container name as fallback instance label
-  rule {
-    source_labels = ["__meta_docker_container_name"]
-    regex         = "/(.*)"
-    target_label  = "container"
-  }
+prometheus.scrape "worker_metrics" {
+  targets = [{
+    __address__ = "worker:9090",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
-// ─── Log collection ─────────────────────────────────────────
-
-loki.source.docker "containers" {
-  host    = "unix:///var/run/docker.sock"
-  targets = discovery.relabel.containers.output
-
-  forward_to = [loki.process.pipeline.receiver]
-}
-
-// ─── Processing pipeline ────────────────────────────────────
-
-loki.process "pipeline" {
-  // Drop Docker healthcheck noise (/api/health every 30s)
-  stage.drop {
-    expression = ".*\\/api\\/health.*"
-  }
-
-  forward_to = [loki.write.grafana_cloud.receiver]
-}
-
-// ─── Ship to Grafana Cloud ──────────────────────────────────
-
-loki.write "grafana_cloud" {
+prometheus.remote_write "grafana_cloud" {
   endpoint {
-    url = env("GRAFANA_LOKI_URL")
-
+    url = env("GRAFANA_MIMIR_URL")
     basic_auth {
-      username = env("GRAFANA_LOKI_USERNAME")
-      password = env("GRAFANA_LOKI_API_KEY")
+      username = env("GRAFANA_MIMIR_USERNAME")
+      password = env("GRAFANA_MIMIR_API_KEY")
     }
+  }
+}
+
+// ─── OTLP receiver for traces ──────────────────────────────
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  output {
+    traces = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.auth.basic "grafana_cloud" {
+  username = env("GRAFANA_TEMPO_USERNAME")
+  password = env("GRAFANA_TEMPO_API_KEY")
+}
+
+otelcol.processor.batch "default" {
+  output {
+    traces = [otelcol.exporter.otlphttp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlphttp "tempo" {
+  client {
+    endpoint = "https://" + env("GRAFANA_TEMPO_URL")
+    auth     = otelcol.auth.basic.grafana_cloud.handler
   }
 }

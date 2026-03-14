@@ -47,6 +47,7 @@ import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { getNextBookingNumber } from "../../../../lib/db/queries/bookings.server";
 import { dbLogger } from "../../../../lib/logger";
+import { bookingsCreatedTotal } from "../../../../lib/metrics.server";
 import { useT } from "../../../i18n/use-t";
 import { getTankTypes } from "../../../../lib/db/queries/equipment.server";
 import { TankGasSelector } from "../../../components/tank-gas-selector";
@@ -1078,6 +1079,8 @@ export async function action({
     }
     throw error;
   }
+
+  bookingsCreatedTotal.inc({ organization_id: org.id, channel: 'public_site' });
 
   // Queue booking confirmation email if notification settings allow it
   const notifSettings = getNotificationSettings(org.metadata);

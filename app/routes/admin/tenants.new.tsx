@@ -9,6 +9,7 @@ import { requirePlatformContext } from "../../../lib/auth/platform-context.serve
 import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
 import { hashPassword } from "../../../lib/auth/password.server";
 import { getBaseDomain } from "../../../lib/utils/url";
+import { dbLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Create Organization - DiveStreams Admin" }];
 
@@ -120,7 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     // Generate IDs
     const orgId = crypto.randomUUID();
-    console.log(`[TENANT CREATE] Creating organization: slug=${slug}, name=${name}, orgId=${orgId}`);
+    dbLogger.info({ slug, name, orgId }, "Creating organization");
 
     // Create the organization
     await db.insert(organization).values({
@@ -130,10 +131,7 @@ export async function action({ request }: ActionFunctionArgs) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    console.log(`[TENANT CREATE] Organization created successfully: ${orgId}`);
-
-    // Create subscription record (let DB generate UUID)
-    console.log(`[TENANT CREATE] Creating subscription for org: ${orgId}`);
+    dbLogger.info({ orgId }, "Organization created successfully");
 
     // Look up the plan ID from the plan name
     const [selectedPlan] = await db
@@ -154,7 +152,7 @@ export async function action({ request }: ActionFunctionArgs) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    console.log(`[TENANT CREATE] Subscription created successfully`);
+    dbLogger.info({ orgId }, "Subscription created successfully");
 
     // Create owner account if requested
     if (createOwnerAccount && ownerEmail && ownerPassword) {
@@ -209,20 +207,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Seed demo data if requested
     if (seedDemo) {
-      console.log(`[TENANT CREATE] Seeding demo data for org: ${orgId}`);
       try {
         await seedDemoData(orgId);
-        console.log(`[TENANT CREATE] Demo data seeded successfully`);
+        dbLogger.info({ orgId }, "Demo data seeded successfully");
       } catch (seedError) {
-        console.error(`[TENANT CREATE] Failed to seed demo data:`, seedError);
+        dbLogger.error({ err: seedError, orgId }, "Failed to seed demo data");
         // Don't fail the whole operation, org was created successfully
       }
     }
 
-    console.log(`[TENANT CREATE] Success! Redirecting to /dashboard`);
     return redirect("/dashboard");
   } catch (error) {
-    console.error("[TENANT CREATE] Failed to create organization:", error);
+    dbLogger.error({ err: error }, "Failed to create organization");
     return { errors: { form: "Failed to create organization. Please try again or contact support." } };
   }
 }

@@ -132,7 +132,7 @@ export async function connectZapier(
 
     return { success: true, integration, webhookSecret };
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "OAuth callback failed");
+    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Error connecting Zapier");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to connect Zapier",
@@ -154,7 +154,7 @@ export async function updateZapierSettings(
     await updateIntegrationSettings(orgId, "zapier", settings);
     return { success: true };
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Error updating Zapier settings");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update settings",
@@ -192,7 +192,7 @@ export async function regenerateZapierSecret(
 
     return { success: true, newSecret };
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Error regenerating Zapier secret");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to regenerate secret",
@@ -484,7 +484,7 @@ export async function triggerSyncWebhook(organizationId: string): Promise<{ trig
 
   // Trigger the sync webhook if configured
   // For now, return a placeholder - actual implementation triggers configured webhooks
-  integrationLogger.info({ provider: "zapier", organizationId, action: "trigger-sync-webhook" }, "Sync completed");
+  integrationLogger.info({ provider: "zapier", organizationId }, "Would trigger sync webhook for org");
 
   return { triggered: false };
 }

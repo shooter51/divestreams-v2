@@ -27,6 +27,7 @@ import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { customerCredentials } from "../../../lib/db/schema";
 import { resetPassword } from "../../../lib/auth/customer-auth.server";
+import { authLogger } from "../../../lib/logger";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // ============================================================================
@@ -172,10 +173,12 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     await resetPassword(org.id, token, password);
 
+    authLogger.info({ organizationId: org.id }, "Customer password reset completed");
+
     // Redirect to login with success message
     return redirect(`/site/login?message=password-set`);
   } catch (error) {
-    console.error("Failed to set password:", error);
+    authLogger.error({ err: error }, "Customer auth error");
     return {
       error: error instanceof Error
         ? error.message

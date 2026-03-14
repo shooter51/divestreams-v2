@@ -185,7 +185,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "quickbooks", action: "token-exchange" }, "Sync failed");
+    integrationLogger.error({ provider: "quickbooks", responseBody: error }, "QuickBooks token exchange failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -232,7 +232,7 @@ export async function refreshAccessToken(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "quickbooks", action: "token-refresh" }, "Sync failed");
+    integrationLogger.error({ provider: "quickbooks", responseBody: error }, "QuickBooks token refresh failed");
     throw new Error("Failed to refresh access token");
   }
 
@@ -398,7 +398,7 @@ async function getValidAccessToken(
 
       return { accessToken: refreshed.accessToken, integration, realmId };
     } catch (error) {
-      integrationLogger.error({ err: error, provider: "quickbooks", organizationId: orgId, action: "token-refresh" }, "Sync failed");
+      integrationLogger.error({ err: error, provider: "quickbooks", organizationId: orgId }, "Failed to refresh QuickBooks token");
       await updateLastSync(integration.id, "Token refresh failed");
       return null;
     }
@@ -955,7 +955,7 @@ export async function syncToQuickBooks(organizationId: string): Promise<QuickBoo
 
   // Sync customers, invoices, and payments to QuickBooks
   // For now, return a placeholder - actual implementation requires QuickBooks API calls
-  integrationLogger.info({ provider: "quickbooks", organizationId, action: "sync-data" }, "Sync completed");
+  integrationLogger.info({ provider: "quickbooks", organizationId }, "Would sync data for org");
 
   return {
     success: false,

@@ -7,6 +7,7 @@ import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { formatTime } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 import { useT } from "../../../../i18n/use-t";
+import { dbLogger } from "../../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
 
@@ -102,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return redirect(redirectWithNotification("/tenant/training/enrollments", "Enrollment has been successfully created", "success"));
   } catch (error) {
-    console.error("Error creating enrollment:", error);
+    dbLogger.error({ err: error, organizationId: ctx.org.id }, "Error creating enrollment");
 
     // Return specific error messages
     const errorMessage = error instanceof Error ? error.message : "Failed to create enrollment";

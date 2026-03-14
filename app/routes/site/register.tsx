@@ -11,6 +11,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { registerCustomer, loginCustomer } from "../../../lib/auth/customer-auth.server";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { authLogger } from "../../../lib/logger";
 import type { SiteLoaderData } from "./_layout";
 import { useT } from "../../i18n/use-t";
 
@@ -326,7 +327,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
         tenantId: org.id,
       });
     } catch (emailError) {
-      console.error("Failed to send customer welcome email:", emailError);
+      authLogger.error({ err: emailError }, "Failed to send customer welcome email");
       // Continue even if email fails
     }
 

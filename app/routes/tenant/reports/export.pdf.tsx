@@ -13,6 +13,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
+import { dbLogger } from "../../../../lib/logger";
 import { eq, gte, lte, and, sql, count, desc } from "drizzle-orm";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -112,7 +113,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       );
     newCustomersThisMonth = newCustomerResult?.count || 0;
   } catch (error) {
-    console.error("Error fetching report data for PDF export:", error);
+    dbLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching report data for PDF export");
   }
 
   // Fetch recent bookings with joins
@@ -153,7 +154,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     recentBookings = bookingsData;
   } catch (error) {
-    console.error("Error fetching recent bookings for PDF:", error);
+    dbLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching recent bookings for PDF");
   }
 
   // Calculate change percent

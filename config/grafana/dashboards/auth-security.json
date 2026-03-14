@@ -1,0 +1,176 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "divestreams-auth",
+    "title": "DiveStreams - Auth & Security",
+    "tags": ["divestreams", "auth", "security"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "templating": {
+      "list": [
+        {
+          "name": "env",
+          "type": "custom",
+          "label": "Environment",
+          "query": "production,test",
+          "current": {"text": "production", "value": "production"},
+          "options": [
+            {"text": "production", "value": "production"},
+            {"text": "test", "value": "test"}
+          ],
+          "includeAll": false,
+          "multi": false,
+          "hide": 0
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Login Attempts",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "datasource": {"type": "loki", "uid": "grafanacloud-logs"},
+        "targets": [
+          {
+            "expr": "sum by (msg) (count_over_time({env=~\"$env\"} | json | msg=~\"User logged in|Login failed\" [5m]))",
+            "legendFormat": "{{msg}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"lineWidth": 2}
+          }
+        },
+        "options": {
+          "legend": {"calcs": ["sum", "max"], "displayMode": "table", "placement": "bottom"},
+          "tooltip": {"mode": "multi"}
+        }
+      },
+      {
+        "id": 2,
+        "title": "Failed Logins (1h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "datasource": {"type": "loki", "uid": "grafanacloud-logs"},
+        "targets": [
+          {
+            "expr": "sum(count_over_time({env=~\"$env\"} |= \"Login failed\" [1h]))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "fixed", "fixedColor": "red"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 20}
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {"calcs": ["lastNotNull"]},
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Rate Limit Hits (1h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "datasource": {"type": "loki", "uid": "grafanacloud-logs"},
+        "targets": [
+          {
+            "expr": "sum(count_over_time({env=~\"$env\"} |= \"Rate limit\" [1h]))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 50}
+              ]
+            },
+            "color": {"mode": "thresholds"}
+          }
+        },
+        "options": {
+          "reduceOptions": {"calcs": ["lastNotNull"]},
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 4,
+        "title": "Password Changes (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 4},
+        "datasource": {"type": "loki", "uid": "grafanacloud-logs"},
+        "targets": [
+          {
+            "expr": "sum(count_over_time({env=~\"$env\"} |= \"Password changed\" [24h]))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null}
+              ]
+            },
+            "color": {"mode": "thresholds"}
+          }
+        },
+        "options": {
+          "reduceOptions": {"calcs": ["lastNotNull"]},
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value"
+        }
+      },
+      {
+        "id": 5,
+        "title": "Auth Event Log",
+        "type": "logs",
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": 8},
+        "datasource": {"type": "loki", "uid": "grafanacloud-logs"},
+        "targets": [
+          {
+            "expr": "{env=~\"$env\"} | json | module=\"auth\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "dedupStrategy": "none",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": true,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false
+        }
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"}
+  },
+  "overwrite": true,
+  "folderId": 0
+}

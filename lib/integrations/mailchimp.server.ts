@@ -163,7 +163,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "mailchimp", action: "token-exchange" }, "Sync failed");
+    integrationLogger.error({ provider: "mailchimp", responseBody: error }, "Mailchimp token exchange failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -349,7 +349,7 @@ export async function listAudiences(
     );
 
     if (!response.ok) {
-      integrationLogger.error({ err: await response.text(), provider: "mailchimp", action: "list-audiences" }, "Sync failed");
+      integrationLogger.error({ provider: "mailchimp", organizationId: orgId, status: response.status }, "Failed to fetch Mailchimp audiences");
       return null;
     }
 
@@ -367,7 +367,7 @@ export async function listAudiences(
       dateCreated: list.date_created,
     }));
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "mailchimp", organizationId: orgId, action: "list-audiences" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "mailchimp", organizationId: orgId }, "Error listing Mailchimp audiences");
     return null;
   }
 }
@@ -729,7 +729,7 @@ export async function syncContactsToMailchimp(organizationId: string): Promise<M
 
   // Get customers that need syncing to Mailchimp
   // For now, return a placeholder - actual implementation requires Mailchimp API calls
-  integrationLogger.info({ provider: "mailchimp", organizationId, action: "sync-contacts" }, "Sync completed");
+  integrationLogger.info({ provider: "mailchimp", organizationId }, "Would sync contacts for org");
 
   return {
     success: false,

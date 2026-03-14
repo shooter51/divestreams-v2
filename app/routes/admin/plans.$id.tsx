@@ -6,6 +6,7 @@ import { requirePlatformContext } from "../../../lib/auth/platform-context.serve
 import { eq } from "drizzle-orm";
 import { FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey, type PlanLimits } from "../../../lib/plan-features";
 import { createStripeProductAndPrices, updateStripeProductAndPrices } from "../../../lib/stripe/stripe-billing.server";
+import { stripeLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
 
@@ -108,9 +109,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
       if (stripeResult) {
         finalMonthlyPriceId = stripeResult.monthlyPriceId;
         finalYearlyPriceId = stripeResult.yearlyPriceId;
-        console.log(`Automatically created Stripe prices for plan "${name}"`);
+        stripeLogger.info({ name }, "Automatically created Stripe prices for plan");
       } else {
-        console.warn(`Failed to create Stripe prices for plan "${name}" - using manual IDs if provided`);
+        stripeLogger.warn({ name }, "Failed to create Stripe prices for plan - using manual IDs if provided");
       }
 
       // Create new plan
@@ -160,9 +161,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
         if (stripeResult) {
           finalMonthlyPriceId = stripeResult.monthlyPriceId;
           finalYearlyPriceId = stripeResult.yearlyPriceId;
-          console.log(`Automatically updated Stripe prices for plan "${name}"`);
+          stripeLogger.info({ name }, "Automatically updated Stripe prices for plan");
         } else {
-          console.warn(`Failed to update Stripe prices for plan "${name}" - keeping existing IDs`);
+          stripeLogger.warn({ name }, "Failed to update Stripe prices for plan - keeping existing IDs");
           finalMonthlyPriceId = existingPlan?.monthlyPriceId || monthlyPriceId;
           finalYearlyPriceId = existingPlan?.yearlyPriceId || yearlyPriceId;
         }
@@ -196,7 +197,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     return redirect("/plans");
   } catch (error) {
-    console.error("Failed to save plan:", error);
+    stripeLogger.error({ err: error }, "Failed to save plan");
     return { errors: { form: "Failed to save plan. Please try again." } };
   }
 }

@@ -11,18 +11,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const signature = request.headers.get("stripe-signature");
 
   if (!signature) {
-    stripeLogger.error("Webhook missing stripe-signature header");
+    stripeLogger.error("Missing stripe-signature header on webhook request");
     return new Response("No signature", { status: 400 });
   }
 
   const result = await handleStripeWebhook(payload, signature);
 
   if (!result.success) {
-    stripeLogger.error({ message: result.message }, "Webhook handler failed");
+    stripeLogger.error({ message: result.message }, "Stripe webhook handler failed");
     return new Response(result.message, { status: 400 });
   }
 
-  stripeLogger.info({ message: result.message }, "Webhook handler success");
+  stripeLogger.info({ message: result.message }, "Stripe webhook handler succeeded");
   return new Response(result.message, { status: 200 });
 }
 

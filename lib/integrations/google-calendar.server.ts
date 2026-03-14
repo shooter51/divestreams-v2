@@ -174,7 +174,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "google-calendar", action: "token-exchange" }, "Sync failed");
+    integrationLogger.error({ provider: "google-calendar", responseBody: error }, "Google token exchange failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -216,7 +216,7 @@ export async function refreshAccessToken(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "google-calendar", action: "token-refresh" }, "Sync failed");
+    integrationLogger.error({ provider: "google-calendar", responseBody: error }, "Google token refresh failed");
     throw new Error("Failed to refresh access token");
   }
 
@@ -348,7 +348,7 @@ async function getValidAccessToken(
 
       return { accessToken: refreshed.accessToken, integration };
     } catch (error) {
-      integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "token-refresh" }, "Sync failed");
+      integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId }, "Failed to refresh Google token");
       await updateLastSync(integration.id, "Token refresh failed");
       return null;
     }

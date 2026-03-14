@@ -17,6 +17,7 @@ import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { getCustomerBySession, logoutCustomer } from "../../../../lib/auth/customer-auth.server";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../../lib/security/csrf.server";
+import { authLogger } from "../../../../lib/logger";
 import { redirect } from "react-router";
 
 // ============================================================================
@@ -205,6 +206,8 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
         updatedAt: new Date(),
       })
       .where(eq(customerCredentials.id, creds.id));
+
+    authLogger.info({ userId: customer.id, organizationId: customer.organizationId }, "Customer password changed");
 
     return { success: true, type: "password" };
   }

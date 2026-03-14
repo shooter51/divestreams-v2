@@ -12,6 +12,7 @@ import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 import { useT } from "../../../i18n/use-t";
+import { storageLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -222,7 +223,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         uploadedCount++;
       } catch (error) {
-        console.error(`Failed to upload image ${file.name}:`, error);
+        storageLogger.error({ err: error, organizationId }, "Failed to upload image");
         failedFiles.push(`${file.name} (upload failed)`);
       }
     }

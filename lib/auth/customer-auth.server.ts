@@ -16,6 +16,7 @@ import { customerCredentials, customerSessions, customers } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
+import { authLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -72,6 +73,7 @@ export async function registerCustomer(
     );
 
   if (existing.length > 0) {
+    authLogger.warn({ email: normalizedEmail, organizationId, reason: "email_already_registered" }, "Customer registration failed");
     throw new Error("Email already registered");
   }
 
@@ -103,6 +105,8 @@ export async function registerCustomer(
     verificationToken,
     verificationTokenExpires,
   });
+
+  authLogger.info({ email: normalizedEmail, organizationId }, "Customer registered");
 
   return { customer, verificationToken };
 }
@@ -141,11 +145,13 @@ export async function loginCustomer(
     );
 
   if (!creds) {
+    authLogger.warn({ email: normalizedEmail, organizationId, reason: "credentials_not_found" }, "Customer login failed");
     throw new Error("Invalid email or password");
   }
 
   const valid = await bcrypt.compare(password, creds.passwordHash);
   if (!valid) {
+    authLogger.warn({ email: normalizedEmail, organizationId, reason: "invalid_password" }, "Customer login failed");
     throw new Error("Invalid email or password");
   }
 
@@ -167,6 +173,8 @@ export async function loginCustomer(
     .update(customerCredentials)
     .set({ lastLoginAt: new Date() })
     .where(eq(customerCredentials.id, creds.id));
+
+  authLogger.info({ email: normalizedEmail, organizationId }, "Customer logged in");
 
   return { token, expiresAt };
 }
@@ -281,6 +289,8 @@ export async function requestPasswordReset(
     .set({ resetToken, resetTokenExpires })
     .where(eq(customerCredentials.id, creds.id));
 
+  authLogger.info({ email: normalizedEmail }, "Customer password reset requested");
+
   return { resetToken, email: creds.email };
 }
 
@@ -326,6 +336,8 @@ export async function resetPassword(
       updatedAt: new Date(),
     })
     .where(eq(customerCredentials.id, creds.id));
+
+  authLogger.info({ email: creds.email }, "Customer password reset completed");
 }
 
 // ============================================================================

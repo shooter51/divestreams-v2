@@ -3,6 +3,7 @@ import { Form, Link, useActionData, useNavigation, useSearchParams, useLoaderDat
 import { useState } from "react";
 import { auth } from "../../../lib/auth";
 import { useT } from "../../i18n/use-t";
+import { authLogger } from "../../../lib/logger";
 
 // Email validation regex
 
@@ -118,7 +119,7 @@ export async function action({ request }: ActionFunctionArgs) {
           });
         }
       } catch (signInError) {
-        console.error("Auto sign-in after password reset failed:", signInError);
+        authLogger.error({ err: signInError }, "Auto sign-in after password reset failed");
         // Fall through to success state - user can manually log in
       }
     }
@@ -126,7 +127,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // If auto-login fails or no email, show success message
     return { success: true };
   } catch (error) {
-    console.error("Password reset error:", error);
+    authLogger.error({ err: error }, "Password reset error");
     return {
       errors: {
         form: "An error occurred. Please try again or request a new reset link.",

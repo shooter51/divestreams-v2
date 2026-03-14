@@ -7,6 +7,7 @@ import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../.
 import { escapeHtml } from "../../../../../lib/security/sanitize";
 import { CsrfInput } from "../../../../components/CsrfInput";
 import { useT } from "../../../../i18n/use-t";
+import { dbLogger } from "../../../../../lib/logger";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -138,7 +139,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
           importedCourses.push(courseName);
         } catch (error) {
-          console.error(`Failed to import CSV row ${i + 1}:`, error);
+          dbLogger.error({ err: error, organizationId: orgContext.org.id, row: i + 1 }, "Failed to import CSV row");
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
           errors.push({
             course: courseName || `Row ${i + 1}`,
@@ -165,7 +166,7 @@ export async function action({ request }: ActionFunctionArgs) {
         detailedErrors: errors.length > 0 ? errors : undefined,
       };
     } catch (error) {
-      console.error("CSV parsing error:", error);
+      dbLogger.error({ err: error, organizationId: orgContext.org.id }, "CSV parsing error");
       return {
         error: "Failed to parse the CSV file. Make sure it's a valid CSV format.",
         suggestion: "Download the CSV template again and make sure you're using the correct format."
@@ -322,7 +323,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         importedCourses.push(template.name);
       } catch (error) {
-        console.error(`Failed to enable ${template.name}:`, error);
+        dbLogger.error({ err: error, organizationId: orgContext.org.id, course: template.name }, "Failed to enable course");
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         errors.push({
           course: template.name,

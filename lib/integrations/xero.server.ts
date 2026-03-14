@@ -237,7 +237,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "xero", action: "token-exchange" }, "Sync failed");
+    integrationLogger.error({ provider: "xero", responseBody: error }, "Xero token exchange failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -280,7 +280,7 @@ export async function refreshAccessToken(
 
   if (!response.ok) {
     const error = await response.text();
-    integrationLogger.error({ err: error, provider: "xero", action: "token-refresh" }, "Sync failed");
+    integrationLogger.error({ provider: "xero", responseBody: error }, "Xero token refresh failed");
     throw new Error("Failed to refresh access token");
   }
 
@@ -428,7 +428,7 @@ async function getValidAccessToken(
 
       return { accessToken: refreshed.accessToken, integration };
     } catch (error) {
-      integrationLogger.error({ err: error, provider: "xero", action: "token-refresh" }, "Sync failed");
+      integrationLogger.error({ err: error, provider: "xero" }, "Failed to refresh Xero token");
       await updateLastSync(integration.id, "Token refresh failed");
       return null;
     }
@@ -468,7 +468,7 @@ async function xeroRequest<T>(
 
   if (!response.ok) {
     const errorText = await response.text();
-    integrationLogger.error({ err: errorText, provider: "xero", action: endpoint }, "Sync failed");
+    integrationLogger.error({ provider: "xero", endpoint, status: response.status, responseBody: errorText }, "Xero API error");
     throw new Error(`Xero API request failed: ${response.status}`);
   }
 
@@ -508,7 +508,7 @@ export async function getXeroOrganizationInfo(
 
     return null;
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-organization" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId }, "Error fetching Xero organization");
     return null;
   }
 }
@@ -539,7 +539,7 @@ export async function getXeroAccounts(
       type: acc.Type,
     }));
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-accounts" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId }, "Error fetching Xero accounts");
     return null;
   }
 }
@@ -695,7 +695,7 @@ export async function getXeroInvoices(
 
     return data.Invoices || [];
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-invoices" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId }, "Error fetching Xero invoices");
     return null;
   }
 }
@@ -728,7 +728,7 @@ export async function getXeroContacts(
 
     return data.Contacts || [];
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-contacts" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId }, "Error fetching Xero contacts");
     return null;
   }
 }
@@ -755,7 +755,7 @@ export async function syncContactsToXero(organizationId: string): Promise<XeroSy
 
   // Get customers that need syncing
   // For now, return a placeholder - actual implementation requires Xero API calls
-  integrationLogger.info({ provider: "xero", organizationId, action: "sync-contacts" }, "Sync completed");
+  integrationLogger.info({ provider: "xero", organizationId }, "Would sync contacts for org");
 
   return {
     success: false,
@@ -776,7 +776,7 @@ export async function syncInvoicesToXero(organizationId: string): Promise<XeroSy
 
   // Get invoices that need syncing
   // For now, return a placeholder - actual implementation requires Xero API calls
-  integrationLogger.info({ provider: "xero", organizationId, action: "sync-invoices" }, "Sync completed");
+  integrationLogger.info({ provider: "xero", organizationId }, "Would sync invoices for org");
 
   return {
     success: false,

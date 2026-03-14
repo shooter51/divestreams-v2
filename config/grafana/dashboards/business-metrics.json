@@ -1,0 +1,182 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "divestreams-business",
+    "title": "DiveStreams - Business Metrics",
+    "tags": ["divestreams", "business"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "1m",
+    "templating": {
+      "list": [
+        {
+          "name": "env",
+          "type": "custom",
+          "label": "Environment",
+          "query": "production,test",
+          "current": {"text": "production", "value": "production"},
+          "options": [
+            {"text": "production", "value": "production"},
+            {"text": "test", "value": "test"}
+          ],
+          "includeAll": false,
+          "multi": false,
+          "hide": 0
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Bookings Created",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+        "targets": [
+          {
+            "expr": "sum(rate(bookings_created_total[1h])) by (channel)",
+            "legendFormat": "{{channel}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"lineWidth": 2},
+            "unit": "reqps"
+          }
+        },
+        "options": {
+          "legend": {"calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom"},
+          "tooltip": {"mode": "multi"}
+        }
+      },
+      {
+        "id": 2,
+        "title": "Bookings by Channel",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+        "targets": [
+          {
+            "expr": "sum(bookings_created_total) by (channel)",
+            "legendFormat": "{{channel}}",
+            "refId": "A",
+            "instant": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "right"},
+          "pieType": "pie",
+          "tooltip": {"mode": "single"}
+        }
+      },
+      {
+        "id": 3,
+        "title": "Payments Processed",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+        "targets": [
+          {
+            "expr": "sum(rate(payments_processed_total[1h])) by (status)",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"lineWidth": 2},
+            "unit": "reqps"
+          }
+        },
+        "options": {
+          "legend": {"calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom"},
+          "tooltip": {"mode": "multi"}
+        }
+      },
+      {
+        "id": 4,
+        "title": "Booking Lifecycle",
+        "type": "logs",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "datasource": {"type": "loki", "uid": "grafanacloud-logs"},
+        "targets": [
+          {
+            "expr": "{env=~\"$env\"} | json | msg=~\"Booking.*\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "dedupStrategy": "none",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false
+        }
+      },
+      {
+        "id": 5,
+        "title": "Queue Depth",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+        "targets": [
+          {
+            "expr": "queue_depth",
+            "legendFormat": "{{queue}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"lineWidth": 2}
+          }
+        },
+        "options": {
+          "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom"},
+          "tooltip": {"mode": "multi"}
+        }
+      },
+      {
+        "id": 6,
+        "title": "Job Throughput",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "datasource": {"type": "prometheus", "uid": "grafanacloud-prom"},
+        "targets": [
+          {
+            "expr": "sum(rate(jobs_processed_total[5m])) by (queue, status)",
+            "legendFormat": "{{queue}} / {{status}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"lineWidth": 2},
+            "unit": "reqps"
+          }
+        },
+        "options": {
+          "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom"},
+          "tooltip": {"mode": "multi"}
+        }
+      }
+    ],
+    "time": {"from": "now-6h", "to": "now"}
+  },
+  "overwrite": true,
+  "folderId": 0
+}

@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
+import { dbLogger } from "../logger";
 import { tenants, subscriptionPlans, type Tenant } from "./schema";
 import { organization } from "./schema/auth";
 import { subscription } from "./schema/subscription";
@@ -99,10 +100,9 @@ export async function createTenant(data: {
       .limit(1);
 
     if (!standardPlan) {
-      console.warn(
-        `No "standard" subscription plan found in subscriptionPlans table. ` +
-        `New tenant "${data.subdomain}" will have planId=null. ` +
-        `Ensure the "standard" plan is seeded in the database.`
+      dbLogger.warn(
+        { subdomain: data.subdomain },
+        'No "standard" subscription plan found in subscriptionPlans table. New tenant will have planId=null. Ensure the "standard" plan is seeded in the database.'
       );
     }
 

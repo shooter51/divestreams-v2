@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useActionData, Form, useNavigation, Link } from "react-router";
 import { requirePlatformContext } from "../../../../lib/auth/platform-context.server";
 import { auth } from "../../../../lib/auth";
+import { authLogger } from "../../../../lib/logger";
 import { db } from "../../../../lib/db";
 import { user as userTable } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -79,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       return { success: true, message: "Password changed successfully", type: "password" };
     } catch (error) {
-      console.error("Password change error:", error);
+      authLogger.error({ err: error }, "Password change error");
       // Better Auth throws error if current password is incorrect
       return { error: "Current password is incorrect", field: "currentPassword", type: "password" };
     }

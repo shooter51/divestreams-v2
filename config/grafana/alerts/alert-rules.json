@@ -1,0 +1,283 @@
+[
+  {
+    "uid": "divestreams-high-error-rate",
+    "title": "High Error Rate",
+    "ruleGroup": "DiveStreams",
+    "folderUID": "divestreams-alerts",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "5m",
+    "labels": {
+      "severity": "critical",
+      "team": "divestreams"
+    },
+    "annotations": {
+      "summary": "High HTTP error rate detected",
+      "description": "Error rate is above 5% for more than 5 minutes. Current value: {{ $value | humanizePercentage }}"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.05], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A"]},
+              "reducer": {"params": [], "type": "last"},
+              "type": "query"
+            }
+          ],
+          "datasource": {"type": "__expr__", "uid": "__expr__"},
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "B",
+          "type": "threshold"
+        }
+      }
+    ]
+  },
+  {
+    "uid": "divestreams-high-latency-p95",
+    "title": "High Latency P95",
+    "ruleGroup": "DiveStreams",
+    "folderUID": "divestreams-alerts",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "5m",
+    "labels": {
+      "severity": "warning",
+      "team": "divestreams"
+    },
+    "annotations": {
+      "summary": "High P95 request latency",
+      "description": "P95 latency is above 5 seconds for more than 5 minutes. Current value: {{ $value }}s"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {"params": [5], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A"]},
+              "reducer": {"params": [], "type": "last"},
+              "type": "query"
+            }
+          ],
+          "datasource": {"type": "__expr__", "uid": "__expr__"},
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "B",
+          "type": "threshold"
+        }
+      }
+    ]
+  },
+  {
+    "uid": "divestreams-job-failures",
+    "title": "Job Failures",
+    "ruleGroup": "DiveStreams",
+    "folderUID": "divestreams-alerts",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "10m",
+    "labels": {
+      "severity": "high",
+      "team": "divestreams"
+    },
+    "annotations": {
+      "summary": "High job failure rate",
+      "description": "Job failure rate is above 0.1/s for more than 10 minutes. Current value: {{ $value }}"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {"from": 900, "to": 0},
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "expr": "sum(rate(jobs_processed_total{status=\"failed\"}[15m]))",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {"from": 900, "to": 0},
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A"]},
+              "reducer": {"params": [], "type": "last"},
+              "type": "query"
+            }
+          ],
+          "datasource": {"type": "__expr__", "uid": "__expr__"},
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "B",
+          "type": "threshold"
+        }
+      }
+    ]
+  },
+  {
+    "uid": "divestreams-auth-brute-force",
+    "title": "Auth Brute Force",
+    "ruleGroup": "DiveStreams",
+    "folderUID": "divestreams-alerts",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "2m",
+    "labels": {
+      "severity": "critical",
+      "team": "divestreams"
+    },
+    "annotations": {
+      "summary": "Possible brute force attack detected",
+      "description": "More than 20 failed login attempts in the last 5 minutes. Current value: {{ $value }}"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "grafanacloud-logs",
+        "model": {
+          "expr": "sum(count_over_time({env=\"production\"} |= \"Login failed\" [5m]))",
+          "instant": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "queryType": "range",
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {"params": [20], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A"]},
+              "reducer": {"params": [], "type": "last"},
+              "type": "query"
+            }
+          ],
+          "datasource": {"type": "__expr__", "uid": "__expr__"},
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "B",
+          "type": "threshold"
+        }
+      }
+    ]
+  },
+  {
+    "uid": "divestreams-app-down",
+    "title": "App Down",
+    "ruleGroup": "DiveStreams",
+    "folderUID": "divestreams-alerts",
+    "noDataState": "Alerting",
+    "execErrState": "Error",
+    "for": "2m",
+    "labels": {
+      "severity": "critical",
+      "team": "divestreams"
+    },
+    "annotations": {
+      "summary": "DiveStreams app is down",
+      "description": "The app_metrics scrape target is down for more than 2 minutes."
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "expr": "up{job=\"app_metrics\"}",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {"from": 300, "to": 0},
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {"params": [1], "type": "lt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A"]},
+              "reducer": {"params": [], "type": "last"},
+              "type": "query"
+            }
+          ],
+          "datasource": {"type": "__expr__", "uid": "__expr__"},
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "B",
+          "type": "threshold"
+        }
+      }
+    ]
+  }
+]

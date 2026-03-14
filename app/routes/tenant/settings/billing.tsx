@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useFetcher, Link, useSearchParams } from "react-router";
+import { stripeLogger } from "../../../../lib/logger";
 import { useEffect, useState } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
@@ -11,7 +12,6 @@ import {
   createBillingPortalSession,
   getPaymentMethod,
 } from "../../../../lib/stripe";
-import { stripeLogger } from "../../../../lib/logger";
 import {
   getInvoiceHistory,
   fetchInvoicesFromStripe,
