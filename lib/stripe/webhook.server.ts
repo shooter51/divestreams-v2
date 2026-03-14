@@ -6,6 +6,7 @@ import {
   syncPaymentToDatabase,
 } from "./stripe-billing.server";
 import { stripeLogger } from "../logger";
+import { paymentsProcessedTotal } from "../metrics.server";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -96,6 +97,7 @@ export async function handleStripeWebhook(
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await syncPaymentToDatabase(paymentIntent);
+        paymentsProcessedTotal.inc({ organization_id: paymentIntent.metadata?.organization_id || 'unknown', status: 'succeeded' });
         stripeLogger.info({ paymentIntentId: paymentIntent.id }, "Payment intent succeeded");
         break;
       }
@@ -103,7 +105,15 @@ export async function handleStripeWebhook(
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await syncPaymentToDatabase(paymentIntent);
+        paymentsProcessedTotal.inc({ organization_id: paymentIntent.metadata?.organization_id || 'unknown', status: 'failed' });
         stripeLogger.info({ paymentIntentId: paymentIntent.id }, "Payment intent failed");
+        break;
+      }
+
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        paymentsProcessedTotal.inc({ organization_id: charge.metadata?.organization_id || 'unknown', status: 'refunded' });
+        stripeLogger.info({ chargeId: charge.id }, "Charge refunded");
         break;
       }
 

@@ -12,6 +12,7 @@ import { getOrganizationBySlug, getPublicTripById } from "../../../lib/db/querie
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../lib/email/triggers";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { bookingsCreatedTotal } from "../../../lib/metrics.server";
 import { getTankTypes } from "../../../lib/db/queries/equipment.server";
 import { TankGasSelector } from "../../components/tank-gas-selector";
 import { useState } from "react";
@@ -154,6 +155,8 @@ export async function action({ params, request }: ActionFunctionArgs) {
       specialRequests: specialRequests || undefined,
       participantDetails: participantDetails.length > 0 ? participantDetails : undefined,
     });
+
+    bookingsCreatedTotal.inc({ organization_id: org.id, channel: 'embed' });
 
     // Send booking confirmation email if notification settings allow it
     const notifSettings = getNotificationSettings(org.metadata);

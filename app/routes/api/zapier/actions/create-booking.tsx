@@ -13,6 +13,7 @@ import { bookings, customers, trips, tours } from "../../../../../lib/db/schema.
 import { eq, and, count, gte, sql } from "drizzle-orm";
 import { getNextBookingNumber } from "../../../../../lib/db/queries/bookings.server.js";
 import { checkRateLimit } from "../../../../../lib/utils/rate-limit";
+import { bookingsCreatedTotal } from "../../../../../lib/metrics.server";
 
 interface CreateBookingInput {
   trip_id: string;
@@ -228,6 +229,8 @@ export async function action({ request }: ActionFunctionArgs) {
         internalNotes: body.notes || null,
       })
       .returning();
+
+    bookingsCreatedTotal.inc({ organization_id: orgId, channel: 'zapier' });
 
     return Response.json({
       id: booking.id,

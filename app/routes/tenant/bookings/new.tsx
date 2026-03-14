@@ -6,6 +6,7 @@ import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById, getTankTypes } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { bookingsCreatedTotal } from "../../../../lib/metrics.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { TankGasSelector } from "../../../components/tank-gas-selector";
 import { formatDisplayDate as sharedFormatDisplayDate, formatTime as sharedFormatTime } from "../../../lib/format";
@@ -166,6 +167,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     throw error;
   }
+
+  bookingsCreatedTotal.inc({ organization_id: organizationId, channel: 'dashboard' });
 
   // Queue confirmation email if notification settings allow it
   const notifSettings = getNotificationSettings(ctx.org.metadata);
