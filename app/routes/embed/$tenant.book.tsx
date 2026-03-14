@@ -14,9 +14,24 @@ import { triggerBookingConfirmation, getNotificationSettings } from "../../../li
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { getTankTypes } from "../../../lib/db/queries/equipment.server";
 import { TankGasSelector } from "../../components/tank-gas-selector";
+import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 import { useState } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Complete Your Booking" }];
+
+/**
+ * Parse a specific cookie value from a Cookie header string.
+ */
+function parseCookieValue(cookieHeader: string, name: string): string | null {
+  const cookies = cookieHeader.split(";").map((c) => c.trim());
+  for (const cookie of cookies) {
+    const [key, ...rest] = cookie.split("=");
+    if (key === name) {
+      return rest.join("=");
+    }
+  }
+  return null;
+}
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const subdomain = params.tenant;
@@ -48,11 +63,29 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("This trip is fully booked", { status: 400 });
   }
 
+  // Pre-fill contact details for logged-in customers
+  let prefill: { firstName: string; lastName: string; email: string; phone: string } | null = null;
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const sessionToken = parseCookieValue(cookieHeader, "customer_session");
+  if (sessionToken) {
+    const customer = await getCustomerBySession(sessionToken);
+    // Only pre-fill if the session belongs to a customer of this organization
+    if (customer && customer.organizationId === org.id) {
+      prefill = {
+        firstName: customer.firstName ?? "",
+        lastName: customer.lastName ?? "",
+        email: customer.email ?? "",
+        phone: customer.phone ?? "",
+      };
+    }
+  }
+
   return {
     trip,
     tankTypes,
     tenantSlug: subdomain,
     organizationId: org.id,
+    prefill,
   };
 }
 
@@ -224,7 +257,7 @@ function formatPrice(price: string | number, currency: string): string {
 }
 
 export default function BookingFormPage() {
-  const { trip, tankTypes, tenantSlug } = useLoaderData<typeof loader>();
+  const { trip, tankTypes, tenantSlug, prefill } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { branding } = useOutletContext<{
@@ -333,7 +366,7 @@ export default function BookingFormPage() {
                   <input
                     type="text"
                     name="firstName"
-                    defaultValue={actionData?.values?.firstName || ""}
+                    defaultValue={actionData?.values?.firstName ?? prefill?.firstName ?? ""}
                     required
                     className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
@@ -349,7 +382,7 @@ export default function BookingFormPage() {
                   <input
                     type="text"
                     name="lastName"
-                    defaultValue={actionData?.values?.lastName || ""}
+                    defaultValue={actionData?.values?.lastName ?? prefill?.lastName ?? ""}
                     required
                     className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
@@ -367,7 +400,7 @@ export default function BookingFormPage() {
                   <input
                     type="email"
                     name="email"
-                    defaultValue={actionData?.values?.email || ""}
+                    defaultValue={actionData?.values?.email ?? prefill?.email ?? ""}
                     required
                     className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
@@ -383,7 +416,7 @@ export default function BookingFormPage() {
                   <input
                     type="tel"
                     name="phone"
-                    defaultValue={actionData?.values?.phone || ""}
+                    defaultValue={actionData?.values?.phone ?? prefill?.phone ?? ""}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
