@@ -76,10 +76,13 @@ services:
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - CDN_URL=${CDN_URL}
 <<<<<<< HEAD
+<<<<<<< HEAD
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
       - OTEL_SERVICE_NAME=divestreams-worker
 =======
 >>>>>>> worktree-agent-afd855f5
+=======
+>>>>>>> worktree-agent-adacbbb7
     healthcheck:
       test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]
       interval: 30s
