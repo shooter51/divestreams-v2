@@ -1,7 +1,10 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
+import { trace, SpanKind } from "@opentelemetry/api";
 import * as schema from "./schema";
+
+const tracer = trace.getTracer("divestreams-db");
 
 // Check if we're on the server (DATABASE_URL available)
 const isServer = typeof process !== "undefined" && process.env?.DATABASE_URL;
@@ -41,7 +44,21 @@ export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
         idle_timeout: 20,
         connect_timeout: 10,
       });
-      _db = drizzle(queryClient, { schema });
+      _db = drizzle(queryClient, {
+        schema,
+        logger: {
+          logQuery(query: string) {
+            const span = tracer.startSpan("db.query", {
+              kind: SpanKind.CLIENT,
+              attributes: {
+                "db.system": "postgresql",
+                "db.statement": query.substring(0, 200),
+              },
+            });
+            span.end();
+          },
+        },
+      });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (_db as any)[prop];
