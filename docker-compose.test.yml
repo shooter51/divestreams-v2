@@ -75,11 +75,8 @@ services:
       - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - CDN_URL=${CDN_URL}
-<<<<<<< HEAD
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
       - OTEL_SERVICE_NAME=divestreams-worker
-=======
->>>>>>> worktree-agent-afd855f5
     healthcheck:
       test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]
       interval: 30s
@@ -168,14 +165,21 @@ services:
       - --stability.level=public-preview
       - /etc/alloy/config.alloy
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./config/alloy/config.alloy:/etc/alloy/config.alloy:ro
     environment:
+      - GRAFANA_LOKI_URL=${GRAFANA_LOKI_URL}
+      - GRAFANA_LOKI_USERNAME=${GRAFANA_LOKI_USERNAME}
+      - GRAFANA_LOKI_API_KEY=${GRAFANA_LOKI_API_KEY}
       - GRAFANA_MIMIR_URL=${GRAFANA_MIMIR_URL}
       - GRAFANA_MIMIR_USERNAME=${GRAFANA_MIMIR_USERNAME}
       - GRAFANA_MIMIR_API_KEY=${GRAFANA_MIMIR_API_KEY}
       - GRAFANA_TEMPO_URL=${GRAFANA_TEMPO_URL}
       - GRAFANA_TEMPO_USERNAME=${GRAFANA_TEMPO_USERNAME}
       - GRAFANA_TEMPO_API_KEY=${GRAFANA_TEMPO_API_KEY}
+      - ALLOY_ENV=test
+      - ALLOY_HOST=ds-test
     networks:
       - divestreams-network
     deploy:
