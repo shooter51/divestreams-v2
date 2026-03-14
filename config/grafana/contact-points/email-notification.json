@@ -1,0 +1,11 @@
+{
+  "uid": "divestreams-email",
+  "name": "DiveStreams Email",
+  "type": "email",
+  "settings": {
+    "addresses": "alerts@divestreams.com",
+    "subject": "[DiveStreams] {{ .GroupLabels.alertname }} - {{ .Status }}",
+    "message": "{{ range .Alerts }}\nAlert: {{ .Annotations.summary }}\nDetails: {{ .Annotations.description }}\nSeverity: {{ .Labels.severity }}\n{{ end }}"
+  },
+  "disableResolveMessage": false
+}

@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { authLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams" }];
 
@@ -101,13 +102,14 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
+    authLogger.info({ userId: ctx.user.id, organizationId: ctx.org.id }, "Password changed");
     return redirect("/tenant/dashboard?message=Password updated successfully");
   } catch (error) {
     // Re-throw Response objects (redirects) so React Router can handle them
     if (error instanceof Response) {
       throw error;
     }
-    console.error("Password update error:", error);
+    authLogger.error({ userId: ctx.user.id, err: error }, "Password update error");
     // Better Auth throws if current password is incorrect
     if (!forced) {
       return { error: "Current password is incorrect" };

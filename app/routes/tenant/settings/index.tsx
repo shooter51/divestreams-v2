@@ -9,6 +9,7 @@ import { sendEmail } from "../../../../lib/email/email.server";
 import { cancelSubscription } from "../../../../lib/stripe/index";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { dbLogger } from "../../../../lib/logger";
 
 /**
  * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
@@ -193,7 +194,7 @@ export async function action({ request }: ActionFunctionArgs) {
         return { success: true, message: "Training agencies already exist" };
       }
     } catch (error) {
-      console.error("Failed to seed training agencies:", error);
+      dbLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to seed training agencies");
       return { success: false, message: "Failed to seed training agencies" };
     }
   }
@@ -242,7 +243,7 @@ export async function action({ request }: ActionFunctionArgs) {
       try {
         await cancelSubscription(ctx.org.id);
       } catch (error) {
-        console.error("Failed to cancel Stripe subscription:", error);
+        dbLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to cancel Stripe subscription");
         // Continue anyway - deactivation is more important
       }
 
@@ -296,14 +297,15 @@ Next Steps:
         });
       } catch (emailError) {
         // Log critical email failure but don't block deactivation
-        console.error("CRITICAL: Deletion notification email failed to send", {
-          error: emailError,
+        dbLogger.error({
+          err: emailError,
+          organizationId: ctx.org.id,
           tenant: ctx.org.name,
           subdomain: ctx.org.slug,
           tenantId: tenant.id,
           ownerId: ctx.user.id,
           ownerEmail: ctx.user.email
-        });
+        }, "CRITICAL: Deletion notification email failed to send");
         // TODO: Add to admin notification queue or alert system
       }
 
@@ -313,7 +315,7 @@ Next Steps:
         redirectToLogout: true
       };
     } catch (error) {
-      console.error("Failed to process deletion request:", error);
+      dbLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to process deletion request");
       return {
         success: false,
         message: "Failed to process deletion request. Please contact support."

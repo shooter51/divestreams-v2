@@ -34,6 +34,7 @@ import {
 import { getSubdomainFromHost } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { authLogger } from "../../../lib/logger";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -210,6 +211,8 @@ export async function action({ request }: ActionFunctionArgs) {
     // Attempt login
     const session = await loginCustomer(org.id, email, password);
 
+    authLogger.info({ email, organizationId: org.id }, "Customer logged in");
+
     // Get redirect URL and validate to prevent open redirect attacks
     const rawRedirect = url.searchParams.get("redirect") || "/site/account";
     // Only allow relative URLs (must start with / and not contain ://)
@@ -224,8 +227,9 @@ export async function action({ request }: ActionFunctionArgs) {
         "Set-Cookie": cookieValue,
       },
     });
-  } catch {
+  } catch (err) {
     // Login failed
+    authLogger.warn({ email, organizationId: org.id, reason: "login_failed" }, "Customer login failed");
     const loginErrors: ActionErrors = { form: "auth.login.invalidCredentials" };
     return {
       errors: loginErrors,

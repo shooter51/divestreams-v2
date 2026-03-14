@@ -18,6 +18,7 @@ import { getPOSReceiptEmail } from "../../../../../lib/email/templates";
 import { TransactionActions } from "../../../../../app/components/pos/TransactionActions";
 import { formatLabel } from "../../../../lib/format";
 import { useT } from "../../../../i18n/use-t";
+import { dbLogger } from "../../../../../lib/logger";
 import {
   ReceiptModal,
   TransactionDetailsModal,
@@ -248,7 +249,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       return { success: true, message: "Receipt sent successfully" };
     } catch (error) {
-      console.error("Email receipt error:", error);
+      dbLogger.error({ err: error, organizationId }, "Email receipt error");
       return {
         error: error instanceof Error ? error.message : "Failed to send receipt email"
       };

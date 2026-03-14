@@ -8,6 +8,7 @@
 import { db } from "../db";
 import { session } from "../db/schema/auth";
 import { eq, sql } from "drizzle-orm";
+import { authLogger } from "../logger";
 
 /**
  * Invalidate all sessions for a specific user
@@ -32,6 +33,8 @@ export async function invalidateUserSessions(userId: string): Promise<number> {
   await db
     .delete(session)
     .where(eq(session.userId, userId));
+
+  authLogger.info({ userId }, "Session invalidated");
 
   return sessionCount;
 }

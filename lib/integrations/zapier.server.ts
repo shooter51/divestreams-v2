@@ -26,6 +26,7 @@ import {
   type Integration,
 } from "./index.server";
 import { getAppUrl } from "../utils/url";
+import { integrationLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -131,7 +132,7 @@ export async function connectZapier(
 
     return { success: true, integration, webhookSecret };
   } catch (error) {
-    console.error("Error connecting Zapier:", error);
+    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Error connecting Zapier");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to connect Zapier",
@@ -153,7 +154,7 @@ export async function updateZapierSettings(
     await updateIntegrationSettings(orgId, "zapier", settings);
     return { success: true };
   } catch (error) {
-    console.error("Error updating Zapier settings:", error);
+    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Error updating Zapier settings");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update settings",
@@ -191,7 +192,7 @@ export async function regenerateZapierSecret(
 
     return { success: true, newSecret };
   } catch (error) {
-    console.error("Error regenerating Zapier secret:", error);
+    integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId }, "Error regenerating Zapier secret");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to regenerate secret",
@@ -483,7 +484,7 @@ export async function triggerSyncWebhook(organizationId: string): Promise<{ trig
 
   // Trigger the sync webhook if configured
   // For now, return a placeholder - actual implementation triggers configured webhooks
-  console.log('[Zapier] Would trigger sync webhook for org:', organizationId);
+  integrationLogger.info({ provider: "zapier", organizationId }, "Would trigger sync webhook for org");
 
   return { triggered: false };
 }

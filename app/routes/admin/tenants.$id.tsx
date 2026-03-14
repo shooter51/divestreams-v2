@@ -12,6 +12,7 @@ import { hashPassword, generateRandomPassword } from "../../../lib/auth/password
 import { auth } from "../../../lib/auth";
 import { invalidateSubscriptionCache } from "../../../lib/cache/subscription.server";
 import { PLAN_FEATURES, FEATURE_LABELS, type PlanFeatureKey } from "../../../lib/plan-features";
+import { dbLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
@@ -404,7 +405,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         });
         return { success: true, message: `Password reset email sent to ${targetUser.email}` };
       } catch (error) {
-        console.error("Failed to send reset email:", error);
+        dbLogger.error({ err: error }, "Failed to send reset email");
         return { error: "Failed to send reset email. Check user's email address." };
       }
     }

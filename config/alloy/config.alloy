@@ -1,0 +1,56 @@
+// ─── Prometheus metrics scraping ───────────────────────────
+prometheus.scrape "app_metrics" {
+  targets = [{
+    __address__ = "app:3000",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+}
+
+prometheus.scrape "worker_metrics" {
+  targets = [{
+    __address__ = "worker:9090",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+}
+
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = env("GRAFANA_MIMIR_URL")
+    basic_auth {
+      username = env("GRAFANA_MIMIR_USERNAME")
+      password = env("GRAFANA_MIMIR_API_KEY")
+    }
+  }
+}
+
+// ─── OTLP receiver for traces ──────────────────────────────
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  output {
+    traces = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.auth.basic "grafana_cloud" {
+  username = env("GRAFANA_TEMPO_USERNAME")
+  password = env("GRAFANA_TEMPO_API_KEY")
+}
+
+otelcol.processor.batch "default" {
+  output {
+    traces = [otelcol.exporter.otlphttp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlphttp "tempo" {
+  client {
+    endpoint = "https://" + env("GRAFANA_TEMPO_URL")
+    auth     = otelcol.auth.basic.grafana_cloud.handler
+  }
+}

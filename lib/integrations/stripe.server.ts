@@ -24,6 +24,7 @@ import {
   logSyncOperation,
   type Integration,
 } from "./index.server";
+import { stripeLogger } from "../logger";
 
 // ============================================================================
 // TYPES
@@ -817,7 +818,7 @@ export async function createTerminalConnectionToken(
     const connectionToken = await stripe.terminal.connectionTokens.create();
     return { secret: connectionToken.secret };
   } catch (error) {
-    console.error("Failed to create Terminal connection token:", error);
+    stripeLogger.error({ err: error, organizationId: orgId }, "Failed to create Terminal connection token");
     return null;
   }
 }

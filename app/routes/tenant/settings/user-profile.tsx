@@ -7,6 +7,7 @@ import { user as userTable } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { authLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "My Profile - DiveStreams" }];
 
@@ -80,7 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       return { success: true, message: "Password changed successfully", type: "password" };
     } catch (error) {
-      console.error("Password change error:", error);
+      authLogger.error({ err: error }, "Password change error");
       // Better Auth throws error if current password is incorrect
       return { error: "Current password is incorrect", field: "currentPassword", type: "password" };
     }

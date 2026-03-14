@@ -17,6 +17,7 @@ import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { escapeHtml } from "../../../lib/security/sanitize";
 import { CsrfInput } from "../../components/CsrfInput";
+import { dbLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -40,7 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return { products, migrationNeeded: false };
   } catch (error) {
     // If sale_price columns don't exist yet, try without them
-    console.error("Products query failed, trying basic query:", error);
+    dbLogger.error({ err: error, organizationId }, "Products query failed, trying basic query");
     try {
       const products = await db
         .select({
@@ -67,7 +68,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
       return { products, migrationNeeded: true };
     } catch (fallbackError) {
-      console.error("Basic products query also failed:", fallbackError);
+      dbLogger.error({ err: fallbackError, organizationId }, "Basic products query also failed");
       return { products: [], migrationNeeded: true };
     }
   }

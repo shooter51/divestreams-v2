@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link, redirect, useSearchParams } from "react-router";
+import { integrationLogger } from "../../../../lib/logger";
 import { useState, useEffect } from "react";
 // Server-only imports for loader/action
 import { requireOrgContext, getSubdomainFromRequest, requireRole} from "../../../../lib/auth/org-context.server";
@@ -243,7 +244,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         mailchimpAudiences = audiences;
       }
     } catch (error) {
-      console.error("Error fetching Mailchimp audiences:", error);
+      integrationLogger.error({ err: error, provider: "mailchimp", organizationId: ctx.org.id }, "Error fetching Mailchimp audiences");
     }
   }
   const mailchimpSettings = mailchimpIntegration?.settings as {
@@ -312,7 +313,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!result.success) return { error: result.error || "Failed to connect Stripe" };
       return { success: true, message: "Stripe connected successfully!" };
     } catch (error) {
-      console.error("Error connecting Stripe:", error);
+      integrationLogger.error({ err: error, provider: "stripe", organizationId: ctx.org.id }, "Error connecting Stripe");
       return { error: "Failed to connect Stripe" };
     }
   }
@@ -332,7 +333,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       return redirect(authUrl);
     } catch (error) {
-      console.error("Error connecting Google Calendar:", error);
+      integrationLogger.error({ err: error, provider: "google-calendar", organizationId: ctx.org.id }, "Error connecting Google Calendar");
       return { error: "Failed to connect Google Calendar" };
     }
   }
@@ -352,7 +353,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       return redirect(authUrl);
     } catch (error) {
-      console.error("Error connecting Mailchimp:", error);
+      integrationLogger.error({ err: error, provider: "mailchimp", organizationId: ctx.org.id }, "Error connecting Mailchimp");
       return { error: "Failed to connect Mailchimp" };
     }
   }
@@ -372,7 +373,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       return redirect(authUrl);
     } catch (error) {
-      console.error("Error connecting QuickBooks:", error);
+      integrationLogger.error({ err: error, provider: "quickbooks", organizationId: ctx.org.id }, "Error connecting QuickBooks");
       return { error: "Failed to connect QuickBooks" };
     }
   }
@@ -392,7 +393,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       return redirect(authUrl);
     } catch (error) {
-      console.error("Error connecting Xero:", error);
+      integrationLogger.error({ err: error, provider: "xero", organizationId: ctx.org.id }, "Error connecting Xero");
       return { error: "Failed to connect Xero" };
     }
   }
@@ -405,7 +406,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!success) return { error: "Integration not found" };
       return { success: true, message: "Integration disconnected" };
     } catch (error) {
-      console.error("Error disconnecting integration:", error);
+      integrationLogger.error({ err: error, organizationId: ctx.org.id }, "Error disconnecting integration");
       return { error: "Failed to disconnect integration" };
     }
   }
@@ -427,7 +428,7 @@ export async function action({ request }: ActionFunctionArgs) {
         syncDetails: result,
       };
     } catch (error) {
-      console.error("Error during sync:", error);
+      integrationLogger.error({ err: error, organizationId: ctx.org.id }, "Error during integration sync");
       return { error: "Sync failed" };
     }
   }
@@ -447,7 +448,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await updateIntegrationSettings(ctx.org.id, integrationId, settings);
       return { success: true, message: "Settings updated" };
     } catch (error) {
-      console.error("Error updating settings:", error);
+      integrationLogger.error({ err: error, organizationId: ctx.org.id }, "Error updating integration settings");
       return { error: "Failed to update settings" };
     }
   }
@@ -473,7 +474,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await updateIntegrationSettings(ctx.org.id, "xero", settings as Record<string, unknown>);
       return { success: true, message: "Xero settings updated" };
     } catch (error) {
-      console.error("Error updating Xero settings:", error);
+      integrationLogger.error({ err: error, provider: "xero", organizationId: ctx.org.id }, "Error updating Xero settings");
       return { error: "Failed to update Xero settings" };
     }
   }
@@ -500,7 +501,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!result.success) return { error: result.error || "Failed to connect Zapier" };
       return { success: true, message: "Zapier connected successfully!", zapierConnected: true, zapierSecret: result.webhookSecret };
     } catch (error) {
-      console.error("Error connecting Zapier:", error);
+      integrationLogger.error({ err: error, provider: "zapier", organizationId: ctx.org.id }, "Error connecting Zapier");
       return { error: "Failed to connect Zapier" };
     }
   }
@@ -521,7 +522,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!result.success) return { error: result.error || "Failed to update Zapier settings" };
       return { success: true, message: "Zapier settings updated!" };
     } catch (error) {
-      console.error("Error updating Zapier settings:", error);
+      integrationLogger.error({ err: error, provider: "zapier", organizationId: ctx.org.id }, "Error updating Zapier settings");
       return { error: "Failed to update Zapier settings" };
     }
   }
@@ -532,7 +533,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!result.success) return { error: result.error || "Failed to test Zapier webhook" };
       return { success: true, message: "Test webhook sent successfully!", zapierTestSuccess: true };
     } catch (error) {
-      console.error("Error testing Zapier webhook:", error);
+      integrationLogger.error({ err: error, provider: "zapier", organizationId: ctx.org.id }, "Error testing Zapier webhook");
       return { error: "Failed to test Zapier webhook" };
     }
   }
@@ -543,7 +544,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!result.success) return { error: result.error || "Failed to regenerate Zapier secret" };
       return { success: true, zapierSecretRegenerated: true, newZapierSecret: result.newSecret };
     } catch (error) {
-      console.error("Error regenerating Zapier secret:", error);
+      integrationLogger.error({ err: error, provider: "zapier", organizationId: ctx.org.id }, "Error regenerating Zapier secret");
       return { error: "Failed to regenerate Zapier secret" };
     }
   }

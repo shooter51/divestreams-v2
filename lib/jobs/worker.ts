@@ -27,6 +27,7 @@ import { organization } from "../db/schema/auth";
 import { bookings, trips, tours, customers } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import { jobLogger } from "../logger";
+import { jobsProcessedTotal } from "../metrics.server";
 
 // Redis connection
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
@@ -292,7 +293,7 @@ async function processMaintenanceJob(job: { name: string; data: unknown }) {
 }
 
 // Start workers
-function startWorkers() {
+async function startWorkers() {
   jobLogger.info("Starting background workers...");
 
   // Email worker
@@ -306,10 +307,12 @@ function startWorkers() {
 
   emailWorker.on("completed", (job) => {
     jobLogger.info({ jobId: job.id, queue: "email" }, "Job completed");
+    jobsProcessedTotal.inc({ queue: "email", status: "completed" });
   });
 
   emailWorker.on("failed", (job, err) => {
     jobLogger.error({ err, jobId: job?.id, queue: "email" }, "Job failed");
+    jobsProcessedTotal.inc({ queue: "email", status: "failed" });
   });
 
   // Booking worker
@@ -323,10 +326,12 @@ function startWorkers() {
 
   bookingWorker.on("completed", (job) => {
     jobLogger.info({ jobId: job.id, queue: "booking" }, "Job completed");
+    jobsProcessedTotal.inc({ queue: "booking", status: "completed" });
   });
 
   bookingWorker.on("failed", (job, err) => {
     jobLogger.error({ err, jobId: job?.id, queue: "booking" }, "Job failed");
+    jobsProcessedTotal.inc({ queue: "booking", status: "failed" });
   });
 
   // Report worker
@@ -340,10 +345,12 @@ function startWorkers() {
 
   reportWorker.on("completed", (job) => {
     jobLogger.info({ jobId: job.id, queue: "report" }, "Job completed");
+    jobsProcessedTotal.inc({ queue: "report", status: "completed" });
   });
 
   reportWorker.on("failed", (job, err) => {
     jobLogger.error({ err, jobId: job?.id, queue: "report" }, "Job failed");
+    jobsProcessedTotal.inc({ queue: "report", status: "failed" });
   });
 
   // Maintenance worker
@@ -357,10 +364,12 @@ function startWorkers() {
 
   maintenanceWorker.on("completed", (job) => {
     jobLogger.info({ jobId: job.id, queue: "maintenance" }, "Job completed");
+    jobsProcessedTotal.inc({ queue: "maintenance", status: "completed" });
   });
 
   maintenanceWorker.on("failed", (job, err) => {
     jobLogger.error({ err, jobId: job?.id, queue: "maintenance" }, "Job failed");
+    jobsProcessedTotal.inc({ queue: "maintenance", status: "failed" });
   });
 
   // QuickBooks sync worker
@@ -370,6 +379,18 @@ function startWorkers() {
   const translationWorker = createTranslationWorker(connection);
 
   jobLogger.info("Workers started. Waiting for jobs...");
+
+  // Metrics server for Alloy/Prometheus scraping
+  const { registry } = await import("../metrics.server");
+  const { default: express } = await import("express");
+  const metricsApp = express();
+  metricsApp.get("/metrics", async (_req, res) => {
+    res.set("Content-Type", registry.contentType);
+    res.end(await registry.metrics());
+  });
+  metricsApp.listen(9090, () => {
+    jobLogger.info("Metrics server listening on port 9090");
+  });
 
   // Graceful shutdown
   const shutdown = async () => {

@@ -10,6 +10,7 @@ import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { deleteFromS3 } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { storageLogger } from "../../../../lib/logger";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -112,7 +113,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error("Image delete error:", error);
+    storageLogger.error({ err: error }, "Image delete error");
     return Response.json(
       { error: "Failed to delete image" },
       { status: 500 }

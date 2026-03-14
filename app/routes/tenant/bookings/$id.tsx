@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, Link, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
+import { dbLogger } from "../../../../lib/logger";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
@@ -93,28 +94,36 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "cancel") {
     const err = await validateTransition("cancelled");
     if (err) return err;
+    const prevBooking = await getBookingWithFullDetails(organizationId, bookingId);
     await updateBookingStatus(organizationId, bookingId, "cancelled");
+    dbLogger.info({ bookingId, organizationId, previousStatus: prevBooking?.status, newStatus: "cancelled", userId: ctx.user?.id }, "Booking status changed");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully cancelled", "success"));
   }
 
   if (intent === "confirm") {
     const err = await validateTransition("confirmed");
     if (err) return err;
+    const prevBooking = await getBookingWithFullDetails(organizationId, bookingId);
     await updateBookingStatus(organizationId, bookingId, "confirmed");
+    dbLogger.info({ bookingId, organizationId, previousStatus: prevBooking?.status, newStatus: "confirmed", userId: ctx.user?.id }, "Booking status changed");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully confirmed", "success"));
   }
 
   if (intent === "complete") {
     const err = await validateTransition("completed");
     if (err) return err;
+    const prevBooking = await getBookingWithFullDetails(organizationId, bookingId);
     await updateBookingStatus(organizationId, bookingId, "completed");
+    dbLogger.info({ bookingId, organizationId, previousStatus: prevBooking?.status, newStatus: "completed", userId: ctx.user?.id }, "Booking status changed");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as complete", "success"));
   }
 
   if (intent === "no-show") {
     const err = await validateTransition("no_show");
     if (err) return err;
+    const prevBooking = await getBookingWithFullDetails(organizationId, bookingId);
     await updateBookingStatus(organizationId, bookingId, "no_show");
+    dbLogger.info({ bookingId, organizationId, previousStatus: prevBooking?.status, newStatus: "no_show", userId: ctx.user?.id }, "Booking status changed");
     return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as no-show", "success"));
   }
 
@@ -149,6 +158,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       paymentMethod,
       notes: notes || undefined,
     });
+
+    dbLogger.info({ bookingId, organizationId, amount, paymentMethod }, "Payment recorded for booking");
 
     return { paymentAdded: true, message: `Payment of $${amount.toFixed(2)} recorded successfully` };
   }

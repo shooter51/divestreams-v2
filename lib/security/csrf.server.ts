@@ -11,6 +11,7 @@
  */
 
 import crypto from "node:crypto";
+import { securityLogger } from "../logger";
 
 /** How long a CSRF token remains valid (default: 4 hours) */
 const CSRF_TOKEN_TTL_MS = 4 * 60 * 60 * 1000;
@@ -212,6 +213,7 @@ export async function requireCsrf(
   }
 
   if (!token) {
+    securityLogger.warn({ reason: "missing_token" }, "CSRF token missing");
     throw new Response("Forbidden: Missing CSRF token", {
       status: 403,
       statusText: "Forbidden",
@@ -219,6 +221,18 @@ export async function requireCsrf(
   }
 
   if (!validateCsrfToken(sessionId, token)) {
+    // Distinguish expired vs invalid by checking the token format and age
+    const dotIndex = token.indexOf(".");
+    if (dotIndex !== -1) {
+      const timestampNum = Number(token.substring(0, dotIndex));
+      if (!Number.isNaN(timestampNum) && Date.now() - timestampNum > CSRF_TOKEN_TTL_MS) {
+        securityLogger.warn({ reason: "expired_token" }, "CSRF token expired");
+      } else {
+        securityLogger.warn({ reason: "invalid_token" }, "CSRF validation failed");
+      }
+    } else {
+      securityLogger.warn({ reason: "invalid_token" }, "CSRF validation failed");
+    }
     throw new Response("Forbidden: Invalid CSRF token", {
       status: 403,
       statusText: "Forbidden",
