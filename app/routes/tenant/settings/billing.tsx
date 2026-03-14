@@ -11,6 +11,7 @@ import {
   createBillingPortalSession,
   getPaymentMethod,
 } from "../../../../lib/stripe";
+import { stripeLogger } from "../../../../lib/logger";
 import {
   getInvoiceHistory,
   fetchInvoicesFromStripe,
@@ -163,7 +164,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     try {
       metadata = JSON.parse(ctx.org.metadata) as { stripeCustomerId?: string };
     } catch (error) {
-      console.error("Failed to parse organization metadata:", error);
+      stripeLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to parse organization metadata");
       // Fallback to empty object on parse error
       metadata = {};
     }
@@ -199,7 +200,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       };
     }
   } catch (error) {
-    console.error("Error fetching payment method:", error);
+    stripeLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching payment method");
   }
 
   // Fetch invoice history
@@ -219,7 +220,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       invoiceUrl: invoice.invoicePdf || invoice.hostedInvoiceUrl || "#",
     }));
   } catch (error) {
-    console.error("Error fetching invoice history:", error);
+    stripeLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching invoice history");
   }
 
   // Calculate trial days left on the server to avoid hydration mismatch
@@ -287,7 +288,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
       return { error: "Failed to create checkout session" };
     } catch (error) {
-      console.error("Checkout session error:", error);
+      stripeLogger.error({ err: error, organizationId: orgId }, "Checkout session error");
       return { error: "Failed to create checkout session" };
     }
   }
@@ -300,7 +301,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
       return { error: "Failed to cancel subscription" };
     } catch (error) {
-      console.error("Cancel subscription error:", error);
+      stripeLogger.error({ err: error, organizationId: orgId }, "Cancel subscription error");
       return { error: "Failed to cancel subscription" };
     }
   }
@@ -317,7 +318,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
       return { error: "Failed to open billing portal. Please ensure you have an active subscription." };
     } catch (error) {
-      console.error("Billing portal error:", error);
+      stripeLogger.error({ err: error, organizationId: orgId }, "Billing portal error");
       return { error: "Failed to open billing portal" };
     }
   }

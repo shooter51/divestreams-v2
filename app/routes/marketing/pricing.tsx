@@ -4,6 +4,7 @@ import { useState } from "react";
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
+import { stripeLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => {
   return [
@@ -113,7 +114,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return { plans: enrichedPlans };
   } catch (error) {
     // If database query fails, return default plans so page still renders
-    console.error("Failed to fetch subscription plans from database:", error);
+    stripeLogger.error({ err: error }, "Failed to fetch subscription plans from database");
     return { plans: DEFAULT_PLANS };
   }
 }

@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { handleStripeWebhook } from "../../../lib/stripe/webhook.server";
+import { stripeLogger } from "../../../lib/logger";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -10,18 +11,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const signature = request.headers.get("stripe-signature");
 
   if (!signature) {
-    console.error("[WEBHOOK] Missing stripe-signature header");
+    stripeLogger.error("Webhook missing stripe-signature header");
     return new Response("No signature", { status: 400 });
   }
 
   const result = await handleStripeWebhook(payload, signature);
 
   if (!result.success) {
-    console.error("[WEBHOOK] Handler failed:", result.message);
+    stripeLogger.error({ message: result.message }, "Webhook handler failed");
     return new Response(result.message, { status: 400 });
   }
 
-  console.log("[WEBHOOK] Handler success:", result.message);
+  stripeLogger.info({ message: result.message }, "Webhook handler success");
   return new Response(result.message, { status: 200 });
 }
 
