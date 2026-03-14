@@ -52,7 +52,7 @@ export async function getNextBookingNumber(
         sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+'`
       )
     )
-    .orderBy(sql`CAST(SUBSTRING(${schema.bookings.bookingNumber} FROM 4 FOR (POSITION('-' IN SUBSTRING(${schema.bookings.bookingNumber} FROM 4)) - 1)) AS INTEGER) DESC`)
+    .orderBy(sql`CAST((regexp_match(${schema.bookings.bookingNumber}, '^BK-(\d+)'))[1] AS INTEGER) DESC NULLS LAST`)
     .limit(1);
 
   if (!Array.isArray(result) || result.length === 0) {
