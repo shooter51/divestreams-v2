@@ -16,6 +16,7 @@ import { customerCredentials, customerSessions, customers } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
+import { authLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -167,6 +168,8 @@ export async function loginCustomer(
     .update(customerCredentials)
     .set({ lastLoginAt: new Date() })
     .where(eq(customerCredentials.id, creds.id));
+
+  authLogger.info({ organizationId, email: normalizedEmail }, "Customer logged in");
 
   return { token, expiresAt };
 }
