@@ -43,9 +43,10 @@ export async function getNextBookingNumber(
   organizationId: string,
   dbInstance: typeof db | DbTransaction = db
 ): Promise<string> {
-  const result = await (dbInstance as typeof db)
+  const results = await (dbInstance as typeof db)
     .select({ bookingNumber: schema.bookings.bookingNumber })
     .from(schema.bookings)
+<<<<<<< HEAD
     .where(
       and(
         eq(schema.bookings.organizationId, organizationId),
@@ -54,18 +55,20 @@ export async function getNextBookingNumber(
     )
     .orderBy(sql`CAST((regexp_match(${schema.bookings.bookingNumber}, '^BK-(\d+)'))[1] AS INTEGER) DESC NULLS LAST`)
     .limit(1);
+=======
+    .where(eq(schema.bookings.organizationId, organizationId));
+>>>>>>> worktree-agent-afd855f5
 
-  if (!Array.isArray(result) || result.length === 0) {
-    return `BK-1000-${generateBookingSuffix()}`;
+  let maxNum = 999; // Start at 999 so first booking is BK-1000
+  for (const row of results) {
+    const match = row.bookingNumber?.match(/^BK-(\d+)/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNum) maxNum = num;
+    }
   }
 
-  const match = result[0].bookingNumber?.match(/^BK-(\d+)/);
-  if (!match) {
-    return `BK-1000-${generateBookingSuffix()}`;
-  }
-
-  const nextNum = parseInt(match[1], 10) + 1;
-  return `BK-${nextNum}-${generateBookingSuffix()}`;
+  return `BK-${maxNum + 1}-${generateBookingSuffix()}`;
 }
 
 // ============================================================================
