@@ -226,6 +226,48 @@ resource "github_actions_environment_variable" "platform_admin_name_test" {
   value         = "Platform Admin"
 }
 
+resource "github_actions_environment_secret" "grafana_mimir_url_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_MIMIR_URL"
+  plaintext_value = var.grafana_mimir_url
+}
+
+resource "github_actions_environment_secret" "grafana_mimir_username_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_MIMIR_USERNAME"
+  plaintext_value = var.grafana_mimir_username
+}
+
+resource "github_actions_environment_secret" "grafana_mimir_api_key_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_MIMIR_API_KEY"
+  plaintext_value = var.grafana_mimir_api_key
+}
+
+resource "github_actions_environment_secret" "grafana_tempo_url_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_TEMPO_URL"
+  plaintext_value = var.grafana_tempo_url
+}
+
+resource "github_actions_environment_secret" "grafana_tempo_username_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_TEMPO_USERNAME"
+  plaintext_value = var.grafana_tempo_username
+}
+
+resource "github_actions_environment_secret" "grafana_tempo_api_key_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_TEMPO_API_KEY"
+  plaintext_value = var.grafana_tempo_api_key
+}
+
 # ── Environment Secrets — Production ─────────────────────────────────────────
 
 resource "github_actions_environment_secret" "hostinger_api_token_prod" {
@@ -394,6 +436,48 @@ resource "github_actions_environment_variable" "platform_admin_name_prod" {
   environment   = github_repository_environment.production.environment
   variable_name = "PLATFORM_ADMIN_NAME"
   value         = "Platform Admin"
+}
+
+resource "github_actions_environment_secret" "grafana_mimir_url_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_MIMIR_URL"
+  plaintext_value = var.grafana_mimir_url
+}
+
+resource "github_actions_environment_secret" "grafana_mimir_username_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_MIMIR_USERNAME"
+  plaintext_value = var.grafana_mimir_username
+}
+
+resource "github_actions_environment_secret" "grafana_mimir_api_key_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_MIMIR_API_KEY"
+  plaintext_value = var.grafana_mimir_api_key
+}
+
+resource "github_actions_environment_secret" "grafana_tempo_url_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_TEMPO_URL"
+  plaintext_value = var.grafana_tempo_url
+}
+
+resource "github_actions_environment_secret" "grafana_tempo_username_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_TEMPO_USERNAME"
+  plaintext_value = var.grafana_tempo_username
+}
+
+resource "github_actions_environment_secret" "grafana_tempo_api_key_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_TEMPO_API_KEY"
+  plaintext_value = var.grafana_tempo_api_key
 }
 
 # ── Repository-Level Secrets ──────────────────────────────────────────────────

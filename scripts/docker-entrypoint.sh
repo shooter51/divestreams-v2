@@ -76,5 +76,5 @@ echo "Starting DiveStreams application..."
 if [ $# -gt 0 ]; then
   exec "$@"
 else
-  exec npm run start
+  exec node --import ./lib/telemetry.mjs server/app.js
 fi

@@ -334,6 +334,40 @@ variable "platform_admin_password_test" {
   sensitive   = true
 }
 
+# ── Grafana Cloud ─────────────────────────────────────────────────────────────
+
+variable "grafana_mimir_url" {
+  description = "Grafana Cloud Mimir push endpoint URL"
+  type        = string
+}
+
+variable "grafana_mimir_username" {
+  description = "Grafana Cloud Mimir instance ID"
+  type        = string
+}
+
+variable "grafana_mimir_api_key" {
+  description = "Grafana Cloud API key for Mimir push"
+  type        = string
+  sensitive   = true
+}
+
+variable "grafana_tempo_url" {
+  description = "Grafana Cloud Tempo endpoint"
+  type        = string
+}
+
+variable "grafana_tempo_username" {
+  description = "Grafana Cloud Tempo instance ID"
+  type        = string
+}
+
+variable "grafana_tempo_api_key" {
+  description = "Grafana Cloud API key for Tempo push"
+  type        = string
+  sensitive   = true
+}
+
 # ── Shared Secrets ────────────────────────────────────────────────────────────
 
 variable "vps_ssh_key" {
