@@ -334,6 +334,24 @@ variable "platform_admin_password_test" {
   sensitive   = true
 }
 
+# ── Grafana Cloud (shared across environments) ───────────────────────────────
+
+variable "grafana_loki_url" {
+  description = "Grafana Cloud Loki push endpoint URL"
+  type        = string
+}
+
+variable "grafana_loki_username" {
+  description = "Grafana Cloud Loki instance ID (numeric)"
+  type        = string
+}
+
+variable "grafana_loki_api_key" {
+  description = "Grafana Cloud API key for Loki push (glc_ token)"
+  type        = string
+  sensitive   = true
+}
+
 # ── Shared Secrets ────────────────────────────────────────────────────────────
 
 variable "vps_ssh_key" {

@@ -1,0 +1,77 @@
+// Grafana Alloy configuration for DiveStreams log shipping
+// Ships Docker container logs to Grafana Cloud Loki
+//
+// Required env vars:
+//   GRAFANA_LOKI_URL      - Loki push endpoint
+//   GRAFANA_LOKI_USERNAME - Grafana Cloud instance ID
+//   GRAFANA_LOKI_API_KEY  - Service account token
+//   ALLOY_ENV             - "production" or "test"
+//   ALLOY_HOST            - "ds-prod" or "ds-test"
+
+// ─── Discovery ──────────────────────────────────────────────
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  // Extract the compose service name as "service" label
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+
+  // Add static environment label
+  rule {
+    target_label = "env"
+    replacement  = env("ALLOY_ENV")
+  }
+
+  // Add static host label
+  rule {
+    target_label = "host"
+    replacement  = env("ALLOY_HOST")
+  }
+
+  // Use container name as fallback instance label
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+// ─── Log collection ─────────────────────────────────────────
+
+loki.source.docker "containers" {
+  host    = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.containers.output
+
+  forward_to = [loki.process.pipeline.receiver]
+}
+
+// ─── Processing pipeline ────────────────────────────────────
+
+loki.process "pipeline" {
+  // Drop Docker healthcheck noise (/api/health every 30s)
+  stage.drop {
+    expression = ".*\\/api\\/health.*"
+  }
+
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+// ─── Ship to Grafana Cloud ──────────────────────────────────
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = env("GRAFANA_LOKI_URL")
+
+    basic_auth {
+      username = env("GRAFANA_LOKI_USERNAME")
+      password = env("GRAFANA_LOKI_API_KEY")
+    }
+  }
+}

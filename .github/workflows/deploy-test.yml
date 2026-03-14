@@ -54,10 +54,11 @@ jobs:
           chmod 600 ~/.ssh/vps_key
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
-      - name: Sync compose and Caddyfile
+      - name: Sync compose, Caddyfile, and Alloy config
         run: |
           scp -i ~/.ssh/vps_key docker-compose.test.yml root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/docker-compose.yml
           scp -i ~/.ssh/vps_key Caddyfile.test root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/Caddyfile.test
+          scp -i ~/.ssh/vps_key config/alloy/config.alloy root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/alloy-config.alloy
 
       - name: Deploy via Hostinger API
         run: |
@@ -69,7 +70,7 @@ jobs:
 
       - name: Wait for containers
         run: |
-          EXPECTED=5
+          EXPECTED=6
           VPS_ID=${{ vars.TEST_VPS_ID }}
           for i in $(seq 1 15); do
             echo "Check $i/15..."

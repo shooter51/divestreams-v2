@@ -151,6 +151,32 @@ services:
     networks:
       - divestreams-network
 
+  alloy:
+    image: grafana/alloy:latest
+    container_name: divestreams-prod-alloy
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --stability.level=generally-available
+    environment:
+      - GRAFANA_LOKI_URL=${GRAFANA_LOKI_URL}
+      - GRAFANA_LOKI_USERNAME=${GRAFANA_LOKI_USERNAME}
+      - GRAFANA_LOKI_API_KEY=${GRAFANA_LOKI_API_KEY}
+      - ALLOY_ENV=production
+      - ALLOY_HOST=ds-prod
+    networks:
+      - divestreams-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
 networks:
   divestreams-network:
     driver: bridge
