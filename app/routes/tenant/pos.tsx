@@ -240,7 +240,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const refundRequestSchema = z.object({
         originalTransactionId: z.string().uuid("Invalid transaction ID format"),
         paymentMethod: z.enum(["cash", "card", "split"]),
-        stripePaymentId: z.string().optional(),
+        stripePaymentId: z.string().nullable().optional(),
         refundReason: z.string().min(1, "Refund reason is required").max(500, "Refund reason too long"),
       });
 
