@@ -396,6 +396,52 @@ resource "github_actions_environment_variable" "platform_admin_name_prod" {
   value         = "Platform Admin"
 }
 
+# ── Grafana Cloud Secrets — Test ──────────────────────────────────────────────
+
+resource "github_actions_environment_secret" "grafana_loki_url_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_LOKI_URL"
+  plaintext_value = var.grafana_loki_url
+}
+
+resource "github_actions_environment_secret" "grafana_loki_username_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_LOKI_USERNAME"
+  plaintext_value = var.grafana_loki_username
+}
+
+resource "github_actions_environment_secret" "grafana_loki_api_key_test" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.test.environment
+  secret_name     = "GRAFANA_LOKI_API_KEY"
+  plaintext_value = var.grafana_loki_api_key
+}
+
+# ── Grafana Cloud Secrets — Production ───────────────────────────────────────
+
+resource "github_actions_environment_secret" "grafana_loki_url_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_LOKI_URL"
+  plaintext_value = var.grafana_loki_url
+}
+
+resource "github_actions_environment_secret" "grafana_loki_username_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_LOKI_USERNAME"
+  plaintext_value = var.grafana_loki_username
+}
+
+resource "github_actions_environment_secret" "grafana_loki_api_key_prod" {
+  repository      = "divestreams-v2"
+  environment     = github_repository_environment.production.environment
+  secret_name     = "GRAFANA_LOKI_API_KEY"
+  plaintext_value = var.grafana_loki_api_key
+}
+
 # ── Repository-Level Secrets ──────────────────────────────────────────────────
 
 resource "github_actions_secret" "promotion_pat" {
