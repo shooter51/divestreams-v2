@@ -12,7 +12,6 @@ import {
   createBillingPortalSession,
   getPaymentMethod,
 } from "../../../../lib/stripe";
-import { stripeLogger } from "../../../../lib/logger";
 import {
   getInvoiceHistory,
   fetchInvoicesFromStripe,
