@@ -334,20 +334,36 @@ variable "platform_admin_password_test" {
   sensitive   = true
 }
 
-# ── Grafana Cloud (shared across environments) ───────────────────────────────
+# ── Grafana Cloud ─────────────────────────────────────────────────────────────
 
-variable "grafana_loki_url" {
-  description = "Grafana Cloud Loki push endpoint URL"
+variable "grafana_mimir_url" {
+  description = "Grafana Cloud Mimir push endpoint URL"
   type        = string
 }
 
-variable "grafana_loki_username" {
-  description = "Grafana Cloud Loki instance ID (numeric)"
+variable "grafana_mimir_username" {
+  description = "Grafana Cloud Mimir instance ID"
   type        = string
 }
 
-variable "grafana_loki_api_key" {
-  description = "Grafana Cloud API key for Loki push (glc_ token)"
+variable "grafana_mimir_api_key" {
+  description = "Grafana Cloud API key for Mimir push"
+  type        = string
+  sensitive   = true
+}
+
+variable "grafana_tempo_url" {
+  description = "Grafana Cloud Tempo endpoint"
+  type        = string
+}
+
+variable "grafana_tempo_username" {
+  description = "Grafana Cloud Tempo instance ID"
+  type        = string
+}
+
+variable "grafana_tempo_api_key" {
+  description = "Grafana Cloud API key for Tempo push"
   type        = string
   sensitive   = true
 }

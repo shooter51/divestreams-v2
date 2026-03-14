@@ -19,6 +19,8 @@
 #   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
 #   S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
 #   CDN_URL
+#   GRAFANA_MIMIR_URL, GRAFANA_MIMIR_USERNAME, GRAFANA_MIMIR_API_KEY
+#   GRAFANA_TEMPO_URL, GRAFANA_TEMPO_USERNAME, GRAFANA_TEMPO_API_KEY
 #
 # Prod-specific:
 #   PROD_VPS_IP
@@ -96,7 +98,8 @@ main() {
                 SMTP_HOST SMTP_USER SMTP_PASS \
                 S3_ENDPOINT S3_BUCKET S3_ACCESS_KEY_ID S3_SECRET_ACCESS_KEY CDN_URL \
                 STRIPE_SECRET_KEY STRIPE_PUBLISHABLE_KEY STRIPE_WEBHOOK_SECRET STRIPE_WEBHOOK_SECRET_THIN \
-                GRAFANA_LOKI_URL GRAFANA_LOKI_USERNAME GRAFANA_LOKI_API_KEY
+                GRAFANA_MIMIR_URL GRAFANA_MIMIR_USERNAME GRAFANA_MIMIR_API_KEY \
+                GRAFANA_TEMPO_URL GRAFANA_TEMPO_USERNAME GRAFANA_TEMPO_API_KEY
             local vps_ip="$PROD_VPS_IP"
             local compose_src="$PROJECT_DIR/docker-compose.prod.yml"
             local caddyfile_src="$PROJECT_DIR/Caddyfile"
@@ -112,7 +115,8 @@ main() {
                 SMTP_HOST SMTP_USER SMTP_PASS \
                 S3_ENDPOINT S3_BUCKET S3_ACCESS_KEY_ID S3_SECRET_ACCESS_KEY CDN_URL \
                 STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET \
-                GRAFANA_LOKI_URL GRAFANA_LOKI_USERNAME GRAFANA_LOKI_API_KEY
+                GRAFANA_MIMIR_URL GRAFANA_MIMIR_USERNAME GRAFANA_MIMIR_API_KEY \
+                GRAFANA_TEMPO_URL GRAFANA_TEMPO_USERNAME GRAFANA_TEMPO_API_KEY
             local vps_ip="$TEST_VPS_IP"
             local compose_src="$PROJECT_DIR/docker-compose.test.yml"
             local caddyfile_src="$PROJECT_DIR/Caddyfile.test"
@@ -158,7 +162,8 @@ main() {
 
     # Copy Alloy config
     log_step "Copying Alloy config..."
-    scp_to "$PROJECT_DIR/config/alloy/config.alloy" "$vps_ip" "$remote_dir/alloy-config.alloy"
+    ssh_exec "$vps_ip" "mkdir -p $remote_dir/config/alloy"
+    scp_to "$PROJECT_DIR/config/alloy/config.alloy" "$vps_ip" "$remote_dir/config/alloy/config.alloy"
 
     # Generate and upload .env file
     log_step "Generating .env file..."
@@ -191,9 +196,12 @@ S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
 CDN_URL=${CDN_URL}
 STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
 STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-GRAFANA_LOKI_URL=${GRAFANA_LOKI_URL}
-GRAFANA_LOKI_USERNAME=${GRAFANA_LOKI_USERNAME}
-GRAFANA_LOKI_API_KEY=${GRAFANA_LOKI_API_KEY}
+GRAFANA_MIMIR_URL=${GRAFANA_MIMIR_URL}
+GRAFANA_MIMIR_USERNAME=${GRAFANA_MIMIR_USERNAME}
+GRAFANA_MIMIR_API_KEY=${GRAFANA_MIMIR_API_KEY}
+GRAFANA_TEMPO_URL=${GRAFANA_TEMPO_URL}
+GRAFANA_TEMPO_USERNAME=${GRAFANA_TEMPO_USERNAME}
+GRAFANA_TEMPO_API_KEY=${GRAFANA_TEMPO_API_KEY}
 ENV
 
     # Prod-only vars
