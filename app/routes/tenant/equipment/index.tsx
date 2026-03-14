@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
+import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
@@ -179,7 +180,7 @@ export default function EquipmentPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
-  const fetcher = useFetcher<{ found?: boolean; equipmentId?: string; equipmentName?: string; error?: string }>();
+  const fetcher = useCsrfFetcher<{ found?: boolean; equipmentId?: string; equipmentName?: string; error?: string }>();
 
   // Handle barcode scan result
   const handleBarcodeScan = (barcode: string) => {

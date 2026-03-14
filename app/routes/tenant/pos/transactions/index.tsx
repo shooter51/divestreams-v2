@@ -6,7 +6,8 @@
 
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
+import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useCsrfFetcher } from "../../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getPOSSummary } from "../../../../../lib/db/queries.server";
 import { db } from "../../../../../lib/db";
@@ -286,7 +287,7 @@ const typeColors: Record<string, string> = {
 export default function TransactionsPage() {
   const { transactions, summary, organization } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const t = useT();
 
   const transactionTypeLabels: Record<string, string> = {

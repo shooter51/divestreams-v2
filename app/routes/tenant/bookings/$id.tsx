@@ -1,15 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
-import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatCurrency, formatTime as sharedFormatTime, formatDisplayDate, formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
-import { CSRF_FIELD_NAME } from "../../../../lib/security/csrf-constants";
 import { useT } from "../../../i18n/use-t";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 
 // Valid booking status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -176,7 +175,7 @@ export default function BookingDetailPage() {
   useNotification();
 
   const { booking } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
+  const fetcher = useCsrfFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const t = useT();
 
@@ -192,11 +191,9 @@ export default function BookingDetailPage() {
     other: t("tenant.bookings.source.other"),
   };
 
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
-
   const handleCancel = () => {
     if (confirm(t("tenant.bookings.confirmCancel"))) {
-      fetcher.submit({ intent: "cancel", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
+      fetcher.submit({ intent: "cancel" }, { method: "post" });
     }
   };
 

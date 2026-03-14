@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
+import { useCsrfFetcher } from "../../../../hooks/use-csrf-fetcher";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
@@ -110,7 +111,7 @@ export default function SessionDetailPage() {
   const t = useT();
 
   const { session, enrollments } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ error?: string }>();
+  const fetcher = useCsrfFetcher<{ error?: string }>();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 

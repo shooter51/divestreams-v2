@@ -7,13 +7,13 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { useKeyboardScanner } from "../../hooks/useKeyboardScanner";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 import { z } from "zod";
 import { checkoutSchema } from "../../../lib/validation/pos";
 import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
-import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -366,11 +366,9 @@ export default function POSPage() {
     stripePublishableKey,
     hasTerminalReaders,
   } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const { showToast } = useToast();
   const t = useT();
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
-  const csrfToken = layoutData?.csrfToken;
 
   // Date state — initialized to empty string to avoid SSR/client hydration mismatch (#418)
   const [currentDate, setCurrentDate] = useState("");
@@ -556,22 +554,20 @@ export default function POSPage() {
       tax,
       total,
     }));
-    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
     // Close the checkout modal immediately — the cart will be cleared by useEffect
     // once the server confirms the sale (success response with receiptNumber).
     setCheckoutMethod(null);
-  }, [cart, customer, subtotal, tax, total, fetcher, csrfToken]);
+  }, [cart, customer, subtotal, tax, total, fetcher]);
 
   // Customer search
   const handleCustomerSearch = useCallback((query: string) => {
     const formData = new FormData();
     formData.append("intent", "search-customers");
     formData.append("query", query);
-    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
-  }, [fetcher, csrfToken]);
+  }, [fetcher]);
 
   // Barcode scanning
   const handleBarcodeScan = useCallback((barcode: string) => {
@@ -581,9 +577,8 @@ export default function POSPage() {
     const formData = new FormData();
     formData.append("intent", "scan-barcode");
     formData.append("barcode", barcode);
-    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
-  }, [fetcher, csrfToken]);
+  }, [fetcher]);
 
   // USB HID barcode scanner (keyboard emulation)
   useKeyboardScanner({ onScan: handleBarcodeScan });
@@ -606,10 +601,9 @@ export default function POSPage() {
       stripePaymentId: selectedTransaction.stripePaymentId,
       refundReason,
     }));
-    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
-  }, [selectedTransaction, fetcher, csrfToken]);
+  }, [selectedTransaction, fetcher]);
 
   // Update search results and handle barcode results when fetcher returns
   useEffect(() => {

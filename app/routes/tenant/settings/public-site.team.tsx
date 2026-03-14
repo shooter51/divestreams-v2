@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
@@ -133,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function PublicSiteTeamPage() {
   const t = useT();
   const { teamMembers } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const [showModal, setShowModal] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editingMember, setEditingMember] = useState<any>(null);

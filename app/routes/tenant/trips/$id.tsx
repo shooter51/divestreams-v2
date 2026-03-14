@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
@@ -248,7 +249,7 @@ export default function TripDetailPage() {
   useNotification();
 
   const { trip, bookings, revenue, recurringInfo, equipmentRentals } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; seriesCancelled?: boolean }>();
+  const fetcher = useCsrfFetcher<{ success?: boolean; message?: string; error?: string; seriesCancelled?: boolean }>();
   const t = useT();
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSeriesModal, setShowSeriesModal] = useState(false);

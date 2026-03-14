@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
 import { useState } from "react";
-import { CSRF_FIELD_NAME } from "../../../../lib/security/csrf-constants";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
@@ -189,9 +189,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
+  const fetcher = useCsrfFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const t = useT();
 
   // Show notifications from URL params
@@ -199,7 +198,7 @@ export default function CustomerDetailPage() {
 
   const handleDelete = () => {
     if (confirm(t("tenant.customers.confirmDelete"))) {
-      fetcher.submit({ intent: "delete", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
+      fetcher.submit({ intent: "delete" }, { method: "post" });
     }
   };
 

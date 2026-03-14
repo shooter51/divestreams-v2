@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { eq, and, asc } from "drizzle-orm";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../lib/db/translations.server";
@@ -175,7 +176,7 @@ function formatDepth(depth: number): string {
 
 export default function DiveSiteDetailPage() {
   const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
   const t = useT();
 
