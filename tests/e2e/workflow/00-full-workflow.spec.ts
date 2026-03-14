@@ -324,6 +324,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     test.skip(isRemoteTest, "On-demand TLS provisioning too slow for new subdomains on remote");
 
     // Check if user already exists by trying to login (created by global-setup or previous run)
+    await page.goto(getTenantUrl("/auth/login"));
     await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
     await page.locator('input[type="password"]').first().fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
