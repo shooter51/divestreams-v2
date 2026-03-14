@@ -7,6 +7,7 @@
 
 import { Queue, Worker } from "bullmq";
 import { getBullMQConnection } from "../redis.server";
+import { jobLogger } from "../logger";
 import {
   syncBookingToQuickBooks,
   createQuickBooksCustomer,
@@ -239,8 +240,9 @@ async function processQuickBooksSync(job: { data: QuickBooksSyncJob }) {
   // Check if sync is enabled
   const syncEnabled = await isSyncEnabled(data.organizationId);
   if (!syncEnabled) {
-    console.log(
-      `QuickBooks sync disabled for org ${data.organizationId}, skipping ${data.type}`
+    jobLogger.info(
+      { organizationId: data.organizationId, jobType: data.type },
+      "QuickBooks sync disabled for org, skipping"
     );
     return;
   }
@@ -357,7 +359,7 @@ async function processQuickBooksSync(job: { data: QuickBooksSyncJob }) {
       }
     }
   } catch (error) {
-    console.error(`QuickBooks sync failed for ${data.type}:`, error);
+    jobLogger.error({ err: error, organizationId: data.organizationId, jobType: data.type }, "QuickBooks sync failed");
     throw error;
   }
 }
@@ -380,14 +382,14 @@ export function startQuickBooksSyncWorker() {
   });
 
   worker.on("completed", (job) => {
-    console.log(`QuickBooks sync job ${job.id} completed`);
+    jobLogger.info({ jobId: job.id }, "QuickBooks sync job completed");
   });
 
   worker.on("failed", (job, err) => {
-    console.error(`QuickBooks sync job ${job?.id} failed:`, err);
+    jobLogger.error({ err, jobId: job?.id }, "QuickBooks sync job failed");
   });
 
-  console.log("QuickBooks sync worker started");
+  jobLogger.info("QuickBooks sync worker started");
 
   return worker;
 }

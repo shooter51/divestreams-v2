@@ -1,5 +1,6 @@
 import { db } from "../db";
 import { trainingCourses, agencyCourseTemplates } from "../db/schema/training";
+import { dbLogger } from "../logger";
 import { eq, and, ne, inArray } from "drizzle-orm";
 
 /**
@@ -46,7 +47,7 @@ export async function mergeTemplateUpdates(organizationId: string) {
         const template = templateMap.get(course.templateId!);
 
         if (!template) {
-          console.warn(`Template ${course.templateId} not found for course ${course.courseId}`);
+          dbLogger.warn({ templateId: course.templateId, courseId: course.courseId }, "Template not found for course");
           continue;
         }
 
@@ -84,7 +85,7 @@ export async function mergeTemplateUpdates(organizationId: string) {
       return { updated: coursesToUpdate.length };
     });
   } catch (error) {
-    console.error(`Failed to merge template updates for org ${organizationId}:`, error);
+    dbLogger.error({ err: error, organizationId }, "Failed to merge template updates");
     throw new Error(`Template merge failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
