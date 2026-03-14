@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, useRouteLoaderData } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
@@ -8,6 +8,7 @@ import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatCurrency, formatTime as sharedFormatTime, formatDisplayDate, formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
+import { CSRF_FIELD_NAME } from "../../../../lib/security/csrf-constants";
 import { useT } from "../../../i18n/use-t";
 
 // Valid booking status transitions
@@ -191,9 +192,11 @@ export default function BookingDetailPage() {
     other: t("tenant.bookings.source.other"),
   };
 
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+
   const handleCancel = () => {
     if (confirm(t("tenant.bookings.confirmCancel"))) {
-      fetcher.submit({ intent: "cancel" }, { method: "post" });
+      fetcher.submit({ intent: "cancel", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
     }
   };
 
