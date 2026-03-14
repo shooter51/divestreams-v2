@@ -173,7 +173,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await tx.insert(user).values({
         id: userId,
         email,
-        emailVerified: false,
+        emailVerified: true,
         name: shopName,
         createdAt: new Date(),
         updatedAt: new Date(),
