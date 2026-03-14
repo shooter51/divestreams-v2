@@ -46,18 +46,7 @@ export async function getNextBookingNumber(
   const results = await (dbInstance as typeof db)
     .select({ bookingNumber: schema.bookings.bookingNumber })
     .from(schema.bookings)
-<<<<<<< HEAD
-    .where(
-      and(
-        eq(schema.bookings.organizationId, organizationId),
-        sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+'`
-      )
-    )
-    .orderBy(sql`CAST((regexp_match(${schema.bookings.bookingNumber}, '^BK-(\d+)'))[1] AS INTEGER) DESC NULLS LAST`)
-    .limit(1);
-=======
     .where(eq(schema.bookings.organizationId, organizationId));
->>>>>>> worktree-agent-afd855f5
 
   let maxNum = 999; // Start at 999 so first booking is BK-1000
   for (const row of results) {
