@@ -4,7 +4,7 @@ import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context
 import { db } from "../../../../lib/db";
 import { tours, products, diveSites, boats, discountCodes } from "../../../../lib/db/schema";
 import { trainingCourses } from "../../../../lib/db/schema/training";
-import { galleryAlbums } from "../../../../lib/db/schema/gallery";
+import { galleryAlbums, galleryImages } from "../../../../lib/db/schema/gallery";
 import { contentTranslations } from "../../../../lib/db/schema/translations";
 import { eq, and } from "drizzle-orm";
 import { upsertContentTranslation } from "../../../../lib/db/translations.server";
@@ -114,6 +114,14 @@ async function getEntitySourceTexts(
       .where(and(eq(galleryAlbums.id, entityId), eq(galleryAlbums.organizationId, orgId)))
       .limit(1);
     return row ? { name: row.name, description: row.description } : {};
+  }
+  if (entityType === "gallery_image") {
+    const [row] = await db
+      .select({ title: galleryImages.title, description: galleryImages.description })
+      .from(galleryImages)
+      .where(and(eq(galleryImages.id, entityId), eq(galleryImages.organizationId, orgId)))
+      .limit(1);
+    return row ? { title: row.title, description: row.description } : {};
   }
   return {};
 }
@@ -258,6 +266,11 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(galleryAlbums)
       .where(eq(galleryAlbums.organizationId, ctx.org.id));
 
+    const allGalleryImages = await db
+      .select({ id: galleryImages.id, title: galleryImages.title, description: galleryImages.description })
+      .from(galleryImages)
+      .where(eq(galleryImages.organizationId, ctx.org.id));
+
     let enqueued = 0;
 
     const enqueueEntity = async (entityType: string, entity: { id: string; name: string; description: string | null }) => {
@@ -327,6 +340,26 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Enqueue gallery album translations
     for (const album of allGalleryAlbums) await enqueueEntity("gallery_album", album);
+
+    // Enqueue gallery image translations (title and description)
+    for (const image of allGalleryImages) {
+      const fields = [
+        { field: "title", text: image.title },
+        ...(image.description?.trim() ? [{ field: "description", text: image.description }] : []),
+      ];
+      if (fields.length === 0) continue;
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "gallery_image",
+          entityId: image.id,
+          fields,
+          targetLocale: locale,
+        });
+        enqueued++;
+      }
+    }
 
     return { success: true, enqueued };
   }

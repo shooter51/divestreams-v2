@@ -93,13 +93,25 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && albums.length > 0) {
-    const translations = await bulkGetContentTranslations(organizationId, "gallery_album", albums.map(a => a.id), locale);
-    for (const album of albums) {
-      const tr = translations.get(album.id);
-      if (tr) {
-        if (tr.name) album.name = tr.name;
-        if (tr.description) album.description = tr.description;
+  if (locale !== "en") {
+    if (albums.length > 0) {
+      const albumTranslations = await bulkGetContentTranslations(organizationId, "gallery_album", albums.map(a => a.id), locale);
+      for (const album of albums) {
+        const tr = albumTranslations.get(album.id);
+        if (tr) {
+          if (tr.name) album.name = tr.name;
+          if (tr.description) album.description = tr.description;
+        }
+      }
+    }
+    if (images.length > 0) {
+      const imageTranslations = await bulkGetContentTranslations(organizationId, "gallery_image", images.map(i => i.id), locale);
+      for (const image of images) {
+        const tr = imageTranslations.get(image.id);
+        if (tr) {
+          if (tr.title) image.title = tr.title;
+          if (tr.description) image.description = tr.description;
+        }
       }
     }
   }

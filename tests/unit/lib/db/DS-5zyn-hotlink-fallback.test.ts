@@ -153,6 +153,26 @@ function setupDbSelectEmpty() {
   });
 }
 
+// The select mock returns an existing template with the given images array
+function setupDbSelectExisting(images: string[]) {
+  mockDbSelect.mockReturnValue({
+    from: () => ({
+      where: () => ({
+        limit: () =>
+          Promise.resolve([
+            {
+              id: "tmpl-existing",
+              agencyCode: "sdi-tdi",
+              code: "OW-101",
+              name: "Open Water Diver",
+              images,
+            },
+          ]),
+      }),
+    }),
+  });
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("DS-5zyn: COURSE_PLACEHOLDER_IMAGE constant", () => {
@@ -313,5 +333,85 @@ describe("DS-5zyn: refreshCatalogFromJson hotlink fallback", () => {
     expect(mockFetch).not.toHaveBeenCalled();
     expect(result.imagesFailed).toBe(0);
     expect(result.imagesUploaded).toBe(0);
+  });
+});
+
+describe("DS-5zyn: upsertGlobalAgencyCourseTemplate preserves CDN images", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const BASE_INPUT = {
+    agencyCode: "sdi-tdi",
+    code: "OW-101",
+    name: "Open Water Diver",
+    levelCode: "beginner" as const,
+    description: "Entry-level course",
+    durationDays: 4,
+    classroomHours: 8,
+    poolHours: 4,
+    openWaterDives: 4,
+    prerequisites: null,
+    minAge: 10,
+    medicalRequirements: "Medical form",
+    requiredItems: ["mask", "fins"],
+    materialsIncluded: true,
+    contentHash: "hash-abc",
+    sourceType: "static_json" as const,
+    sourceUrl: null,
+  };
+
+  it("preserves existing S3-migrated images when re-upserting a template", async () => {
+    // Use an S3 URL — the isMigratedImage check recognises "s3." + "amazonaws.com"
+    const s3Image =
+      "https://divestreams-media.s3.us-east-1.amazonaws.com/catalog/sdi-tdi/OW-101/image.jpg";
+    setupDbSelectExisting([s3Image]);
+
+    const { upsertGlobalAgencyCourseTemplate } = await import(
+      "../../../../lib/db/training-templates.server"
+    );
+
+    const result = await upsertGlobalAgencyCourseTemplate({
+      ...BASE_INPUT,
+      images: ["https://images.unsplash.com/photo-1234?w=600"],
+    });
+
+    // The update mock returns whatever was passed to .set(), so result.images
+    // reflects what was actually written to the DB.
+    expect((result as { images: string[] }).images).toEqual([s3Image]);
+  });
+
+  it("uses catalog images when existing record has non-CDN images (not yet migrated)", async () => {
+    const rawUrl = "https://images.unsplash.com/photo-1234?w=600";
+    setupDbSelectExisting([rawUrl]);
+
+    const { upsertGlobalAgencyCourseTemplate } = await import(
+      "../../../../lib/db/training-templates.server"
+    );
+
+    const result = await upsertGlobalAgencyCourseTemplate({
+      ...BASE_INPUT,
+      images: [rawUrl],
+    });
+
+    // Raw Unsplash URL is not a CDN URL — pass it through so migration runs later
+    expect((result as { images: string[] }).images).toEqual([rawUrl]);
+  });
+
+  it("uses catalog images when existing record has no images (null)", async () => {
+    setupDbSelectExisting([]);
+
+    const { upsertGlobalAgencyCourseTemplate } = await import(
+      "../../../../lib/db/training-templates.server"
+    );
+
+    const catalogUrl = "https://images.unsplash.com/photo-9999?w=600";
+    const result = await upsertGlobalAgencyCourseTemplate({
+      ...BASE_INPUT,
+      images: [catalogUrl],
+    });
+
+    // No existing images to preserve — catalog URL used (migration runs later)
+    expect((result as { images: string[] }).images).toEqual([catalogUrl]);
   });
 });
