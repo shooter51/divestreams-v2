@@ -293,7 +293,7 @@ async function processMaintenanceJob(job: { name: string; data: unknown }) {
 }
 
 // Start workers
-function startWorkers() {
+async function startWorkers() {
   jobLogger.info("Starting background workers...");
 
   // Email worker

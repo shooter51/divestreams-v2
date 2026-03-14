@@ -77,6 +77,7 @@ app.all(
     // build is loaded dynamically at startup; cast required because the
     // type expects the full ServerBuild shape which is resolved at runtime.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // @ts-expect-error - build output only exists after npm run build
     build: () => import('../build/server/index.js') as any,
     mode: process.env.NODE_ENV,
   }),

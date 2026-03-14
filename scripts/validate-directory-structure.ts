@@ -89,6 +89,8 @@ const ALLOWED_ROOT_DIRS = new Set([
   'scripts',
   'tests',
   'terraform',
+  'config',
+  'server',
   'zapier-app',
   'deployment',
   'schemas',
