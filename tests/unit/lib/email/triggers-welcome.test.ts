@@ -7,6 +7,10 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const { mockEmailLoggerWarn } = vi.hoisted(() => ({
+  mockEmailLoggerWarn: vi.fn(),
+}));
+
 vi.mock("../../../../lib/jobs/index", () => ({
   sendEmail: vi.fn(),
 }));
@@ -21,6 +25,14 @@ vi.mock("../../../../lib/utils/url", () => ({
 
 vi.mock("../../../../lib/email/index", () => ({
   isEmailConfigured: vi.fn(),
+}));
+
+vi.mock("../../../../lib/logger", () => ({
+  emailLogger: {
+    warn: mockEmailLoggerWarn,
+    error: vi.fn(),
+    info: vi.fn(),
+  },
 }));
 
 import { triggerWelcomeEmail } from "../../../../lib/email/triggers";
@@ -59,44 +71,34 @@ describe("triggerWelcomeEmail (KAN-592)", () => {
 
   it("warns but still sends when SMTP is not configured", async () => {
     (isEmailConfigured as MockFn).mockReturnValue(false);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await triggerWelcomeEmail(defaultParams);
 
-    expect(warnSpy).toHaveBeenCalledWith(
+    expect(mockEmailLoggerWarn).toHaveBeenCalledWith(
+      expect.objectContaining({ userEmail: "test@example.com" }),
       expect.stringContaining("SMTP not configured")
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("test@example.com")
     );
     // Still attempts to send (best-effort)
     expect(sendEmail).toHaveBeenCalledTimes(1);
-
-    warnSpy.mockRestore();
   });
 
   it("includes environment variable hints in warning", async () => {
     (isEmailConfigured as MockFn).mockReturnValue(false);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await triggerWelcomeEmail(defaultParams);
 
-    expect(warnSpy).toHaveBeenCalledWith(
+    expect(mockEmailLoggerWarn).toHaveBeenCalledWith(
+      expect.any(Object),
       expect.stringContaining("SMTP_HOST")
     );
-
-    warnSpy.mockRestore();
   });
 
   it("does not warn when SMTP is configured", async () => {
     (isEmailConfigured as MockFn).mockReturnValue(true);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     await triggerWelcomeEmail(defaultParams);
 
-    expect(warnSpy).not.toHaveBeenCalled();
-
-    warnSpy.mockRestore();
+    expect(mockEmailLoggerWarn).not.toHaveBeenCalled();
   });
 
   it("propagates sendEmail errors (caller handles them)", async () => {

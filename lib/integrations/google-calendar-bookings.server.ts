@@ -29,7 +29,7 @@ export async function syncBookingToCalendar(
     const result = await syncTripToCalendar(orgId, tripId, timezone);
     return result;
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "sync-booking" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, tripId }, "Failed to sync booking to calendar");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -57,7 +57,7 @@ export async function syncBookingCancellationToCalendar(
     const result = await syncTripToCalendar(orgId, tripId, timezone);
     return result;
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "sync-booking-cancellation" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, tripId }, "Failed to sync booking cancellation to calendar");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -81,7 +81,7 @@ export async function syncTripsToCalendar(
     // 1. Get all trips for the organization
     // 2. Sync each trip to calendar
     // 3. Count successes and failures
-    integrationLogger.info({ provider: "google-calendar", organizationId: orgId, action: "sync-trips" }, "Sync completed");
+    integrationLogger.info({ provider: "google-calendar", organizationId: orgId }, "Would sync trips for org");
 
     return {
       success: true,
@@ -90,7 +90,7 @@ export async function syncTripsToCalendar(
       errors: ['Google Calendar sync requires API implementation'],
     };
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "sync-trips" }, "Sync failed");
+    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId }, "Failed to sync trips to calendar");
     return {
       success: false,
       synced: 0,

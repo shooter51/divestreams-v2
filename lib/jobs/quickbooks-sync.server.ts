@@ -7,6 +7,7 @@
 
 import { Queue, Worker } from "bullmq";
 import { getBullMQConnection } from "../redis.server";
+import { jobLogger } from "../logger";
 import {
   syncBookingToQuickBooks,
   createQuickBooksCustomer,
@@ -16,7 +17,6 @@ import { db } from "../db";
 import { eq, and } from "drizzle-orm";
 import { integrations } from "../db/schema/integrations";
 import { quickbooksSyncRecords } from "../db/schema/quickbooks";
-import { jobLogger } from "../logger";
 
 // ============================================================================
 // QUEUE SETUP
@@ -240,7 +240,10 @@ async function processQuickBooksSync(job: { data: QuickBooksSyncJob }) {
   // Check if sync is enabled
   const syncEnabled = await isSyncEnabled(data.organizationId);
   if (!syncEnabled) {
-    jobLogger.info({ jobName: "quickbooks-sync", organizationId: data.organizationId, type: data.type }, "Job started");
+    jobLogger.info(
+      { organizationId: data.organizationId, jobType: data.type },
+      "QuickBooks sync disabled for org, skipping"
+    );
     return;
   }
 
@@ -356,7 +359,7 @@ async function processQuickBooksSync(job: { data: QuickBooksSyncJob }) {
       }
     }
   } catch (error) {
-    jobLogger.error({ err: error, jobName: "quickbooks-sync", type: data.type, organizationId: data.organizationId }, "Job failed");
+    jobLogger.error({ err: error, organizationId: data.organizationId, jobType: data.type }, "QuickBooks sync failed");
     throw error;
   }
 }
@@ -379,14 +382,14 @@ export function startQuickBooksSyncWorker() {
   });
 
   worker.on("completed", (job) => {
-    jobLogger.info({ jobName: "quickbooks-sync", jobId: job.id }, "Job started");
+    jobLogger.info({ jobId: job.id }, "QuickBooks sync job completed");
   });
 
   worker.on("failed", (job, err) => {
-    jobLogger.error({ err, jobName: "quickbooks-sync", jobId: job?.id }, "Job failed");
+    jobLogger.error({ err, jobId: job?.id }, "QuickBooks sync job failed");
   });
 
-  jobLogger.info({ jobName: "quickbooks-sync" }, "Job started");
+  jobLogger.info("QuickBooks sync worker started");
 
   return worker;
 }
