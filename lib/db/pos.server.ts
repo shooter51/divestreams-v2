@@ -744,8 +744,8 @@ export async function processPOSRefund(
       throw new Error("Cannot refund a refund transaction");
     }
 
-    if (original.type !== "sale") {
-      throw new Error(`Cannot refund transaction of type '${original.type}'. Only 'sale' transactions can be refunded.`);
+    if (original.type !== "sale" && original.type !== "payment") {
+      throw new Error(`Cannot refund transaction of type '${original.type}'. Only 'sale' and 'payment' transactions can be refunded.`);
     }
 
     // Check if transaction has already been refunded (double-refund prevention)
@@ -765,7 +765,7 @@ export async function processPOSRefund(
       .values({
         organizationId,
         type: "refund",
-        bookingId: null,
+        bookingId: original.bookingId,
         customerId: original.customerId,
         userId: data.userId,
         amount: `-${original.amount}`, // Negative amount for refund
@@ -779,69 +779,114 @@ export async function processPOSRefund(
       })
       .returning();
 
-    // Process inventory adjustments for products
-    const items = (original.items as Array<{
-      type: string;
-      productId?: string;
-      quantity?: number;
-      equipmentId?: string;
-      tripId?: string;
-    }>) || [];
+    // For payment transactions linked to a booking, reverse the booking payment state
+    if (original.type === "payment" && original.bookingId) {
+      const [booking] = await tx
+        .select()
+        .from(tables.bookings)
+        .where(
+          and(
+            eq(tables.bookings.id, original.bookingId),
+            eq(tables.bookings.organizationId, organizationId)
+          )
+        )
+        .for("update");
 
-    for (const item of items) {
-      if (item.type === "product" && item.productId && item.quantity) {
-        // Return products to inventory
+      if (booking) {
+        const refundAmount = Math.abs(Number(original.amount));
+        const currentPaid = Number(booking.paidAmount || 0);
+        const newPaidAmount = Math.max(0, currentPaid - refundAmount);
+        const totalDue = Number(booking.total);
+
+        let newPaymentStatus: string;
+        if (newPaidAmount <= 0) {
+          newPaymentStatus = "refunded";
+        } else if (newPaidAmount >= totalDue - 0.01) {
+          newPaymentStatus = "paid";
+        } else {
+          newPaymentStatus = "partial";
+        }
+
         await tx
-          .update(tables.products)
+          .update(tables.bookings)
           .set({
-            stockQuantity: sql`${tables.products.stockQuantity} + ${item.quantity}`,
+            paidAmount: String(newPaidAmount),
+            paymentStatus: newPaymentStatus,
             updatedAt: new Date(),
           })
-          .where(eq(tables.products.id, item.productId));
-      }
-
-      if (item.type === "rental" && item.equipmentId) {
-        // Return equipment to available status
-        await tx
-          .update(tables.equipment)
-          .set({ status: "available", updatedAt: new Date() })
-          .where(eq(tables.equipment.id, item.equipmentId));
-
-        // Update rental status to returned
-        await tx
-          .update(tables.rentals)
-          .set({ status: "returned", returnedAt: new Date() })
           .where(
             and(
-              eq(tables.rentals.transactionId, original.id),
-              eq(tables.rentals.equipmentId, item.equipmentId)
+              eq(tables.bookings.id, original.bookingId),
+              eq(tables.bookings.organizationId, organizationId)
             )
           );
       }
+    }
 
-      if (item.type === "booking" && item.tripId && original.customerId) {
-        // Find and cancel the booking created by this POS transaction
-        // Match by tripId, customerId, source, and creation time window
-        const [booking] = await tx
-          .select()
-          .from(tables.bookings)
-          .where(
-            and(
-              eq(tables.bookings.organizationId, organizationId),
-              eq(tables.bookings.tripId, item.tripId),
-              eq(tables.bookings.customerId, original.customerId),
-              eq(tables.bookings.source, "pos"),
-              sql`${tables.bookings.createdAt} >= ${original.createdAt} - interval '1 minute'`,
-              sql`${tables.bookings.createdAt} <= ${original.createdAt} + interval '1 minute'`
-            )
-          )
-          .limit(1);
+    // Process inventory adjustments for sale transactions
+    if (original.type === "sale") {
+      const items = (original.items as Array<{
+        type: string;
+        productId?: string;
+        quantity?: number;
+        equipmentId?: string;
+        tripId?: string;
+      }>) || [];
 
-        if (booking) {
+      for (const item of items) {
+        if (item.type === "product" && item.productId && item.quantity) {
+          // Return products to inventory
           await tx
-            .update(tables.bookings)
-            .set({ status: "cancelled", updatedAt: new Date() })
-            .where(eq(tables.bookings.id, booking.id));
+            .update(tables.products)
+            .set({
+              stockQuantity: sql`${tables.products.stockQuantity} + ${item.quantity}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(tables.products.id, item.productId));
+        }
+
+        if (item.type === "rental" && item.equipmentId) {
+          // Return equipment to available status
+          await tx
+            .update(tables.equipment)
+            .set({ status: "available", updatedAt: new Date() })
+            .where(eq(tables.equipment.id, item.equipmentId));
+
+          // Update rental status to returned
+          await tx
+            .update(tables.rentals)
+            .set({ status: "returned", returnedAt: new Date() })
+            .where(
+              and(
+                eq(tables.rentals.transactionId, original.id),
+                eq(tables.rentals.equipmentId, item.equipmentId)
+              )
+            );
+        }
+
+        if (item.type === "booking" && item.tripId && original.customerId) {
+          // Find and cancel the booking created by this POS transaction
+          const [booking] = await tx
+            .select()
+            .from(tables.bookings)
+            .where(
+              and(
+                eq(tables.bookings.organizationId, organizationId),
+                eq(tables.bookings.tripId, item.tripId),
+                eq(tables.bookings.customerId, original.customerId),
+                eq(tables.bookings.source, "pos"),
+                sql`${tables.bookings.createdAt} >= ${original.createdAt} - interval '1 minute'`,
+                sql`${tables.bookings.createdAt} <= ${original.createdAt} + interval '1 minute'`
+              )
+            )
+            .limit(1);
+
+          if (booking) {
+            await tx
+              .update(tables.bookings)
+              .set({ status: "cancelled", updatedAt: new Date() })
+              .where(eq(tables.bookings.id, booking.id));
+          }
         }
       }
     }

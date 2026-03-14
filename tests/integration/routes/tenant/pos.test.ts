@@ -75,6 +75,8 @@ import {
   processPOSCheckout,
   generateAgreementNumber,
   getProductByBarcode,
+  getTransactionById,
+  processPOSRefund,
 } from "../../../../lib/db/pos.server";
 import {
   getStripeSettings,
@@ -82,6 +84,7 @@ import {
   createPOSPaymentIntent,
   createTerminalConnectionToken,
   listTerminalReaders,
+  createStripeRefund,
 } from "../../../../lib/integrations/stripe.server";
 
 describe("tenant/pos route", () => {
@@ -608,6 +611,198 @@ describe("tenant/pos route", () => {
         const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(result).toEqual({ error: "Stripe not connected" });
+      });
+    });
+
+    describe("process-refund", () => {
+      it("refunds a payment-type transaction (booking refund)", async () => {
+        const mockRefundResult = {
+          refundTransaction: {
+            id: "refund-txn-001",
+            type: "refund",
+            amount: "-259.00",
+            bookingId: "booking-001",
+          },
+          originalTransaction: {
+            id: "txn-001",
+            type: "payment",
+            amount: "259.00",
+            bookingId: "booking-001",
+          },
+        };
+        (processPOSRefund as Mock).mockResolvedValue(mockRefundResult);
+
+        const refundData = {
+          originalTransactionId: "00000000-0000-0000-0000-000000000001",
+          paymentMethod: "cash",
+          refundReason: "Service Cancellation",
+        };
+
+        const formData = new FormData();
+        formData.append("intent", "process-refund");
+        formData.append("data", JSON.stringify(refundData));
+
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(processPOSRefund).toHaveBeenCalledWith(
+          mockTenantDb.schema,
+          "org-uuid",
+          {
+            originalTransactionId: "00000000-0000-0000-0000-000000000001",
+            userId: "user-1",
+            refundReason: "Service Cancellation",
+            stripeRefundId: undefined,
+          }
+        );
+        expect(result).toEqual({
+          success: true,
+          refundId: "refund-txn-001",
+          amount: 259,
+        });
+      });
+
+      it("refunds a sale-type transaction", async () => {
+        const mockRefundResult = {
+          refundTransaction: {
+            id: "refund-txn-002",
+            type: "refund",
+            amount: "-50.00",
+          },
+          originalTransaction: {
+            id: "txn-002",
+            type: "sale",
+            amount: "50.00",
+          },
+        };
+        (processPOSRefund as Mock).mockResolvedValue(mockRefundResult);
+
+        const refundData = {
+          originalTransactionId: "00000000-0000-0000-0000-000000000002",
+          paymentMethod: "cash",
+          refundReason: "Defective product",
+        };
+
+        const formData = new FormData();
+        formData.append("intent", "process-refund");
+        formData.append("data", JSON.stringify(refundData));
+
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({
+          success: true,
+          refundId: "refund-txn-002",
+          amount: 50,
+        });
+      });
+
+      it("processes Stripe refund for card payment transactions", async () => {
+        (createStripeRefund as Mock).mockResolvedValue({ refundId: "re_stripe_001" });
+
+        const mockRefundResult = {
+          refundTransaction: {
+            id: "refund-txn-003",
+            type: "refund",
+            amount: "-100.00",
+          },
+          originalTransaction: {
+            id: "txn-003",
+            type: "payment",
+            amount: "100.00",
+          },
+        };
+        (processPOSRefund as Mock).mockResolvedValue(mockRefundResult);
+
+        const refundData = {
+          originalTransactionId: "00000000-0000-0000-0000-000000000003",
+          paymentMethod: "card",
+          stripePaymentId: "pi_stripe_original",
+          refundReason: "Trip cancelled",
+        };
+
+        const formData = new FormData();
+        formData.append("intent", "process-refund");
+        formData.append("data", JSON.stringify(refundData));
+
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(createStripeRefund).toHaveBeenCalledWith("org-uuid", "pi_stripe_original", {
+          reason: "requested_by_customer",
+          metadata: {
+            originalTransactionId: "00000000-0000-0000-0000-000000000003",
+            refundReason: "Trip cancelled",
+          },
+        });
+        expect(processPOSRefund).toHaveBeenCalledWith(
+          mockTenantDb.schema,
+          "org-uuid",
+          expect.objectContaining({
+            stripeRefundId: "re_stripe_001",
+          })
+        );
+        expect(result).toEqual({
+          success: true,
+          refundId: "refund-txn-003",
+          amount: 100,
+        });
+      });
+
+      it("returns error when refund reason is missing", async () => {
+        const refundData = {
+          originalTransactionId: "00000000-0000-0000-0000-000000000001",
+          paymentMethod: "cash",
+          refundReason: "",
+        };
+
+        const formData = new FormData();
+        formData.append("intent", "process-refund");
+        formData.append("data", JSON.stringify(refundData));
+
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Refund reason is required" });
+      });
+
+      it("returns error when processPOSRefund throws", async () => {
+        (processPOSRefund as Mock).mockRejectedValue(new Error("Transaction has already been refunded"));
+
+        const refundData = {
+          originalTransactionId: "00000000-0000-0000-0000-000000000001",
+          paymentMethod: "cash",
+          refundReason: "Customer request",
+        };
+
+        const formData = new FormData();
+        formData.append("intent", "process-refund");
+        formData.append("data", JSON.stringify(refundData));
+
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Transaction has already been refunded" });
       });
     });
   });
