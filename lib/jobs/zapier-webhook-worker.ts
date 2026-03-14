@@ -7,6 +7,7 @@
 import { Worker, type ConnectionOptions } from "bullmq";
 import Redis from "ioredis";
 import { deliverWebhook } from "../integrations/zapier-enhanced.server";
+import { jobLogger } from "../logger";
 
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
@@ -30,9 +31,7 @@ export const zapierWebhookWorker = new Worker(
       organizationId: _organizationId,
     } = job.data;
 
-    console.log(
-      `[Zapier Worker] Delivering webhook ${eventType} to ${targetUrl} (attempt ${job.attemptsMade + 1})`
-    );
+    jobLogger.info({ jobName: "zapier-webhook", eventType, targetUrl, attempt: job.attemptsMade + 1 }, "Job started");
 
     const result = await deliverWebhook(
       subscriptionId,
@@ -47,9 +46,7 @@ export const zapierWebhookWorker = new Worker(
       throw new Error(result.error || "Webhook delivery failed");
     }
 
-    console.log(
-      `[Zapier Worker] Successfully delivered webhook ${eventType} (HTTP ${result.statusCode})`
-    );
+    jobLogger.info({ jobName: "zapier-webhook", eventType, statusCode: result.statusCode }, "Job started");
 
     return result;
   },
@@ -61,33 +58,30 @@ export const zapierWebhookWorker = new Worker(
 
 // Event listeners
 zapierWebhookWorker.on("completed", (job) => {
-  console.log(`[Zapier Worker] Job ${job.id} completed successfully`);
+  jobLogger.info({ jobName: "zapier-webhook", jobId: job.id }, "Job started");
 });
 
 zapierWebhookWorker.on("failed", (job, err) => {
-  console.error(
-    `[Zapier Worker] Job ${job?.id} failed after ${job?.attemptsMade} attempts:`,
-    err.message
-  );
+  jobLogger.error({ err, jobName: "zapier-webhook", jobId: job?.id, attemptsMade: job?.attemptsMade }, "Job failed");
 });
 
 zapierWebhookWorker.on("error", (err) => {
-  console.error("[Zapier Worker] Worker error:", err);
+  jobLogger.error({ err, jobName: "zapier-webhook" }, "Job failed");
 });
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
-  console.log("[Zapier Worker] Received SIGTERM, shutting down gracefully...");
+  jobLogger.info({ jobName: "zapier-webhook" }, "Job started");
   await zapierWebhookWorker.close();
   await redis.quit();
   process.exit(0);
 });
 
 process.on("SIGINT", async () => {
-  console.log("[Zapier Worker] Received SIGINT, shutting down gracefully...");
+  jobLogger.info({ jobName: "zapier-webhook" }, "Job started");
   await zapierWebhookWorker.close();
   await redis.quit();
   process.exit(0);
 });
 
-console.log("[Zapier Worker] Started and waiting for jobs...");
+jobLogger.info({ jobName: "zapier-webhook" }, "Job started");
