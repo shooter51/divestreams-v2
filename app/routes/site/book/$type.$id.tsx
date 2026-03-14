@@ -46,6 +46,7 @@ import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { getNextBookingNumber } from "../../../../lib/db/queries/bookings.server";
+import { dbLogger } from "../../../../lib/logger";
 import { useT } from "../../../i18n/use-t";
 import { getTankTypes } from "../../../../lib/db/queries/equipment.server";
 import { TankGasSelector } from "../../../components/tank-gas-selector";
@@ -846,10 +847,7 @@ export async function action({
           }
         );
       } catch (emailError) {
-        console.error(
-          "Failed to queue enrollment confirmation email:",
-          emailError
-        );
+        dbLogger.error({ err: emailError, organizationId: org.id }, "Failed to queue enrollment confirmation email");
       }
 
       // Redirect to confirmation page with enrollment info
@@ -1048,6 +1046,11 @@ export async function action({
           bookingNumber: bookings.bookingNumber,
         });
 
+      dbLogger.info(
+        { bookingNumber: booking.bookingNumber, organizationId: org.id, customerId: finalCustomerId, tripId, total, participants, source: "website" },
+        "Booking created"
+      );
+
       return {
         id: booking.id,
         bookingNumber: booking.bookingNumber,
@@ -1099,7 +1102,7 @@ export async function action({
       });
     } catch (emailError) {
       // Log but do not block the booking flow
-      console.error("Failed to queue booking confirmation email:", emailError);
+      dbLogger.error({ err: emailError, organizationId: org.id, bookingId: newBooking.id }, "Failed to queue booking confirmation email");
     }
   }
 

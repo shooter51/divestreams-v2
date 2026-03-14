@@ -11,6 +11,7 @@ import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
+import { authLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
 
@@ -83,6 +84,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
+      authLogger.warn({ email, reason: userData.message }, "Admin login failed");
       return { error: userData.message || "Invalid email or password", email };
     }
 
@@ -100,7 +102,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .limit(1);
 
     if (!platformOrg) {
-      console.error("Platform organization not found");
+      authLogger.error({}, "Platform organization not found");
       return { error: "Platform configuration error. Please contact support.", email };
     }
 
@@ -129,11 +131,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // User is a platform member, redirect to dashboard
+    authLogger.info({ email }, "Admin logged in");
     return redirect(validatedRedirectTo, {
       headers: cookies ? { "Set-Cookie": cookies } : {},
     });
   } catch (error) {
-    console.error("Admin login error:", error);
+    authLogger.error({ email, err: error }, "Admin login error");
     return { error: "An error occurred during login. Please try again.", email: email || "" };
   }
 }

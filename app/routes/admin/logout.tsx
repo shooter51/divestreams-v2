@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { auth } from "../../../lib/auth";
+import { authLogger } from "../../../lib/logger";
 
 export async function action({ request }: ActionFunctionArgs) {
   // Use Better Auth to sign out
@@ -12,6 +13,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Get the Set-Cookie header to clear the session
   const cookies = response.headers.get("set-cookie");
 
+  authLogger.info({}, "Admin logged out");
   return redirect("/login", {
     headers: cookies ? { "Set-Cookie": cookies } : {},
   });

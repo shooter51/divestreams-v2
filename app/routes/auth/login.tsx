@@ -11,6 +11,7 @@ import { getAppUrl, getTenantUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
+import { authLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -141,6 +142,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   if (!rateLimitResult.allowed) {
+    authLogger.warn({ email }, "Rate limit exceeded on login");
     return { errors: { form: "Too many login attempts. Please try again later." } };
   }
 
@@ -172,11 +174,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok || !userData?.user) {
-      console.error("Login failed:", {
-        status: response.status,
-        message: userData?.message,
-        email,
-      });
+      authLogger.warn({ email, reason: userData?.message }, "Login failed");
       return { errors: { form: userData?.message || "Invalid email or password" }, email: email || "" };
     }
 
@@ -216,11 +214,12 @@ export async function action({ request }: ActionFunctionArgs) {
       : "/tenant";
 
     // Redirect to app WITH the session cookies
+    authLogger.info({ email, organizationId: org.id }, "User logged in");
     return redirect(redirectTo, {
       headers: cookies ? { "Set-Cookie": cookies } : {},
     });
   } catch (error) {
-    console.error("Login error:", error);
+    authLogger.error({ email, err: error }, "Login error");
     return { errors: { form: "Invalid email or password" }, email: email || "" };
   }
 }

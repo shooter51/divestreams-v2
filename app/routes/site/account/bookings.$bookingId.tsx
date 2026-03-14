@@ -19,6 +19,7 @@ import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { syncBookingCancellationToCalendar } from "../../../../lib/integrations/google-calendar-bookings.server";
+import { dbLogger } from "../../../../lib/logger";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 // ============================================================================
@@ -259,6 +260,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
         )
       );
 
+    dbLogger.info({ bookingId, organizationId: booking.organizationId, customerId: customer.id, reason }, "Booking cancelled by customer");
+
     // Sync cancellation to Google Calendar (remove customer from attendees)
     try {
       await syncBookingCancellationToCalendar(
@@ -268,7 +271,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       );
     } catch (error) {
       // Log error but don't block cancellation
-      console.error("Failed to sync cancellation to Google Calendar:", error);
+      dbLogger.error({ err: error, bookingId, organizationId: booking.organizationId }, "Failed to sync cancellation to Google Calendar");
     }
 
     return new Response(JSON.stringify({ success: true }), {

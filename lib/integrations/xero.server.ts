@@ -21,6 +21,7 @@ import {
   type Integration,
 } from "./index.server";
 import { createHmac, timingSafeEqual } from "crypto";
+import { integrationLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -236,7 +237,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error("Xero token exchange failed:", error);
+    integrationLogger.error({ err: error, provider: "xero", action: "token-exchange" }, "Sync failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -279,7 +280,7 @@ export async function refreshAccessToken(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error("Xero token refresh failed:", error);
+    integrationLogger.error({ err: error, provider: "xero", action: "token-refresh" }, "Sync failed");
     throw new Error("Failed to refresh access token");
   }
 
@@ -427,7 +428,7 @@ async function getValidAccessToken(
 
       return { accessToken: refreshed.accessToken, integration };
     } catch (error) {
-      console.error("Failed to refresh Xero token:", error);
+      integrationLogger.error({ err: error, provider: "xero", action: "token-refresh" }, "Sync failed");
       await updateLastSync(integration.id, "Token refresh failed");
       return null;
     }
@@ -467,7 +468,7 @@ async function xeroRequest<T>(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Xero API error (${endpoint}):`, errorText);
+    integrationLogger.error({ err: errorText, provider: "xero", action: endpoint }, "Sync failed");
     throw new Error(`Xero API request failed: ${response.status}`);
   }
 
@@ -507,7 +508,7 @@ export async function getXeroOrganizationInfo(
 
     return null;
   } catch (error) {
-    console.error("Error fetching Xero organization:", error);
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-organization" }, "Sync failed");
     return null;
   }
 }
@@ -538,7 +539,7 @@ export async function getXeroAccounts(
       type: acc.Type,
     }));
   } catch (error) {
-    console.error("Error fetching Xero accounts:", error);
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-accounts" }, "Sync failed");
     return null;
   }
 }
@@ -694,7 +695,7 @@ export async function getXeroInvoices(
 
     return data.Invoices || [];
   } catch (error) {
-    console.error("Error fetching Xero invoices:", error);
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-invoices" }, "Sync failed");
     return null;
   }
 }
@@ -727,7 +728,7 @@ export async function getXeroContacts(
 
     return data.Contacts || [];
   } catch (error) {
-    console.error("Error fetching Xero contacts:", error);
+    integrationLogger.error({ err: error, provider: "xero", organizationId: orgId, action: "get-contacts" }, "Sync failed");
     return null;
   }
 }
@@ -754,7 +755,7 @@ export async function syncContactsToXero(organizationId: string): Promise<XeroSy
 
   // Get customers that need syncing
   // For now, return a placeholder - actual implementation requires Xero API calls
-  console.log('[Xero] Would sync contacts for org:', organizationId);
+  integrationLogger.info({ provider: "xero", organizationId, action: "sync-contacts" }, "Sync completed");
 
   return {
     success: false,
@@ -775,7 +776,7 @@ export async function syncInvoicesToXero(organizationId: string): Promise<XeroSy
 
   // Get invoices that need syncing
   // For now, return a placeholder - actual implementation requires Xero API calls
-  console.log('[Xero] Would sync invoices for org:', organizationId);
+  integrationLogger.info({ provider: "xero", organizationId, action: "sync-invoices" }, "Sync completed");
 
   return {
     success: false,

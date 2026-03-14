@@ -10,6 +10,7 @@ import { useLoaderData, useOutletContext, Form, useActionData, useNavigation, Li
 import { redirect } from "react-router";
 import { getOrganizationBySlug, getPublicTripById } from "../../../lib/db/queries.public";
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
+import { dbLogger } from "../../../lib/logger";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../lib/email/triggers";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { getTankTypes } from "../../../lib/db/queries/equipment.server";
@@ -173,15 +174,20 @@ export async function action({ params, request }: ActionFunctionArgs) {
         });
       } catch (emailError) {
         // Log email error but don't fail the booking
-        console.error("Failed to send booking confirmation email:", emailError);
+        dbLogger.error({ err: emailError, organizationId: org.id, bookingId: booking.id }, "Failed to send booking confirmation email");
       }
     }
+
+    dbLogger.info(
+      { bookingNumber: booking.bookingNumber, organizationId: org.id, tripId, participants, total: booking.total, source: "widget" },
+      "Booking created"
+    );
 
     // For Phase 1: Redirect to confirmation page
     // Phase 2 will integrate Stripe Checkout here
     return redirect(`/embed/${subdomain}/confirm?bookingId=${booking.id}&bookingNumber=${booking.bookingNumber}`);
   } catch (error) {
-    console.error("Booking creation failed:", error);
+    dbLogger.error({ err: error, organizationId: org.id, tripId }, "Booking creation failed");
     return {
       errors: { form: "Failed to create booking. Please try again." },
       values: {

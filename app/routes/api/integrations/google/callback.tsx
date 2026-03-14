@@ -15,6 +15,7 @@ import {
   handleGoogleCallback,
 } from "../../../../../lib/integrations/google-calendar.server";
 import { getSubdomainFromRequest } from "../../../../../lib/auth/org-context.server";
+import { integrationLogger } from "../../../../../lib/logger";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -36,7 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    console.error("Google OAuth error:", error);
+    integrationLogger.error({ err: error, provider: "google-calendar" }, "Google OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the calendar access request."
@@ -85,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    console.error("Google OAuth callback error:", err);
+    integrationLogger.error({ err, provider: "google-calendar" }, "OAuth callback failed");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect Google Calendar";
     return redirect(

@@ -8,6 +8,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
+import { integrationLogger } from "../../../../../lib/logger";
 import { db } from "../../../../../lib/db/index.js";
 import { customers } from "../../../../../lib/db/schema.js";
 import { eq, and } from "drizzle-orm";
@@ -114,7 +115,7 @@ export async function action({ request }: ActionFunctionArgs) {
       updated_at: updated.updatedAt,
     });
   } catch (error) {
-    console.error("Zapier update customer error:", error);
+    integrationLogger.error({ err: error, provider: "zapier", action: "update-customer", organizationId: orgId }, "Sync failed");
     return Response.json(
       {
         error: "Failed to update customer",

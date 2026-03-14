@@ -11,6 +11,7 @@ import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
 import { useT } from "../../i18n/use-t";
+import { authLogger } from "../../../lib/logger";
 
 type ActionData = {
   error?: string;
@@ -177,7 +178,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // Redirect to app
       return redirect(validatedRedirectTo);
     } catch (error) {
-      console.error("Join error:", error);
+      authLogger.error({ err: error }, "Join org failed");
       return { error: "auth.login.joinFailed", email: "" };
     }
   }
@@ -211,6 +212,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
+      authLogger.warn({ email, reason: userData.message }, "Login failed");
       return { error: userData.message || "auth.login.invalidCredentials", email };
     }
 
@@ -260,11 +262,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // User is a member (or no subdomain), redirect to app
+    authLogger.info({ email }, "User logged in");
     return redirect(validatedRedirectTo, {
       headers: cookies ? { "Set-Cookie": cookies } : {},
     });
   } catch (error) {
-    console.error("Login error:", error);
+    authLogger.error({ email, err: error }, "Login error");
     return { error: "auth.login.genericError", email: email || "" };
   }
 }

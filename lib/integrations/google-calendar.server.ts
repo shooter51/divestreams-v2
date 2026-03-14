@@ -23,6 +23,7 @@ import { db } from "../db";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { trips, tours } from "../db/schema";
 import { createHmac, timingSafeEqual } from "crypto";
+import { integrationLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -173,7 +174,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error("Google token exchange failed:", error);
+    integrationLogger.error({ err: error, provider: "google-calendar", action: "token-exchange" }, "Sync failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -215,7 +216,7 @@ export async function refreshAccessToken(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error("Google token refresh failed:", error);
+    integrationLogger.error({ err: error, provider: "google-calendar", action: "token-refresh" }, "Sync failed");
     throw new Error("Failed to refresh access token");
   }
 
@@ -347,7 +348,7 @@ async function getValidAccessToken(
 
       return { accessToken: refreshed.accessToken, integration };
     } catch (error) {
-      console.error("Failed to refresh Google token:", error);
+      integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "token-refresh" }, "Sync failed");
       await updateLastSync(integration.id, "Token refresh failed");
       return null;
     }

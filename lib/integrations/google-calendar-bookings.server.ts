@@ -7,6 +7,7 @@
  */
 
 import { syncTripToCalendar } from "./google-calendar.server";
+import { integrationLogger } from "../logger";
 
 /**
  * Sync booking to calendar by updating trip attendees
@@ -28,7 +29,7 @@ export async function syncBookingToCalendar(
     const result = await syncTripToCalendar(orgId, tripId, timezone);
     return result;
   } catch (error) {
-    console.error("Failed to sync booking to calendar:", error);
+    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "sync-booking" }, "Sync failed");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -56,7 +57,7 @@ export async function syncBookingCancellationToCalendar(
     const result = await syncTripToCalendar(orgId, tripId, timezone);
     return result;
   } catch (error) {
-    console.error("Failed to sync booking cancellation to calendar:", error);
+    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "sync-booking-cancellation" }, "Sync failed");
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -80,7 +81,7 @@ export async function syncTripsToCalendar(
     // 1. Get all trips for the organization
     // 2. Sync each trip to calendar
     // 3. Count successes and failures
-    console.log('[Google Calendar] Would sync trips for org:', orgId);
+    integrationLogger.info({ provider: "google-calendar", organizationId: orgId, action: "sync-trips" }, "Sync completed");
 
     return {
       success: true,
@@ -89,7 +90,7 @@ export async function syncTripsToCalendar(
       errors: ['Google Calendar sync requires API implementation'],
     };
   } catch (error) {
-    console.error("Failed to sync trips to calendar:", error);
+    integrationLogger.error({ err: error, provider: "google-calendar", organizationId: orgId, action: "sync-trips" }, "Sync failed");
     return {
       success: false,
       synced: 0,
