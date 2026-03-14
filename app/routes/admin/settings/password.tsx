@@ -7,6 +7,7 @@ import { and } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "../../../../lib/auth/password.server";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
+import { authLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams Admin" }];
 
@@ -92,9 +93,10 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .where(eq(account.userId, ctx.user.id));
 
+    authLogger.info({ userId: ctx.user.id }, "Admin password changed");
     return redirect("/admin/dashboard?message=Password updated successfully");
   } catch (error) {
-    console.error("Password update error:", error);
+    authLogger.error({ userId: ctx.user.id, err: error }, "Admin password update error");
     return { error: "Failed to update password" };
   }
 }

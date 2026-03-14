@@ -8,6 +8,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { authLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Reset Password - DiveStreams" }];
@@ -79,8 +80,10 @@ export async function action({ request }: ActionFunctionArgs) {
       body: { token, newPassword: password },
     });
 
+    authLogger.info({}, "Password reset completed");
     return redirect("/auth/login?reset=success");
-  } catch {
+  } catch (err) {
+    authLogger.warn({ err }, "Password reset failed");
     return { error: "auth.resetPassword.invalidOrExpiredToken" };
   }
 }

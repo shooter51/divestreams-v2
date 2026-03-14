@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { auth } from "../../../lib/auth";
+import { authLogger } from "../../../lib/logger";
 
 export async function loader() {
   // GET requests should not perform logout (CSRF vulnerability)
@@ -18,6 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Get the Set-Cookie header to clear the session
   const cookies = response.headers.get("set-cookie");
 
+  authLogger.info({}, "User logged out");
   return redirect("/auth/login", {
     headers: cookies ? { "Set-Cookie": cookies } : {},
   });
