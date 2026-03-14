@@ -317,8 +317,24 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   });
 
   test("[KAN-61] 3.4 Create tenant user via signup @critical", async ({ page }) => {
+    // On remote environments, Caddy provisions TLS on-demand for new subdomains.
+    // Wait for TLS to be ready before proceeding (can take 10-30s for Let's Encrypt).
+    if (isRemoteTest) {
+      test.setTimeout(90000);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const ok = await page.goto(getTenantUrl("/auth/login"), { timeout: 30000 }).then(() => true).catch(() => false);
+        if (ok) {
+          const hasForm = await page.getByRole("textbox", { name: /email/i }).isVisible({ timeout: 5000 }).catch(() => false);
+          if (hasForm) break;
+        }
+        console.log(`TLS warm-up attempt ${attempt + 1}/3 — waiting 10s for cert provisioning...`);
+        await page.waitForTimeout(10000);
+      }
+    } else {
+      await page.goto(getTenantUrl("/auth/login"));
+    }
+
     // Check if user already exists by trying to login (created by global-setup or previous run)
-    await page.goto(getTenantUrl("/auth/login"));
     await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
     await page.locator('input[type="password"]').first().fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
