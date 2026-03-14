@@ -229,10 +229,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (err) {
     // Login failed
-<<<<<<< HEAD
     authLogger.warn({ email, organizationId: org.id, reason: "login_failed" }, "Customer login failed");
-=======
->>>>>>> worktree-agent-adacbbb7
     const loginErrors: ActionErrors = { form: "auth.login.invalidCredentials" };
     return {
       errors: loginErrors,

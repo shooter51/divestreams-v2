@@ -174,11 +174,7 @@ export async function loginCustomer(
     .set({ lastLoginAt: new Date() })
     .where(eq(customerCredentials.id, creds.id));
 
-<<<<<<< HEAD
   authLogger.info({ email: normalizedEmail, organizationId }, "Customer logged in");
-=======
-  authLogger.info({ organizationId, email: normalizedEmail }, "Customer logged in");
->>>>>>> worktree-agent-adacbbb7
 
   return { token, expiresAt };
 }
