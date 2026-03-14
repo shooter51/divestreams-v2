@@ -18,23 +18,29 @@ vi.mock("../../../../lib/db/queries/trips.server", () => ({
 }));
 
 // Mock the db module
-vi.mock("../../../../lib/db/index", () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    innerJoin: vi.fn().mockReturnThis(),
-    leftJoin: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    orderBy: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockResolvedValue([]),
-    returning: vi.fn().mockResolvedValue([]),
-    transaction: vi.fn(),
-  },
-}));
+// .where() must be both chainable AND awaitable (returns [] when terminal)
+// because getNextBookingNumber now ends at .where()
+vi.mock("../../../../lib/db/index", () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const self: any = {};
+  const chainFn = vi.fn().mockReturnValue(self);
+  // Make it thenable so `await db.select().from().where()` resolves to []
+  self.then = (resolve: (v: unknown) => unknown) => Promise.resolve([]).then(resolve);
+  self.select = chainFn;
+  self.from = chainFn;
+  self.where = vi.fn().mockReturnValue(self);
+  self.innerJoin = chainFn;
+  self.leftJoin = chainFn;
+  self.insert = chainFn;
+  self.values = chainFn;
+  self.update = chainFn;
+  self.set = chainFn;
+  self.orderBy = chainFn;
+  self.limit = vi.fn().mockResolvedValue([]);
+  self.returning = vi.fn().mockResolvedValue([]);
+  self.transaction = vi.fn();
+  return { db: self };
+});
 
 vi.mock("../../../../lib/db/schema", () => ({
   bookings: {
