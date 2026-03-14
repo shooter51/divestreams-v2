@@ -50,6 +50,7 @@ export const integrationLogger = logger.child({ module: 'integrations' });
 export const emailLogger = logger.child({ module: 'email' });
 export const storageLogger = logger.child({ module: 'storage' });
 export const redisLogger = logger.child({ module: 'redis' });
+export const securityLogger = logger.child({ module: 'security' });
 
 // HTTP access log child — used by pino-http in server/app.ts
 export const httpLogger = logger.child({ module: 'http' });
