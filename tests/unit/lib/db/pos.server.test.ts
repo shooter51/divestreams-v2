@@ -32,6 +32,7 @@ const { dbMock, mockReturning, mockLimit, mockOffset, mockGroupBy, resetMocks } 
   chain.limit = vi.fn((...args) => { mockLimit(...args); lastMethod = 'limit'; return chain; });
   chain.offset = vi.fn((...args) => { mockOffset(...args); lastMethod = 'offset'; return chain; });
   chain.groupBy = vi.fn(() => { mockGroupBy(); lastMethod = 'other'; return chain; });
+  chain.for = vi.fn(() => { lastMethod = 'other'; return chain; });
   chain.returning = vi.fn((...args) => { mockReturning(...args); lastMethod = 'returning'; return chain; });
   // Mock transaction method - takes a callback and executes it with the chain (acting as tx)
   chain.transaction = vi.fn(async (callback) => {
@@ -718,5 +719,62 @@ describe("pos.server database functions", () => {
 
       await expect(getEquipmentByBarcode(tables, "org-1", "987654321")).resolves.not.toThrow();
     });
+  });
+
+  // ============================================================================
+  // processPOSRefund Tests
+  // ============================================================================
+  describe("processPOSRefund", () => {
+    // processPOSRefund calls getTransactionById which uses db (same mock chain).
+    // getTransactionById joins transactions+customers, destructures [transaction],
+    // then returns { ...transaction.transaction, customer: ... }.
+    // The chain mock resolves via .limit(1) → mockLimit.
+
+    const makeJoinedRow = (txn: Record<string, unknown>) => ({
+      transaction: txn,
+      customerFirstName: null,
+      customerLastName: null,
+      customerEmail: null,
+    });
+
+    it("should reject refunding a refund transaction", async () => {
+      const { processPOSRefund } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      // chain.limit() consumes one mockOnce AND chain.then consumes another,
+      // so provide the same value twice for a single .limit(1) await
+      const row = [makeJoinedRow({ id: "txn-003", type: "refund", amount: "-50.00" })];
+      mockLimit.mockResolvedValueOnce(row).mockResolvedValueOnce(row);
+
+      await expect(
+        processPOSRefund(tables, "org-1", {
+          originalTransactionId: "txn-003",
+          userId: "user-1",
+          refundReason: "Test",
+        })
+      ).rejects.toThrow("Cannot refund a refund transaction");
+    });
+
+    it("should reject refunding a deposit transaction", async () => {
+      const { processPOSRefund } = await import("../../../../lib/db/pos.server");
+      const tables = await import("../../../../lib/db/schema");
+
+      const row = [makeJoinedRow({ id: "txn-004", type: "deposit", amount: "50.00" })];
+      mockLimit.mockResolvedValueOnce(row).mockResolvedValueOnce(row);
+
+      await expect(
+        processPOSRefund(tables, "org-1", {
+          originalTransactionId: "txn-004",
+          userId: "user-1",
+          refundReason: "Test",
+        })
+      ).rejects.toThrow("Cannot refund transaction of type 'deposit'");
+    });
+
+    // NOTE: The chain mock's .limit() calls mockLimit as a side-effect AND
+    // chain.then also calls mockLimit when the chain is awaited. This means each
+    // .limit(1) in the code consumes TWO mockOnce values. Happy-path tests for
+    // processPOSRefund are covered in the integration test file
+    // (tests/integration/routes/tenant/pos.test.ts) which mocks at the function level.
   });
 });
