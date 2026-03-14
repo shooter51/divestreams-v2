@@ -16,6 +16,7 @@ import { db } from "../db";
 import { eq, and } from "drizzle-orm";
 import { integrations } from "../db/schema/integrations";
 import { quickbooksSyncRecords } from "../db/schema/quickbooks";
+import { jobLogger } from "../logger";
 
 // ============================================================================
 // QUEUE SETUP
@@ -239,9 +240,7 @@ async function processQuickBooksSync(job: { data: QuickBooksSyncJob }) {
   // Check if sync is enabled
   const syncEnabled = await isSyncEnabled(data.organizationId);
   if (!syncEnabled) {
-    console.log(
-      `QuickBooks sync disabled for org ${data.organizationId}, skipping ${data.type}`
-    );
+    jobLogger.info({ jobName: "quickbooks-sync", organizationId: data.organizationId, type: data.type }, "Job started");
     return;
   }
 
@@ -357,7 +356,7 @@ async function processQuickBooksSync(job: { data: QuickBooksSyncJob }) {
       }
     }
   } catch (error) {
-    console.error(`QuickBooks sync failed for ${data.type}:`, error);
+    jobLogger.error({ err: error, jobName: "quickbooks-sync", type: data.type, organizationId: data.organizationId }, "Job failed");
     throw error;
   }
 }
@@ -380,14 +379,14 @@ export function startQuickBooksSyncWorker() {
   });
 
   worker.on("completed", (job) => {
-    console.log(`QuickBooks sync job ${job.id} completed`);
+    jobLogger.info({ jobName: "quickbooks-sync", jobId: job.id }, "Job started");
   });
 
   worker.on("failed", (job, err) => {
-    console.error(`QuickBooks sync job ${job?.id} failed:`, err);
+    jobLogger.error({ err, jobName: "quickbooks-sync", jobId: job?.id }, "Job failed");
   });
 
-  console.log("QuickBooks sync worker started");
+  jobLogger.info({ jobName: "quickbooks-sync" }, "Job started");
 
   return worker;
 }

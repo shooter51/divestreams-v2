@@ -8,6 +8,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
+import { integrationLogger } from "../../../../../lib/logger";
 import { db } from "../../../../../lib/db/index.js";
 import { bookings, customers, trips, tours } from "../../../../../lib/db/schema.js";
 import { eq, and, count, gte, sql } from "drizzle-orm";
@@ -107,7 +108,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
   } catch (limitError) {
-    console.error("Failed to check booking limits:", limitError);
+    integrationLogger.error({ err: limitError, provider: "zapier", action: "check-booking-limits", organizationId: orgId }, "Failed to check booking limits");
     // Fail closed — deny booking if limit check fails to prevent abuse
     return Response.json(
       { error: "Unable to verify booking limits. Please try again later." },
@@ -239,7 +240,7 @@ export async function action({ request }: ActionFunctionArgs) {
       created_at: booking.createdAt,
     });
   } catch (error) {
-    console.error("Zapier create booking error:", error);
+    integrationLogger.error({ err: error, provider: "zapier", action: "create-booking", organizationId: orgId }, "Sync failed");
     return Response.json(
       {
         error: "Failed to create booking",
