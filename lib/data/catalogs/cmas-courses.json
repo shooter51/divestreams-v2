@@ -13,7 +13,7 @@
       "levelCode": "beginner",
       "description": "The CMAS One Star Diver (P1) course is the entry-level certification in recreational scuba diving. This internationally recognized program provides comprehensive training enabling divers to undertake accompanied no-decompression dives to a maximum depth of 20 meters in open water with a diver of the same level or higher.",
       "images": [
-        "https://www.cmas.org/images/diving/one-star-diver.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -38,7 +38,7 @@
       "levelCode": "advanced",
       "description": "The CMAS Two Star Diver (P2) course builds on One Star skills with advanced diving techniques, rescue skills, and deeper diving capabilities. Certified divers can dive to a maximum depth of 30 meters with at least another Two Star Diver. With additional decompression training, divers may dive to 40 meters.",
       "images": [
-        "https://www.cmas.org/images/diving/two-star-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 10,
@@ -61,7 +61,7 @@
       "levelCode": "advanced",
       "description": "The CMAS Three Star Diver (P3) course develops group leadership skills, advanced problem prevention and emergency response. This is the first step toward becoming a professional diver. Certified divers can lead groups and dive to 40 meters.",
       "images": [
-        "https://www.cmas.org/images/diving/three-star-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 12,
@@ -85,7 +85,7 @@
       "levelCode": "professional",
       "description": "The CMAS Four Star Diver (P4) represents the highest recreational diver certification level. This advanced program develops expert-level skills in dive planning, leadership, and technical diving proficiency.",
       "images": [
-        "https://www.cmas.org/images/diving/four-star-diver.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 16,
@@ -109,7 +109,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Rescue Diver Training Programme develops skills to prevent and manage dive emergencies. Students learn dive accident prevention, self-rescue, life-saving techniques, and emergency management through knowledge development, practical training, and realistic emergency scenarios.",
       "images": [
-        "https://www.cmas.org/images/diving/rescue-diver.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -132,7 +132,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Nitrox Diver Training Programme introduces the theory and techniques of Enriched Air Nitrox diving. This program teaches safe use of Nitrox mixtures with up to 40% oxygen for no-decompression diving, extending bottom times and reducing nitrogen absorption.",
       "images": [
-        "https://www.cmas.org/images/diving/nitrox-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -154,7 +154,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Advanced Nitrox Training Programme expands knowledge beyond basic Nitrox, teaching use of Enriched Air Nitrox blends from EAN-22 to 100% oxygen. Divers learn to safely plan and execute dives utilizing various EAN mixtures to a maximum depth of 40 meters.",
       "images": [
-        "https://www.cmas.org/images/diving/advanced-nitrox.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -177,7 +177,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Gas Blender Training Programme provides the knowledge and skills to competently and safely blend Nitrox gas mixtures. Students learn to calculate and create desired gas mixtures using specialized tables and computer software.",
       "images": [
-        "https://www.cmas.org/images/diving/gas-blender.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -198,7 +198,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Trimix Gas Blender Training Programme provides knowledge and skills to competently blend Trimix gas mixtures containing oxygen, nitrogen, and helium. Essential for meeting the requirements of technical divers venturing to significant depths.",
       "images": [
-        "https://www.cmas.org/images/diving/trimix-blender.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 10,
@@ -219,7 +219,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Deep Diver Training Programme develops skills for safe deep diving beyond recreational limits. Students learn about deep diving physiology, nitrogen narcosis management, gas consumption planning, and emergency procedures for deep water situations.",
       "images": [
-        "https://www.cmas.org/images/diving/deep-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -242,7 +242,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Wreck Training Programme enhances skills for recreational, non-penetration wreck diving. Topics covered include physical, physiological, and legal aspects of wreck diving, basic ship architecture and terminology, with focus on safe non-penetration wreck diving principles.",
       "images": [
-        "https://www.cmas.org/images/diving/wreck-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -266,7 +266,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Night Diving Specialty Training Programme provides knowledge and skills for safe night diving. Topics include nocturnal marine life behavior, dive site selection, potential hazards, and proper use of lighting equipment in low-light conditions.",
       "images": [
-        "https://www.cmas.org/images/diving/night-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -290,7 +290,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Underwater Navigation Programme introduces divers to essential navigation techniques for both beginners and experienced divers. Students learn compass navigation, natural navigation, and distance estimation to navigate safely and confidently underwater.",
       "images": [
-        "https://www.cmas.org/images/diving/navigation.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -313,7 +313,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Search and Recovery programme trains divers in underwater search patterns, object recovery techniques, and lift bag usage. Skills include locating lost objects, proper search techniques, and safe recovery of items from the underwater environment.",
       "images": [
-        "https://www.cmas.org/images/diving/search-recovery.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -337,7 +337,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Drift Diving Training Programme equips qualified divers with skills for safe drift diving in moving currents or tides. Students learn dive planning, site assessment, buoyancy control, navigation, and communication while being carried by currents.",
       "images": [
-        "https://www.cmas.org/images/diving/drift-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -360,7 +360,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Ice Diver certification programme provides knowledge and skills for safe diving under ice. Students learn about ice diving challenges, emergency procedures, tether systems, communication techniques, and teamwork essential for overhead environment diving.",
       "images": [
-        "https://www.cmas.org/images/diving/ice-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -384,7 +384,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Dry Suit Diving Training Programme expands diving possibilities for colder waters. Students learn about dry suit types, fitting, donning/doffing procedures, buoyancy control, and emergency procedures specific to dry suit diving.",
       "images": [
-        "https://www.cmas.org/images/diving/drysuit-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -406,7 +406,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Altitude Diver Training Programme introduces divers to altitude diving. Students learn about effects of altitude on the body, changes in atmospheric pressure, adaptations to dive tables, gas consumption, and buoyancy control at altitude.",
       "images": [
-        "https://www.cmas.org/images/diving/altitude-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -428,7 +428,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Cave Diver Training Programme equips divers with essential skills for safe cavern and overhead environment diving within limits of light penetration. This foundational cave course emphasizes safety, proper techniques, and risk management.",
       "images": [
-        "https://www.cmas.org/images/diving/cave-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -452,7 +452,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Underwater Photography programme combines technical photography skills with safe diving practices. Students learn camera operation, lighting techniques, composition, marine life photography approaches, and how to maintain buoyancy while photographing.",
       "images": [
-        "https://www.cmas.org/images/diving/underwater-photo.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -474,7 +474,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Sidemount Diver programme teaches the configuration and techniques for diving with cylinders mounted at the diver's sides. Students learn proper equipment configuration, buoyancy and trim, and gas management with sidemount systems.",
       "images": [
-        "https://www.cmas.org/images/diving/sidemount.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 4,
@@ -496,7 +496,7 @@
       "levelCode": "specialty",
       "description": "The CMAS DPV (Diver Propulsion Vehicle) programme teaches operation and handling of underwater scooters. Students learn equipment configuration, DPV operation, buddy procedures, emergency protocols, and technical maintenance.",
       "images": [
-        "https://www.cmas.org/images/diving/dpv-scooter.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -518,7 +518,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Ocean Explorer programme provides comprehensive understanding of marine life and marine sciences. Students gain awareness of marine ecosystems, sustainable diving practices, and become ambassadors for ocean conservation.",
       "images": [
-        "https://www.cmas.org/images/diving/ocean-explorer.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -540,7 +540,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Freshwater Biology Training Programme introduces divers to freshwater life and sciences. Students develop understanding and appreciation for the diversity and importance of freshwater habitats and ecosystems.",
       "images": [
-        "https://www.cmas.org/images/diving/freshwater-biology.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -562,7 +562,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Underwater Cultural Heritage programme increases awareness of submerged historical sites. Students explore shipwrecks, ancient structures, and artifacts while learning ethical guidelines for interacting with underwater heritage sites.",
       "images": [
-        "https://www.cmas.org/images/diving/cultural-heritage.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -584,7 +584,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Scientific Diver (SD) professional training provides guidance on safe diving practice under varying experimental and environmental conditions. Based on UNESCO's Code of Practice for Scientific Diving.",
       "images": [
-        "https://www.cmas.org/images/diving/scientific-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -607,7 +607,7 @@
       "levelCode": "professional",
       "description": "The CMAS Advanced Scientific Diver (ASD) programme builds on Scientific Diver certification with advanced research methodologies, specialized scientific techniques, and leadership in underwater research projects.",
       "images": [
-        "https://www.cmas.org/images/diving/advanced-scientific.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 30,
@@ -629,7 +629,7 @@
       "levelCode": "specialty",
       "description": "The CMAS First Aid Diver programme provides essential life-saving skills including CPR, basic life support, and diving-specific emergency response. Covers scene assessment, airway management, bleeding control, and shock management.",
       "images": [
-        "https://www.cmas.org/images/diving/first-aid.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -649,7 +649,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Oxygen Provider programme teaches recognition of diving injuries requiring emergency oxygen and proper administration techniques. Students learn about dive injuries, oxygen equipment types, and safety considerations.",
       "images": [
-        "https://www.cmas.org/images/diving/oxygen-provider.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -669,7 +669,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Normoxic Trimix Diver Training Programme introduces theory and techniques of Normoxic Trimix diving. Students learn to safely conduct Trimix dives with mandatory decompression stops to a maximum depth of 60 meters, managing nitrogen narcosis effects.",
       "images": [
-        "https://www.cmas.org/images/diving/normoxic-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -693,7 +693,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Advanced Trimix Diver Training Programme enables exploration to 100 meters using helium content below 18% in bottom mix. Training covers extensive dive planning, risk assessment, equipment selection, accelerated decompression, and support team coordination.",
       "images": [
-        "https://www.cmas.org/images/diving/advanced-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 16,
@@ -717,7 +717,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Extended Range Diver programme develops skills for decompression diving using Nitrox or oxygen to 55 meters. Students learn technical gear configuration, accelerated decompression techniques, and stage decompression procedures.",
       "images": [
-        "https://www.cmas.org/images/diving/extended-range.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -741,7 +741,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Semi-Closed Rebreather (SCR) Diver Training Programme provides knowledge and skills for safe SCR diving. Students gain comprehensive understanding of operational principles, physiological considerations, and dive planning for SCR systems.",
       "images": [
-        "https://www.cmas.org/images/diving/scr-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -764,7 +764,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Closed Circuit Rebreather (CCR) Training Programme develops essential skills for safe CCR diving regardless of depth, diluents, or environment. Comprehensive training for both experienced and new CCR divers.",
       "images": [
-        "https://www.cmas.org/images/diving/ccr-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -788,7 +788,7 @@
       "levelCode": "professional",
       "description": "The CMAS Divemaster programme elevates Three Star Divers to professional leadership level. Students develop expertise to lead certified divers on open water dives, provide excellent customer service, and assist with equipment and dive organization.",
       "images": [
-        "https://www.cmas.org/images/diving/divemaster.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 24,
@@ -812,7 +812,7 @@
       "levelCode": "professional",
       "description": "The CMAS Assistant Instructor programme trains candidates to assist and support diving instructors during courses. Students learn teaching methodology, course assistance, and take substantial internship as foundation for instructor development.",
       "images": [
-        "https://www.cmas.org/images/diving/assistant-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -834,7 +834,7 @@
       "levelCode": "instructor",
       "description": "The CMAS One Star Instructor (M1) programme develops qualified instructors who can assist M2 instructors with teaching courses. Training covers teaching methodology, dive theory, practical instruction techniques, and student management.",
       "images": [
-        "https://www.cmas.org/images/diving/one-star-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 14,
       "classroomHours": 40,
@@ -856,7 +856,7 @@
       "levelCode": "instructor",
       "description": "The CMAS Two Star Instructor (M2) programme qualifies instructors to teach the One Star Diver (P1) course as lead instructor. Advanced teaching methods and comprehensive open water instruction skills are developed.",
       "images": [
-        "https://www.cmas.org/images/diving/two-star-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 30,
@@ -878,7 +878,7 @@
       "levelCode": "instructor",
       "description": "The CMAS Three Star Instructor (M3) is the highest instructor level, qualifying instructors to train other instructors and conduct advanced diving courses. Advanced instruction techniques and instructor trainer skills are mastered.",
       "images": [
-        "https://www.cmas.org/images/diving/three-star-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 14,
       "classroomHours": 40,
@@ -900,7 +900,7 @@
       "levelCode": "beginner",
       "description": "The CMAS One Star Freediver course is the entry-level freediving certification. Students learn breath-hold techniques, proper finning, equalization methods, and safety protocols. Training includes static apnea (1:30 min), dynamic apnea (25m), and depth diving (10m).",
       "images": [
-        "https://www.cmas.org/images/freediving/one-star-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 4,
@@ -924,7 +924,7 @@
       "levelCode": "advanced",
       "description": "The CMAS Two Star Freediver course builds advanced breathing techniques, relaxation methods, and mental preparation. Training includes static apnea (2:30 min), dynamic apnea (50m), and depth diving (15m). Certified freedivers can dive independently to 25m.",
       "images": [
-        "https://www.cmas.org/images/freediving/two-star-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 6,
@@ -948,7 +948,7 @@
       "levelCode": "advanced",
       "description": "The CMAS Three Star Freediver course develops expert-level skills and instructor prerequisites. Training includes static apnea (3:00 min), dynamic apnea (75m), and depth diving (25m). Certified freedivers can dive independently to 40m.",
       "images": [
-        "https://www.cmas.org/images/freediving/three-star-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 8,
@@ -973,7 +973,7 @@
       "levelCode": "professional",
       "description": "The CMAS Four Star Freediver course is the pinnacle of freediving certification. Advanced training includes constant weight, free immersion, and variable weight diving to 40m maximum. This level prepares athletes for competition and professional instruction.",
       "images": [
-        "https://www.cmas.org/images/freediving/four-star-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 10,
@@ -996,7 +996,7 @@
       "levelCode": "beginner",
       "description": "The CMAS Pool Freediver course focuses on pool-based breath-hold techniques and apnea training. Students develop skills in static and dynamic apnea without open water depth requirements.",
       "images": [
-        "https://www.cmas.org/images/freediving/pool-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -1019,7 +1019,7 @@
       "levelCode": "instructor",
       "description": "The CMAS Freediving Instructor Level 1 programme qualifies experienced freedivers to teach beginner freedivers. Training covers teaching methodology, safety protocols, and student supervision for pool and open water instruction.",
       "images": [
-        "https://www.cmas.org/images/freediving/freediving-instructor-1.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 16,
@@ -1041,7 +1041,7 @@
       "levelCode": "instructor",
       "description": "The CMAS Freediving Instructor Level 2 programme develops advanced teaching skills and qualifies instructors to certify students at higher levels. Requires experience certifying at least 40 students.",
       "images": [
-        "https://www.cmas.org/images/freediving/freediving-instructor-2.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 16,
@@ -1063,7 +1063,7 @@
       "levelCode": "instructor",
       "description": "The CMAS Freediving Instructor Level 3 is the highest freediving instructor certification. Qualifies instructors to train other instructors and oversee freediving programs. Requires 100+ student certifications.",
       "images": [
-        "https://www.cmas.org/images/freediving/freediving-instructor-3.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 24,
@@ -1085,7 +1085,7 @@
       "levelCode": "specialty",
       "description": "The CMAS Team Leader specialty develops dive leadership and group management skills. This is one of three required specialties for progression from One Star to Two Star Diver certification.",
       "images": [
-        "https://www.cmas.org/images/diving/team-leader.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,

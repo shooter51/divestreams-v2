@@ -69,6 +69,9 @@
     "seed:api": "tsx scripts/seed-api/index.ts",
     "seed:api:dev": "tsx scripts/seed-api/index.ts --env=dev",
     "seed:api:local": "tsx scripts/seed-api/index.ts --env=local",
+    "seed:tdsla": "tsx scripts/seed-api/seed-tdsla.ts",
+    "seed:tdsla:test": "tsx scripts/seed-api/seed-tdsla.ts --env=test",
+    "seed:tdsla:local": "tsx scripts/seed-api/seed-tdsla.ts --env=local",
     "seed:export": "tsx scripts/seed-api/export.ts",
     "seed:full": "npm run seed:api && npm run seed:export"
   },

@@ -9,7 +9,7 @@ import { storageLogger } from "../logger";
 
 // S3 configuration from environment
 const S3_ENDPOINT = process.env.S3_ENDPOINT;
-const S3_REGION = process.env.S3_REGION || "us-west-004";
+const S3_REGION = process.env.S3_REGION || "us-east-1";
 const S3_BUCKET = process.env.S3_BUCKET || "divestreams-images";
 const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
@@ -27,24 +27,6 @@ export function getS3Client(): S3Client | null {
       hasCdnUrl: !!CDN_URL,
     }, "S3 storage not configured - image uploads disabled");
     return null;
-  }
-
-  // SECURITY: Prevent accidental switch to Backblaze B2
-  // This project uses AWS S3 only. Backblaze is not supported.
-  if (S3_ENDPOINT && S3_ENDPOINT.includes('backblazeb2.com')) {
-    storageLogger.error({ endpoint: S3_ENDPOINT }, "Backblaze B2 detected in S3_ENDPOINT. This project uses AWS S3 only. Please remove S3_ENDPOINT or set it to AWS S3 endpoint.");
-    throw new Error('Backblaze B2 is not supported. Use AWS S3 only.');
-  }
-
-  // CRITICAL: Detect CDN_URL mismatch with storage backend
-  // If using AWS S3, CDN_URL must not point to Backblaze
-  const isAwsS3 = !S3_ENDPOINT || S3_ENDPOINT.includes('amazonaws.com');
-  if (isAwsS3 && CDN_URL && CDN_URL.includes('backblazeb2.com')) {
-    storageLogger.error({
-      endpoint: S3_ENDPOINT || '(default AWS)',
-      cdnUrl: CDN_URL,
-    }, "CDN_URL mismatch: Storage is configured for AWS S3, but CDN_URL points to Backblaze B2. Fix: Set CDN_URL to a CloudFront distribution or direct S3 URL");
-    throw new Error('CDN_URL mismatch: Using AWS S3 but CDN points to Backblaze B2. Update CDN_URL.');
   }
 
   if (!s3Client) {

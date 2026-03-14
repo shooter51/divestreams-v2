@@ -66,15 +66,6 @@ describe("S3 Storage Service", () => {
       expect((client as unknown).config.endpoint).toBeUndefined();
     });
 
-    it("rejects Backblaze B2 endpoints", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
-      process.env.S3_ACCESS_KEY_ID = "test-key-id";
-      process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
-
-      const { getS3Client } = await import("../../../../lib/storage/s3");
-      expect(() => getS3Client()).toThrow("Backblaze B2 is not supported");
-    });
-
     it("reuses existing client on subsequent calls", async () => {
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
