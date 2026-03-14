@@ -247,6 +247,11 @@ export async function createBooking(organizationId: string, data: {
     })
     .returning();
 
+  dbLogger.info(
+    { bookingNumber: booking.bookingNumber, organizationId, customerId: data.customerId, tripId: data.tripId, total: data.total, participants },
+    "Booking created"
+  );
+
   // Sync booking to Google Calendar if integration is active
   // Run async to not block booking creation
   import("../../integrations/google-calendar-bookings.server")
@@ -493,6 +498,11 @@ export async function recordPayment(organizationId: string, data: {
         eq(schema.bookings.organizationId, organizationId),
         eq(schema.bookings.id, bookingId)
       ));
+
+    dbLogger.info(
+      { bookingId, organizationId, amount, paymentMethod },
+      "Payment recorded for booking"
+    );
 
     return transaction;
   });
