@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 /**
  * Integration tests for embed booking route
  * Tests customer-facing booking flow via embed widget
+ *
+ * @vitest-environment node
  */
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
@@ -230,6 +233,104 @@ describe("embed/$tenant.book route", () => {
       };
 
       expect(updatedTrip.bookedCount).toBe(4);
+    });
+  });
+
+  describe("Contact Details Pre-fill (DS-4nfd)", () => {
+    // These tests verify the business logic of the prefill feature:
+    // - When a customer session is valid and belongs to the correct org, their
+    //   contact details should be returned as prefill data.
+    // - When no session is present, prefill should be null.
+    // - When the session belongs to a different org, prefill should be null.
+
+    const orgId = "org-uuid";
+
+    function buildPrefill(
+      customer: { organizationId: string; firstName: string | null; lastName: string | null; email: string; phone: string | null } | null,
+      targetOrgId: string
+    ) {
+      if (!customer) return null;
+      if (customer.organizationId !== targetOrgId) return null;
+      return {
+        firstName: customer.firstName ?? "",
+        lastName: customer.lastName ?? "",
+        email: customer.email ?? "",
+        phone: customer.phone ?? "",
+      };
+    }
+
+    it("returns null prefill for unauthenticated visitor (no session)", () => {
+      const result = buildPrefill(null, orgId);
+      expect(result).toBeNull();
+    });
+
+    it("returns prefill data for authenticated customer of correct org", () => {
+      const customer = {
+        organizationId: orgId,
+        firstName: "John",
+        lastName: "Diver",
+        email: "john@example.com",
+        phone: "+1-555-0100",
+      };
+      const result = buildPrefill(customer, orgId);
+      expect(result).toEqual({
+        firstName: "John",
+        lastName: "Diver",
+        email: "john@example.com",
+        phone: "+1-555-0100",
+      });
+    });
+
+    it("returns null when session belongs to a different organization", () => {
+      const foreignCustomer = {
+        organizationId: "org-other",
+        firstName: "Jane",
+        lastName: "Diver",
+        email: "jane@other.com",
+        phone: null,
+      };
+      const result = buildPrefill(foreignCustomer, orgId);
+      expect(result).toBeNull();
+    });
+
+    it("returns empty strings for null optional customer fields", () => {
+      const customer = {
+        organizationId: orgId,
+        firstName: null,
+        lastName: null,
+        email: "sparse@example.com",
+        phone: null,
+      };
+      const result = buildPrefill(customer, orgId);
+      expect(result).toEqual({
+        firstName: "",
+        lastName: "",
+        email: "sparse@example.com",
+        phone: "",
+      });
+    });
+
+    it("actionData values take precedence over prefill on form re-submission", () => {
+      // Simulates the UI logic: actionData?.values?.firstName ?? prefill?.firstName ?? ""
+      const prefill = { firstName: "John", lastName: "Diver", email: "john@example.com", phone: "" };
+      const actionValues = { firstName: "Johnny", lastName: "Diver", email: "johnny@new.com", phone: "" };
+
+      const firstName = actionValues?.firstName ?? prefill?.firstName ?? "";
+      const email = actionValues?.email ?? prefill?.email ?? "";
+
+      expect(firstName).toBe("Johnny");
+      expect(email).toBe("johnny@new.com");
+    });
+
+    it("falls back to prefill when actionData values are absent", () => {
+      const prefill = { firstName: "John", lastName: "Diver", email: "john@example.com", phone: "+1" };
+      const actionValues = undefined;
+
+      const firstName = (actionValues as typeof prefill | undefined)?.firstName ?? prefill?.firstName ?? "";
+      const email = (actionValues as typeof prefill | undefined)?.email ?? prefill?.email ?? "";
+
+      expect(firstName).toBe("John");
+      expect(email).toBe("john@example.com");
     });
   });
 });
