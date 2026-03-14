@@ -17,6 +17,7 @@ import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
 import { useT } from "../../i18n/use-t";
+import { emailLogger } from "../../../lib/logger";
 
 // ============================================================================
 // ICONS
@@ -177,7 +178,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   // Honeypot spam check - if filled, it's a bot
   if (honeypot) {
-    console.log("Contact form spam detected (honeypot triggered)");
+    emailLogger.info("Contact form spam detected (honeypot triggered)");
     return { success: true }; // Return success to not reveal detection
   }
 
@@ -322,13 +323,12 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     // Message is saved in database regardless of email delivery
     // But warn user if emails failed to send
     if (!emailSent) {
-      console.error("[Contact Form] WARNING: Message saved but emails failed to send");
-      console.error(`[Contact Form] Organization: ${org.name}, Customer: ${email.trim()}`);
+      emailLogger.error({ organizationId: org.id, organization: org.name, customer: email.trim() }, "Message saved but emails failed to send");
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Error processing contact form:", error);
+    emailLogger.error({ err: error }, "Error processing contact form");
     return {
       success: false,
       error: "site.contact.sendFailed",

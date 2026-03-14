@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { dbLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -129,7 +130,7 @@ export async function action({ request }: ActionFunctionArgs) {
         "success"
       ));
     } catch (emailError) {
-      console.error("Failed to send password setup email:", emailError);
+      dbLogger.error({ err: emailError, organizationId }, "Failed to send password setup email");
       // Customer was created successfully, just email failed
       return redirect(redirectWithNotification(
         "/tenant/customers",
@@ -138,7 +139,7 @@ export async function action({ request }: ActionFunctionArgs) {
       ));
     }
   } catch (error) {
-    console.error("Failed to create customer:", error);
+    dbLogger.error({ err: error, organizationId }, "Failed to create customer");
     const values: Record<string, string> = {};
     formData.forEach((value, key) => {
       if (typeof value === "string") {

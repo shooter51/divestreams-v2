@@ -4,6 +4,7 @@ import { Form, Link, useActionData, useNavigation, redirect } from "react-router
 import { auth } from "../../../lib/auth";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { useT } from "../../i18n/use-t";
+import { authLogger } from "../../../lib/logger";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,7 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Even if the email doesn't exist, we show success to prevent enumeration
     return { success: true, email };
   } catch (error) {
-    console.error("Password reset request error:", error);
+    authLogger.error({ err: error }, "Password reset request error");
     // Still show success for security
     return { success: true, email };
   }

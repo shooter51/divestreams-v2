@@ -10,6 +10,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { dbLogger } from "../../../../lib/logger";
 import { formatCurrency, formatDisplayDate } from "../../../lib/format";
 import { useT } from "../../../i18n/use-t";
 
@@ -156,7 +157,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       });
 
       if (!emailSent) {
-        console.error("[Customer Email] Failed to send email to:", customerEmail);
+        dbLogger.error({ organizationId, customerEmail }, "Failed to send email to customer");
         return {
           error: "Email could not be sent. Please check SMTP configuration or try again later.",
         };
@@ -164,7 +165,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
       return { success: true, message: "Email sent successfully!" };
     } catch (error) {
-      console.error("Error sending customer email:", error);
+      dbLogger.error({ err: error, organizationId }, "Error sending customer email");
       // Try to log the failed attempt
       try {
         await db.insert(customerCommunications).values({

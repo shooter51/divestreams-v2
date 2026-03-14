@@ -1,6 +1,7 @@
 import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { duplicateTour } from "../../../../lib/db/queries.server";
+import { dbLogger } from "../../../../lib/logger";
 
 // DS-rpqm: GET must not perform mutations — redirect to tour list instead
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -29,7 +30,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
     if (error instanceof Error && error.message === "Tour not found") {
       throw new Response("Tour not found", { status: 404 });
     }
-    console.error("Error duplicating tour:", error);
+    dbLogger.error({ err: error }, "Error duplicating tour");
     throw new Response("Failed to duplicate tour", { status: 500 });
   }
 }

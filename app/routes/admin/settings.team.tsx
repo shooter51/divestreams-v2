@@ -9,6 +9,7 @@ import { sendEmail } from "../../../lib/email";
 import { getAdminUrl } from "../../../lib/utils/url";
 import { resetUserPassword, type ResetPasswordParams } from "../../../lib/auth/admin-password-reset.server";
 import { ResetPasswordModal } from "../../components/settings/ResetPasswordModal";
+import { authLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams Admin" }];
 
@@ -185,7 +186,7 @@ export async function action({ request }: ActionFunctionArgs) {
           `,
         });
       } catch (error) {
-        console.error("Failed to send invitation email:", error);
+        authLogger.error({ err: error }, "Failed to send invitation email");
         // Continue even if email fails - invitation was created
       }
 
@@ -306,7 +307,7 @@ export async function action({ request }: ActionFunctionArgs) {
           `,
         });
       } catch (error) {
-        console.error("Failed to resend invitation email:", error);
+        authLogger.error({ err: error }, "Failed to resend invitation email");
         return { error: "Failed to send email" };
       }
 
@@ -372,7 +373,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 `,
               });
             } catch (emailErr) {
-              console.error("Failed to email temporary password:", emailErr);
+              authLogger.error({ err: emailErr }, "Failed to email temporary password");
             }
           }
         }
@@ -384,7 +385,7 @@ export async function action({ request }: ActionFunctionArgs) {
             : "Password reset successful",
         };
       } catch (error) {
-        console.error("Password reset error:", error);
+        authLogger.error({ err: error }, "Password reset error");
         return { error: "Failed to reset password" };
       }
     }

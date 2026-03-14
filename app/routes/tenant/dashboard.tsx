@@ -10,6 +10,7 @@ import { DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../l
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 import { StatusBadge, type BadgeStatus } from "../../components/ui";
 import { formatTime, formatCurrency, formatCapacity, formatLabel, formatDisplayDate } from "../../lib/format";
+import { dbLogger } from "../../../lib/logger";
 
 
 export const meta: MetaFunction = () => {
@@ -32,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     try {
       return await fn();
     } catch (error) {
-      console.error("Dashboard query failed:", error);
+      dbLogger.error({ err: error }, "Dashboard query failed");
       return fallback;
     }
   }

@@ -9,6 +9,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { storageLogger } from "../../../../lib/logger";
 
 interface ReorderItem {
   id: string;
@@ -116,7 +117,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error("Image reorder error:", error);
+    storageLogger.error({ err: error }, "Image reorder error");
     return Response.json(
       { error: "Failed to reorder images" },
       { status: 500 }
