@@ -45,13 +45,16 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
     test("tenant forgot-password page loads (NOT 404)", async ({ page: p }) => {
       await page.gotoTenantForgotPassword();
 
-      // Should NOT be a 404 page
-      const pageContent = await p.content();
-      expect(pageContent).not.toContain("404");
+      // Should NOT be a 404 page — check visible text, not full HTML source
+      // (HTML source may contain "404" in bundled JS error handlers)
+      const has404Heading = await p
+        .getByRole("heading", { name: /404|not found/i })
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
+      expect(has404Heading).toBe(false);
 
       // Should show forgot password form or content
-      // The auth forgot-password has "Reset your password" heading
-      // The tenant forgot-password has "Forgot your password?" heading
+      // The tenant forgot-password has "Forgot Password" heading
       const hasForgotContent = await p
         .getByText(/forgot.*password|reset.*password|check your email/i)
         .first()
@@ -78,8 +81,12 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
     test("auth forgot-password page loads (NOT 404)", async ({ page: p }) => {
       await page.gotoAuthForgotPassword();
 
-      const pageContent = await p.content();
-      expect(pageContent).not.toContain("404");
+      // Should NOT be a 404 page — check visible text, not full HTML source
+      const has404Heading = await p
+        .getByRole("heading", { name: /404|not found/i })
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
+      expect(has404Heading).toBe(false);
 
       const hasForgotContent = await p
         .getByText(/forgot.*password|reset.*password|check your email/i)
@@ -126,8 +133,12 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
       await forgotLink.click();
       await p.waitForLoadState("load");
 
-      const pageContent = await p.content();
-      expect(pageContent).not.toContain("404");
+      // Check visible heading, not full HTML source (which may contain "404" in bundled JS)
+      const has404Heading = await p
+        .getByRole("heading", { name: /404|not found/i })
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
+      expect(has404Heading).toBe(false);
     });
   });
 
