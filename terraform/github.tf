@@ -226,6 +226,7 @@ resource "github_actions_environment_variable" "platform_admin_name_test" {
   value         = "Platform Admin"
 }
 
+<<<<<<< HEAD
 resource "github_actions_environment_secret" "grafana_mimir_url_test" {
   repository      = "divestreams-v2"
   environment     = github_repository_environment.test.environment
@@ -268,6 +269,8 @@ resource "github_actions_environment_secret" "grafana_tempo_api_key_test" {
   plaintext_value = var.grafana_tempo_api_key
 }
 
+=======
+>>>>>>> worktree-agent-afd855f5
 # ── Environment Secrets — Production ─────────────────────────────────────────
 
 resource "github_actions_environment_secret" "hostinger_api_token_prod" {
@@ -438,6 +441,7 @@ resource "github_actions_environment_variable" "platform_admin_name_prod" {
   value         = "Platform Admin"
 }
 
+<<<<<<< HEAD
 resource "github_actions_environment_secret" "grafana_mimir_url_prod" {
   repository      = "divestreams-v2"
   environment     = github_repository_environment.production.environment
@@ -480,6 +484,8 @@ resource "github_actions_environment_secret" "grafana_tempo_api_key_prod" {
   plaintext_value = var.grafana_tempo_api_key
 }
 
+=======
+>>>>>>> worktree-agent-afd855f5
 # ── Repository-Level Secrets ──────────────────────────────────────────────────
 
 resource "github_actions_secret" "promotion_pat" {
