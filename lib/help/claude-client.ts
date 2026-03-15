@@ -10,7 +10,7 @@ import {
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 
-const HELP_MODEL_ID = process.env.HELP_MODEL_ID || "anthropic.claude-3-haiku-20240307-v1:0";
+const HELP_MODEL_ID = process.env.HELP_MODEL_ID || "amazon.nova-micro-v1:0";
 
 export interface ClaudeMessage {
   system: string;
