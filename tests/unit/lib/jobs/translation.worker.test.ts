@@ -142,6 +142,83 @@ describe("translation worker", () => {
     expect(mockUpsertContentTranslation).toHaveBeenCalledTimes(1);
   });
 
+  it("uses sourceLocale from job data when calling translateText", async () => {
+    mockDbSelect.mockResolvedValue([]);
+    mockTranslateText.mockResolvedValue("Ocean Adventure");
+
+    const { createTranslationWorker } = await import(
+      "../../../../lib/jobs/translation.worker"
+    );
+
+    const worker = createTranslationWorker({} as never) as unknown as WorkerWithProcessor;
+
+    await worker._processor({
+      data: {
+        orgId: "org-1",
+        entityType: "tour",
+        entityId: "tour-1",
+        sourceLocale: "es",
+        targetLocale: "en",
+        fields: [{ field: "name", text: "Aventura Oceánica" }],
+      },
+    });
+
+    expect(mockTranslateText).toHaveBeenCalledWith("Aventura Oceánica", "es", "en");
+  });
+
+  it("falls back to 'en' sourceLocale when not provided in job data", async () => {
+    mockDbSelect.mockResolvedValue([]);
+    mockTranslateText.mockResolvedValue("Aventura Oceánica");
+
+    const { createTranslationWorker } = await import(
+      "../../../../lib/jobs/translation.worker"
+    );
+
+    const worker = createTranslationWorker({} as never) as unknown as WorkerWithProcessor;
+
+    await worker._processor({
+      data: {
+        orgId: "org-1",
+        entityType: "tour",
+        entityId: "tour-1",
+        // sourceLocale intentionally omitted to test fallback
+        targetLocale: "es",
+        fields: [{ field: "name", text: "Ocean Adventure" }],
+      },
+    });
+
+    expect(mockTranslateText).toHaveBeenCalledWith("Ocean Adventure", "en", "es");
+  });
+
+  it("passes Spanish sourceLocale when translating from ES to EN", async () => {
+    mockDbSelect.mockResolvedValue([]);
+    mockTranslateText.mockResolvedValue("Ocean Adventure");
+
+    const { createTranslationWorker } = await import(
+      "../../../../lib/jobs/translation.worker"
+    );
+
+    const worker = createTranslationWorker({} as never) as unknown as WorkerWithProcessor;
+
+    await worker._processor({
+      data: {
+        orgId: "org-1",
+        entityType: "tour",
+        entityId: "tour-1",
+        sourceLocale: "es",
+        targetLocale: "en",
+        fields: [
+          { field: "name", text: "Inmersión Nocturna" },
+          { field: "description", text: "Explora el océano de noche" },
+        ],
+      },
+    });
+
+    expect(mockTranslateText).toHaveBeenCalledTimes(2);
+    expect(mockTranslateText).toHaveBeenNthCalledWith(1, "Inmersión Nocturna", "es", "en");
+    expect(mockTranslateText).toHaveBeenNthCalledWith(2, "Explora el océano de noche", "es", "en");
+  });
+
   it("skips fields that have an existing manual translation", async () => {
     mockDbSelect
       .mockResolvedValueOnce([{ source: "manual" }])

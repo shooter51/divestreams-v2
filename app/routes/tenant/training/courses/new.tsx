@@ -10,7 +10,8 @@ import { redirectWithNotification, useNotification } from "../../../../../lib/us
 import { useT } from "../../../../i18n/use-t";
 import { CsrfInput } from "../../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../../i18n/types";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
 
 export const meta: MetaFunction = () => [{ title: "Create Course - DiveStreams" }];
 
@@ -104,13 +105,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "description", text: description },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: ctx.org.id,
       entityType: "course",
       entityId: newCourse.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }

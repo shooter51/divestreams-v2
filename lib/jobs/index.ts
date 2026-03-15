@@ -163,6 +163,7 @@ export interface TranslationJobData {
   entityType: string;
   entityId: string;
   fields: Array<{ field: string; text: string }>;
+  sourceLocale: string;
   targetLocale: string;
 }
 

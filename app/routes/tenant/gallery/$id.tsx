@@ -14,7 +14,7 @@ import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { useT } from "../../../i18n/use-t";
@@ -125,13 +125,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
       { field: "name", text: name },
       ...(description?.trim() ? [{ field: "description", text: description }] : []),
     ];
+    const sourceLocale = resolveLocale(request);
     for (const locale of SUPPORTED_LOCALES) {
-      if (locale === DEFAULT_LOCALE) continue;
+      if (locale === sourceLocale) continue;
       await enqueueTranslation({
         orgId: organizationId,
         entityType: "gallery_album",
         entityId: albumId!,
         fields: fieldsToTranslate,
+        sourceLocale,
         targetLocale: locale,
       });
     }

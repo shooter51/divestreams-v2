@@ -10,7 +10,8 @@ import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeTyp
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
@@ -137,13 +138,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "requirements", text: requirementsArr.join("\n") },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "tour",
       entityId: newTour.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }
