@@ -208,16 +208,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-<<<<<<< HEAD
   dbLogger.info(
     { bookingNumber: booking.bookingNumber, organizationId, customerId: data.customerId, tripId: data.tripId, total, participants, source: data.source || "direct" },
     "Booking created"
   );
 
   return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
-=======
-  return redirect(redirectWithNotification(`/tenant/bookings/${booking.id}`, "Booking has been successfully created", "success"));
->>>>>>> worktree-agent-a35c7869
 }
 
 function formatDisplayDate(d: string | null | undefined): string {
