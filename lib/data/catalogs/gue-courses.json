@@ -13,7 +13,7 @@
       "levelCode": "beginner",
       "description": "GUE's Discover Diving program is an introduction for individuals with no previous scuba diving experience. This program does not result in certification but serves as an introduction to scuba diving using the GUE system and DIR methodology. Training takes place under direct instructor supervision.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/discover-diving.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -34,7 +34,7 @@
       "levelCode": "beginner",
       "description": "GUE Supervised Diver teaches all the basic skills required for safe and comfortable diving while limiting depth to 12m/40ft. Divers must always dive under supervision of a dive professional. This course may count toward Recreational Diver Level 1 qualification.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/supervised-diver.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 16,
@@ -55,7 +55,7 @@
       "levelCode": "beginner",
       "description": "GUE's entry-level scuba course introducing the proven GUE training method for basic underwater body positioning, kicking techniques, equipment configuration, buoyancy, situational awareness, and team diving. Divers are certified to a maximum depth of 21m/70ft. Course includes at least 10 aquatic sessions and 6 open water dives over 5-6 days.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rec1-open-water.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 20,
@@ -77,7 +77,7 @@
       "levelCode": "beginner",
       "description": "GUE Performance Diver is the gateway course for certified divers to experience the GUE system without compromising on standards. Course outcomes include GUE single or double-tank equipment configuration, trim and buoyancy, propulsion techniques including backwards kick, gas sharing, ascent training, and theory and use of nitrox.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/performance-diver.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -98,7 +98,7 @@
       "levelCode": "advanced",
       "description": "GUE Rec 2 strengthens previously learned skills and introduces navigational techniques, rescue methods, and deep diving procedures. This course is essentially 3 courses in one: Navigation, Rescue, and Deep. Prepares divers for deeper recreational diving to 30m/100ft. Includes 11 dives over 6 days.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rec2-advanced.jpg"
+        "https://www.gue.com/sites/default/files/rec2%20-2.jpg"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -122,7 +122,7 @@
       "levelCode": "advanced",
       "description": "GUE Rec 3 bridges recreational and technical diving, expanding depth limits to 39m/130ft. A limited decompression course teaching advanced skills, decompression cylinder use, double tanks, and helium-based breathing mixtures (triox 30/30 and 21/35) to minimize narcosis and gas density effects.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rec3-master.jpg"
+        "https://www.gue.com/sites/default/files/rec3_2.jpg"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -146,7 +146,7 @@
       "levelCode": "advanced",
       "description": "GUE's most popular course and the cornerstone of the GUE training system. Provides all divers an opportunity to advance basic diving skills and serves as a gateway to all GUE technical and cave programs. Course outcomes include GUE equipment configuration, trim and buoyancy, propulsion techniques (including backwards kick), valve management, gas sharing, and SMB deployment. Can be completed with single or double tanks.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/fundamentals.jpg"
+        "https://www.gue.com/sites/default/files/fundamentals%20julian.jpg"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -171,7 +171,7 @@
       "levelCode": "advanced",
       "description": "GUE Basic Fundamentals is designed for divers seeking to enhance foundational diving skills. A gateway for other recreational GUE courses including Navigation, Rescue, Deep Primers, Scientific Diver, and DPV 1. Covers GUE equipment configuration, trim, buoyancy, and propulsion techniques.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/basic-fundamentals.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -193,7 +193,7 @@
       "levelCode": "advanced",
       "description": "GUE Technical Fundamentals is designed for experienced divers to enhance skills in preparation for GUE's technical, rebreather, or cave programs. Many divers see this course as a pathway to participate in GUE's advanced diving projects and activities. Provides the Technical Endorsement needed for Tech 1 and Cave 1.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-fundamentals.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -218,7 +218,7 @@
       "levelCode": "specialty",
       "description": "Non-certification course teaching divers how to safely and comfortably dive a double tank configuration using proper equipment and techniques. Essential for extending dive time and depth by increasing available breathing gas and adding equipment redundancy.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/doubles-primer.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -239,7 +239,7 @@
       "levelCode": "specialty",
       "description": "Non-certification course preparing divers for drysuit diving using proper equipment and techniques. Course covers buoyancy and trim practice, types and fitting of drysuits, inflation systems, undergarments, cold water diving specifics, and management of basic drysuit emergencies.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/drysuit-primer.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -261,7 +261,7 @@
       "levelCode": "specialty",
       "description": "Course teaching basics of underwater compass use and natural navigation techniques. Increases comfort and confidence for safe team diving. Outcomes include compass use (simple and complex navigation), natural navigation, basic navigational strategies, and managing a spool as guideline underwater.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/navigation-primer.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -284,7 +284,7 @@
       "levelCode": "specialty",
       "description": "Course teaching basic rescue techniques relevant to scuba diving emergencies. Skills include managing rescue scenarios, swimming and non-swimming assists, egression techniques, controlling panicked divers, underwater search patterns, and managing/surfacing unconscious divers.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rescue-primer.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -305,7 +305,7 @@
       "levelCode": "specialty",
       "description": "Course teaching use of triox 30/30 as a GUE standard gas to reduce effects of increased gas density in recreational divers. Covers deeper dive planning, ascent protocols, and effects of hypercapnia. Prepares divers for 30m/100ft diving and serves as preparation for technical training.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/deep-primer.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -326,7 +326,7 @@
       "levelCode": "specialty",
       "description": "Introduction to skills and knowledge for safe use of Underwater Propulsion Vehicles (DPV) in open water environments. Course covers basic DPV diving principles, dive planning, teamwork, environmental awareness, stress management, navigation, standard and emergency procedures, and DPV maintenance.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/dpv-1.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -348,7 +348,7 @@
       "levelCode": "specialty",
       "description": "Course introducing essential skills for preparing diving breathing mixtures with emphasis on GUE standard gases. Covers gas properties, physics, oxygen risk, blending systems, formulas, software, cascading, gas boosters, and gas analysis. Ideal for dive project support.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/gas-blender.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 8,
@@ -369,7 +369,7 @@
       "levelCode": "specialty",
       "description": "Introduction to documentation techniques, project organization, and logistics for project-based diving. Covers basic photography/videography, team skills for documentation, communication, establishing objectives and work plans, team task management, report creation, mapping, survey, and press releases.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/documentation-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -391,7 +391,7 @@
       "levelCode": "specialty",
       "description": "Introduction to underwater photogrammetry for creating digital 3D models of dive sites and submerged artifacts. Covers camera setup, image capture techniques, processing software, and 3D model generation for scientific and documentation purposes.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/photogrammetry.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 20,
@@ -413,7 +413,7 @@
       "levelCode": "specialty",
       "description": "Prepares divers to act as members of scientific diving teams. Covers search and survey methods, airbag and airlift use for lifts/excavations/sampling, rigging and line work, recording techniques, surface tending, and sampling techniques. Understanding of legal aspects and responsibilities.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/scientific-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -435,7 +435,7 @@
       "levelCode": "advanced",
       "description": "First level of GUE's technical curriculum, certifying divers for extended-range diving using helium-based trimix to depths of 51m/170ft. Covers decompression theory, gas management, emergency procedures, and extended decompression diving skills. Requires minimum 7 dives including 3 trimix experience dives.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-1.jpg"
+        "https://www.gue.com/sites/default/files/TECH1_1.jpg"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -460,7 +460,7 @@
       "levelCode": "advanced",
       "description": "Intermediate technical course extending Tech 1 divers to 60m/200ft. Emphasizes advanced decompression techniques, depth and time management, and proficiency with multiple decompression gases. Requires minimum 7 dives over 4 days.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-60.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -483,7 +483,7 @@
       "levelCode": "advanced",
       "description": "Second level of GUE's technical curriculum for depths to 75m/246ft and beyond using helium breathing gases and multiple decompression gases. A rigorous class preparing divers for aggressive diving profiles with extended decompression. Requires minimum 7 dives including 3 trimix experience dives.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-2.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -507,7 +507,7 @@
       "levelCode": "professional",
       "description": "Culmination of GUE's technical trilogy focusing exclusively on rebreathers (JJ-CCR and RB80) for depths to 120m/393ft with decompression times up to 3 hours. Includes advanced gas management, DPV use at depth, and extreme exposure protocols. Requires rebreather and DPV certifications.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-3.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 16,
@@ -530,7 +530,7 @@
       "levelCode": "advanced",
       "description": "Entry-level closed-circuit rebreather course introducing basic CCR technologies and cultivating diver proficiency with GUE-approved CCR configurations. Serves as prerequisite for advanced GUE CCR training. Maximum depth of 30m/100ft.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-fundamentals.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -553,7 +553,7 @@
       "levelCode": "advanced",
       "description": "Designed to enhance diver proficiency in the use of GUE-approved closed-circuit rebreathers for extended range diving. Builds on Tech 1 skills with CCR-specific protocols.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-1.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -575,7 +575,7 @@
       "levelCode": "advanced",
       "description": "Advanced CCR course for extended range diving with closed-circuit rebreathers. Builds on CCR 1 for deeper profiles and longer decompression obligations.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-2.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -597,7 +597,7 @@
       "levelCode": "advanced",
       "description": "Technical CCR course for extended range diving using closed-circuit rebreathers. Integrates CCR technology with technical diving protocols for depths requiring decompression.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-tech-1.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -619,7 +619,7 @@
       "levelCode": "advanced",
       "description": "Advanced technical CCR course for extended range diving to greater depths using closed-circuit rebreathers with multiple diluent and bailout gases.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-tech-2.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -641,7 +641,7 @@
       "levelCode": "advanced",
       "description": "Course educating divers in passive semi-closed circuit rebreather (PSCR) technologies, specifically the RB80. Cultivates proficiency in GUE-approved PSCR configurations for exploration diving. Considered one of the best rebreathers for deep exploration.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rb80.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -663,7 +663,7 @@
       "levelCode": "advanced",
       "description": "Introduction to cave diving within GUE's systematic approach. Certifies divers for basic cave diving within minimum decompression limits, no complex navigation (jumps/traverses/circuits), and no prolonged restrictions. Requires 12 dives in at least 3 different caves.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-1.jpg"
+        "https://www.gue.com/sites/default/files/C1-2_1.jpg"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -687,7 +687,7 @@
       "levelCode": "advanced",
       "description": "Advanced cave diving course for extended penetration, complex navigation including jumps and traverses, decompression diving, and use of stage cylinders. Requires 10 Cave 2 dives in at least 3 different caves over 6 days.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-2.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 24,
@@ -712,7 +712,7 @@
       "levelCode": "professional",
       "description": "Elite cave diving course for extended exposure dives at depth using rebreathers, DPVs, and multiple gas mixtures including hypoxic trimix. Covers team diving with mixed PSCR/CCR configurations, extended decompression strategies, and expedition-level planning.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-3.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -735,7 +735,7 @@
       "levelCode": "advanced",
       "description": "Cultivates mastery-level skill in underwater propulsion vehicle use within cave environments. Covers line laying/retrieval with DPV, DPV switching, and stage/deco bottle management while managing DPVs. Requires prior DPV and cave experience.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/dpv-cave.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -758,7 +758,7 @@
       "levelCode": "advanced",
       "description": "Provides experienced GUE cave and CCR divers with additional knowledge for safe CCR use in cave environments. Integrates rebreather technology with cave diving protocols.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-cave.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -780,7 +780,7 @@
       "levelCode": "advanced",
       "description": "Provides experienced GUE Cave 2 divers opportunity to master sidemount equipment configuration for exploring restrictive cave passages too small for backmount configuration. Requires 10 dives including 4 in restrictive passages.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/sidemount-cave.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -802,7 +802,7 @@
       "levelCode": "advanced",
       "description": "Introduction to underwater cave surveying skills including data collection, team approach to survey, and cartography methods. Prepares divers to assist in coordinated cave exploration projects. Requires 10 diving hours.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-survey.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 10,
@@ -827,7 +827,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course (ITC) for teaching GUE Fundamentals courses. Develops qualified instructors within the GUE recreational/foundational curriculum through 40+ hours of instruction over 5+ days.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -849,7 +849,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE Technical Diver Level 1. Requires extensive technical diving experience and active teaching at Fundamentals level.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -870,7 +870,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE Technical Diver Level 2. Requires extensive technical diving experience and active Tech 1 instructor status.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -891,7 +891,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE Technical Diver Level 3. Requires elite-level technical diving experience including extensive rebreather dives.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -913,7 +913,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE Cave Diver Level 1. Requires extensive cave diving experience beyond Cave 2 certification.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-instructor.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -934,7 +934,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE Cave Diver Level 2. Requires extensive cave experience including high-flow systems and decompression caves.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-instructor.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -956,7 +956,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE Cave Diver Level 3. Requires elite-level cave diving experience with rebreathers.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-instructor.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -978,7 +978,7 @@
       "levelCode": "instructor",
       "description": "Instructor Training Course for teaching GUE rebreather courses. Requires extensive rebreather diving experience and active technical instructor status.",
       "images": [
-        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,

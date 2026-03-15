@@ -15,6 +15,8 @@ import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Clien
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { storageLogger } from "../../../../lib/logger";
+import { enqueueTranslation } from "../../../../lib/jobs/index";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -113,9 +115,10 @@ export async function action({ request }: ActionFunctionArgs) {
         const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
         // Save to gallery_images table
-        await createGalleryImage(ctx.org.id, {
+        const imageTitle = title || file.name;
+        const createdImage = await createGalleryImage(ctx.org.id, {
           albumId: albumId || null,
-          title: title || file.name,
+          title: imageTitle,
           description: description || null,
           imageUrl: originalUpload.cdnUrl,
           thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
@@ -129,6 +132,22 @@ export async function action({ request }: ActionFunctionArgs) {
           isFeatured: false,
           status: "published",
         });
+
+        // Enqueue translation for image title and description
+        const imageFields = [
+          { field: "title", text: imageTitle },
+          ...(description?.trim() ? [{ field: "description", text: description }] : []),
+        ];
+        for (const locale of SUPPORTED_LOCALES) {
+          if (locale === DEFAULT_LOCALE) continue;
+          await enqueueTranslation({
+            orgId: ctx.org.id,
+            entityType: "gallery_image",
+            entityId: createdImage.id,
+            fields: imageFields,
+            targetLocale: locale,
+          });
+        }
 
         uploadedCount++;
       } catch (error) {

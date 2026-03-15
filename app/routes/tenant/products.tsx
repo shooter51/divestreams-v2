@@ -4,7 +4,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Form } from "react-router";
+import { useLoaderData, Form } from "react-router";
+import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
@@ -604,7 +605,7 @@ type ProductWithSaleFields = {
 
 export default function ProductsPage() {
   const { products } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string; currentStock: number } | null>(null);

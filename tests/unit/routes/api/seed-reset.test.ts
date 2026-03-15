@@ -33,6 +33,11 @@ vi.mock("../../../../lib/db/schema", () => ({
   customerCommunications: { organizationId: "organizationId", id: "id" },
   tourDiveSites: { organizationId: "organizationId", id: "id" },
   serviceRecords: { organizationId: "organizationId", id: "id" },
+  diveSites: { organizationId: "organizationId", id: "id" },
+  boats: { organizationId: "organizationId", id: "id" },
+  products: { organizationId: "organizationId", id: "id" },
+  discountCodes: { organizationId: "organizationId", id: "id" },
+  images: { organizationId: "organizationId", id: "id" },
 }));
 
 vi.mock("../../../../lib/db/schema/training", () => ({

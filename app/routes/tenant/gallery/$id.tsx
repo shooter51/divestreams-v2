@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useFetcher, Link } from "react-router";
+import { redirect, useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getGalleryAlbum,
@@ -177,7 +178,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function AlbumDetailPage() {
   const { album, images } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher<{ error?: string; updated?: boolean; imageDeleted?: boolean; statusUpdated?: boolean; featuredUpdated?: boolean }>();
   const t = useT();
 
   // Show notifications from URL params

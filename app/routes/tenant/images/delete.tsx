@@ -48,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Extract storage keys from URLs
     // CDN URL format: https://cdn.divestreams.com/{key}
-    // B2 URL format: https://s3.us-west-000.backblazeb2.com/DiveStreams/{key}
+    // S3 URL format: https://bucket.s3.region.amazonaws.com/{key}
     const extractKey = (url: string): string | null => {
       try {
         const urlObj = new URL(url);
@@ -64,7 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     };
 
-    // Delete from B2 storage
+    // Delete from S3 storage
     const originalKey = extractKey(image.url);
     const thumbnailKey = image.thumbnailUrl ? extractKey(image.thumbnailUrl) : null;
 

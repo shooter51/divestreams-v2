@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { useT } from "../../../i18n/use-t";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../lib/db/translations.server";
@@ -176,7 +177,7 @@ function formatTime(t: string | null | undefined): string {
 
 export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
   const t = useT();
 

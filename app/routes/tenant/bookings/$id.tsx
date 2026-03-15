@@ -1,15 +1,15 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { dbLogger } from "../../../../lib/logger";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
-import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { formatCurrency, formatTime as sharedFormatTime, formatDisplayDate, formatLabel } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 
 // Valid booking status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -74,7 +74,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
-  requireRole(ctx, ["owner", "admin"]);
+  requireRole(ctx, ["owner", "admin", "staff"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -186,7 +186,7 @@ export default function BookingDetailPage() {
   useNotification();
 
   const { booking } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
+  const fetcher = useCsrfFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const t = useT();
 

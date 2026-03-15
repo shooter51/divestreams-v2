@@ -49,6 +49,14 @@ export async function upsertGlobalAgencyCourseTemplate(input: UpsertGlobalTempla
         .limit(1)
     : [];
 
+  const cdnUrl = process.env.CDN_URL;
+
+  function isMigratedImage(url: string): boolean {
+    if (cdnUrl && url.startsWith(cdnUrl)) return true;
+    if (url.includes("s3.") && url.includes("amazonaws.com")) return true;
+    return false;
+  }
+
   const templateData = {
     agencyCode: input.agencyCode,
     levelCode: input.levelCode,
@@ -73,6 +81,13 @@ export async function upsertGlobalAgencyCourseTemplate(input: UpsertGlobalTempla
   };
 
   if (existing.length > 0) {
+    // Preserve previously-migrated CDN/S3 images — do not overwrite with raw
+    // catalog URLs (which would re-expose hotlink-protected external URLs).
+    const existingImages = existing[0].images as string[] | null;
+    if (existingImages?.length && existingImages.every(isMigratedImage)) {
+      templateData.images = existingImages;
+    }
+
     const [updated] = await db
       .update(agencyCourseTemplates)
       .set(templateData)

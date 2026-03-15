@@ -13,6 +13,11 @@ import {
   customerCommunications,
   tourDiveSites,
   serviceRecords,
+  diveSites,
+  boats,
+  products,
+  discountCodes,
+  images,
 } from "../../../../lib/db/schema";
 import {
   trainingCourses,
@@ -131,6 +136,21 @@ export async function action({ request }: ActionFunctionArgs) {
   const galleryAlbumsDeleted = await deleteAndCount(
     db.delete(galleryAlbums).where(eq(galleryAlbums.organizationId, orgId)).returning({ id: galleryAlbums.id })
   );
+  const imagesDeleted = await deleteAndCount(
+    db.delete(images).where(eq(images.organizationId, orgId)).returning({ id: images.id })
+  );
+  const productsDeleted = await deleteAndCount(
+    db.delete(products).where(eq(products.organizationId, orgId)).returning({ id: products.id })
+  );
+  const discountCodesDeleted = await deleteAndCount(
+    db.delete(discountCodes).where(eq(discountCodes.organizationId, orgId)).returning({ id: discountCodes.id })
+  );
+  const diveSitesDeleted = await deleteAndCount(
+    db.delete(diveSites).where(eq(diveSites.organizationId, orgId)).returning({ id: diveSites.id })
+  );
+  const boatsDeleted = await deleteAndCount(
+    db.delete(boats).where(eq(boats.organizationId, orgId)).returning({ id: boats.id })
+  );
 
   return Response.json({
     ok: true,
@@ -148,6 +168,11 @@ export async function action({ request }: ActionFunctionArgs) {
       customers: customersDeleted,
       galleryImages: galleryImagesDeleted,
       galleryAlbums: galleryAlbumsDeleted,
+      images: imagesDeleted,
+      products: productsDeleted,
+      discountCodes: discountCodesDeleted,
+      diveSites: diveSitesDeleted,
+      boats: boatsDeleted,
     },
   });
 }

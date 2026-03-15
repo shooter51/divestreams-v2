@@ -1,6 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
-import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { useState, useEffect } from "react";
 
 
@@ -505,9 +506,7 @@ export default function TeamPage() {
   // Apply translated descriptions to roles from loader
   const roles = getRoles(t);
 
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
-  const csrfToken = layoutData?.csrfToken;
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher<{ success: boolean; temporaryPassword?: string; error?: string }>();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -824,7 +823,6 @@ export default function TeamPage() {
                 userId: data.userId,
                 method: data.method,
                 ...(data.newPassword && { newPassword: data.newPassword }),
-                ...(csrfToken && { _csrf: csrfToken }),
               },
               { method: "post" }
             );

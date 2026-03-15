@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useFetcher } from "react-router";
+import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 import { useT } from "../../i18n/use-t";
 
 interface CheckoutModalProps {
@@ -48,7 +48,7 @@ export function CardModal({
   customerId,
 }: CardModalProps) {
   const t = useT();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const [step, setStep] = useState<CardModalStep>("method-select");
   const [error, setError] = useState<string | null>(null);
   const [stripe, setStripe] = useState<StripeType | null>(null);
@@ -576,7 +576,7 @@ export function SplitModal({
   customerId
 }: SplitModalProps) {
   const t = useT();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const amountInputRef = useRef<HTMLInputElement>(null);
   const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string; tendered?: number; change?: number }>>([]);
   const [currentAmount, setCurrentAmount] = useState("");

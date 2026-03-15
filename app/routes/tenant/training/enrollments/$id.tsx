@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
+import { useCsrfFetcher } from "../../../../hooks/use-csrf-fetcher";
 import { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
@@ -193,7 +194,7 @@ export default function EnrollmentDetailPage() {
   const t = useT();
 
   const { enrollment } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{
+  const fetcher = useCsrfFetcher<{
     error?: string;
   }>();
   const [showSkillModal, setShowSkillModal] = useState(false);

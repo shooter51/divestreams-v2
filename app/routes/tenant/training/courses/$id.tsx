@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, Link, useFetcher } from "react-router";
+import { redirect, useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { resolveLocale } from "../../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../../lib/db/translations.server";
@@ -79,7 +80,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function CourseDetailPage() {
   const { course, sessions } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const t = useT();
 
   // Show notifications from URL params
