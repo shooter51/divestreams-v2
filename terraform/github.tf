@@ -33,6 +33,20 @@ resource "github_actions_environment_variable" "db_vps_ip_test" {
   value         = var.db_vps_ip
 }
 
+resource "github_actions_environment_variable" "test_vps_tailscale_ip" {
+  repository    = "divestreams-v2"
+  environment   = github_repository_environment.test.environment
+  variable_name = "TEST_VPS_TAILSCALE_IP"
+  value         = var.test_vps_tailscale_ip
+}
+
+resource "github_actions_environment_variable" "db_vps_tailscale_ip_test" {
+  repository    = "divestreams-v2"
+  environment   = github_repository_environment.test.environment
+  variable_name = "DB_VPS_TAILSCALE_IP"
+  value         = var.db_vps_tailscale_ip
+}
+
 # ── Environment Variables — Production ───────────────────────────────────────
 
 resource "github_actions_environment_variable" "prod_vps_ip" {
@@ -54,6 +68,20 @@ resource "github_actions_environment_variable" "db_vps_ip_prod" {
   environment   = github_repository_environment.production.environment
   variable_name = "DB_VPS_IP"
   value         = var.db_vps_ip
+}
+
+resource "github_actions_environment_variable" "prod_vps_tailscale_ip" {
+  repository    = "divestreams-v2"
+  environment   = github_repository_environment.production.environment
+  variable_name = "PROD_VPS_TAILSCALE_IP"
+  value         = var.prod_vps_tailscale_ip
+}
+
+resource "github_actions_environment_variable" "db_vps_tailscale_ip_prod" {
+  repository    = "divestreams-v2"
+  environment   = github_repository_environment.production.environment
+  variable_name = "DB_VPS_TAILSCALE_IP"
+  value         = var.db_vps_tailscale_ip
 }
 
 # ── Environment Secrets — Test ────────────────────────────────────────────────
@@ -226,7 +254,6 @@ resource "github_actions_environment_variable" "platform_admin_name_test" {
   value         = "Platform Admin"
 }
 
-<<<<<<< HEAD
 resource "github_actions_environment_secret" "grafana_mimir_url_test" {
   repository      = "divestreams-v2"
   environment     = github_repository_environment.test.environment
@@ -268,9 +295,6 @@ resource "github_actions_environment_secret" "grafana_tempo_api_key_test" {
   secret_name     = "GRAFANA_TEMPO_API_KEY"
   plaintext_value = var.grafana_tempo_api_key
 }
-
-=======
->>>>>>> worktree-agent-afd855f5
 # ── Environment Secrets — Production ─────────────────────────────────────────
 
 resource "github_actions_environment_secret" "hostinger_api_token_prod" {
@@ -441,7 +465,6 @@ resource "github_actions_environment_variable" "platform_admin_name_prod" {
   value         = "Platform Admin"
 }
 
-<<<<<<< HEAD
 resource "github_actions_environment_secret" "grafana_mimir_url_prod" {
   repository      = "divestreams-v2"
   environment     = github_repository_environment.production.environment
@@ -483,9 +506,6 @@ resource "github_actions_environment_secret" "grafana_tempo_api_key_prod" {
   secret_name     = "GRAFANA_TEMPO_API_KEY"
   plaintext_value = var.grafana_tempo_api_key
 }
-
-=======
->>>>>>> worktree-agent-afd855f5
 # ── Repository-Level Secrets ──────────────────────────────────────────────────
 
 resource "github_actions_secret" "promotion_pat" {
@@ -498,4 +518,10 @@ resource "github_actions_secret" "hostinger_api_token" {
   repository      = "divestreams-v2"
   secret_name     = "HOSTINGER_API_TOKEN"
   plaintext_value = var.hostinger_api_token
+}
+
+resource "github_actions_secret" "tailscale_auth_key" {
+  repository      = "divestreams-v2"
+  secret_name     = "TAILSCALE_AUTH_KEY"
+  plaintext_value = var.tailscale_auth_key
 }

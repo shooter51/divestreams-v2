@@ -1048,3 +1048,26 @@ export type NewDiscountCode = typeof discountCodes.$inferInsert;
 
 export type Image = typeof images.$inferSelect;
 export type NewImage = typeof images.$inferInsert;
+
+// ============================================================================
+// DS-8p6q: BOOKING NUMBER SEQUENCES
+// Atomic sequence table to replace full-table scan in getNextBookingNumber().
+// Primary path: UPDATE next_number + 1 RETURNING (lock-free, no TOCTOU).
+// Fallback: initialise from MAX(existing booking numbers) on first use.
+// ============================================================================
+
+export const bookingNumberSequences = pgTable(
+  "booking_number_sequences",
+  {
+    organizationId: text("organization_id")
+      .notNull()
+      .primaryKey()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    nextNumber: integer("next_number").notNull().default(1000),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("booking_num_seq_org_idx").on(table.organizationId)]
+);
+
+export type BookingNumberSequence = typeof bookingNumberSequences.$inferSelect;
+export type NewBookingNumberSequence = typeof bookingNumberSequences.$inferInsert;

@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/infra/common.sh
 source "$SCRIPT_DIR/common.sh"
 
-PROD_VPS_IP="${PROD_VPS_IP:-72.62.166.128}"
+PROD_VPS_IP="${PROD_VPS_IP:-100.112.155.18}"  # Tailscale IP (SSH locked to Tailscale)
 BACKUP_DIR="$SCRIPT_DIR/backups"
 DATESTAMP="$(date +%Y-%m-%d)"
 REMOTE_DUMP="/tmp/prod-${DATESTAMP}.sql.gz"

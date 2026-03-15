@@ -57,6 +57,23 @@ variable "db_vps_ip" {
   type        = string
 }
 
+# ── VPS Tailscale IPs ───────────────────────────────────────────────────────
+
+variable "prod_vps_tailscale_ip" {
+  description = "Tailscale IP address of the production app VPS"
+  type        = string
+}
+
+variable "test_vps_tailscale_ip" {
+  description = "Tailscale IP address of the test app VPS"
+  type        = string
+}
+
+variable "db_vps_tailscale_ip" {
+  description = "Tailscale IP address of the dedicated database VPS"
+  type        = string
+}
+
 # ── VPS IDs (Hostinger) ───────────────────────────────────────────────────────
 
 variable "prod_vps_id" {
@@ -369,6 +386,12 @@ variable "grafana_tempo_api_key" {
 }
 
 # ── Shared Secrets ────────────────────────────────────────────────────────────
+
+variable "tailscale_auth_key" {
+  description = "Tailscale auth key for GitHub Actions runners to join the tailnet"
+  type        = string
+  sensitive   = true
+}
 
 variable "vps_ssh_key" {
   description = "SSH private key for VPS access (same key used for all VPSs)"

@@ -4,7 +4,7 @@
 # Installs Playwright system dependencies so tests can run without sudo
 #
 # Run this on the staging VPS as root:
-#   ssh root@76.13.28.28
+#   ssh root@100.109.71.112  # Test VPS via Tailscale
 #   curl -sSL https://raw.githubusercontent.com/shooter51/divestreams-v2/staging/scripts/setup-runner-playwright-deps.sh | bash
 #
 # Or manually from the repo:

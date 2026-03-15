@@ -15,6 +15,16 @@
     }
 }
 
+# DS-pfoc: CSP uses 'unsafe-inline' for script-src.
+# Decision: Keep 'unsafe-inline' for now because React Router v7 injects inline scripts
+# during client-side hydration. Nonce-based CSP requires the nonce to be injected into
+# every inline script tag at render time, which React Router v7 does not support without
+# a custom server integration. 'strict-dynamic' is not a viable drop-in replacement here
+# because the hydration scripts are not loaded via trusted script elements.
+# To remove 'unsafe-inline' in future: implement a nonce-aware server entry (entry.server.tsx)
+# that sets a per-request nonce on the React Router scripts element and passes it through
+# a custom header so Caddy can echo it back in the CSP header.
+
 test.divestreams.com {
     reverse_proxy app:3000
     encode gzip
@@ -34,7 +44,7 @@ test.divestreams.com {
 
 *.test.divestreams.com {
     tls {
-        on_demand
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
     }
 
     encode gzip

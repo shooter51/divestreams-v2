@@ -37,6 +37,11 @@ jobs:
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -47,8 +52,8 @@ jobs:
 
       - name: Sync compose and Caddyfile
         run: |
-          scp -i ~/.ssh/vps_key docker-compose.prod.yml root@${{ vars.PROD_VPS_IP }}:/docker/divestreams-prod/docker-compose.yml
-          scp -i ~/.ssh/vps_key Caddyfile root@${{ vars.PROD_VPS_IP }}:/docker/divestreams-prod/Caddyfile
+          scp -i ~/.ssh/vps_key docker-compose.prod.yml root@${{ vars.PROD_VPS_TAILSCALE_IP }}:/docker/divestreams-prod/docker-compose.yml
+          scp -i ~/.ssh/vps_key Caddyfile root@${{ vars.PROD_VPS_TAILSCALE_IP }}:/docker/divestreams-prod/Caddyfile
 
       - name: Deploy via Hostinger API
         run: |
