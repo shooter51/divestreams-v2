@@ -142,6 +142,7 @@ const CSRF_EXEMPT_PATHS = [
   "/api/auth/",
   "/api/health",
   "/api/integrations/",
+  "/api/help",
 ];
 
 /**
