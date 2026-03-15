@@ -113,13 +113,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     averageRating: stats.averageRating,
   };
 
-  // Apply content translations for non-English locales
+  // Apply content translations for the user's locale
   const locale = resolveLocale(request);
-  if (locale !== "en") {
-    const tr = await getContentTranslations(organizationId, "tour", tourId, locale);
-    if (tr.name) tour.name = tr.name;
-    if (tr.description) tour.description = tr.description;
-  }
+  const tr = await getContentTranslations(organizationId, "tour", tourId, locale);
+  if (tr.name) tour.name = tr.name;
+  if (tr.description) tour.description = tr.description;
 
   // Format images for the component
   const images: Image[] = tourImages.map((img) => ({

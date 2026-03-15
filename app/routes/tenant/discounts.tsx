@@ -39,7 +39,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && discountCodesList.length > 0) {
+  if (discountCodesList.length > 0) {
     const translations = await bulkGetContentTranslations(ctx.org.id, "discount", discountCodesList.map(d => d.id), locale);
     for (const discount of discountCodesList) {
       const tr = translations.get(discount.id);

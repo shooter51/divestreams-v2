@@ -56,7 +56,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const tr = await getContentTranslations(organizationId, "product", productId, locale);
     if (tr.name) product.name = tr.name;
     if (tr.description) product.description = tr.description ?? null;

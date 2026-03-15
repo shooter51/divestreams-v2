@@ -152,7 +152,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
     images: course.images,
   }));
 
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     // Translate tour names/descriptions
     const tourIds = [...new Set(featuredTrips.map((t) => t.tour?.id).filter(Boolean) as string[])];
     if (tourIds.length > 0) {
@@ -190,7 +190,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
 
   // Translate about content
   let translatedAboutContent: string | null = null;
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const siteTranslations = await getContentTranslations(org.id, "site_settings", org.id, locale);
     if (siteTranslations.aboutContent) {
       translatedAboutContent = siteTranslations.aboutContent;

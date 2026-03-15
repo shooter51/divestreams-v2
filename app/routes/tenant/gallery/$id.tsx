@@ -42,7 +42,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const tr = await getContentTranslations(organizationId, "gallery_album", albumId, locale);
     if (tr.name) album.name = tr.name;
     if (tr.description) album.description = tr.description;

@@ -66,7 +66,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Translate aboutContent for non-English locales
   const locale = resolveLocale(request);
   let translatedAboutContent: string | null = null;
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const translations = await getContentTranslations(org.id, "site_settings", org.id, locale);
     if (translations.aboutContent) {
       translatedAboutContent = translations.aboutContent;

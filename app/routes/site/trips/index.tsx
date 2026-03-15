@@ -219,7 +219,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Apply content translations for tour names/descriptions
   const locale = resolveLocale(request);
   let translatedTripCards = tripCards;
-  if (locale !== "en" && tripCards.length > 0) {
+  if (tripCards.length > 0) {
     const tourIds = [...new Set(tripCards.map((t) => t.tourId))];
     const translations = await bulkGetContentTranslations(
       org.id,

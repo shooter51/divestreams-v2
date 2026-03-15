@@ -35,7 +35,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const tr = await getContentTranslations(ctx.org.id, "course", courseId, locale);
     if (tr.name) course.name = tr.name;
     if (tr.description) course.description = tr.description;
