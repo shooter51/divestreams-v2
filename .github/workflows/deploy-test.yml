@@ -46,6 +46,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -56,8 +61,8 @@ jobs:
 
       - name: Sync compose and Caddyfile
         run: |
-          scp -i ~/.ssh/vps_key docker-compose.test.yml root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/docker-compose.yml
-          scp -i ~/.ssh/vps_key Caddyfile.test root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/Caddyfile.test
+          scp -i ~/.ssh/vps_key docker-compose.test.yml root@${{ vars.TEST_VPS_TAILSCALE_IP }}:/docker/divestreams-test/docker-compose.yml
+          scp -i ~/.ssh/vps_key Caddyfile.test root@${{ vars.TEST_VPS_TAILSCALE_IP }}:/docker/divestreams-test/Caddyfile.test
 
       - name: Deploy via Hostinger API
         run: |
@@ -112,6 +117,11 @@ jobs:
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
 
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -120,10 +130,10 @@ jobs:
           chmod 600 ~/.ssh/vps_key
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
-      - name: Fix test data via DB VPS
+      - name: Fix test data via local Test DB
         run: |
-          ssh -i ~/.ssh/vps_key root@${{ vars.DB_VPS_IP }} '
-            PG_CONTAINER=$(docker ps --filter name=divestreams-db --format "{{.Names}}" | head -1)
+          ssh -i ~/.ssh/vps_key root@${{ vars.TEST_VPS_TAILSCALE_IP }} '
+            PG_CONTAINER=$(docker ps --filter name=divestreams-test-db --format "{{.Names}}" | head -1)
             if [ -n "$PG_CONTAINER" ]; then
               # Fix PRO plan features
               docker exec "$PG_CONTAINER" psql -U divestreams -d divestreams_test -c "
@@ -178,7 +188,7 @@ jobs:
 
       - name: Flush rate limits via Test VPS Redis
         run: |
-          ssh -i ~/.ssh/vps_key root@${{ vars.TEST_VPS_IP }} '
+          ssh -i ~/.ssh/vps_key root@${{ vars.TEST_VPS_TAILSCALE_IP }} '
             REDIS_CONTAINER=$(docker ps --filter name=redis --format "{{.Names}}" | head -1)
             if [ -n "$REDIS_CONTAINER" ]; then
               REDIS_PASS=$(grep "^REDIS_PASSWORD=" /docker/divestreams-test/.env 2>/dev/null | cut -d= -f2 || echo "changeme")

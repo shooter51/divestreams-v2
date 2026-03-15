@@ -216,27 +216,46 @@ The pipeline is fully automated from feature PR to test, with a manual gate at p
 
 | VPS | Role | VPS ID | Public IP | Tailscale IP | Docker Project | Image Tag | Domain |
 |-----|------|--------|-----------|--------------|----------------|-----------|--------|
-| **Production** | App | 1296511 | 62.72.3.35 | 100.109.71.112 | divestreams-prod | :latest | divestreams.com |
-| **Test** | App | 1271895 | 76.13.28.28 | 100.112.155.18 | divestreams-test | :test | test.divestreams.com |
-| **Database** | PostgreSQL | 1239852 | 72.62.166.128 | 100.104.105.34 | divestreams-db | postgres:16-alpine | N/A |
+| **Production** | App (Boston) | 1271895 | 76.13.28.28 | 100.112.155.18 | divestreams-prod | :latest | divestreams.com |
+| **Test** | App (Phoenix) | 1296511 | 62.72.3.35 | 100.109.71.112 | divestreams-test | :test | test.divestreams.com |
+| **Database** | PostgreSQL (Boston) | 1239852 | 72.62.166.128 | 100.104.105.34 | divestreams-db | postgres:16-alpine | N/A |
 
-All VPSs are on Tailscale (tailnet). DB connections use Tailscale IPs. Port 5432 on DB VPS is blocked from public access.
+All VPSs are on Tailscale (tailnet). SSH is locked to Tailscale only on all VPSs. The DB VPS has zero public-facing ports.
+
+**Database Architecture:**
+- **Production** connects to the Boston DB VPS (`divestreams` database) via Tailscale (~1ms latency)
+- **Test** has its own local PostgreSQL on Phoenix (`divestreams-test-db` container, `divestreams_test` database) for fast queries
+- **DR Replica** runs on Phoenix as a streaming read replica of the Boston primary for disaster recovery
+- The Boston DB VPS serves production only; test queries never cross the network
 
 VPS IDs are stored as GitHub environment variables (`TEST_VPS_ID`, `PROD_VPS_ID`).
 
-**App VPS Containers (Test & Production):**
+**Production VPS Containers (Boston):**
 | Container | Image | Purpose |
 |-----------|-------|---------|
-| app | ghcr.io/shooter51/divestreams-app | Main React Router application (port 3000 internal) |
-| worker | ghcr.io/shooter51/divestreams-app | Background job processor |
-| zapier-worker | ghcr.io/shooter51/divestreams-app | Zapier integration worker |
+| app | ghcr.io/shooter51/divestreams-app:latest | Main React Router application (port 3000) |
+| worker | ghcr.io/shooter51/divestreams-app:latest | Background job processor |
+| zapier-worker | ghcr.io/shooter51/divestreams-app:latest | Zapier integration worker |
 | redis | redis:7-alpine | Redis cache/queue |
 | caddy | caddy:2-alpine | Reverse proxy with SSL (ports 80/443) |
+| alloy | grafana/alloy:latest | Log/metrics/traces shipping to Grafana Cloud |
 
-**DB VPS Container:**
+**Test VPS Containers (Phoenix):**
 | Container | Image | Purpose |
 |-----------|-------|---------|
-| divestreams-db | postgres:16-alpine | Shared PostgreSQL (serves both test and production databases) |
+| app | ghcr.io/shooter51/divestreams-app:test | Main React Router application (port 3000) |
+| worker | ghcr.io/shooter51/divestreams-app:test | Background job processor |
+| zapier-worker | ghcr.io/shooter51/divestreams-app:test | Zapier integration worker |
+| redis | redis:7-alpine | Redis cache/queue |
+| caddy | caddy-cloudflare:latest | Custom Caddy with Cloudflare DNS plugin (wildcard TLS) |
+| alloy | grafana/alloy:latest | Log/metrics/traces shipping to Grafana Cloud |
+| divestreams-test-db | postgres:16-alpine | Local test database (`divestreams_test`) |
+| divestreams-replica | postgres:16-alpine | DR read replica of production DB (port 5433, host network) |
+
+**DB VPS Container (Boston):**
+| Container | Image | Purpose |
+|-----------|-------|---------|
+| divestreams-db | postgres:16-alpine | Production PostgreSQL (`divestreams` database only) |
 
 ### Docker Compose Files
 
@@ -397,17 +416,38 @@ Set in `.env` files on each VPS:
 **Environment Variables:** `TEST_VPS_ID`, `PROD_VPS_ID`, `TEST_VPS_IP`, `PROD_VPS_IP`, `DB_VPS_IP`, `PLATFORM_ADMIN_NAME`
 **Secrets:** `HOSTINGER_API_TOKEN`, `VPS_SSH_KEY`, all app secrets (environment-level), `PROMOTION_PAT`, `HOSTINGER_API_TOKEN` (repo-level)
 
-### Check VPS Status (Monitoring Only)
+### Check VPS Status (Monitoring Only — SSH via Tailscale)
 ```bash
-# Production VPS
-ssh root@62.72.3.35 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
+# Production VPS (Boston)
+ssh root@100.112.155.18 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
 
-# Test VPS
-ssh root@76.13.28.28 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
+# Test VPS (Phoenix)
+ssh root@100.109.71.112 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
 
-# DB VPS
-ssh root@72.62.166.128 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
+# DB VPS (Boston)
+ssh root@100.104.105.34 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
 ```
+
+### Disaster Recovery
+
+A PostgreSQL streaming read replica runs on the Phoenix (Test) VPS. If the Boston datacenter goes down (both Production App and Database VPSs), the Phoenix replica can be promoted to restore production.
+
+**Failover command** (from any Tailscale-connected machine):
+```bash
+ssh root@100.109.71.112 /docker/dr-failover.sh
+```
+
+**What it does:** Promotes the replica, stops test containers, creates a production environment pointing at the local DB, updates Cloudflare DNS to Phoenix, starts production containers. ~2 minutes to full recovery.
+
+**RPO:** Seconds (streaming replication lag). **RTO:** ~2 minutes.
+
+**Pre-staged on Phoenix:**
+- `/docker/dr-failover.sh` — failover script
+- `/docker/dr-failover-env` — production credentials
+- `/docker/dr-failover-Caddyfile` — production Caddy config
+- `/docker/divestreams-replica/` — live streaming replica
+
+**After Boston is restored:** Do NOT restart the old primary. Resync Boston DB from the promoted Phoenix primary. See `docs/operations/disaster-recovery.md` for full procedures.
 
 ## Tech Stack
 - **Framework**: React Router v7 (Remix-style)

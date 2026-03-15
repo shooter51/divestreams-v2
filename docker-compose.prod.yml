@@ -165,13 +165,20 @@ services:
       - /etc/alloy/config.alloy
     volumes:
       - ./config/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     environment:
+      - GRAFANA_LOKI_URL=${GRAFANA_LOKI_URL}
+      - GRAFANA_LOKI_USERNAME=${GRAFANA_LOKI_USERNAME}
+      - GRAFANA_LOKI_API_KEY=${GRAFANA_LOKI_API_KEY}
       - GRAFANA_MIMIR_URL=${GRAFANA_MIMIR_URL}
       - GRAFANA_MIMIR_USERNAME=${GRAFANA_MIMIR_USERNAME}
       - GRAFANA_MIMIR_API_KEY=${GRAFANA_MIMIR_API_KEY}
-      - GRAFANA_TEMPO_URL=${GRAFANA_TEMPO_URL}
-      - GRAFANA_TEMPO_USERNAME=${GRAFANA_TEMPO_USERNAME}
-      - GRAFANA_TEMPO_API_KEY=${GRAFANA_TEMPO_API_KEY}
+      - GRAFANA_CLOUD_INSTANCE_ID=${GRAFANA_CLOUD_INSTANCE_ID}
+      - GRAFANA_CLOUD_API_KEY=${GRAFANA_CLOUD_API_KEY}
+      - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT}
+      - ALLOY_HOST=${ALLOY_HOST:-ds-prod}
+      - ALLOY_ENV=${ALLOY_ENV:-production}
     networks:
       - divestreams-network
     deploy:

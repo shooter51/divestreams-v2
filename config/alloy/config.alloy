@@ -1,3 +1,48 @@
+// ─── Docker log discovery → Loki ──────────────────────────
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/divestreams-(prod|test)-(.+)"
+    target_label  = "service"
+    replacement   = "$2"
+  }
+  rule {
+    target_label = "host"
+    replacement  = env("ALLOY_HOST")
+  }
+  rule {
+    target_label = "env"
+    replacement  = env("ALLOY_ENV")
+  }
+}
+
+loki.source.docker "containers" {
+  host    = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.docker_logs.output
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = env("GRAFANA_LOKI_URL")
+    basic_auth {
+      username = env("GRAFANA_LOKI_USERNAME")
+      password = env("GRAFANA_LOKI_API_KEY")
+    }
+  }
+}
+
 // ─── Prometheus metrics scraping ───────────────────────────
 prometheus.scrape "app_metrics" {
   targets = [{
@@ -38,8 +83,8 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.auth.basic "grafana_cloud" {
-  username = env("GRAFANA_TEMPO_USERNAME")
-  password = env("GRAFANA_TEMPO_API_KEY")
+  username = env("GRAFANA_CLOUD_INSTANCE_ID")
+  password = env("GRAFANA_CLOUD_API_KEY")
 }
 
 otelcol.processor.batch "default" {
@@ -50,7 +95,7 @@ otelcol.processor.batch "default" {
 
 otelcol.exporter.otlphttp "tempo" {
   client {
-    endpoint = "https://" + env("GRAFANA_TEMPO_URL")
+    endpoint = env("GRAFANA_OTLP_ENDPOINT")
     auth     = otelcol.auth.basic.grafana_cloud.handler
   }
 }

@@ -37,34 +37,53 @@ function generateBookingSuffix(): string {
  * Format: BK-NNNN-XXXX (e.g. BK-1000-A3KP, BK-1001-R7TZ)
  * Starts at BK-1000 if no prior bookings exist.
  * DS-45x1: Random suffix prevents prediction/enumeration.
+ * DS-8p6q: Uses atomic sequence table (UPDATE next_number + 1 RETURNING)
+ *   as the primary path. Falls back to scanning MAX(booking numbers) only
+ *   on first use, then inserts the sequence row for subsequent calls.
  * Accepts an optional transaction (tx) so it can be called inside transactions.
  */
 export async function getNextBookingNumber(
   organizationId: string,
   dbInstance: typeof db | DbTransaction = db
 ): Promise<string> {
-  const results = await (dbInstance as typeof db)
-    .select({ bookingNumber: schema.bookings.bookingNumber })
+  const instance = dbInstance as typeof db;
+
+  // Primary path: atomic UPDATE on sequence row
+  const updated = await instance
+    .update(schema.bookingNumberSequences)
+    .set({ nextNumber: sql`next_number + 1`, updatedAt: sql`now()` })
+    .where(eq(schema.bookingNumberSequences.organizationId, organizationId))
+    .returning({ nextNumber: schema.bookingNumberSequences.nextNumber });
+
+  if (updated.length > 0) {
+    // RETURNING gives post-increment value; booking number is one less
+    const bookingNum = updated[0].nextNumber - 1;
+    return `BK-${bookingNum}-${generateBookingSuffix()}`;
+  }
+
+  // Fallback: first use for this org — scan MAX from existing bookings
+  const maxResult = await instance
+    .select({
+      maxNum: sql<number | null>`MAX(CAST((regexp_match(${schema.bookings.bookingNumber}, '^BK-([0-9]+)'))[1] AS INTEGER))`,
+    })
     .from(schema.bookings)
     .where(
       and(
         eq(schema.bookings.organizationId, organizationId),
         sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+'`
       )
-    )
-    .orderBy(sql`CAST((regexp_match(${schema.bookings.bookingNumber}, '^BK-(\d+)'))[1] AS INTEGER) DESC NULLS LAST`)
-    .limit(1);
+    );
 
-  let maxNum = 999; // Start at 999 so first booking is BK-1000
-  for (const row of results) {
-    const match = row.bookingNumber?.match(/^BK-(\d+)/);
-    if (match) {
-      const num = parseInt(match[1], 10);
-      if (num > maxNum) maxNum = num;
-    }
-  }
+  const currentMax = maxResult[0]?.maxNum ?? 999;
+  const bookingNum = currentMax + 1;
+  const nextValue = bookingNum + 1; // sequence starts at the number after this one
 
-  return `BK-${maxNum + 1}-${generateBookingSuffix()}`;
+  await instance
+    .insert(schema.bookingNumberSequences)
+    .values({ organizationId, nextNumber: nextValue })
+    .returning({ nextNumber: schema.bookingNumberSequences.nextNumber });
+
+  return `BK-${bookingNum}-${generateBookingSuffix()}`;
 }
 
 // ============================================================================
