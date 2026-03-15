@@ -198,7 +198,7 @@ export default function NewDiveSitePage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link to="/tenant/dive-sites" className="text-brand hover:underline text-sm">
-          ← {t("tenant.diveSites.backToSites")}
+          {t("tenant.diveSites.backToSites")}
         </Link>
         <h1 className="text-2xl font-bold mt-2">{t("tenant.diveSites.addDiveSite")}</h1>
       </div>
@@ -211,7 +211,7 @@ export default function NewDiveSitePage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                {t("tenant.diveSites.siteName")} *
+                {t("tenant.diveSites.siteName")}
               </label>
               <input
                 type="text"
@@ -247,7 +247,7 @@ export default function NewDiveSitePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="maxDepth" className="block text-sm font-medium mb-1">
-                {t("tenant.diveSites.maxDepthMeters")} *
+                {t("tenant.diveSites.maxDepthMeters")}
               </label>
               <input
                 type="number"
@@ -266,7 +266,7 @@ export default function NewDiveSitePage() {
 
             <div>
               <label htmlFor="difficulty" className="block text-sm font-medium mb-1">
-                {t("tenant.diveSites.difficultyLevel")} *
+                {t("tenant.diveSites.difficultyLevel")}
               </label>
               <select
                 id="difficulty"
