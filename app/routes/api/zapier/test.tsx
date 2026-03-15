@@ -8,6 +8,7 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../lib/integrations/zapier-enhanced.server.js";
+import { apiSuccess, apiError } from "../../../../lib/api/response";
 import { db } from "../../../../lib/db/index.js";
 import { organization } from "../../../../lib/db/schema/auth.js";
 import { eq } from "drizzle-orm";
@@ -18,21 +19,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const clientIp = getClientIp(request);
   const rateResult = await checkRateLimit(`zapier:auth:${clientIp}`, { maxAttempts: 20, windowMs: 60 * 1000 });
   if (!rateResult.allowed) {
-    return Response.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
+    return apiError("Rate limit exceeded. Please try again later.", 429);
   }
 
   // Authenticate request using API key
   const apiKey = request.headers.get("x-api-key");
   if (!apiKey) {
-    return Response.json(
-      { error: "Missing API key. Provide X-API-Key header." },
-      { status: 401 }
-    );
+    return apiError("Missing API key. Provide X-API-Key header.", 401);
   }
 
   const orgId = await validateZapierApiKey(apiKey);
   if (!orgId) {
-    return Response.json({ error: "Invalid API key" }, { status: 401 });
+    return apiError("Invalid API key", 401);
   }
 
   // Get organization details
@@ -47,11 +45,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!org) {
-    return Response.json({ error: "Organization not found" }, { status: 404 });
+    return apiError("Organization not found", 404);
   }
 
-  return Response.json({
-    success: true,
+  return apiSuccess({
     message: "API key is valid",
     organization: {
       id: org.id,

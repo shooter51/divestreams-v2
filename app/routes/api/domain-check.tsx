@@ -1,4 +1,5 @@
 import { type LoaderFunctionArgs } from "react-router";
+import { apiSuccess, apiError } from "../../../lib/api/response";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -8,7 +9,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const domain = url.searchParams.get("domain");
 
   if (!domain) {
-    return new Response("Missing domain", { status: 400 });
+    return apiError("Missing domain", 400);
   }
 
   // Always allow divestreams.com subdomains (production and environments)
@@ -17,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     domain === "divestreams.com" ||
     domain === "www.divestreams.com"
   ) {
-    return new Response("OK", { status: 200 });
+    return apiSuccess({ domain }, 200);
   }
 
   // Check if domain is registered as a custom domain for any organization
@@ -28,8 +29,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(1);
 
   if (org.length > 0) {
-    return new Response("OK", { status: 200 });
+    return apiSuccess({ domain }, 200);
   }
 
-  return new Response("Domain not found", { status: 404 });
+  return apiError("Domain not found", 404);
 }

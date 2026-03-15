@@ -1,3 +1,4 @@
+export { IntegrationCard } from "./IntegrationCard";
 export { StripeIntegration } from "./StripeIntegration";
 export { GoogleCalendarIntegration } from "./GoogleCalendarIntegration";
 export { MailchimpIntegration } from "./MailchimpIntegration";

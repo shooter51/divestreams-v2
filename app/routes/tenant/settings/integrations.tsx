@@ -33,6 +33,7 @@ import { getStripeSettings, connectStripe } from "../../../../lib/integrations/s
 
 // Per-provider UI components
 import {
+  IntegrationCard,
   StripeIntegration,
   GoogleCalendarIntegration,
   MailchimpIntegration,
@@ -791,61 +792,25 @@ export default function IntegrationsPage() {
               {categoryIntegrations.map((integration) => {
                 const available = isIntegrationEnabled(integration.id);
                 const requiredPlanName = getRequiredPlanName(integration.id);
-                const IconComponent = Icons[integration.icon];
 
                 return (
-                  <div
+                  <IntegrationCard
                     key={integration.id}
-                    className={`bg-surface-raised rounded-xl p-6 shadow-sm ${
-                      !available ? "opacity-60" : ""
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 text-foreground-muted">
-                          {IconComponent && <IconComponent className="w-6 h-6" />}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{integration.name}</h3>
-                          <p className="text-sm text-foreground-muted">{integration.description}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <ul className="space-y-1 mb-4">
-                      {integration.features.map((feature) => (
-                        <li key={feature} className="text-xs text-foreground-muted flex items-center gap-1">
-                          <Icons.Check className="w-3 h-3 text-success" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {available ? (
-                      <button
-                        type="button"
-                        onClick={() => setOpenModalFor(integration.id)}
-                        className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
-                      >
-                        {t("tenant.settings.integrations.connect")}
-                      </button>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-xs text-foreground-muted mb-2">
-                          {requiredPlanName
-                            ? t("tenant.settings.integrations.requiresPlan", { plan: requiredPlanName })
-                            : t("tenant.settings.integrations.notAvailableOnPlan")
-                          }
-                        </p>
-                        <Link
-                          to="/tenant/settings/billing"
-                          className="text-sm text-brand hover:underline"
-                        >
-                          {t("tenant.settings.integrations.upgradeToUnlock")}
-                        </Link>
-                      </div>
-                    )}
-                  </div>
+                    name={integration.name}
+                    description={integration.description}
+                    icon={integration.icon}
+                    features={integration.features}
+                    available={available}
+                    onConnect={() => setOpenModalFor(integration.id)}
+                    connectLabel={t("tenant.settings.integrations.connect")}
+                    upgradeLabel={t("tenant.settings.integrations.upgradeToUnlock")}
+                    requiresPlanLabel={
+                      requiredPlanName
+                        ? t("tenant.settings.integrations.requiresPlan", { plan: requiredPlanName })
+                        : undefined
+                    }
+                    notAvailableLabel={t("tenant.settings.integrations.notAvailableOnPlan")}
+                  />
                 );
               })}
             </div>

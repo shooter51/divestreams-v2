@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, redirect } from "react-router";
+import { useLoaderData, Link, redirect, useRouteError, isRouteErrorResponse } from "react-router";
 import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { useT } from "../../../i18n/use-t";
 import { resolveLocale } from "../../../i18n/resolve-locale";
@@ -496,6 +496,25 @@ export default function TourDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const message = isRouteErrorResponse(error)
+    ? error.data || error.statusText
+    : error instanceof Error
+    ? error.message
+    : "An unexpected error occurred";
+
+  return (
+    <div className="p-6">
+      <h2 className="text-lg font-semibold mb-2">Something went wrong</h2>
+      <p className="text-foreground-muted mb-4">{String(message)}</p>
+      <Link to=".." className="text-brand hover:underline">
+        Go back
+      </Link>
     </div>
   );
 }

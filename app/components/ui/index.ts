@@ -11,3 +11,4 @@ export { FormInput } from "./FormInput";
 export { FormSelect, type SelectOption } from "./FormSelect";
 export { FormTextarea } from "./FormTextarea";
 export { ErrorMessage } from "./ErrorMessage";
+export { SkeletonLine, SkeletonCard, SkeletonTable } from "./Skeleton";

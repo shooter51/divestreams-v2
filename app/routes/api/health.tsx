@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { timingSafeEqual } from "crypto";
+import { apiSuccess, apiError } from "../../../lib/api/response";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // If HEALTH_CHECK_KEY is set, require authentication
@@ -9,7 +10,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const expected = Buffer.from(healthCheckKey);
     const provided = Buffer.from(providedKey);
     if (expected.length !== provided.length || !timingSafeEqual(expected, provided)) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
   }
 
@@ -37,10 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const httpStatus = healthy ? 200 : 503;
 
   // Only expose status — no internal infrastructure details
-  return Response.json(
-    { status },
-    { status: httpStatus }
-  );
+  return apiSuccess({ status }, httpStatus);
 }
 
 export default function Health() {
