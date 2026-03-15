@@ -200,11 +200,11 @@ describe("Tenant Server Module - Error Paths", () => {
   });
 
   // ============================================================================
-  // Schema Creation Errors
+  // Tenant Creation Cleanup Errors
   // ============================================================================
 
-  describe("Schema Creation Failures", () => {
-    it("should cleanup tenant record when schema creation fails", async () => {
+  describe("Tenant Creation Cleanup", () => {
+    it("should cleanup tenant record when organization insert fails", async () => {
       const mockTenant = {
         id: "uuid-123",
         subdomain: "newshop",
@@ -212,18 +212,16 @@ describe("Tenant Server Module - Error Paths", () => {
         schemaName: "tenant_newshop",
       };
 
-      const mockValues = vi.fn().mockReturnThis();
-      const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
-
-      (mockDb.insert as unknown as Mock).mockReturnValue({
-        values: mockValues,
+      let insertCallCount = 0;
+      (mockDb.insert as unknown as Mock).mockImplementation(() => {
+        insertCallCount++;
+        if (insertCallCount === 1) {
+          // tenants insert succeeds (uses .values().returning())
+          return { values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([mockTenant]) }) };
+        }
+        // organization insert fails (uses .values() directly — no .returning())
+        return { values: vi.fn().mockRejectedValue(new Error("Organization insert failed")) };
       });
-      mockValues.mockReturnValue({
-        returning: mockReturning,
-      });
-
-      // Schema creation fails
-      mockClient.unsafe.mockRejectedValueOnce(new Error("Permission denied: cannot create schema"));
 
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
       (mockDb.delete as unknown as Mock).mockReturnValue({
@@ -236,36 +234,35 @@ describe("Tenant Server Module - Error Paths", () => {
           name: "New Shop",
           email: "new@shop.com",
         })
-      ).rejects.toThrow("Permission denied: cannot create schema");
+      ).rejects.toThrow("Organization insert failed");
 
-      // Verify cleanup was attempted
-      expect(mockClient.unsafe).toHaveBeenCalledWith(
-        expect.stringContaining("DROP SCHEMA")
-      );
+      // Verify cleanup was attempted (delete tenant record)
       expect(mockDb.delete).toHaveBeenCalled();
+      // No schema DDL should have been attempted
+      expect(mockClient.unsafe).not.toHaveBeenCalled();
     });
 
-    it("should handle table creation failure after schema creation", async () => {
+    it("should cleanup both tenant and organization when subscription insert fails", async () => {
       const mockTenant = {
         id: "uuid-123",
         subdomain: "newshop",
         schemaName: "tenant_newshop",
       };
 
-      const mockValues = vi.fn().mockReturnThis();
-      const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
-
-      (mockDb.insert as unknown as Mock).mockReturnValue({
-        values: mockValues,
+      let insertCallCount = 0;
+      (mockDb.insert as unknown as Mock).mockImplementation(() => {
+        insertCallCount++;
+        if (insertCallCount === 1) {
+          // tenants insert succeeds (uses .values().returning())
+          return { values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([mockTenant]) }) };
+        }
+        if (insertCallCount === 2) {
+          // organization insert succeeds (uses .values() directly)
+          return { values: vi.fn().mockResolvedValue([{}]) };
+        }
+        // subscription insert fails (uses .values() directly)
+        return { values: vi.fn().mockRejectedValue(new Error("Subscription insert failed")) };
       });
-      mockValues.mockReturnValue({
-        returning: mockReturning,
-      });
-
-      // Schema creation succeeds, but table creation fails
-      mockClient.unsafe
-        .mockResolvedValueOnce([]) // CREATE SCHEMA succeeds
-        .mockRejectedValueOnce(new Error("Insufficient disk space")); // CREATE TABLE fails
 
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
       (mockDb.delete as unknown as Mock).mockReturnValue({
@@ -278,7 +275,10 @@ describe("Tenant Server Module - Error Paths", () => {
           name: "New Shop",
           email: "new@shop.com",
         })
-      ).rejects.toThrow("Insufficient disk space");
+      ).rejects.toThrow("Subscription insert failed");
+
+      // No schema DDL should have been attempted
+      expect(mockClient.unsafe).not.toHaveBeenCalled();
     });
 
     it("should handle cleanup failure gracefully", async () => {
@@ -473,11 +473,9 @@ describe("Tenant Server Module - Error Paths", () => {
       await expect(listTenants()).rejects.toThrow("out of memory");
     });
 
-    it("should handle disk full error during schema creation", async () => {
-      const mockTenant = { id: "uuid-123", subdomain: "test", schemaName: "tenant_test" };
-
+    it("should handle disk full error during tenant record insert", async () => {
       const mockValues = vi.fn().mockReturnThis();
-      const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
+      const mockReturning = vi.fn().mockRejectedValue(new Error("No space left on device"));
 
       (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
@@ -485,8 +483,6 @@ describe("Tenant Server Module - Error Paths", () => {
       mockValues.mockReturnValue({
         returning: mockReturning,
       });
-
-      mockClient.unsafe.mockRejectedValueOnce(new Error("No space left on device"));
 
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
       (mockDb.delete as unknown as Mock).mockReturnValue({
@@ -500,6 +496,9 @@ describe("Tenant Server Module - Error Paths", () => {
           email: "test@example.com",
         })
       ).rejects.toThrow("No space left on device");
+
+      // No schema DDL should have been attempted
+      expect(mockClient.unsafe).not.toHaveBeenCalled();
     });
 
     it("should handle max connections exceeded", async () => {
