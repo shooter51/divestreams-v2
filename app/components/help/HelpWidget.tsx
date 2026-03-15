@@ -15,12 +15,12 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  sources?: string[];
+  sources?: Array<{ title: string; path: string }>;
 }
 
 interface HelpApiResponse {
   answer: string;
-  sources?: string[];
+  sources?: Array<{ title: string; path: string }>;
   error?: string;
 }
 
@@ -254,7 +254,7 @@ export function HelpWidget() {
                       <ul className="space-y-0.5">
                         {msg.sources.map((source, i) => (
                           <li key={i} className="text-xs opacity-75">
-                            · {source}
+                            · {source.title}
                           </li>
                         ))}
                       </ul>
