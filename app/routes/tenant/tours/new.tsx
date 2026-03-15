@@ -11,6 +11,7 @@ import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 

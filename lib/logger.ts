@@ -8,15 +8,43 @@
  * when emitted inside an AsyncLocalStorage context set up by server/app.ts.
  */
 
-import { AsyncLocalStorage } from 'node:async_hooks';
-
 import pino from 'pino';
 
 // ---------------------------------------------------------------------------
 // Request context — populated per-request by server/app.ts
+// AsyncLocalStorage is only available server-side; on the client we provide
+// a no-op stub so the module can be safely imported in route files whose
+// loaders/actions run server-side but whose default export runs client-side.
 // ---------------------------------------------------------------------------
 
-export const requestContext = new AsyncLocalStorage<{ requestId: string }>();
+type RequestStore = { requestId: string };
+
+interface ALS<T> {
+  getStore(): T | undefined;
+  run<R>(store: T, fn: () => R): R;
+}
+
+const isServer = typeof globalThis.process !== 'undefined' && typeof globalThis.process.versions?.node !== 'undefined';
+
+function createRequestContext(): ALS<RequestStore> {
+  if (isServer) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const asyncHooks = require('node:async_hooks') as { AsyncLocalStorage: new <T>() => ALS<T> };
+      return new asyncHooks.AsyncLocalStorage<RequestStore>();
+    } catch {
+      // Fallback if require fails
+    }
+  }
+  // Client-side / fallback no-op stub
+  return {
+    getStore: () => undefined,
+    run: <R>(_store: RequestStore, fn: () => R) => fn(),
+  };
+}
+
+export const requestContext = createRequestContext();
 
 export function getRequestId(): string | undefined {
   return requestContext.getStore()?.requestId;
