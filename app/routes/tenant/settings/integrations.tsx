@@ -752,7 +752,7 @@ export default function IntegrationsPage() {
                         method="post"
                         onSubmit={(e) =>
                         {
-                          if (!confirm(`Are you sure you want to disconnect ${integration.name}?`)) {
+                          if (!confirm(t("tenant.settings.integrations.confirmDisconnect", { name: integration.name }))) {
                             e.preventDefault();
                           }
                         }}

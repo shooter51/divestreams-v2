@@ -31,6 +31,9 @@ export default [
   // Demo seed reset endpoint (protected by SEED_KEY)
   route("api/seed/reset", "routes/api/seed/reset.ts"),
 
+  // AI Help API (Bedrock-powered contextual help)
+  route("api/help", "routes/api/help.tsx"),
+
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 

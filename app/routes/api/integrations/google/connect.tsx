@@ -15,6 +15,7 @@ import {
   getSubdomainFromRequest,
 } from "../../../../../lib/auth/org-context.server";
 import { getGoogleAuthUrl } from "../../../../../lib/integrations/google-calendar.server";
+import { integrationLogger } from "../../../../../lib/logger";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Require authenticated organization context
@@ -30,7 +31,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Redirect to Google's consent screen
     return redirect(authUrl);
   } catch (error) {
-    console.error("Failed to generate Google OAuth URL:", error);
+    integrationLogger.error({ err: error }, "Failed to generate Google OAuth URL");
     const errorMessage =
       error instanceof Error
         ? error.message

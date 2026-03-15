@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { BarcodeScanner } from "./BarcodeScanner";
+import { logger } from "../../lib/logger";
 
 interface BarcodeScannerModalProps {
   isOpen: boolean;
@@ -111,7 +112,7 @@ export function BarcodeScannerModal({
           ) : (
             <BarcodeScanner
               onScan={handleScan}
-              onError={(error) => console.error("Scanner error:", error)}
+              onError={(error) => logger.error({ err: error }, "Scanner error")}
               enabled={scannerEnabled}
               className="aspect-[4/3]"
             />

@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
-import { dbLogger } from "../../../../lib/logger";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -29,6 +29,17 @@ export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
+
+  // Rate limit customer creation: 10 per minute per IP
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`create-customer:${clientIp}:${organizationId}`, {
+    maxAttempts: 10,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return { error: "Too many requests. Please wait before creating more customers." };
+  }
+
   const formData = await request.formData();
 
   const firstName = formData.get("firstName") as string;
@@ -130,7 +141,7 @@ export async function action({ request }: ActionFunctionArgs) {
         "success"
       ));
     } catch (emailError) {
-      dbLogger.error({ err: emailError, organizationId }, "Failed to send password setup email");
+      console.error("Failed to send password setup email:", emailError);
       // Customer was created successfully, just email failed
       return redirect(redirectWithNotification(
         "/tenant/customers",
@@ -139,7 +150,7 @@ export async function action({ request }: ActionFunctionArgs) {
       ));
     }
   } catch (error) {
-    dbLogger.error({ err: error, organizationId }, "Failed to create customer");
+    console.error("Failed to create customer:", error);
     const values: Record<string, string> = {};
     formData.forEach((value, key) => {
       if (typeof value === "string") {

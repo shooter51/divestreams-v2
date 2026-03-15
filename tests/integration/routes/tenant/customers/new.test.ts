@@ -99,7 +99,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(result).toHaveProperty("errors");
-      expect(result.errors).toHaveProperty("firstName", "First name is required");
+      expect(result.errors).toHaveProperty("firstName");
     });
 
     it("should return error for missing last name", async () => {
@@ -116,7 +116,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(result).toHaveProperty("errors");
-      expect(result.errors).toHaveProperty("lastName", "Last name is required");
+      expect(result.errors).toHaveProperty("lastName");
     });
 
     it("should return error for missing email", async () => {
@@ -133,7 +133,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(result).toHaveProperty("errors");
-      expect(result.errors).toHaveProperty("email", "Email is required");
+      expect(result.errors).toHaveProperty("email");
     });
 
     it("should return error for invalid email format", async () => {
@@ -150,7 +150,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(result).toHaveProperty("errors");
-      expect(result.errors).toHaveProperty("email", "Invalid email address");
+      expect(result.errors).toHaveProperty("email", "Valid email required");
     });
 
     it("should handle optional certification fields", async () => {

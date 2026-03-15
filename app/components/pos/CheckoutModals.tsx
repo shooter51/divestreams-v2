@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 import { useT } from "../../i18n/use-t";
+import { logger } from "../../../lib/logger";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -188,14 +189,14 @@ export function CardModal({
         }, 1500);
       } else {
         // Handle unexpected response format
-        console.error("Unexpected payment response:", result);
+        logger.error({ result }, "Unexpected payment response");
         setError("Payment status unclear - please contact support");
         setStep("error");
       }
     } catch (err) {
       // Handle timeout, network errors, and other exceptions
       const errorMessage = err instanceof Error ? err.message : "Payment failed - please try again";
-      console.error("Payment confirmation error:", err);
+      logger.error({ err }, "Payment confirmation error");
       setError(errorMessage);
       setStep("error");
     }

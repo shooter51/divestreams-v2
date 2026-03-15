@@ -76,6 +76,7 @@
     "seed:full": "npm run seed:api && npm run seed:export"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@aws-sdk/client-bedrock-runtime": "^3.1004.0",
     "@aws-sdk/client-s3": "^3.967.0",
     "@fullcalendar/core": "^6.1.20",
@@ -116,6 +117,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-joyride": "^3.0.0-7",
+    "react-markdown": "^10.1.0",
     "react-router": "7.12.0",
     "sharp": "^0.34.5",
     "stripe": "^20.0.0",

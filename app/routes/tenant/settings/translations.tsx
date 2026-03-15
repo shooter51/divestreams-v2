@@ -356,13 +356,15 @@ export async function action({ request }: ActionFunctionArgs) {
         ...(image.description?.trim() ? [{ field: "description", text: image.description }] : []),
       ];
       if (fields.length === 0) continue;
+      const srcLocale = resolveLocale(request);
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === srcLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "gallery_image",
           entityId: image.id,
           fields,
+          sourceLocale: srcLocale,
           targetLocale: locale,
         });
         enqueued++;

@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    integrationLogger.error({ err: error, provider: "mailchimp" }, "Mailchimp OAuth error");
+    integrationLogger.error({ error, errorDescription }, "Mailchimp OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the Mailchimp access request."
@@ -87,7 +87,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    integrationLogger.error({ err, provider: "mailchimp" }, "OAuth callback failed");
+    integrationLogger.error({ err }, "Mailchimp OAuth callback error");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect Mailchimp";
     return redirect(

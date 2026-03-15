@@ -4,6 +4,237 @@
   },
   "interactions": [
     {
+      "description": "a POST request that exceeds the rate limit",
+      "providerStates": [
+        {
+          "name": "user has exceeded their hourly question limit"
+        }
+      ],
+      "request": {
+        "body": {
+          "question": "help"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.question": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/help"
+      },
+      "response": {
+        "body": {
+          "error": "Too many requests",
+          "resetAt": 1700000000000
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.error": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.resetAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 429
+      }
+    },
+    {
+      "description": "a POST request with a DiveStreams question",
+      "providerStates": [
+        {
+          "name": "user is authenticated and help articles exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "question": "How do I create a booking?"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.question": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/help"
+      },
+      "response": {
+        "body": {
+          "answer": "Go to the Bookings page and click New Booking.",
+          "sources": [
+            {
+              "path": "docs/help/bookings.md",
+              "title": "Managing Bookings"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.answer": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.sources": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.sources[*].path": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.sources[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a POST request with an off-topic question",
+      "providerStates": [
+        {
+          "name": "user is authenticated but question has no matching articles"
+        }
+      ],
+      "request": {
+        "body": {
+          "question": "xyzquux unrelated query"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.question": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/help"
+      },
+      "response": {
+        "body": {
+          "answer": "I can help with DiveStreams features",
+          "sources": []
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.answer": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a POST request with missing question field",
+      "providerStates": [
+        {
+          "name": "user is authenticated"
+        }
+      ],
+      "request": {
+        "body": {},
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/help"
+      },
+      "response": {
+        "body": {
+          "error": "question is required"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.error": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 400
+      }
+    },
+    {
       "description": "a request for health status",
       "providerStates": [
         {

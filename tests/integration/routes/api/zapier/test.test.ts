@@ -19,6 +19,12 @@ vi.mock("../../../../../lib/db", () => ({
   },
 }));
 
+// Mock rate limiter so tests don't hit Redis
+vi.mock("../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 19, resetAt: Date.now() + 60000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server";
 import { db } from "../../../../../lib/db";
 

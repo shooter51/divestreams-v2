@@ -44,7 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    integrationLogger.error({ err: error, provider: "quickbooks" }, "QuickBooks OAuth error");
+    integrationLogger.error({ error, errorDescription }, "QuickBooks OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the QuickBooks access request."
@@ -102,7 +102,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    integrationLogger.error({ err, provider: "quickbooks" }, "OAuth callback failed");
+    integrationLogger.error({ err }, "QuickBooks OAuth callback error");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect QuickBooks";
     return redirect(

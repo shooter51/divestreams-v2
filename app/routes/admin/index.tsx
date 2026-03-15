@@ -7,6 +7,7 @@ import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq, ilike, asc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
 import { getTenantUrl } from "../../../lib/utils/url";
+import { logger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Organizations - DiveStreams Admin" }];
 
@@ -107,7 +108,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       error: null,
     };
   } catch (error) {
-    console.error("Failed to fetch organizations from database:", error);
+    logger.error({ err: error }, "Failed to fetch organizations from database");
     return {
       organizations: [],
       search,

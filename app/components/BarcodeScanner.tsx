@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { NotFoundException } from "@zxing/library";
 import { useT } from "../i18n/use-t";
+import { logger } from "../../lib/logger";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -92,7 +93,7 @@ export function BarcodeScanner({
             }
             if (err && !(err instanceof NotFoundException)) {
               // NotFoundException is thrown on every frame with no barcode — ignore it
-              console.error("ZXing scan error:", err);
+              logger.error({ err }, "ZXing scan error");
             }
           }
         );

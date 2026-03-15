@@ -37,7 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    integrationLogger.error({ err: error, provider: "google-calendar" }, "Google OAuth error");
+    integrationLogger.error({ err: error }, "Google OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the calendar access request."
@@ -86,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    integrationLogger.error({ err, provider: "google-calendar" }, "OAuth callback failed");
+    integrationLogger.error({ err }, "Google OAuth callback error");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect Google Calendar";
     return redirect(

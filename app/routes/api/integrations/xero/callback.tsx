@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    integrationLogger.error({ err: error, provider: "xero" }, "Xero OAuth error");
+    integrationLogger.error({ error, errorDescription }, "Xero OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the Xero access request."
@@ -87,7 +87,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    integrationLogger.error({ err, provider: "xero" }, "OAuth callback failed");
+    integrationLogger.error({ err }, "Xero OAuth callback error");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect Xero";
     return redirect(

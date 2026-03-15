@@ -10,10 +10,9 @@ import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeTyp
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES } from "../../../i18n/types";
-import { resolveLocale } from "../../../i18n/resolve-locale";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 import { useT } from "../../../i18n/use-t";
-import { storageLogger } from "../../../../lib/logger";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -33,6 +32,17 @@ export async function action({ request }: ActionFunctionArgs) {
   requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const tenantSlug = ctx.org.slug;
+
+  // Rate limit tour creation: 10 per minute per IP
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`create-tour:${clientIp}:${organizationId}`, {
+    maxAttempts: 10,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return { error: "Too many requests. Please wait before creating more tours." };
+  }
+
   const formData = await request.formData();
 
   // Extract image files before processing other form data
@@ -226,7 +236,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         uploadedCount++;
       } catch (error) {
-        storageLogger.error({ err: error, organizationId }, "Failed to upload image");
+        console.error(`Failed to upload image ${file.name}:`, error);
         failedFiles.push(`${file.name} (upload failed)`);
       }
     }

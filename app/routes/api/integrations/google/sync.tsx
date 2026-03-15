@@ -61,7 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
           : `Successfully synced ${result.synced} trips`,
     });
   } catch (error) {
-    integrationLogger.error({ err: error, provider: "google-calendar", action: "sync" }, "Sync failed");
+    integrationLogger.error({ err: error }, "Google Calendar sync error");
     return Response.json(
       {
         error:

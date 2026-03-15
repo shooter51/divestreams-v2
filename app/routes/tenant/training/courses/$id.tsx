@@ -89,7 +89,7 @@ export default function CourseDetailPage() {
   const handleDelete = () => {
     if (
       confirm(
-        "Are you sure you want to delete this course? This cannot be undone."
+        t("tenant.training.courses.confirmDelete")
       )
     ) {
       fetcher.submit({ intent: "delete" }, { method: "post" });

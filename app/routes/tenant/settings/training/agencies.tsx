@@ -379,7 +379,7 @@ export default function AgenciesPage() {
                     onSubmit={(e) => {
                       if (
                         !confirm(
-                          `Are you sure you want to delete "${agency.name}"? This may affect courses using this agency.`
+                          t("tenant.settings.training.agencies.confirmDelete", { name: agency.name })
                         )
                       ) {
                         e.preventDefault();

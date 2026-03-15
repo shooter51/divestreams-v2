@@ -13,6 +13,7 @@ import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
+import { useT } from "../../i18n/use-t";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { escapeHtml } from "../../../lib/security/sanitize";
@@ -632,6 +633,7 @@ export default function ProductsPage() {
 
   // Get toast context for showing success/error messages
   const { showToast } = useToast();
+  const t = useT();
 
   // Calculate which products are on sale (client-side only to avoid hydration errors)
   useEffect(() => {
@@ -1301,7 +1303,7 @@ export default function ProductsPage() {
                       <button
                         type="submit"
                         onClick={(e) => {
-                          if (!confirm("Delete this product?")) {
+                          if (!confirm(t("tenant.pos.products.confirmDelete"))) {
                             e.preventDefault();
                           }
                           // Don't close modal here - let useEffect handle it after success
