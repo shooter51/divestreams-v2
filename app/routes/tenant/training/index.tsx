@@ -3,7 +3,6 @@ import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
-import { formatLabel } from "../../../lib/format";
 import { useT, useLocale } from "../../../i18n/use-t";
 import { useFormat } from "../../../i18n/use-format";
 import {
@@ -158,7 +157,7 @@ export default function TrainingDashboardPage() {
                             year: "numeric",
                           })
                         : ""}
-                      {session.startTime ? ` at ${formatTime(session.startTime)}` : ""}
+                      {session.startTime ? ` ${t("tenant.training.sessions.at")} ${formatTime(session.startTime)}` : ""}
                     </p>
                     {session.location && (
                       <p className="text-xs text-foreground-subtle">{session.location}</p>
@@ -214,7 +213,7 @@ export default function TrainingDashboardPage() {
                         enrollment.status
                       )}`}
                     >
-                      {formatLabel(enrollment.status)}
+                      {t(`common.status.${enrollment.status}`)}
                     </span>
                     {enrollment.enrolledAt && (
                       <p className="text-xs text-foreground-subtle mt-1">
