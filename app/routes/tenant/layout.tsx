@@ -11,6 +11,7 @@ import { ToastProvider } from "../../../lib/toast-context";
 import { generateCsrfToken } from "../../../lib/security/csrf.server";
 import { useT } from "../../i18n/use-t";
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import { HelpWidget } from "../../components/help/HelpWidget";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -248,6 +249,8 @@ export default function TenantLayout() {
             onClose={() => setUpgradeFeature(null)}
           />
         )}
+
+        <HelpWidget />
 
       </div>
     </ToastProvider>
