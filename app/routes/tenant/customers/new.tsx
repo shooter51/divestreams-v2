@@ -1,6 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useLoaderData, Link } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
+import { customerSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createCustomer } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
@@ -30,27 +31,14 @@ export async function action({ request }: ActionFunctionArgs) {
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 
+  const validation = validateFormData(formData, customerSchema);
+  if (!validation.success) {
+    return { errors: validation.errors, values: getFormValues(formData) };
+  }
+
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
-
-  // Basic validation
-  const errors: Record<string, string> = {};
-  if (!firstName) errors.firstName = "First name is required";
-  if (!lastName) errors.lastName = "Last name is required";
-  if (!email) errors.email = "Email is required";
-  else if (!email.includes("@")) errors.email = "Invalid email address";
-
-  if (Object.keys(errors).length > 0) {
-    // Convert FormData to Record<string, string> for defaultValue compatibility
-    const values: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      if (typeof value === "string") {
-        values[key] = value;
-      }
-    });
-    return { errors, values };
-  }
 
   // Check if email already exists as a tenant user
   const [existingUser] = await db
