@@ -1,3 +1,4 @@
+// Admin panel is English-only by design — platform admins are internal staff
 import type { LoaderFunctionArgs } from "react-router";
 import { Outlet, Link, useLocation, redirect, useLoaderData, isRouteErrorResponse, useRouteError } from "react-router";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
