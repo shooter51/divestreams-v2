@@ -484,7 +484,7 @@ export default function SettingsPage() {
                 type="submit"
                 disabled={fetcher.state === "submitting"}
                 onClick={(e) => {
-                  if (!confirm("⚠️ WARNING: This will deactivate your account and submit a deletion request to our platform administrators.\n\nYour account will be:\n1. Immediately deactivated (no access)\n2. Reviewed by admins within 24-48 hours\n3. Permanently deleted after review\n\nALL data including customers, bookings, trips, and equipment will be deleted. This action CANNOT be undone.\n\nAre you absolutely sure you want to request account deletion?")) {
+                  if (!confirm(t("tenant.settings.confirmDeleteAccount"))) {
                     e.preventDefault();
                   }
                 }}

@@ -445,7 +445,6 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.name
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.name ? "true" : undefined}
@@ -484,7 +483,6 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.email
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.email ? "true" : undefined}
@@ -522,7 +520,6 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.phone
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.phone ? "true" : undefined}
@@ -560,7 +557,6 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.message
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.message ? "true" : undefined}

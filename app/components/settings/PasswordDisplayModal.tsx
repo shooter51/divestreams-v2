@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { logger } from "../../../lib/logger";
 
 interface PasswordDisplayModalProps {
   password: string;
@@ -70,7 +71,7 @@ export function PasswordDisplayModal({ password, onClose }: PasswordDisplayModal
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error("Failed to copy password:", error);
+      logger.error({ err: error }, "Failed to copy password");
       // Fallback: show error or use older API
     }
   };

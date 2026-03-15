@@ -479,7 +479,7 @@ export default function LevelsPage() {
                     onSubmit={(e) => {
                       if (
                         !confirm(
-                          `Are you sure you want to delete "${level.name}"? This may affect courses using this level.`
+                          t("tenant.settings.training.levels.confirmDelete", { name: level.name })
                         )
                       ) {
                         e.preventDefault();
