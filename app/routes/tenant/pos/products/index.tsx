@@ -35,7 +35,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && products.length > 0) {
+  if (products.length > 0) {
     const translations = await bulkGetContentTranslations(organizationId, "product", products.map((p: Product) => p.id), locale);
     for (const product of products) {
       const tr = translations.get(product.id);

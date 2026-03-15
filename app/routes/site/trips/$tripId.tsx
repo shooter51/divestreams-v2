@@ -244,7 +244,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let translatedInclusions = (tripData.inclusions as string[]) || [];
   let translatedExclusions = (tripData.exclusions as string[]) || [];
   let translatedRequirements = (tripData.requirements as string[]) || [];
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const translatedTour = await getTranslatedEntity(
       org.id,
       "tour",

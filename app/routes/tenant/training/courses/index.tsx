@@ -112,7 +112,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && courses.length > 0) {
+  if (courses.length > 0) {
     const translations = await bulkGetContentTranslations(ctx.org.id, "course", courses.map(c => c.id), locale);
     for (const course of courses) {
       const tr = translations.get(course.id);

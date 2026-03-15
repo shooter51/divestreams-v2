@@ -12,7 +12,8 @@ import { ImageManager, type Image } from "../../../../../../app/components/ui";
 import { CsrfInput } from "../../../../../components/CsrfInput";
 import { useT } from "../../../../../i18n/use-t";
 import { enqueueTranslation } from "../../../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../../../i18n/types";
+import { resolveLocale } from "../../../../../i18n/resolve-locale";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.product ? `Edit ${data.product.name} - DiveStreams` : "Edit Product - DiveStreams" },
@@ -110,13 +111,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
     { field: "description", text: formData.get("description") as string },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "product",
       entityId: params.id!,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }

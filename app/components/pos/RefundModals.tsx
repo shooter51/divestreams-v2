@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 
 interface TransactionData {
   id: string;
@@ -44,7 +44,7 @@ export function TransactionLookupModal({
   onClose,
   onTransactionFound,
 }: TransactionLookupModalProps) {
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const [transactionId, setTransactionId] = useState("");
   const [error, setError] = useState<string | null>(null);
 

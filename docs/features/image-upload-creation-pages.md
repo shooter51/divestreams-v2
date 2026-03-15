@@ -200,7 +200,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const key = getImageKey(organizationId, "tour", newTour.id, file.name);
 
-        await uploadToB2(key, buffer, file.type);
+        await uploadToS3(key, buffer, file.type);
 
         // Create database record
         await db.insert(image).values({
@@ -209,7 +209,7 @@ export async function action({ request }: ActionFunctionArgs) {
           entityId: newTour.id,
           organizationId,
           key,
-          url: `https://${B2_BUCKET}.s3.${B2_REGION}.amazonaws.com/${key}`,
+          url: `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`,
           cdnUrl: CDN_URL ? `${CDN_URL}/${key}` : undefined,
           mimeType: file.type,
           sizeBytes: file.size,
@@ -399,9 +399,9 @@ test('create tour with images', async ({ page }) => {
 ## Dependencies
 
 - Existing `/tenant/images/upload` endpoint
-- AWS S3 / Backblaze B2 storage configured (KAN-605 already fixed)
+- AWS S3 storage configured
 - Image table schema in database
-- `getImageKey()` and `uploadToB2()` functions
+- `getImageKey()` and `uploadToS3()` functions
 
 ---
 

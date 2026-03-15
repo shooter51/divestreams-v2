@@ -2,10 +2,12 @@ import { useState } from "react";
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
+import { dbLogger } from "../../../../lib/logger";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById, getTankTypes } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { bookingsCreatedTotal } from "../../../../lib/metrics.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { TankGasSelector } from "../../../components/tank-gas-selector";
 import { formatDisplayDate as sharedFormatDisplayDate, formatTime as sharedFormatTime } from "../../../lib/format";
@@ -177,10 +179,13 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     if (error instanceof Error && error.message.includes("spots")) {
+      dbLogger.warn({ organizationId, tripId: data.tripId, error: error.message }, "Booking creation failed");
       return { errors: { tripId: error.message }, values: getFormValues(formData) };
     }
     throw error;
   }
+
+  bookingsCreatedTotal.inc({ organization_id: organizationId, channel: 'dashboard' });
 
   // Queue confirmation email if notification settings allow it
   const notifSettings = getNotificationSettings(ctx.org.metadata);
@@ -199,9 +204,14 @@ export async function action({ request }: ActionFunctionArgs) {
         tenantId: ctx.org.id,
       });
     } catch (emailError) {
-      console.error("Failed to queue booking confirmation email:", emailError);
+      dbLogger.error({ err: emailError, organizationId, bookingId: booking.id }, "Failed to queue booking confirmation email");
     }
   }
+
+  dbLogger.info(
+    { bookingNumber: booking.bookingNumber, organizationId, customerId: data.customerId, tripId: data.tripId, total, participants, source: data.source || "direct" },
+    "Booking created"
+  );
 
   return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
 }

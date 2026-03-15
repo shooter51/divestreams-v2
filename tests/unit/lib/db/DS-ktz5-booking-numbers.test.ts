@@ -8,10 +8,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock db
-const mockLimit = vi.fn();
-const mockOrderBy = vi.fn(() => ({ limit: mockLimit }));
-const mockWhere = vi.fn(() => ({ orderBy: mockOrderBy }));
+// Mock db — new implementation ends at .where(), no orderBy/limit
+const mockWhere = vi.fn();
 const mockFrom = vi.fn(() => ({ where: mockWhere }));
 const mockSelect = vi.fn(() => ({ from: mockFrom }));
 
@@ -45,7 +43,7 @@ describe("DS-ktz5: getNextBookingNumber", () => {
   });
 
   it("returns BK-1000-XXXX when no bookings exist for the org", async () => {
-    mockLimit.mockResolvedValue([]);
+    mockWhere.mockResolvedValue([]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -57,7 +55,7 @@ describe("DS-ktz5: getNextBookingNumber", () => {
   });
 
   it("returns next sequential number after the highest existing booking", async () => {
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-1005-ABCD" }]);
+    mockWhere.mockResolvedValue([{ bookingNumber: "BK-1005-ABCD" }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -69,7 +67,7 @@ describe("DS-ktz5: getNextBookingNumber", () => {
   });
 
   it("returns BK-1001-XXXX when only BK-1000 exists", async () => {
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-1000-XYZQ" }]);
+    mockWhere.mockResolvedValue([{ bookingNumber: "BK-1000-XYZQ" }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -81,7 +79,7 @@ describe("DS-ktz5: getNextBookingNumber", () => {
   });
 
   it("produces BK-NNNN-XXXX format output", async () => {
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-1007-ABCD" }]);
+    mockWhere.mockResolvedValue([{ bookingNumber: "BK-1007-ABCD" }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -93,7 +91,7 @@ describe("DS-ktz5: getNextBookingNumber", () => {
   });
 
   it("falls back to BK-1000-XXXX when existing booking number cannot be parsed", async () => {
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-INVALID" }]);
+    mockWhere.mockResolvedValue([{ bookingNumber: "BK-INVALID" }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -105,7 +103,7 @@ describe("DS-ktz5: getNextBookingNumber", () => {
   });
 
   it("DS-45x1: generates unique suffixes across multiple calls", async () => {
-    mockLimit.mockResolvedValue([]);
+    mockWhere.mockResolvedValue([]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"

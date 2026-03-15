@@ -9,8 +9,10 @@ import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeTyp
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
+import { dbLogger, storageLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
@@ -21,13 +23,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log("[boats/new] Action started");
   const ctx = await requireOrgContext(request);
   requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
-  console.log("[boats/new] Org:", ctx.org.slug, "OrgId:", organizationId);
   const formData = await request.formData();
-  console.log("[boats/new] Form data - name:", formData.get("name"), "capacity:", formData.get("capacity"));
 
   // Extract image files before processing other form data
   const imageFiles: File[] = [];
@@ -47,10 +46,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const validation = validateFormData(formData, boatSchema);
-  console.log("[boats/new] Validation result:", validation.success, validation.success ? "" : JSON.stringify((validation as { errors: unknown }).errors));
 
   if (!validation.success) {
-    console.log("[boats/new] Validation failed, returning errors");
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
@@ -58,7 +55,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const amenitiesStr = formData.get("amenities") as string;
   const amenities = amenitiesStr ? JSON.parse(amenitiesStr) as string[] : undefined;
 
-  console.log("[boats/new] Creating boat...");
   const newBoat = await createBoat(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
@@ -68,7 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
     amenities,
     isActive: formData.get("isActive") === "true",
   });
-  console.log("[boats/new] Boat created with ID:", newBoat.id);
+  dbLogger.info({ organizationId, boatId: newBoat.id }, "Boat created");
 
   // Enqueue auto-translation for translatable fields
   const fieldsToTranslate = [
@@ -76,13 +72,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "description", text: formData.get("description") as string },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "boat",
       entityId: newBoat.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }
@@ -161,7 +159,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         uploadedCount++;
       } catch (error) {
-        console.error(`Failed to upload image ${file.name}:`, error);
+        storageLogger.error({ err: error, organizationId }, "Failed to upload image");
         failedFiles.push(`${file.name} (upload failed)`);
       }
     }

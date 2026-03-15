@@ -225,7 +225,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Apply content translations
   const locale = resolveLocale(request);
   let translatedCards = equipmentCards;
-  if (locale !== "en" && equipmentCards.length > 0) {
+  if (equipmentCards.length > 0) {
     const translations = await bulkGetContentTranslations(
       org.id,
       "product",

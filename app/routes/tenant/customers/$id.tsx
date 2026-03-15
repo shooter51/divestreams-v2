@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
 import { useState } from "react";
-import { CSRF_FIELD_NAME } from "../../../../lib/security/csrf-constants";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
@@ -10,6 +10,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { dbLogger } from "../../../../lib/logger";
 import { formatCurrency, formatDisplayDate } from "../../../lib/format";
 import { useT } from "../../../i18n/use-t";
 
@@ -156,7 +157,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       });
 
       if (!emailSent) {
-        console.error("[Customer Email] Failed to send email to:", customerEmail);
+        dbLogger.error({ organizationId, customerEmail }, "Failed to send email to customer");
         return {
           error: "Email could not be sent. Please check SMTP configuration or try again later.",
         };
@@ -164,7 +165,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
       return { success: true, message: "Email sent successfully!" };
     } catch (error) {
-      console.error("Error sending customer email:", error);
+      dbLogger.error({ err: error, organizationId }, "Error sending customer email");
       // Try to log the failed attempt
       try {
         await db.insert(customerCommunications).values({
@@ -189,9 +190,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
+  const fetcher = useCsrfFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const t = useT();
 
   // Show notifications from URL params
@@ -199,7 +199,7 @@ export default function CustomerDetailPage() {
 
   const handleDelete = () => {
     if (confirm(t("tenant.customers.confirmDelete"))) {
-      fetcher.submit({ intent: "delete", [CSRF_FIELD_NAME]: layoutData?.csrfToken ?? "" }, { method: "post" });
+      fetcher.submit({ intent: "delete" }, { method: "post" });
     }
   };
 
@@ -457,7 +457,7 @@ export default function CustomerDetailPage() {
               {t("tenant.customers.sendEmailTo", { name: `${customer.firstName} ${customer.lastName}` })}
             </h2>
             <p className="text-sm text-foreground-muted mb-4">
-              {t("tenant.customers.toEmail")}: {customer.email}
+              {t("tenant.customers.toEmail", { email: customer.email })}
             </p>
 
             <form onSubmit={handleSendEmail} className="space-y-4">

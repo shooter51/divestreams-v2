@@ -162,7 +162,7 @@ docs/
 │   │   ├── quick-start.md
 │   │   ├── deployment.md
 │   │   └── examples.md
-│   ├── b2-storage.md              # Backblaze B2 setup
+│   ├── s3-storage.md              # AWS S3 storage setup
 │   └── email.md                   # Email configuration
 ├── architecture/                   # Architecture decisions and designs
 │   ├── multi-tenancy.md           # Multi-tenant architecture

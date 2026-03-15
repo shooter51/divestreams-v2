@@ -1,5 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Mock sharp FIRST to prevent the native addon from loading and hanging CI.
+// This must be declared before any import that transitively touches image-processor.ts.
+vi.mock("sharp", () => ({
+  default: vi.fn(() => ({
+    resize: vi.fn().mockReturnThis(),
+    webp: vi.fn().mockReturnThis(),
+    toBuffer: vi.fn().mockResolvedValue(Buffer.from("mock-image")),
+    metadata: vi.fn().mockResolvedValue({ width: 1920, height: 1080 }),
+  })),
+}));
+
+// Mock image-processor directly to guarantee sharp is never imported.
+vi.mock("../../../../../../lib/storage/image-processor", () => ({
+  processImage: vi.fn(),
+  isValidImageType: vi.fn(),
+  getWebPMimeType: vi.fn().mockReturnValue("image/webp"),
+}));
+
 // Mock react-router (used by the route modules)
 vi.mock("react-router", () => ({
   redirect: vi.fn((url: string) => new Response(null, { status: 302, headers: { Location: url } })),

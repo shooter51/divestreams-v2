@@ -93,7 +93,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && albums.length > 0) {
+  if (albums.length > 0) {
     const translations = await bulkGetContentTranslations(organizationId, "gallery_album", albums.map(a => a.id), locale);
     for (const album of albums) {
       const tr = translations.get(album.id);

@@ -8,6 +8,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { logoutCustomer } from "../../../../lib/auth/customer-auth.server";
+import { authLogger } from "../../../../lib/logger";
 
 export async function action({ request }: ActionFunctionArgs) {
   // Get session token from cookie
@@ -25,6 +26,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await logoutCustomer(sessionToken);
   }
 
+  authLogger.info({}, "Customer logged out");
   return redirect("/site/login", {
     headers: {
       "Set-Cookie": "customer_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax",

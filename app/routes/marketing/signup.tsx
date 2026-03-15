@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
+import { authLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => {
   return [
@@ -172,7 +173,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await tx.insert(user).values({
         id: userId,
         email,
-        emailVerified: false,
+        emailVerified: true,
         name: shopName,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -210,7 +211,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       emailQueued = true;
     } catch (emailError) {
-      console.error("Failed to queue welcome email:", emailError);
+      authLogger.error({ err: emailError }, "Failed to queue welcome email");
     }
 
     // Redirect via intermediate setup page to give on-demand TLS time to provision
@@ -220,7 +221,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const tenantLoginUrl = `${loginUrl}${separator}signup=success${emailQueued ? "" : "&emailSkipped=true"}`;
     return redirect(`/tenant-setup?url=${encodeURIComponent(tenantLoginUrl)}`);
   } catch (error) {
-    console.error("Failed to create account:", error);
+    authLogger.error({ err: error }, "Failed to create account");
     return {
       errors: { form: "Failed to create account. Please try again." },
       values: { shopName, subdomain, email, phone },

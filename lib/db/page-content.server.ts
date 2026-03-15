@@ -7,6 +7,7 @@
 
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "./index";
+import { dbLogger } from "../logger";
 import {
   pageContent,
   pageContentHistory,
@@ -471,7 +472,7 @@ export async function initializeDefaultPages(
       });
     } catch (error) {
       // Skip if page already exists
-      console.error(`Error creating default page ${page.pageId}:`, error);
+      dbLogger.error({ err: error, organizationId, pageId: page.pageId }, "Error creating default page");
     }
   }
 }

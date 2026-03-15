@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { eq, and, asc } from "drizzle-orm";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../lib/db/translations.server";
@@ -94,7 +95,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const tr = await getContentTranslations(organizationId, "dive_site", siteId, locale);
     if (tr.name) diveSite.name = tr.name;
     if (tr.description) diveSite.description = tr.description;
@@ -175,7 +176,7 @@ function formatDepth(depth: number): string {
 
 export default function DiveSiteDetailPage() {
   const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
   const t = useT();
 

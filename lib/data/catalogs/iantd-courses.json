@@ -13,7 +13,7 @@
       "levelCode": "beginner",
       "description": "Entry-level program providing basic training for those who wish to enter SCUBA diving adventures within limited time. Qualifies a diver to dive to a maximum depth of 40 fsw (12 msw) under direct supervision.",
       "images": [
-        "https://iantd.com/images/courses/supervised-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-supervised-diver/supervisor-diver_600x400.jpg"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -33,7 +33,7 @@
       "levelCode": "beginner",
       "description": "Comprehensive entry-level certification based on IANTD's training philosophy of repetition. A relaxed, confident diver is a safe diver who will enjoy exploring inner-space and pursue diving adventures for a lifetime.",
       "images": [
-        "https://iantd.com/images/courses/open-water-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-open-water-diver/open-water-diver_600x400.jpg"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -56,7 +56,7 @@
       "levelCode": "advanced",
       "description": "Mid-level Continuing Education Program designed to enable IANTD Open Water Divers to extend their proficiency in the water and gain more supervised practical experience. Qualifies diver to dive to a maximum depth of 100 fsw (30 msw).",
       "images": [
-        "https://iantd.com/images/courses/advanced-open-water.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-advanced-open-water-diver/advanced-open-water-diver_600x400.jpg"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -76,7 +76,7 @@
       "levelCode": "advanced",
       "description": "Comprehensive training in self-rescue and buddy rescue techniques. The Diving First Aid, CPR and Oxygen Administrator Programs may be taken concurrently.",
       "images": [
-        "https://iantd.com/images/courses/rescue-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-rescue-diver/rescue-001_600x400.jpg"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -97,7 +97,7 @@
       "levelCode": "specialty",
       "description": "IANTD pioneered nitrox training for recreational divers. This program covers the use of EANx mixes in the range of 21% to a maximum of 40% oxygen. No dives may be conducted to depths greater than the student's previous qualification, or maximum 132 fsw (40 msw).",
       "images": [
-        "https://iantd.com/images/courses/eanx-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-enriched-air-nitrox-diver-eanx/oc-eanx_600x400.jpg"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -118,7 +118,7 @@
       "levelCode": "advanced",
       "description": "Designed to provide responsible training to divers who plan to dive to a maximum of 130 fsw (39 msw) on air. Training covers skills, performance, theory and planning of deep dives. No dives having mandatory decompression exceeding 3 minutes may be made.",
       "images": [
-        "https://iantd.com/images/courses/deep-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-deep-diver/deep-diver_600x400.jpg"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -139,7 +139,7 @@
       "levelCode": "advanced",
       "description": "The first and most complete programme of its kind, designed for dives using two Nitrox mixes - one for bottom and one for decompression - to maximum depth of 42 msw (140 fsw) with decompression stops up to 15 minutes. Uses EANx mixtures up to 1.5 PO2 for decompression.",
       "images": [
-        "https://iantd.com/images/courses/advanced-eanx.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -161,7 +161,7 @@
       "levelCode": "advanced",
       "description": "Designed to train divers to conduct dives to depths between 100 fsw (30 msw) and up to 170 fsw (51 msw). Allows dives to maximum depth of 48 metres using air, and up to 51 metres using optimal Nitrox mixes.",
       "images": [
-        "https://iantd.com/images/courses/technical-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -183,7 +183,7 @@
       "levelCode": "advanced",
       "description": "Qualifies divers to dive up to 150 fsw (45 msw) and perform decompression stops required dives using trimix to reduce narcosis. Equivalent Narcotic Depth (END) managed to maximum 36 msw (120 fsw).",
       "images": [
-        "https://iantd.com/images/courses/art-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -205,7 +205,7 @@
       "levelCode": "advanced",
       "description": "Qualifies divers to dive up to 170 fsw (51 msw) and perform decompression stops required dives. Extended depth capability using trimix for narcosis management.",
       "images": [
-        "https://iantd.com/images/courses/art-plus-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -226,7 +226,7 @@
       "levelCode": "advanced",
       "description": "Designed to train divers who wish to dive to depths between 39 and 60 msw (130 and 200 fsw), using normoxic trimix to avoid breathing air below 39 msw. Trimix affords managing nitrogen narcosis by reducing END to maximum 36 msw (120 fsw).",
       "images": [
-        "https://iantd.com/images/courses/normoxic-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -248,7 +248,7 @@
       "levelCode": "advanced",
       "description": "Extended normoxic trimix training for deeper operations. Builds on Normoxic Trimix certification with additional depth capability and gas management skills.",
       "images": [
-        "https://iantd.com/images/courses/normoxic-trimix-plus.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -269,7 +269,7 @@
       "levelCode": "advanced",
       "description": "Full trimix certification qualifying divers to perform trimix dives outside of training up to 333 fsw (100 msw). Comprehensive training in hypoxic trimix operations and advanced decompression procedures.",
       "images": [
-        "https://iantd.com/images/courses/trimix-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -291,7 +291,7 @@
       "levelCode": "advanced",
       "description": "The pinnacle of open circuit technical diving. Qualifies divers to perform trimix dives to maximum depth of 120 msw (400 fsw) with multiple stages and use of surface and in-water support team.",
       "images": [
-        "https://iantd.com/images/courses/expedition-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -313,7 +313,7 @@
       "levelCode": "advanced",
       "description": "Recognition of the highest achievement in technical diving before entering the professional diving circle. Comprehensive skills in all aspects of technical diving operations.",
       "images": [
-        "https://iantd.com/images/courses/elite-technical-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -333,7 +333,7 @@
       "levelCode": "specialty",
       "description": "First step between recreational and technical diving for overhead environments. Develops awareness, personal responsibility, and risk management within the limits of light zones. Always maintains visible exit.",
       "images": [
-        "https://iantd.com/images/courses/cavern-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/cavern-diver-or-limited-mine/cavern-diver_600x400.jpg"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -355,7 +355,7 @@
       "levelCode": "specialty",
       "description": "Introduction to the cave diving environment for Sport Divers. Trains navigation using primary guidelines with basic jump and gap procedures. No dives to depths greater than 132 fsw (40 msw).",
       "images": [
-        "https://iantd.com/images/courses/intro-cave.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-introductory-cave-or-mine-diver/introductory-cave-001_600x400.jpg"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -378,7 +378,7 @@
       "levelCode": "specialty",
       "description": "Full cave certification training divers in safe cave diving. Master navigation through complex cave systems, manage gas reserves, and handle unique challenges of overhead environments. No dives to depths greater than 132 fsw (40 msw).",
       "images": [
-        "https://iantd.com/images/courses/cave-diver.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-cave-diver-technical-cave-diver/cave-diver_600x400.jpg"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -400,7 +400,7 @@
       "levelCode": "advanced",
       "description": "Advanced cave diving using mixed gas for exploration, including EANx and oxygen for decompression. Exposure to wide variety of conditions: silt, halocline, circuits, traverses, gaps, jumps, T's, siphons, and restrictions.",
       "images": [
-        "https://iantd.com/images/courses/technical-cave-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -421,7 +421,7 @@
       "levelCode": "advanced",
       "description": "Advanced training for extended penetration using staging and multiple staging techniques. Learn complex dive planning, multiple gas management methods, and extended bottom times.",
       "images": [
-        "https://iantd.com/images/courses/adv-cave-stage.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -442,7 +442,7 @@
       "levelCode": "advanced",
       "description": "Specialized advanced course for highly experienced cave divers. Learn DPV mechanics, turn pressure calculations with DPV, navigation at higher speeds, and emergency procedures including towing.",
       "images": [
-        "https://iantd.com/images/courses/adv-cave-dpv.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -463,7 +463,7 @@
       "levelCode": "advanced",
       "description": "Familiarizes experienced technical cave divers with techniques, equipment and mindset for sidemount and no-mount diving in overhead environments. Addresses conservation concerns and ethical responsibilities.",
       "images": [
-        "https://iantd.com/images/courses/adv-cave-sidemount.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -484,7 +484,7 @@
       "levelCode": "advanced",
       "description": "Training in cave surveying techniques, exploration methodology, data collection, and documentation procedures. Covers proper survey protocols and conservation considerations.",
       "images": [
-        "https://iantd.com/images/courses/adv-cave-survey.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -505,7 +505,7 @@
       "levelCode": "advanced",
       "description": "Highest recognition at cave level before entering the professional diving circle. Comprehensive mastery of all cave diving techniques and environments.",
       "images": [
-        "https://iantd.com/images/courses/elite-cave-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -525,7 +525,7 @@
       "levelCode": "specialty",
       "description": "Entry-level overhead environment training for mine diving within the limits of light penetration. Develops awareness, self-responsibility and risk management skills.",
       "images": [
-        "https://iantd.com/images/courses/limited-mine.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -546,7 +546,7 @@
       "levelCode": "specialty",
       "description": "Introduction to mine diving beyond cavern zone. Develops navigation skills and emergency procedures specific to mine environments.",
       "images": [
-        "https://iantd.com/images/courses/intro-mine.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -568,7 +568,7 @@
       "levelCode": "specialty",
       "description": "Full mine diver certification training divers in safe mine diving techniques, navigation, and emergency procedures specific to flooded mine environments.",
       "images": [
-        "https://iantd.com/images/courses/mine-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -588,7 +588,7 @@
       "levelCode": "advanced",
       "description": "Technical mine diving using mixed gas for extended penetration and decompression operations in flooded mine environments.",
       "images": [
-        "https://iantd.com/images/courses/technical-mine.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -609,7 +609,7 @@
       "levelCode": "advanced",
       "description": "Advanced sidemount techniques for mine diving environments. Enables technical mine divers to proficiently assemble and use sidemount diving equipment in mine conditions.",
       "images": [
-        "https://iantd.com/images/courses/adv-mine-sidemount.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -630,7 +630,7 @@
       "levelCode": "advanced",
       "description": "Advanced training in mine diving skills for dives warranting Diver Propulsion Vehicle use and techniques in mine environments.",
       "images": [
-        "https://iantd.com/images/courses/adv-mine-dpv.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -651,7 +651,7 @@
       "levelCode": "specialty",
       "description": "Develops wreck diving skills within limits of light penetration. Ensures divers are aware of self-responsibility and capable of risk management in overhead wreck environments.",
       "images": [
-        "https://iantd.com/images/courses/wreck-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -673,7 +673,7 @@
       "levelCode": "advanced",
       "description": "Training in wreck penetration diving and utilization of EANx for wreck exploration with EANx and oxygen for decompression. Bridge between sport and technical wreck diving.",
       "images": [
-        "https://iantd.com/images/courses/teklite-wreck.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -695,7 +695,7 @@
       "levelCode": "advanced",
       "description": "Extended wreck penetration diving using EANx for exploration and decompression. Minimum 240 minutes bottom time in 6 wreck penetration dives. No dives deeper than 170 fsw (51 msw).",
       "images": [
-        "https://iantd.com/images/courses/technical-wreck.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -717,7 +717,7 @@
       "levelCode": "advanced",
       "description": "Advanced skills and knowledge for safe wreck exploration and penetration with strong sense of personal responsibility and risk management. Conducted using Nitrox or Trimix based on diver certification.",
       "images": [
-        "https://iantd.com/images/courses/advanced-wreck.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -737,7 +737,7 @@
       "levelCode": "specialty",
       "description": "Basic oxygen-only rebreather training. Qualifies diver to dive to maximum depth of 20 fsw (6 msw) using oxygen CCR. Introduction to rebreather technology.",
       "images": [
-        "https://iantd.com/images/courses/rec-oxygen-ccr.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -757,7 +757,7 @@
       "levelCode": "specialty",
       "description": "Entry-level CCR certification. Train in safer use and technology of basic CCR diving with no decompression, up to 1.2 PO2 to depths up to 70 fsw (21 msw). Can be entry-level to SCUBA if combined with Open Water.",
       "images": [
-        "https://iantd.com/images/courses/rec-ccr-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -778,7 +778,7 @@
       "levelCode": "specialty",
       "description": "Extends recreational CCR limits to 40m. Training in deeper CCR operations within recreational no-decompression limits.",
       "images": [
-        "https://iantd.com/images/courses/rec-deep-ccr.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -799,7 +799,7 @@
       "levelCode": "specialty",
       "description": "Provides RCCR divers with trimix breathing medium for extending diving capabilities while managing narcosis at recreational depths.",
       "images": [
-        "https://iantd.com/images/courses/rec-trimix-ccr.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -819,7 +819,7 @@
       "levelCode": "advanced",
       "description": "Train recreational divers in safer use and technology of CCR diving for dives requiring up to 15 minutes decompression to depths up to 132 fsw (40 msw). MOD1 certification level.",
       "images": [
-        "https://iantd.com/images/courses/ccr-adv-eanx.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -840,7 +840,7 @@
       "levelCode": "advanced",
       "description": "CCR training using trimix diluent for dives to 150 fsw (45 msw) with decompression. Manages narcosis through helium addition to diluent.",
       "images": [
-        "https://iantd.com/images/courses/ccr-art.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -861,7 +861,7 @@
       "levelCode": "advanced",
       "description": "Train recreational divers in safer use of trimix and CCR technology for dives with mandatory decompression using up to 1.3 PO2 to depths up to 170 fsw (51 msw).",
       "images": [
-        "https://iantd.com/images/courses/ccr-art-plus.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -882,7 +882,7 @@
       "levelCode": "advanced",
       "description": "Train divers in safe use of CCR for dives using normoxic helium-based gas mixtures for diluent and stages. Requires 50 logged CCR dives with 50 hours, 25 on specific unit.",
       "images": [
-        "https://iantd.com/images/courses/ccr-normoxic-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -903,7 +903,7 @@
       "levelCode": "advanced",
       "description": "Full CCR trimix certification for dives up to 100m using trimix diluent. MOD3 level training for deep CCR diving. Requires 100 logged CCR dives with 100 hours.",
       "images": [
-        "https://iantd.com/images/courses/ccr-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -924,7 +924,7 @@
       "levelCode": "advanced",
       "description": "Pinnacle of CCR diving. Certifies to 120 msw (400 fsw) for expedition-level dives. Covers skills necessary for deep expedition operations. Requires 200 CCR dives and 300 hours.",
       "images": [
-        "https://iantd.com/images/courses/ccr-expedition-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -946,7 +946,7 @@
       "levelCode": "specialty",
       "description": "Develop cavern diving skills within light penetration limits using recreational CCR. Focus on self-responsibility and risk management in overhead environments.",
       "images": [
-        "https://iantd.com/images/courses/rccr-cavern.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -967,7 +967,7 @@
       "levelCode": "specialty",
       "description": "Introduction to cave diving using recreational CCR. Navigation using primary guidelines with basic jump and gap procedures.",
       "images": [
-        "https://iantd.com/images/courses/rccr-intro-cave.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -988,7 +988,7 @@
       "levelCode": "advanced",
       "description": "Full CCR cave diving certification. Training in safe CCR cave diving techniques, navigation, and emergency procedures.",
       "images": [
-        "https://iantd.com/images/courses/ccr-cave.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -1009,7 +1009,7 @@
       "levelCode": "advanced",
       "description": "Extended wreck penetration using CCR with EANx for exploration and decompression. No dives deeper than 150 fsw (45 msw). Requires 100 CCR dives.",
       "images": [
-        "https://iantd.com/images/courses/ccr-tech-wreck.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -1030,7 +1030,7 @@
       "levelCode": "advanced",
       "description": "Advanced training in cave diving with DPV use on rebreathers. For experienced certified cave divers conducting extended penetration dives.",
       "images": [
-        "https://iantd.com/images/courses/adv-cave-dpv-ccr.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -1052,7 +1052,7 @@
       "levelCode": "specialty",
       "description": "Train competent divers in safer use and technology of basic SCR diving with no decompression, using mixtures EAN 40 and higher to depths up to 70 fsw (21 msw). Can be combined with Open Water for entry-level.",
       "images": [
-        "https://iantd.com/images/courses/rec-scr.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -1072,7 +1072,7 @@
       "levelCode": "specialty",
       "description": "Familiarize divers with techniques, equipment, and mindset for sidemount diving. Enables proficient assembly and use of sidemount equipment in open water.",
       "images": [
-        "https://iantd.com/images/courses/ow-sidemount.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1093,7 +1093,7 @@
       "levelCode": "advanced",
       "description": "Advanced sidemount techniques for technical diving. Covers dives up to 42 meters (140 feet) with decompression procedures. Prepares for cave or trimix training.",
       "images": [
-        "https://iantd.com/images/courses/tek-ow-sidemount.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -1114,7 +1114,7 @@
       "levelCode": "specialty",
       "description": "Provides overall awareness of DPV diving and ability to perform DPV dives in open water. No dives deeper than previous certification level.",
       "images": [
-        "https://iantd.com/images/courses/ow-dpv.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1134,7 +1134,7 @@
       "levelCode": "advanced",
       "description": "Skills and knowledge for safe use of Underwater Propulsion Vehicles (DPV) in open water with technical diving equipment and procedures. Minimum 5 dives over 3 days.",
       "images": [
-        "https://iantd.com/images/courses/tech-dpv.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -1155,7 +1155,7 @@
       "levelCode": "specialty",
       "description": "Training in safe ice diving techniques, preparation, and overall awareness of ice environment. Covers ice evaluation, hole cutting, diver deployment, communications, safety procedures, and emergency protocols.",
       "images": [
-        "https://iantd.com/images/courses/ice-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -1178,7 +1178,7 @@
       "levelCode": "specialty",
       "description": "Training on how to use, care for, and handle specific emergencies related to dry suit diving. No dives deeper than previous certification level.",
       "images": [
-        "https://iantd.com/images/courses/dry-suit.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 3,
@@ -1199,7 +1199,7 @@
       "levelCode": "specialty",
       "description": "Training in night diving techniques including proper use of lights, communication, navigation, and emergency procedures in limited visibility conditions.",
       "images": [
-        "https://iantd.com/images/courses/night-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1221,7 +1221,7 @@
       "levelCode": "specialty",
       "description": "Compass use, kick cycles, visual landmarks, and time-based navigation techniques. Improves underwater navigation skills for all diving environments.",
       "images": [
-        "https://iantd.com/images/courses/navigation-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1242,7 +1242,7 @@
       "levelCode": "specialty",
       "description": "Training in search patterns, recovery techniques, and proper use of lift bags. Develops skills for locating and recovering objects underwater.",
       "images": [
-        "https://iantd.com/images/courses/search-recovery.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1264,7 +1264,7 @@
       "levelCode": "specialty",
       "description": "OSHA approved and NFPA compliant program for Search and Recovery Dive Teams. Covers team composition, liability, safety procedures, site evaluation, search operations, underwater investigation and recovery.",
       "images": [
-        "https://iantd.com/images/courses/public-safety.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1286,7 +1286,7 @@
       "levelCode": "specialty",
       "description": "Training in safe handling of oxygen and preparation of Nitrox breathing gases. Covers blending methods, quality control, and safety protocols. Any person can take this class - does not need to be a diver.",
       "images": [
-        "https://iantd.com/images/courses/nitrox-blender.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -1306,7 +1306,7 @@
       "levelCode": "specialty",
       "description": "Training in safe handling of oxygen and preparation of Trimix and Heliox breathing gases. Comprehensive training in blending techniques and safety procedures.",
       "images": [
-        "https://iantd.com/images/courses/trimix-blender.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -1326,7 +1326,7 @@
       "levelCode": "specialty",
       "description": "Training in emergency oxygen administration for diving accidents. Essential prerequisite for many advanced and professional courses.",
       "images": [
-        "https://iantd.com/images/courses/oxygen-provider.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -1346,7 +1346,7 @@
       "levelCode": "specialty",
       "description": "Comprehensive first aid training specifically designed for dive-related injuries and emergencies. Covers assessment, treatment, and management of diving accidents.",
       "images": [
-        "https://iantd.com/images/courses/diving-first-aid.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -1366,7 +1366,7 @@
       "levelCode": "professional",
       "description": "First professional level designed to provide responsible training for those wishing to supervise IANTD divers including Open Water, Advanced Open Water, EANx, and Rescue Divers. 40 total training hours minimum.",
       "images": [
-        "https://iantd.com/images/courses/divemaster.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 24,
@@ -1387,7 +1387,7 @@
       "levelCode": "professional",
       "description": "Leadership training for those preparing to become full instructors. Assists qualified instructors with student training and gains teaching experience.",
       "images": [
-        "https://iantd.com/images/courses/assistant-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1407,7 +1407,7 @@
       "levelCode": "instructor",
       "description": "Train qualified IANTD Divemasters or Assistant Instructors as IANTD Open Water Instructors. Upon completion, may teach and evaluate IANTD courses and conduct Crossover Programs.",
       "images": [
-        "https://iantd.com/images/courses/ow-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 12,
       "classroomHours": 40,
@@ -1427,7 +1427,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD EANx Diver courses. Covers curriculum, teaching methods, and evaluation procedures specific to nitrox training.",
       "images": [
-        "https://iantd.com/images/courses/eanx-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1447,7 +1447,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD Advanced EANx Diver courses. Covers technical diving instruction, curriculum delivery, and student evaluation.",
       "images": [
-        "https://iantd.com/images/courses/adv-eanx-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 16,
@@ -1467,7 +1467,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD Technical Diver courses. Comprehensive instructor preparation for technical diving education.",
       "images": [
-        "https://iantd.com/images/courses/tech-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1487,7 +1487,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD Trimix Diver courses at all levels. Comprehensive instruction in teaching hypoxic and normoxic trimix diving.",
       "images": [
-        "https://iantd.com/images/courses/trimix-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1507,7 +1507,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD Cave Diver courses through full cave level. Comprehensive instructor preparation for cave diving education.",
       "images": [
-        "https://iantd.com/images/courses/cave-instructor.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1527,7 +1527,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD Technical Cave Diver and advanced cave courses. Highest cave instructor certification before Course Director level.",
       "images": [
-        "https://iantd.com/images/courses/tech-cave-instructor.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1547,7 +1547,7 @@
       "levelCode": "instructor",
       "description": "Training to teach IANTD Rebreather Diver courses on specific units. Must be qualified instructor on the specific rebreather being taught.",
       "images": [
-        "https://iantd.com/images/courses/ccr-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1568,7 +1568,7 @@
       "levelCode": "instructor",
       "description": "Crossover program for instructors from other agencies to become IANTD Open Water Instructors. Must be active teaching status with internationally accredited association.",
       "images": [
-        "https://iantd.com/images/courses/ow-instructor-crossover.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1588,7 +1588,7 @@
       "levelCode": "instructor",
       "description": "Open Water EANx Instructor Trainer program to provide training for IANTD Instructor Trainers. May conduct instructor level training and evaluation.",
       "images": [
-        "https://iantd.com/images/courses/instructor-trainer.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -1608,7 +1608,7 @@
       "levelCode": "instructor",
       "description": "Preparation for Course Director level. Assists Course Directors with instructor development programs and gains experience in instructor training.",
       "images": [
-        "https://iantd.com/images/courses/assistant-cd.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 20,
@@ -1628,7 +1628,7 @@
       "levelCode": "instructor",
       "description": "Elite group of professionals who provide training to next generation of IANTD Instructors. Teach Assistant Course Director Programs and Instructor Development Programs (IDP).",
       "images": [
-        "https://iantd.com/images/courses/course-director.jpg"
+        "https://iantd.com/images/spsimpleportfolio/iantd-cave-diver-technical-cave-diver/cave-diver_600x400.jpg"
       ],
       "durationDays": 7,
       "classroomHours": 32,

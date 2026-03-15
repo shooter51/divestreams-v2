@@ -77,7 +77,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && diveSites.length > 0) {
+  if (diveSites.length > 0) {
     const translations = await bulkGetContentTranslations(ctx.org.id, "dive_site", diveSites.map(s => s.id), locale);
     for (const site of diveSites) {
       const tr = translations.get(site.id);

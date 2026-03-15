@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, Link, useFetcher } from "react-router";
+import { redirect, useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { resolveLocale } from "../../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../../lib/db/translations.server";
@@ -35,7 +36,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const tr = await getContentTranslations(ctx.org.id, "course", courseId, locale);
     if (tr.name) course.name = tr.name;
     if (tr.description) course.description = tr.description;
@@ -79,7 +80,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function CourseDetailPage() {
   const { course, sessions } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const t = useT();
 
   // Show notifications from URL params

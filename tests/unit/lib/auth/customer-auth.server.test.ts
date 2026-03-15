@@ -37,11 +37,23 @@ vi.mock("bcryptjs", () => ({
   },
 }));
 
+// Mock the logger to capture authLogger calls
+const mockAuthLoggerInfo = vi.fn();
+vi.mock("../../../../lib/logger", () => ({
+  authLogger: {
+    info: vi.fn((...args) => mockAuthLoggerInfo(...args)),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Note: We don't mock node:crypto - it works fine as-is
 
 describe("Customer Auth Server Functions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuthLoggerInfo.mockClear();
   });
 
   describe("registerCustomer", () => {
@@ -66,6 +78,41 @@ describe("Customer Auth Server Functions", () => {
     it("loginCustomer accepts organizationId, email, and password parameters", async () => {
       const { loginCustomer } = await import("../../../../lib/auth/customer-auth.server");
       expect(loginCustomer.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("logs exactly one 'Customer logged in' message per successful login", async () => {
+      const { db } = await import("../../../../lib/db");
+      const { authLogger } = await import("../../../../lib/logger");
+
+      // Setup: credentials lookup returns a valid credential record
+      const mockWhere = vi.fn().mockResolvedValue([
+        {
+          id: "cred-1",
+          customerId: "customer-1",
+          passwordHash: "hashed_password",
+        },
+      ]);
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({ where: mockWhere }),
+      } as unknown as ReturnType<typeof db.select>);
+      vi.mocked(db.insert).mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      } as unknown as ReturnType<typeof db.insert>);
+      vi.mocked(db.update).mockReturnValue({
+        set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+      } as unknown as ReturnType<typeof db.update>);
+
+      const { loginCustomer } = await import("../../../../lib/auth/customer-auth.server");
+      await loginCustomer("org-1", "test@example.com", "password123");
+
+      const infoCallsForLogin = vi.mocked(authLogger.info).mock.calls.filter(
+        (args) => args[1] === "Customer logged in"
+      );
+      expect(infoCallsForLogin).toHaveLength(1);
+      expect(infoCallsForLogin[0][0]).toMatchObject({
+        organizationId: "org-1",
+        email: "test@example.com",
+      });
     });
   });
 

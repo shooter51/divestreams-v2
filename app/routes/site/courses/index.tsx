@@ -105,6 +105,46 @@ export function extractActiveAgencies(
   return Array.from(agencySet).sort();
 }
 
+/**
+ * Map a raw level name from the database to a translation key.
+ * Returns null if no known mapping exists (caller should fall back to raw name).
+ */
+export function getLevelTranslationKey(levelName: string): string | null {
+  const lower = levelName.toLowerCase();
+  if (lower.includes("beginner") || lower.includes("discover") || lower.includes("intro")) {
+    return "site.courses.level.beginner";
+  }
+  if (lower.includes("advanced")) {
+    return "site.courses.level.advanced";
+  }
+  if (lower.includes("specialty") || lower.includes("speciality")) {
+    return "site.courses.level.specialty";
+  }
+  if (
+    lower.includes("professional") ||
+    lower.includes("divemaster") ||
+    lower.includes("instructor") ||
+    lower.includes("rescue")
+  ) {
+    return "site.courses.level.professional";
+  }
+  if (lower.includes("open water")) {
+    return "site.courses.level.openWater";
+  }
+  return null;
+}
+
+/**
+ * Translate a level name using t() if a known key exists, otherwise return the raw name.
+ */
+export function translateLevelName(
+  levelName: string,
+  t: (key: string) => string
+): string {
+  const key = getLevelTranslationKey(levelName);
+  return key ? t(key) : levelName;
+}
+
 // ============================================================================
 // LOADER
 // ============================================================================
@@ -223,6 +263,7 @@ function AgencyBadge({ agencyName }: { agencyName: string | null }) {
  * Level badge component
  */
 function LevelBadge({ levelName }: { levelName: string | null }) {
+  const t = useT();
   if (!levelName) return null;
 
   return (
@@ -230,7 +271,7 @@ function LevelBadge({ levelName }: { levelName: string | null }) {
       className="inline-flex items-center px-2 py-1 text-xs font-medium rounded"
       style={{ backgroundColor: "var(--accent-color)", color: "var(--text-color)" }}
     >
-      {levelName}
+      {translateLevelName(levelName, t)}
     </span>
   );
 }
@@ -437,7 +478,7 @@ function FilterSection({
               <option value="">{t("site.courses.allLevels")}</option>
               {availableLevels.map((levelName) => (
                 <option key={levelName} value={levelName}>
-                  {levelName}
+                  {translateLevelName(levelName, t)}
                 </option>
               ))}
             </select>

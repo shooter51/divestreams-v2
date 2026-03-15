@@ -1,4 +1,4 @@
-import { useFetcher } from "react-router";
+import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 import { useState, useEffect } from "react";
 import { useT } from "../../i18n/use-t";
 
@@ -9,7 +9,7 @@ interface ChangePasswordFormProps {
 
 export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProps) {
   const t = useT();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher<{ success?: boolean; error?: string }>();
   const [showForm, setShowForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");

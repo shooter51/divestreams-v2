@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useLoaderData, Link, redirect } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { eq, and, asc } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
@@ -200,7 +201,7 @@ const conditionColors: Record<string, string> = {
 export default function EquipmentDetailPage() {
   const { equipment, rentalHistory, serviceHistory, stats, images } =
     useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const t = useT();
 
   const categoryLabels: Record<string, string> = {

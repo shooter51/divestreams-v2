@@ -9,6 +9,7 @@
  */
 
 import { createHash, randomBytes } from "crypto";
+import { integrationLogger } from "../logger";
 
 /**
  * Validates that a webhook URL is safe to call:
@@ -353,7 +354,7 @@ export async function triggerWebhookEvent(
       );
       queued++;
     } catch (error) {
-      console.error("Failed to queue webhook delivery:", error);
+      integrationLogger.error({ err: error, provider: "zapier", organizationId: orgId, eventType }, "Failed to queue webhook delivery");
     }
   }
 

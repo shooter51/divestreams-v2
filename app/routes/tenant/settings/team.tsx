@@ -1,12 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
-import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
+import { useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { useState, useEffect } from "react";
 
 
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { authLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -205,7 +207,7 @@ export async function action({ request }: ActionFunctionArgs) {
           `,
         });
       } catch (error) {
-        console.error("Failed to send notification email:", error);
+        authLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to send notification email");
         // Continue even if email fails - member was added
       }
 
@@ -256,7 +258,7 @@ export async function action({ request }: ActionFunctionArgs) {
         `,
       });
     } catch (error) {
-      console.error("Failed to send invitation email:", error);
+      authLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to send invitation email");
       // Continue even if email fails - invitation was created
     }
 
@@ -393,7 +395,7 @@ export async function action({ request }: ActionFunctionArgs) {
         `,
       });
     } catch (error) {
-      console.error("Failed to resend invitation email:", error);
+      authLogger.error({ err: error, organizationId: ctx.org.id }, "Failed to resend invitation email");
       return { error: "Failed to send email" };
     }
 
@@ -469,7 +471,7 @@ export async function action({ request }: ActionFunctionArgs) {
               `,
             });
           } catch (emailErr) {
-            console.error("Failed to email temporary password:", emailErr);
+            authLogger.error({ err: emailErr, organizationId: ctx.org.id }, "Failed to email temporary password");
           }
         }
       }
@@ -481,7 +483,7 @@ export async function action({ request }: ActionFunctionArgs) {
           : "Password reset successful",
       };
     } catch (error) {
-      console.error("Password reset error:", error);
+      authLogger.error({ err: error, organizationId: ctx.org.id }, "Password reset error");
       return { error: "Failed to reset password" };
     }
   }
@@ -504,9 +506,7 @@ export default function TeamPage() {
   // Apply translated descriptions to roles from loader
   const roles = getRoles(t);
 
-  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
-  const csrfToken = layoutData?.csrfToken;
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher<{ success: boolean; temporaryPassword?: string; error?: string }>();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -823,7 +823,6 @@ export default function TeamPage() {
                 userId: data.userId,
                 method: data.method,
                 ...(data.newPassword && { newPassword: data.newPassword }),
-                ...(csrfToken && { _csrf: csrfToken }),
               },
               { method: "post" }
             );

@@ -4,7 +4,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Form } from "react-router";
+import { useLoaderData, Form } from "react-router";
+import { useCsrfFetcher } from "../../hooks/use-csrf-fetcher";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
@@ -16,6 +17,7 @@ import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { escapeHtml } from "../../../lib/security/sanitize";
 import { CsrfInput } from "../../components/CsrfInput";
+import { dbLogger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -39,7 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return { products, migrationNeeded: false };
   } catch (error) {
     // If sale_price columns don't exist yet, try without them
-    console.error("Products query failed, trying basic query:", error);
+    dbLogger.error({ err: error, organizationId }, "Products query failed, trying basic query");
     try {
       const products = await db
         .select({
@@ -66,7 +68,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
       return { products, migrationNeeded: true };
     } catch (fallbackError) {
-      console.error("Basic products query also failed:", fallbackError);
+      dbLogger.error({ err: fallbackError, organizationId }, "Basic products query also failed");
       return { products: [], migrationNeeded: true };
     }
   }
@@ -603,7 +605,7 @@ type ProductWithSaleFields = {
 
 export default function ProductsPage() {
   const { products } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string; currentStock: number } | null>(null);

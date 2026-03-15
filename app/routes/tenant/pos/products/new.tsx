@@ -4,6 +4,7 @@
 
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
+import { resolveLocale } from "../../../../i18n/resolve-locale";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { createProduct } from "../../../../../lib/db/queries.server";
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../../lib/storage";
@@ -13,6 +14,7 @@ import { CsrfInput } from "../../../../components/CsrfInput";
 import { useT } from "../../../../i18n/use-t";
 import { enqueueTranslation } from "../../../../../lib/jobs/index";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../../i18n/types";
+import { storageLogger } from "../../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
@@ -62,13 +64,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "description", text: formData.get("description") as string },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "product",
       entityId: product.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }
@@ -146,7 +150,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         uploadedCount++;
       } catch (error) {
-        console.error(`Failed to upload image ${file.name}:`, error);
+        storageLogger.error({ err: error, organizationId }, "Failed to upload image");
         failedFiles.push(`${file.name} (upload failed)`);
       }
     }

@@ -29,6 +29,7 @@ import { db } from "../db";
 import { eq, and } from "drizzle-orm";
 import { bookings, customers } from "../db/schema";
 import { createHmac, timingSafeEqual } from "crypto";
+import { integrationLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -184,7 +185,7 @@ export async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error("QuickBooks token exchange failed:", error);
+    integrationLogger.error({ provider: "quickbooks", responseBody: error }, "QuickBooks token exchange failed");
     throw new Error("Failed to exchange authorization code for tokens");
   }
 
@@ -231,7 +232,7 @@ export async function refreshAccessToken(
 
   if (!response.ok) {
     const error = await response.text();
-    console.error("QuickBooks token refresh failed:", error);
+    integrationLogger.error({ provider: "quickbooks", responseBody: error }, "QuickBooks token refresh failed");
     throw new Error("Failed to refresh access token");
   }
 
@@ -397,7 +398,7 @@ async function getValidAccessToken(
 
       return { accessToken: refreshed.accessToken, integration, realmId };
     } catch (error) {
-      console.error("Failed to refresh QuickBooks token:", error);
+      integrationLogger.error({ err: error, provider: "quickbooks", organizationId: orgId }, "Failed to refresh QuickBooks token");
       await updateLastSync(integration.id, "Token refresh failed");
       return null;
     }
@@ -954,7 +955,7 @@ export async function syncToQuickBooks(organizationId: string): Promise<QuickBoo
 
   // Sync customers, invoices, and payments to QuickBooks
   // For now, return a placeholder - actual implementation requires QuickBooks API calls
-  console.log('[QuickBooks] Would sync data for org:', organizationId);
+  integrationLogger.info({ provider: "quickbooks", organizationId }, "Would sync data for org");
 
   return {
     success: false,

@@ -13,6 +13,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours, equipment } from "../../../../lib/db/schema";
+import { dbLogger } from "../../../../lib/logger";
 import { eq, gte, and, sql, count, lte, desc } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { pluralize } from "../../../lib/format";
@@ -249,7 +250,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     newCustomersInPeriod = newCustomerResult?.count || 0;
   } catch (error) {
-    console.error("Error fetching report data:", error);
+    dbLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching report data");
     // Return defaults - all zeros already set above
   }
 

@@ -4,12 +4,13 @@ import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context
 import { db } from "../../../../lib/db";
 import { tours, products, diveSites, boats, discountCodes } from "../../../../lib/db/schema";
 import { trainingCourses } from "../../../../lib/db/schema/training";
-import { galleryAlbums } from "../../../../lib/db/schema/gallery";
+import { galleryAlbums, galleryImages } from "../../../../lib/db/schema/gallery";
 import { contentTranslations } from "../../../../lib/db/schema/translations";
 import { eq, and } from "drizzle-orm";
 import { upsertContentTranslation } from "../../../../lib/db/translations.server";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, LOCALE_LABELS } from "../../../i18n/types";
+import { SUPPORTED_LOCALES, LOCALE_LABELS } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -115,6 +116,14 @@ async function getEntitySourceTexts(
       .limit(1);
     return row ? { name: row.name, description: row.description } : {};
   }
+  if (entityType === "gallery_image") {
+    const [row] = await db
+      .select({ title: galleryImages.title, description: galleryImages.description })
+      .from(galleryImages)
+      .where(and(eq(galleryImages.id, entityId), eq(galleryImages.organizationId, orgId)))
+      .limit(1);
+    return row ? { title: row.title, description: row.description } : {};
+  }
   return {};
 }
 
@@ -168,13 +177,15 @@ export async function action({ request }: ActionFunctionArgs) {
       .filter(([, text]) => text?.trim())
       .map(([field, text]) => ({ field, text: text! }));
 
+    const sourceLocale = resolveLocale(request);
     for (const locale of SUPPORTED_LOCALES) {
-      if (locale === DEFAULT_LOCALE) continue;
+      if (locale === sourceLocale) continue;
       await enqueueTranslation({
         orgId: ctx.org.id,
         entityType,
         entityId,
         fields,
+        sourceLocale,
         targetLocale: locale,
       });
     }
@@ -214,6 +225,7 @@ export async function action({ request }: ActionFunctionArgs) {
         entityType: row.entityType,
         entityId: row.entityId,
         fields: [{ field: row.field, text: sourceText }],
+        sourceLocale: resolveLocale(request),
         targetLocale: row.locale,
       });
     }
@@ -258,7 +270,13 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(galleryAlbums)
       .where(eq(galleryAlbums.organizationId, ctx.org.id));
 
+    const allGalleryImages = await db
+      .select({ id: galleryImages.id, title: galleryImages.title, description: galleryImages.description })
+      .from(galleryImages)
+      .where(eq(galleryImages.organizationId, ctx.org.id));
+
     let enqueued = 0;
+    const sourceLocale = resolveLocale(request);
 
     const enqueueEntity = async (entityType: string, entity: { id: string; name: string; description: string | null }) => {
       const fields = [
@@ -267,12 +285,13 @@ export async function action({ request }: ActionFunctionArgs) {
       ];
       if (fields.length === 0) return;
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType,
           entityId: entity.id,
           fields,
+          sourceLocale,
           targetLocale: locale,
         });
         enqueued++;
@@ -292,12 +311,13 @@ export async function action({ request }: ActionFunctionArgs) {
       ];
       if (tourFields.length === 0) continue;
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "tour",
           entityId: tour.id,
           fields: tourFields,
+          sourceLocale,
           targetLocale: locale,
         });
         enqueued++;
@@ -313,12 +333,13 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!discount.description?.trim()) continue;
       const fields = [{ field: "description", text: discount.description }];
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "discount",
           entityId: discount.id,
           fields,
+          sourceLocale,
           targetLocale: locale,
         });
         enqueued++;
@@ -327,6 +348,26 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Enqueue gallery album translations
     for (const album of allGalleryAlbums) await enqueueEntity("gallery_album", album);
+
+    // Enqueue gallery image translations (title and description)
+    for (const image of allGalleryImages) {
+      const fields = [
+        { field: "title", text: image.title },
+        ...(image.description?.trim() ? [{ field: "description", text: image.description }] : []),
+      ];
+      if (fields.length === 0) continue;
+      for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) continue;
+        await enqueueTranslation({
+          orgId: ctx.org.id,
+          entityType: "gallery_image",
+          entityId: image.id,
+          fields,
+          targetLocale: locale,
+        });
+        enqueued++;
+      }
+    }
 
     return { success: true, enqueued };
   }

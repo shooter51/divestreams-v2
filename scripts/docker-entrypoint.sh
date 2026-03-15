@@ -76,5 +76,5 @@ echo "Starting DiveStreams application..."
 if [ $# -gt 0 ]; then
   exec "$@"
 else
-  exec npm run start
+  exec npx react-router-serve ./build/server/index.js
 fi

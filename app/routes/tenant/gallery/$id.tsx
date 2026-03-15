@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useFetcher, Link } from "react-router";
+import { redirect, useLoaderData, Link } from "react-router";
+import { useCsrfFetcher } from "../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getGalleryAlbum,
@@ -14,7 +15,7 @@ import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
 import { resolveLocale } from "../../../i18n/resolve-locale";
 import { getContentTranslations } from "../../../../lib/db/translations.server";
 import { useT } from "../../../i18n/use-t";
@@ -42,7 +43,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en") {
+  if (true) { // Apply translations for all locales (bidirectional)
     const tr = await getContentTranslations(organizationId, "gallery_album", albumId, locale);
     if (tr.name) album.name = tr.name;
     if (tr.description) album.description = tr.description;
@@ -125,13 +126,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
       { field: "name", text: name },
       ...(description?.trim() ? [{ field: "description", text: description }] : []),
     ];
+    const sourceLocale = resolveLocale(request);
     for (const locale of SUPPORTED_LOCALES) {
-      if (locale === DEFAULT_LOCALE) continue;
+      if (locale === sourceLocale) continue;
       await enqueueTranslation({
         orgId: organizationId,
         entityType: "gallery_album",
         entityId: albumId!,
         fields: fieldsToTranslate,
+        sourceLocale,
         targetLocale: locale,
       });
     }
@@ -175,7 +178,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function AlbumDetailPage() {
   const { album, images } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher<{ error?: string; updated?: boolean; imageDeleted?: boolean; statusUpdated?: boolean; featuredUpdated?: boolean }>();
   const t = useT();
 
   // Show notifications from URL params

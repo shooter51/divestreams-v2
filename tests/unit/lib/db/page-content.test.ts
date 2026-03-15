@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockDbLoggerError = vi.fn();
+vi.mock("../../../../lib/logger", () => ({
+  dbLogger: {
+    error: mockDbLoggerError,
+    warn: vi.fn(),
+    info: vi.fn(),
+  },
+}));
+
 // ============================================================================
 // Mock setup
 // ============================================================================
@@ -353,14 +362,12 @@ describe("page-content.server", () => {
 
     it("handles errors gracefully when page already exists", async () => {
       mockInsertReturning.mockRejectedValue(new Error("unique constraint"));
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const { initializeDefaultPages } = await import(
         "../../../../lib/db/page-content.server"
       );
       await initializeDefaultPages("org-1", "Test Shop", "user-1");
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(mockDbLoggerError).toHaveBeenCalled();
     });
   });
 });

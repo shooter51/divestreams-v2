@@ -13,7 +13,7 @@
       "levelCode": "beginner",
       "description": "The PADI Discover Scuba Diving experience is a chance to try diving without committing to a full certification course. Learn basic scuba skills in a pool or confined water, with an optional open water dive to 12 meters/40 feet. Perfect for those wanting to experience scuba diving for the first time.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/discover-scuba-diving.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/discover-scuba-diving.webp"
       ],
       "durationDays": 1,
       "classroomHours": 1,
@@ -34,7 +34,7 @@
       "levelCode": "beginner",
       "description": "The PADI Scuba Diver course is roughly the first half of the PADI Open Water Diver course. Learn diving theory, practice basic diving skills in a pool, and make two open water dives. Certified Scuba Divers can dive to 12 meters/40 feet under the direct supervision of a PADI Professional.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/scuba-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/scuba-diver.webp"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -55,7 +55,7 @@
       "levelCode": "beginner",
       "description": "The PADI Open Water Diver course is the world's most popular scuba certification course. Through knowledge development, confined water dives, and open water dives, you'll learn the skills needed to become a certified diver. Once certified, you can dive to 18 meters/60 feet with a buddy without professional supervision.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/open-water-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/open-water-diver.webp"
       ],
       "durationDays": 4,
       "classroomHours": 12,
@@ -80,7 +80,7 @@
       "levelCode": "beginner",
       "description": "The PADI ReActivate program is an interactive online scuba refresher combined with an in-water skills session. Perfect for certified divers who haven't been diving in a while and want to refresh their knowledge and skills before their next dive trip.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/reactivate.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -100,7 +100,7 @@
       "levelCode": "advanced",
       "description": "Take your diving to the next level with the PADI Advanced Open Water Diver course. Complete five adventure dives including required Deep and Navigation dives, plus three elective adventure dives of your choice. Expand your capabilities and experience different types of diving. Maximum depth increased to 30 meters/100 feet.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/advanced-open-water.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1749718858/CDN/commerce/60463-1B2C.webp"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -123,7 +123,7 @@
       "levelCode": "advanced",
       "description": "The PADI Rescue Diver course teaches you to prevent and manage dive emergencies. Widely considered the most transformational course after Open Water Diver, you'll learn to recognize stress in other divers, respond to dive emergencies, manage accidents, and provide emergency care. A stepping stone to Divemaster.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/rescue-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/rescue-diver.webp"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -146,7 +146,7 @@
       "levelCode": "specialty",
       "description": "Emergency First Response teaches CPR and first aid skills for adults, children, and infants. Learn to recognize life-threatening emergencies, provide appropriate care, and manage an emergency scene. This certification is required for the PADI Rescue Diver course. No diving required.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/efr.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1733734941/CDN/commerce/60475-1B2C.webp"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -166,7 +166,7 @@
       "levelCode": "specialty",
       "description": "Master the art of buoyancy control with the PADI Peak Performance Buoyancy specialty. Learn precise weighting, proper trim, streamlined positioning, and advanced buoyancy techniques that will help you move effortlessly through the water, conserve air, and protect the underwater environment.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/peak-performance-buoyancy.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/peak-performance-buoyancy.webp"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -187,7 +187,7 @@
       "levelCode": "specialty",
       "description": "Explore the mysteries of deeper dive sites with the PADI Deep Diver specialty. Learn to plan deep dives, manage gas supply, identify and manage narcosis, and use proper buddy contact procedures at depth. Upon completion, you'll be certified to dive to 40 meters/130 feet.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/deep-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/deep-diver.webp"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -209,7 +209,7 @@
       "levelCode": "specialty",
       "description": "Discover the thrill of exploring sunken ships and other structures with the PADI Wreck Diver specialty. Learn wreck diving techniques, safety procedures, survey and mapping skills, and limited penetration techniques. Explore history beneath the waves safely and responsibly.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/wreck-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/wreck-diver.webp"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -232,7 +232,7 @@
       "levelCode": "specialty",
       "description": "Experience the underwater world after dark with the PADI Night Diver specialty. Learn light handling and communication techniques, navigation at night, and discover how marine life differs during nighttime hours. Many underwater creatures are nocturnal, making night diving a unique experience.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/night-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/night-diver.webp"
       ],
       "durationDays": 2,
       "classroomHours": 2,
@@ -255,7 +255,7 @@
       "levelCode": "specialty",
       "description": "Learn to go with the flow in the PADI Drift Diver specialty. Master the techniques for diving in currents, including proper buoyancy control, navigation, buddy dynamics, and the use of floats, lines, reels, and surface marker buoys. Experience the thrill of effortless underwater flight.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/drift-diver.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/drift-diver.webp"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -278,7 +278,7 @@
       "levelCode": "specialty",
       "description": "Sharpen your navigation skills with the PADI Underwater Navigator specialty. Learn compass navigation, natural navigation using landmarks, distance estimation, and underwater map making. Never get lost underwater again and always find your way back to the exit point.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/underwater-navigator.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -300,7 +300,7 @@
       "levelCode": "specialty",
       "description": "The PADI Enriched Air Diver course is the most popular specialty worldwide. Learn to dive with enriched air nitrox (22-40% oxygen), extending your no-decompression limits and shortening surface intervals. Covers oxygen exposure management, analyzing gas, and setting your dive computer for nitrox.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/enriched-air.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/enriched-air-diver.webp"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -321,7 +321,7 @@
       "levelCode": "specialty",
       "description": "Stay warm and comfortable in cold water with the PADI Dry Suit Diver specialty. Learn dry suit theory, proper donning and doffing procedures, buoyancy control with a dry suit, and emergency procedures including dealing with excess gas migration. Essential for diving in cold water environments.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/dry-suit-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 2,
@@ -343,7 +343,7 @@
       "levelCode": "specialty",
       "description": "Learn the skills and procedures for diving from different types of boats with the PADI Boat Diver specialty. Covers boat terminology, diving procedures and etiquette, entry and exit techniques, equipment handling, and boating safety. Essential for divers who plan to dive from boats.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/boat-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -364,7 +364,7 @@
       "levelCode": "specialty",
       "description": "Learn to locate and recover objects underwater with the PADI Search and Recovery Diver specialty. Master various search patterns, compass and natural navigation for searches, lift bag use for recovering large objects, and limited visibility search techniques.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/search-and-recovery.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -387,7 +387,7 @@
       "levelCode": "specialty",
       "description": "Discover the underwater world's fascinating ecosystems with the PADI Underwater Naturalist specialty. Learn about aquatic ecology, symbiotic relationships, predator-prey interactions, and responsible interaction with marine life. Enhance your understanding of what you observe underwater.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/underwater-naturalist.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -409,7 +409,7 @@
       "levelCode": "specialty",
       "description": "Learn to identify fish families and species with the PADI AWARE Fish Identification specialty. Develop skills in fish surveying, data collection, and understanding fish behavior. Learn about the AWARE philosophy of protecting worldwide aquatic ecosystems.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/fish-identification.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -431,7 +431,7 @@
       "levelCode": "specialty",
       "description": "Capture stunning underwater images with the PADI Digital Underwater Photographer specialty. Learn camera settings, lighting techniques, composition, and how to get the best shots in various underwater conditions. Suitable for any digital camera with an underwater housing.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/digital-underwater-photographer.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/digital-underwater-photographer.webp"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -452,7 +452,7 @@
       "levelCode": "specialty",
       "description": "Cover more ground and have more fun with the PADI Diver Propulsion Vehicle specialty. Learn proper DPV operation, safety procedures, battery care, maintenance, and techniques for turnaround points, vehicle failure, and avoiding entanglements.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/dpv.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -473,7 +473,7 @@
       "levelCode": "specialty",
       "description": "Learn the special considerations for diving at elevations above 300 meters/1000 feet with the PADI Altitude Diver specialty. Understand how reduced atmospheric pressure affects dive planning, decompression, and equipment. Essential for mountain lake diving.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/altitude-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -494,7 +494,7 @@
       "levelCode": "specialty",
       "description": "Experience the unique environment of diving under ice with the PADI Ice Diver specialty. Learn about ice diving equipment, safety procedures, the roles of surface support and tenders, site selection, and emergency procedures. Discover a completely different underwater world.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/ice-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -517,7 +517,7 @@
       "levelCode": "specialty",
       "description": "Explore underwater caverns safely with the PADI Cavern Diver specialty. Learn cavern navigation, line protocols, the rule of thirds for air management, and emergency procedures while staying within the light zone. A prerequisite for full cave diving training.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/cavern-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -541,7 +541,7 @@
       "levelCode": "specialty",
       "description": "Learn the streamlined configuration of sidemount diving with the PADI Sidemount Diver specialty. Carry your cylinders at your sides for improved trim, reduced drag, and easier gear management. Popular for both recreational and technical diving applications.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/sidemount-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 3,
@@ -563,7 +563,7 @@
       "levelCode": "specialty",
       "description": "Learn to dive with a full face mask with the PADI Full Face Mask Diver specialty. Covers the types of full face masks, proper fitting and preparation, underwater communication, and emergency procedures including switching to backup equipment.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/full-face-mask.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -586,7 +586,7 @@
       "levelCode": "specialty",
       "description": "Develop the skills and mindset for independent diving with the PADI Self-Reliant Diver specialty. Learn about potential risks, equipment redundancy, self-rescue techniques, and emergency procedures. For experienced divers who may need to make dives without a partner.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/self-reliant-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -610,7 +610,7 @@
       "levelCode": "specialty",
       "description": "Learn the fundamentals of dive equipment with the PADI Equipment Specialist specialty. Understand how your equipment works, routine care and maintenance, basic repairs and adjustments, and equipment storage. No dives required - a classroom-only course.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/equipment-specialist.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -628,7 +628,7 @@
       "levelCode": "specialty",
       "description": "Learn to recognize diving-related illnesses treatable by emergency oxygen and how to administer it with the PADI Emergency Oxygen Provider specialty. Covers oxygen equipment setup, safety considerations, and proper administration techniques. No diving or prerequisites required.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/emergency-oxygen-provider.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 3,
@@ -646,7 +646,7 @@
       "levelCode": "specialty",
       "description": "Learn about the threats facing our ocean and how you can help with the PADI AWARE Specialist course. Covers ocean conservation issues, marine debris, sustainable practices, and how to take action. Open to anyone - no diving or prerequisites required.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/project-aware.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 3,
@@ -664,7 +664,7 @@
       "levelCode": "specialty",
       "description": "Learn about the vital role coral reefs play in marine ecosystems and how they are threatened with the PADI Coral Reef Conservation specialty. Understand coral biology, reef ecology, and conservation efforts. Non-diving certification available for divers and non-divers alike.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/coral-reef-conservation.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 3,
@@ -682,7 +682,7 @@
       "levelCode": "specialty",
       "description": "Make a difference with the PADI Dive Against Debris specialty. Learn to safely remove marine debris while diving, categorize and report collected materials to the global database, and understand the impact of debris on marine ecosystems.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/dive-against-debris.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 1,
@@ -704,7 +704,7 @@
       "levelCode": "specialty",
       "description": "Discover the value of sharks to marine ecosystems and economies with the PADI AWARE Shark Conservation Diver specialty. Learn about shark biology, identification, threats, and conservation efforts. Includes observation dives to practice responsible shark encounters.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/shark-conservation.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -725,7 +725,7 @@
       "levelCode": "advanced",
       "description": "Your entry into technical diving with the PADI Tec 40 course. Bridge the gap between recreational and technical diving by learning limited decompression procedures, deeper depth limits to 40 meters/130 feet, and using up to 50% oxygen for decompression.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-40.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -749,7 +749,7 @@
       "levelCode": "advanced",
       "description": "Continue your technical diving education with the PADI Tec 45 course. Extend your depth limit to 45 meters/145 feet, learn to use a single decompression cylinder, and make accelerated decompression dives using EANx or pure oxygen.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-45.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -772,7 +772,7 @@
       "levelCode": "advanced",
       "description": "Reach the pinnacle of open circuit technical diving with the PADI Tec 50 course. Dive to 50 meters/165 feet using two decompression gases. Develop full competency as a technical diver ready for deeper diving expeditions.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-50.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -795,7 +795,7 @@
       "levelCode": "advanced",
       "description": "Enter the world of trimix diving with the PADI Tec Trimix 65 course. Learn to use non-hypoxic trimix for dives to 65 meters/210 feet. Understand the advantages of breathing three gases and how to do it safely.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-trimix.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -817,7 +817,7 @@
       "levelCode": "advanced",
       "description": "The ultimate technical diving certification with the PADI Tec Trimix Diver course. Make dives as deep as 90 meters/295 feet using hypoxic trimix. Visit pristine sites where few divers have ever been.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-trimix-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -839,7 +839,7 @@
       "levelCode": "advanced",
       "description": "Master sidemount configuration for technical diving with the PADI Tec Sidemount Diver course. Learn technical sidemount equipment setup, gas management, and emergency procedures for decompression diving in sidemount configuration.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-sidemount.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -861,7 +861,7 @@
       "levelCode": "specialty",
       "description": "Learn to blend enriched air nitrox and helium-blend gases with the PADI Tec Gas Blender course. Covers oxygen properties and hazards, equipment cleaning, and five methods for obtaining desired gas mixtures. Classroom-only course - no dives required.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/gas-blender.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -879,7 +879,7 @@
       "levelCode": "specialty",
       "description": "Experience the benefits of rebreather diving with the PADI Rebreather Diver course for Type R (recreational) rebreathers. Enjoy longer no-stop limits, reduced gas consumption, and closer marine life encounters. Maximum depth 18 meters/60 feet.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/rebreather.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -900,7 +900,7 @@
       "levelCode": "advanced",
       "description": "Enter technical CCR diving with the PADI Tec 40 CCR course. Learn to use Type T closed circuit rebreathers for limited decompression dives to 40 meters/130 feet. Develop the discipline and skills for technical rebreather diving.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-ccr.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 10,
@@ -922,7 +922,7 @@
       "levelCode": "advanced",
       "description": "Extend your CCR diving to 60 meters/200 feet with the PADI Tec 60 CCR course. Learn multiple decompression stop management, trimix/heliox diluent use, and advanced life-support problem management.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-60-ccr.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -944,7 +944,7 @@
       "levelCode": "advanced",
       "description": "The ultimate CCR certification with the PADI Tec 100 CCR course. Train for extreme depths using hypoxic diluents and bailout gases. No depth limits after certification.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/tec-100-ccr.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 14,
@@ -966,7 +966,7 @@
       "levelCode": "professional",
       "description": "Begin your professional diving career with the PADI Divemaster course. Learn to supervise dive activities and assist instructors with student divers. Develop your leadership skills while gaining a deep understanding of dive theory and training standards.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/divemaster.jpg"
+        "https://res.cloudinary.com/padi/image/upload/f_auto,q_75,w_auto,dpr_auto/v1701290031/CDN/commerce/divemaster.webp"
       ],
       "durationDays": 14,
       "classroomHours": 32,
@@ -991,7 +991,7 @@
       "levelCode": "instructor",
       "description": "Take the first step toward becoming a PADI Instructor with the Assistant Instructor course. Learn to conduct certain PADI programs independently and assist instructors with student training. The first part of the PADI Instructor Development Course.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/assistant-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 24,
@@ -1013,7 +1013,7 @@
       "levelCode": "instructor",
       "description": "Complete your instructor training with the PADI Open Water Scuba Instructor program. The IDC includes both the Assistant Instructor and OWSI courses. Upon passing the Instructor Examination, you can teach all PADI recreational courses.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/owsi.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 48,
@@ -1036,7 +1036,7 @@
       "levelCode": "instructor",
       "description": "Advance your instructor career with the PADI Master Scuba Diver Trainer rating. Requires 25 PADI certifications issued and 5 Specialty Instructor certifications beyond OWSI. Shows commitment to continuing education and teaching diverse courses.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/msdt.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 24,
@@ -1057,7 +1057,7 @@
       "levelCode": "instructor",
       "description": "Get involved in instructor development as a PADI IDC Staff Instructor. Independently teach Assistant Instructor courses and assist Course Directors with IDCs. A prerequisite for Master Instructor and TecRec Instructor ratings.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/idc-staff-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 32,
@@ -1078,7 +1078,7 @@
       "levelCode": "instructor",
       "description": "Achieve the elite PADI Master Instructor rating through experience and dedication. Requires minimum 2 years as instructor, 150 certifications issued with specific distribution, participation in PADI Seminars, and IDC staffing experience.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/master-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -1096,7 +1096,7 @@
       "levelCode": "instructor",
       "description": "Reach the highest level in PADI as a Course Director. Train the next generation of PADI Instructors by conducting Instructor Development Courses and Instructor Examinations. Competitive application through Course Director Training Course.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/course-director.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 14,
       "classroomHours": 80,
@@ -1117,7 +1117,7 @@
       "levelCode": "instructor",
       "description": "Expand your teaching abilities with PADI Specialty Instructor certifications. Qualify to teach specific PADI specialty courses by completing specialty instructor training. Required to achieve MSDT rating and teach specialty courses.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/specialty-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -1138,7 +1138,7 @@
       "levelCode": "instructor",
       "description": "Teach life-saving skills as an Emergency First Response Instructor. Required for PADI Open Water Scuba Instructor certification. Qualify to teach EFR Primary Care (CPR), Secondary Care (First Aid), and Care for Children courses.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/efr-instructor.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 12,
@@ -1159,7 +1159,7 @@
       "levelCode": "beginner",
       "description": "Your introduction to freediving with the PADI Basic Freediver course. Learn basic freediving principles, breath-hold techniques, and safety in confined water. Develop skills for 90 second static apnea and 25 meter dynamic apnea.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/basic-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1181,7 +1181,7 @@
       "levelCode": "beginner",
       "description": "Discover why freediving is becoming popular with the PADI Freediver course. Learn about body reactions to breath-holding, water pressure effects, and proper techniques. Achieve 90 second static apnea, 25m dynamic apnea, and dive to 10-16 meters.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1204,7 +1204,7 @@
       "levelCode": "advanced",
       "description": "Refine your freediving skills with the PADI Advanced Freediver course. Develop static apnea to 2:30, dynamic apnea to 50m, and constant weight dives to 20-24 meters. Learn advanced equalization and rescue techniques.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/advanced-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -1228,7 +1228,7 @@
       "levelCode": "advanced",
       "description": "Approach elite freediving levels with the PADI Master Freediver course. Fine-tune your lifestyle and training to maximize performance. Achieve advanced static, dynamic, free immersion, and constant weight skills beyond 24 meters.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/master-freediver.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -1251,7 +1251,7 @@
       "levelCode": "instructor",
       "description": "Share your passion for freediving as a PADI Freediver Instructor. Teach all levels of PADI freediving courses from Basic Freediver through Master Freediver. Develop skills in rescue, teaching methodology, and performance assessment.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/freediver-instructor.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,
@@ -1272,7 +1272,7 @@
       "levelCode": "beginner",
       "description": "Begin your mermaid journey with the PADI Basic Mermaid course. Learn fundamental mermaid diving skills, safety considerations, and basic water skills in confined water. Experience the magic of swimming with a monofin in a supportive environment.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/basic-mermaid.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 1,
@@ -1293,7 +1293,7 @@
       "levelCode": "beginner",
       "description": "Develop dynamic mermaid skills with the PADI Mermaid course. Learn techniques that make mermaiding an underwater self-expressive art. Master breath-holding, graceful movements, and surface skills in two water skill sessions.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/mermaid.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1315,7 +1315,7 @@
       "levelCode": "advanced",
       "description": "Take your mermaiding to the ocean with the PADI Advanced Mermaid course. Includes all Mermaid course skills plus two open water sessions in natural conditions. Gain experience and confidence swimming in a tail in the sea.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/advanced-mermaid.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 2,
@@ -1337,7 +1337,7 @@
       "levelCode": "instructor",
       "description": "Share the joy of mermaiding as a PADI Mermaid Instructor. Teach all PADI Mermaid courses from Basic through Advanced Mermaid. Learn rescue techniques, teaching methodology, and how to create magical mermaid experiences.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/mermaid-instructor.jpg"
+        "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1358,7 +1358,7 @@
       "levelCode": "advanced",
       "description": "Achieve the highest non-professional rating in recreational diving with the PADI Master Scuba Diver certification. Fewer than 2% of divers reach this elite level. Requires Rescue Diver certification, 5 specialty certifications, and 50 logged dives.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/master-scuba-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 0,
@@ -1376,7 +1376,7 @@
       "levelCode": "beginner",
       "description": "Introduce kids to scuba with the PADI Bubblemaker program. Children experience breathing underwater in a pool or confined water setting with a maximum depth of 2 meters/6 feet. A fun, safe first step toward becoming a certified diver.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/bubblemaker.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 0,
@@ -1396,7 +1396,7 @@
       "levelCode": "beginner",
       "description": "The PADI Seal Team program gives kids an exciting introduction to scuba diving through themed AquaMissions. Complete various underwater challenges in a pool setting. Fun activities that build skills and confidence for future diving.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/seal-team.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 2,
@@ -1416,7 +1416,7 @@
       "levelCode": "specialty",
       "description": "Master the proper use of surface marker buoys with the PADI SMB Distinctive Specialty. Learn techniques for deploying SMBs and DSMBs safely, managing lines and reels, and when and why to use surface markers for safety and communication.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/smb-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1438,7 +1438,7 @@
       "levelCode": "specialty",
       "description": "Learn to assist divers with physical or mental challenges with the PADI Adaptive Support Diver specialty. Gain awareness of various disabilities, communication techniques, and how to provide appropriate support and modifications for inclusive diving.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/adaptive-support-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -1458,7 +1458,7 @@
       "levelCode": "specialty",
       "description": "Learn proper DSMB deployment techniques with this specialty course. Master deployment from depth, line management, and safety protocols for signaling your position to surface support while maintaining neutral buoyancy.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/dsmb.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -1480,7 +1480,7 @@
       "levelCode": "professional",
       "description": "Train for public safety dive team operations with the PADI Public Safety Diver course. Learn search and recovery techniques, evidence handling, body recovery, and dive team management for emergency response professionals.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/public-safety-diver.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 24,

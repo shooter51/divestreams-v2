@@ -19,7 +19,8 @@ import {
 import type { PageContent } from "../../../../lib/db/schema/page-content";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -85,13 +86,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
     ].filter((f) => f.text?.trim());
 
     if (fieldsToTranslate.length > 0) {
+      const sourceLocale = resolveLocale(request);
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "page",
           entityId: pageId,
           fields: fieldsToTranslate,
+          sourceLocale,
           targetLocale: locale,
         });
       }

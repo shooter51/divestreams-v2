@@ -13,7 +13,7 @@
       "levelCode": "beginner",
       "description": "The ANDI Open Water Diver is an entry-level diver training program designed to provide all basic information and skills required for the beginning open water SCUBA diver. Emphasis is placed on creating a safe, comfortable and confident diver with special skills and tools beyond that of other training agencies. ANDI requires all trainees to utilize Redundant Breathing Systems (RBS) for enhanced safety. Certification authorizes air dives to 18m, expandable to 30m with additional training dives.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/open-water-diver.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 14,
@@ -38,7 +38,7 @@
       "levelCode": "beginner",
       "description": "The ANDI Junior Open Water Diver course is designed for young divers aged 12-15. Upon completion, certification is valid for air dives to 18m when accompanied by an adult diver (family member/guardian) or an instructor. The certification automatically upgrades to full Open Water Diver status when the student turns 16 years old.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/junior-open-water.jpg"
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop"
       ],
       "durationDays": 6,
       "classroomHours": 14,
@@ -62,7 +62,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Advanced Open Water Diver course builds upon Open Water Diver certification, enhancing diver skills and comfort in water through five specialties - three mandatory and two elective. Mandatory modules include introduction to SafeAir diving (LSU), advanced underwater navigation, and deeper diving instruction. Elective specialties include night diving, wreck exploration, current diving, boat diving, ecology, and buoyancy control. Certification authorizes dives to 40m.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/advanced-open-water.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 12,
@@ -85,7 +85,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Rescue Diver course trains divers to recognize and aid in preventing stressful situations and emergencies while developing rescue skills both underwater and on the surface. The curriculum covers panic management, stress recognition, emergency causes, rescue equipment, surface and underwater rescue techniques, and emergency response procedures. Practical skills include towing fatigued divers, victim approach techniques, controlled ascents, unconscious victim rescues, CPR while towing, and water extraction methods.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/rescue-diver.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 6,
@@ -107,7 +107,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Limited SafeAir User program introduces the concepts of enriched air diving, explains the basis for the limits and restrictions of use, and enables certified divers to receive the full benefits of breathing cleaner gas and enhanced safety. The course covers information necessary to make use of 4 of the 8 ANDI-identified applications of SafeAir within sport diving limits. Certification authorizes use of SafeAir 22% up to 40% oxygen mixtures.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/safeair-limited.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -129,7 +129,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Complete SafeAir User course expands the material introduced in the Limited SafeAir Diver course. It covers the information necessary to make use of all 8 of the ANDI-identified applications of SafeAir within sport diving limits. Certification authorizes use of all SafeAir mixtures including SafeAir 50 (up to 50% oxygen) to depths of 40m performing no-decompression profiles with 2 cylinders and 2 gases.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/safeair-complete.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 10,
@@ -152,7 +152,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Technical SafeAir Diver is the first ANDI program covering the specific information and skills necessary to perform stage-stop required 'technical' decompression diving while minimizing associated risk factors. This Level 3 course teaches independent dive planning and execution using multiple breathing gas mixtures to depths of 40m with decompression stops up to 30 minutes. Certification authorizes use of all Nitrox and Oxygen mixtures to 40m during decompression profiles using 3 cylinders and 3 gases.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/technical-safeair.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 15,
@@ -176,7 +176,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Extended Range Diver program (Level 4) is designed to bridge the gap between the advanced/decompression diver and the deep explorer. Participants learn to plan and execute dives using various breathing gas mixtures to depths of 50m with unlimited decompression time and gas mixtures. This equipment-intensive course prepares divers for ultra-deep, mission-oriented dives and entry into the Trimix Exploration Program.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/extended-range.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -199,7 +199,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Trimix Diver course (Level 5) represents the highest level of technical open-circuit diving. This course prepares divers to independently, successfully, and safely plan and execute deep dives to depths of up to 100m using traveling, deep, and decompression breathing mixtures including helium-based trimix. Training dives occur at depths between 60m and 80m.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/trimix-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 6,
@@ -223,7 +223,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Cavern Diver course (Level 2) introduces divers to underwater cave environments where direct sunlight remains visible. Maximum depth is limited to 30m. The course covers cave-specific knowledge including equipment setup, accident analysis, psychological factors, communication protocols, line usage, air planning, and safety procedures. Practical skills include gas analysis, line work with and without visibility, air sharing, specialized swimming to avoid disturbing sediment, and emergency scenarios.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/cavern-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 8,
@@ -246,7 +246,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Cave Diver course (Level 3) is an advanced cave diving certification that expands on skills developed in the Cavern Diver program by introducing penetration techniques and utilizing decompression procedures while operating in an overhead environment. The course covers cave environment knowledge, specialized equipment configuration, accident analysis, psychology, communication, line use, dive planning, and decompression procedures. Students complete at least 8 dives over 5 days.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/cave-diver.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 10,
@@ -270,7 +270,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Full Cave Diver course (Level 4) is the most advanced overhead environment certification, preparing divers for complex cave exploration with extended penetrations. Building on Cave Diver skills, this course emphasizes mission planning, team coordination, and advanced navigation techniques for multi-day cave exploration projects.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/full-cave.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 8,
@@ -294,7 +294,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Sidemount Diver course is an introductory program designed to provide candidates with basic knowledge and understanding of mounting cylinders on the side, related equipment alterations, and the sidemount diving method. The course covers the advantages of side-mounting cylinders, different equipment configurations, problem solving, and procedures before, during, and after the dive.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/sidemount-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 5,
@@ -316,7 +316,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Closed Circuit Rebreather Diver course is an introductory program teaching participants how CCR systems function, with training conducted to a maximum depth of 30m. The curriculum covers rebreather theory including history, types, principles of operation, hypoxia, hyperoxia, and hypercapnia. Training is unit-specific and includes equipment familiarization, dive planning, problem-solving, procedures, and maintenance.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/ccr-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 16,
@@ -339,7 +339,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Semi-Closed Circuit Rebreather Diver course teaches divers how to dive with computer-controlled Semi-Closed Rebreathers. This beginning experience in the world of silent diving is excellent for divers interested in getting close to marine life and underwater photography. Training covers unit operation, gas management, and emergency procedures for SCR systems.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/scr-diver.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 12,
@@ -361,7 +361,7 @@
       "levelCode": "specialty",
       "description": "The ANDI SafeAir Wreck Diver course (Level 2) teaches wreck diving techniques without penetration or decompression requirements while utilizing enriched air nitrox for extended bottom times and enhanced safety. The course covers wreck hazards, navigation, artifact identification, photography techniques, and environmental considerations.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/wreck-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -384,7 +384,7 @@
       "levelCode": "advanced",
       "description": "The ANDI Technical Wreck Diver course provides advanced training in wreck penetration techniques using technical diving equipment and procedures. The course covers penetration planning, emergency procedures, line laying, silt management, and team coordination for overhead environment diving inside shipwrecks.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/technical-wreck.jpg"
+        "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=600&h=400&fit=crop"
       ],
       "durationDays": 4,
       "classroomHours": 8,
@@ -407,7 +407,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Deep Diver course prepares recreational divers for deeper diving within no-decompression limits. The course covers deep diving physiology, narcosis management, gas planning, safety procedures, and emergency protocols for dives beyond typical recreational depths.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/deep-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -429,7 +429,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Night Diver course introduces divers to the unique challenges and rewards of diving after dark. The course covers light selection and use, navigation techniques, communication methods, buddy procedures, and awareness of nocturnal marine life behavior.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/night-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -453,7 +453,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Navigation Diver course develops advanced underwater navigation skills using natural references, compass navigation, and advanced techniques. The course prepares divers to navigate complex underwater environments and return accurately to specific locations.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/navigation-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -476,7 +476,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Buoyancy Control Diver course focuses on mastering neutral buoyancy and trim for improved diving efficiency, air consumption, and environmental protection. Advanced techniques for precise buoyancy management in various conditions are covered.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/buoyancy-control.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 2,
@@ -496,7 +496,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Boat Diver course covers boat diving procedures, entries and exits, boat safety, briefings, etiquette, and emergency procedures for diving from various types of vessels including day boats, live-aboards, and small craft.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/boat-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 3,
@@ -517,7 +517,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Drift Diver course teaches the skills and knowledge required for safe drift diving in currents. Topics include current assessment, entry and exit techniques, buddy procedures, surface marker deployment, and boat pickup protocols.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/drift-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 3,
@@ -539,7 +539,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Dry Suit Diver course teaches proper dry suit selection, use, and maintenance. Topics include suit types, buoyancy control, emergency procedures, thermal protection, and care of dry suit equipment for cold water diving.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/drysuit-diver.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -561,7 +561,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Underwater Photography Diver course introduces camera systems, lighting, composition, and techniques for capturing quality underwater images. Both still and video photography are covered along with post-processing basics.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/underwater-photo.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 6,
@@ -583,7 +583,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Search and Recovery Diver course teaches various underwater search patterns and techniques for locating and recovering objects. Topics include search planning, pattern swimming, lift bag use, and recovery procedures.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/search-recovery.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -606,7 +606,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Underwater Naturalist course focuses on understanding marine ecosystems, species identification, animal behavior, and environmental conservation. Divers learn to observe and interact responsibly with marine life.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/underwater-naturalist.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 4,
@@ -628,7 +628,7 @@
       "levelCode": "specialty",
       "description": "The ANDI First Responder course provides comprehensive emergency response training including scene assessment, primary and secondary surveys, CPR, AED use, and first aid for common injuries and illnesses. This course meets prerequisites for professional-level diving courses.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/first-responder.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -648,7 +648,7 @@
       "levelCode": "specialty",
       "description": "The ANDI CPR Provider course teaches cardiopulmonary resuscitation techniques for adults, children, and infants, along with AED operation. This essential life-saving certification is required for many advanced and professional diving courses.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/cpr-provider.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -668,7 +668,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Oxygen Provider course teaches the proper administration of emergency oxygen for diving injuries. Topics include recognizing dive-related injuries, oxygen equipment operation, delivery methods, and when to administer oxygen. This is a prerequisite for professional diving certifications.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/oxygen-provider.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -688,7 +688,7 @@
       "levelCode": "specialty",
       "description": "The ANDI First Aid for Aquatic Injuries course focuses on issues aquatic sports enthusiasts encounter in remote areas. Topics include marine life injuries, decompression illness recognition, drowning response, hypothermia, and emergency action planning specific to aquatic environments.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/aquatic-first-aid.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 4,
@@ -708,7 +708,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Dive Medic course provides comprehensive training in diving-related medical emergencies including decompression illness, arterial gas embolism, barotrauma, and near-drowning incidents. The course combines emergency medicine principles with dive-specific treatments.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/dive-medic.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 16,
@@ -728,7 +728,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Air Compressor Operator course trains candidates in the appropriate operation and usage of high and low pressure air compressors. Topics include compressor systems, maintenance procedures, air quality testing, and safety protocols for dive cylinder filling.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/compressor-operator.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -748,7 +748,7 @@
       "levelCode": "specialty",
       "description": "The ANDI SafeAir Gas Blender course ensures proper operation of blending equipment and that ANDI standards for gas purity are met. Topics include gas physics, oxygen handling, partial pressure blending, continuous blending, membrane systems, and quality control procedures.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/gas-blender.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -768,7 +768,7 @@
       "levelCode": "specialty",
       "description": "The ANDI SafeAir Service Technician course prepares technicians to oversee servicing requirements of equipment used with SafeAir and ensure ANDI standards as well as local standards are met. Topics include oxygen cleaning, service procedures, and equipment compatibility.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/service-technician.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 10,
@@ -788,7 +788,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Cylinder Inspection Technician course covers inspection procedures, regulations, and documentation requirements for technicians involved in cylinder inspections. Topics include visual inspection, hydrostatic testing, valve service, and record keeping.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/cylinder-inspection.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 10,
@@ -808,7 +808,7 @@
       "levelCode": "professional",
       "description": "The ANDI Certified Divemaster is the first professional level of training, meeting EUF standards for Level-III divers. This course prepares candidates to oversee certified divers to their rated level, conduct underwater tours, manage diving center operations, and assist instructors. Note: Divemaster certification carries no authority to certify students.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/divemaster.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 60,
       "classroomHours": 16,
@@ -832,7 +832,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Assistant Open Water Instructor program meets EUF standards for a Level 1 Instructor. This course may be viewed as an ITC (Instructor Training Course) which prepares candidates to attend an IEC (Instructor Evaluation Course) conducted by an IT to become an ANDI OWI. Assistant Instructors assist certified instructors but have no independent certifying authority.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/assistant-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 24,
@@ -853,7 +853,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Open Water Instructor program meets EUF standards for a Level 2 Instructor. This program prepares candidates to teach any student from Introductory Scuba Experience to the Divemaster rating. The IEC (Instructor Evaluation Course) evaluates candidate fitness to become an ANDI OWI.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/open-water-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 32,
@@ -874,7 +874,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Advanced Open Water Instructor is a rating based on experience and prerequisites. An Advanced Open Water Instructor can prepare candidates to attend an ITC course and teach advanced-level courses including specialties and technical programs.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/advanced-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -895,7 +895,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Complete SafeAir Instructor course prepares instructors to teach the complete SafeAir (Nitrox) curriculum including Limited SafeAir User and Complete SafeAir User programs. Topics include teaching methodology, practical evaluation, and curriculum delivery.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/safeair-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -916,7 +916,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Technical SafeAir Instructor course prepares instructors to teach technical decompression diving programs including Technical SafeAir Diver and Extended Range Diver courses. Emphasis is on teaching methodology for complex technical skills.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/technical-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 16,
@@ -937,7 +937,7 @@
       "levelCode": "instructor",
       "description": "The ANDI CCR Instructor course prepares instructors to teach Closed Circuit Rebreather diving programs. Training is unit-specific and covers teaching methodology, practical evaluation techniques, and curriculum delivery for CCR courses.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/ccr-instructor.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -958,7 +958,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Cave Instructor course prepares instructors to teach cavern and cave diving programs. Topics include teaching methodology for overhead environment diving, practical evaluation, and curriculum delivery for CVN and CAV courses.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/cave-instructor.jpg"
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&h=400&fit=crop"
       ],
       "durationDays": 7,
       "classroomHours": 20,
@@ -979,7 +979,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Oxygen Administration Instructor course prepares instructors to teach emergency oxygen provider courses. Topics include teaching methodology, practical skill evaluation, and curriculum delivery.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/oxygen-instructor.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -1000,7 +1000,7 @@
       "levelCode": "instructor",
       "description": "The ANDI CPR Instructor course prepares instructors to teach cardiopulmonary resuscitation courses. Topics include teaching methodology, practical skill evaluation, and curriculum delivery for CPR certification.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/cpr-instructor.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 1,
       "classroomHours": 6,
@@ -1022,7 +1022,7 @@
       "levelCode": "instructor",
       "description": "The ANDI First Aid Instructor course prepares instructors to teach first aid and first responder courses. Topics include teaching methodology, practical skill evaluation, and curriculum delivery.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/firstaid-instructor.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 2,
       "classroomHours": 8,
@@ -1043,7 +1043,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Dive Medic Instructor course prepares instructors to teach dive medic courses. Topics include teaching methodology for dive medicine topics, practical skill evaluation, and curriculum delivery.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/divemedic-instructor.jpg"
+        "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600&h=400&fit=crop"
       ],
       "durationDays": 3,
       "classroomHours": 12,
@@ -1064,7 +1064,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Instructor Trainer prepares experienced instructors to conduct Instructor Training Courses (ITC) and Instructor Evaluation Courses (IEC). Instructor Trainers can train and certify new instructors within their scope of qualification.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/instructor-trainer.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 10,
       "classroomHours": 40,
@@ -1085,7 +1085,7 @@
       "levelCode": "instructor",
       "description": "The ANDI Instructor Trainer Director is the highest professional rating in the ANDI system. ITDs oversee instructor training programs, evaluate instructor trainers, and represent ANDI at the regional or national level. This is an appointment-based position requiring demonstrated leadership.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/instructor-director.jpg"
+        "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=400&fit=crop"
       ],
       "durationDays": 14,
       "classroomHours": 60,
@@ -1106,7 +1106,7 @@
       "levelCode": "specialty",
       "description": "The ANDI Hyperbaric Chamber Operator course trains personnel in the safe operation of hyperbaric chambers for treating diving injuries. Topics include chamber physics, treatment protocols, emergency procedures, and patient care during hyperbaric oxygen therapy.",
       "images": [
-        "https://andihq.com/wp-content/uploads/2020/09/hyperbaric-operator.jpg"
+        "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop"
       ],
       "durationDays": 5,
       "classroomHours": 32,

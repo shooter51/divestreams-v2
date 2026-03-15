@@ -8,8 +8,10 @@ import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeTyp
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
+import { storageLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
@@ -66,13 +68,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "description", text: formData.get("description") as string },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "dive_site",
       entityId: newSite.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }
@@ -151,7 +155,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         uploadedCount++;
       } catch (error) {
-        console.error(`Failed to upload image ${file.name}:`, error);
+        storageLogger.error({ err: error, organizationId }, "Failed to upload image");
         failedFiles.push(`${file.name} (upload failed)`);
       }
     }

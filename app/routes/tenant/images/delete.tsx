@@ -10,6 +10,7 @@ import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { deleteFromS3 } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { storageLogger } from "../../../../lib/logger";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -47,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Extract storage keys from URLs
     // CDN URL format: https://cdn.divestreams.com/{key}
-    // B2 URL format: https://s3.us-west-000.backblazeb2.com/DiveStreams/{key}
+    // S3 URL format: https://bucket.s3.region.amazonaws.com/{key}
     const extractKey = (url: string): string | null => {
       try {
         const urlObj = new URL(url);
@@ -63,7 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     };
 
-    // Delete from B2 storage
+    // Delete from S3 storage
     const originalKey = extractKey(image.url);
     const thumbnailKey = image.thumbnailUrl ? extractKey(image.thumbnailUrl) : null;
 
@@ -112,7 +113,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error("Image delete error:", error);
+    storageLogger.error({ err: error }, "Image delete error");
     return Response.json(
       { error: "Failed to delete image" },
       { status: 500 }

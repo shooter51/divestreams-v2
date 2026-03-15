@@ -43,7 +43,7 @@ export async function getNextBookingNumber(
   organizationId: string,
   dbInstance: typeof db | DbTransaction = db
 ): Promise<string> {
-  const result = await (dbInstance as typeof db)
+  const results = await (dbInstance as typeof db)
     .select({ bookingNumber: schema.bookings.bookingNumber })
     .from(schema.bookings)
     .where(
@@ -52,20 +52,19 @@ export async function getNextBookingNumber(
         sql`${schema.bookings.bookingNumber} ~ '^BK-[0-9]+'`
       )
     )
-    .orderBy(sql`CAST(SUBSTRING(${schema.bookings.bookingNumber} FROM 4 FOR (POSITION('-' IN SUBSTRING(${schema.bookings.bookingNumber} FROM 4)) - 1)) AS INTEGER) DESC`)
+    .orderBy(sql`CAST((regexp_match(${schema.bookings.bookingNumber}, '^BK-(\d+)'))[1] AS INTEGER) DESC NULLS LAST`)
     .limit(1);
 
-  if (!Array.isArray(result) || result.length === 0) {
-    return `BK-1000-${generateBookingSuffix()}`;
+  let maxNum = 999; // Start at 999 so first booking is BK-1000
+  for (const row of results) {
+    const match = row.bookingNumber?.match(/^BK-(\d+)/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNum) maxNum = num;
+    }
   }
 
-  const match = result[0].bookingNumber?.match(/^BK-(\d+)/);
-  if (!match) {
-    return `BK-1000-${generateBookingSuffix()}`;
-  }
-
-  const nextNum = parseInt(match[1], 10) + 1;
-  return `BK-${nextNum}-${generateBookingSuffix()}`;
+  return `BK-${maxNum + 1}-${generateBookingSuffix()}`;
 }
 
 // ============================================================================
@@ -246,6 +245,11 @@ export async function createBooking(organizationId: string, data: {
       participantDetails: data.participantDetails || null,
     })
     .returning();
+
+  dbLogger.info(
+    { bookingNumber: booking.bookingNumber, organizationId, customerId: data.customerId, tripId: data.tripId, total: data.total, participants },
+    "Booking created"
+  );
 
   // Sync booking to Google Calendar if integration is active
   // Run async to not block booking creation
@@ -493,6 +497,11 @@ export async function recordPayment(organizationId: string, data: {
         eq(schema.bookings.organizationId, organizationId),
         eq(schema.bookings.id, bookingId)
       ));
+
+    dbLogger.info(
+      { bookingId, organizationId, amount, paymentMethod },
+      "Payment recorded for booking"
+    );
 
     return transaction;
   });

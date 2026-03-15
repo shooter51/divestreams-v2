@@ -108,10 +108,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const originalKey = `${baseKey}.webp`;
     const thumbnailKey = `${baseKey}-thumb.webp`;
 
-    // Upload to B2
+    // Upload to S3
     const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
     if (!originalUpload) {
-      storageLogger.error("B2 storage not configured - missing environment variables");
+      storageLogger.error("S3 storage not configured - missing environment variables");
       return Response.json(
         { error: "Image storage is not configured. Contact your administrator." },
         { status: 503 }
@@ -189,7 +189,7 @@ export async function action({ request }: ActionFunctionArgs) {
     let errorMessage = "Failed to upload image";
     if (error instanceof Error) {
       if (error.name === "S3ServiceException" || error.message.includes("S3") || error.message.includes("bucket") || error.message.includes("AccessDenied")) {
-        errorMessage = "Storage service unavailable. Please check B2 configuration.";
+        errorMessage = "Storage service unavailable. Please check S3 configuration.";
       } else if (error.message.includes("sharp") || error.message.includes("Sharp") || error.message.includes("Input buffer") || error.message.includes("unsupported image format")) {
         errorMessage = "Image processing failed. The file may be corrupt.";
       } else if (process.env.NODE_ENV === "development") {

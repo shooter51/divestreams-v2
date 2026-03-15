@@ -12,6 +12,7 @@ import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
 import { eq, gte, lte, and, sql, count, desc } from "drizzle-orm";
+import { dbLogger } from "../../../../lib/logger";
 
 /**
  * Escape a CSV field to prevent formula injection and handle special characters.
@@ -124,7 +125,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       );
     newCustomersThisMonth = newCustomerResult?.count || 0;
   } catch (error) {
-    console.error("Error fetching report data for CSV export:", error);
+    dbLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching report data for CSV export");
   }
 
   // Fetch recent bookings for detailed data with joins
@@ -165,7 +166,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     recentBookings = bookingsData;
   } catch (error) {
-    console.error("Error fetching recent bookings for CSV:", error);
+    dbLogger.error({ err: error, organizationId: ctx.org.id }, "Error fetching recent bookings for CSV");
   }
 
   // Calculate change percent

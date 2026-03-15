@@ -6,7 +6,8 @@
 
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
+import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useCsrfFetcher } from "../../../../hooks/use-csrf-fetcher";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getPOSSummary } from "../../../../../lib/db/queries.server";
 import { db } from "../../../../../lib/db";
@@ -17,6 +18,7 @@ import { getPOSReceiptEmail } from "../../../../../lib/email/templates";
 import { TransactionActions } from "../../../../../app/components/pos/TransactionActions";
 import { formatLabel } from "../../../../lib/format";
 import { useT } from "../../../../i18n/use-t";
+import { dbLogger } from "../../../../../lib/logger";
 import {
   ReceiptModal,
   TransactionDetailsModal,
@@ -247,7 +249,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       return { success: true, message: "Receipt sent successfully" };
     } catch (error) {
-      console.error("Email receipt error:", error);
+      dbLogger.error({ err: error, organizationId }, "Email receipt error");
       return {
         error: error instanceof Error ? error.message : "Failed to send receipt email"
       };
@@ -286,7 +288,7 @@ const typeColors: Record<string, string> = {
 export default function TransactionsPage() {
   const { transactions, summary, organization } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
-  const fetcher = useFetcher();
+  const fetcher = useCsrfFetcher();
   const t = useT();
 
   const transactionTypeLabels: Record<string, string> = {

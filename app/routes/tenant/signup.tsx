@@ -8,6 +8,7 @@ import { organization, member, user } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { useT } from "../../i18n/use-t";
+import { authLogger } from "../../../lib/logger";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -130,6 +131,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const responseData = await response.json();
 
     if (!response.ok) {
+      authLogger.warn({ email, reason: responseData.message }, "Signup failed");
       return {
         errors: { form: responseData.message || "Failed to create account" },
         values: { name: validatedName, email: typeof email === "string" ? email : "" },
@@ -188,11 +190,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Create redirect response with auth cookies
+    authLogger.info({ email }, "User signed up");
     return redirect(validatedRedirectTo, {
       headers: cookies ? { "Set-Cookie": cookies } : {},
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    authLogger.error({ email, err: error }, "Signup error");
     return {
       errors: { form: "An error occurred during signup. Please try again." },
       values: { name: typeof name === "string" ? name : "", email: typeof email === "string" ? email : "" },

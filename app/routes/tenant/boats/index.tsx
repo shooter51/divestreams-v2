@@ -108,7 +108,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Apply content translations for non-English locales
   const locale = resolveLocale(request);
-  if (locale !== "en" && boats.length > 0) {
+  if (boats.length > 0) {
     const translations = await bulkGetContentTranslations(ctx.org.id, "boat", boats.map(b => b.id), locale);
     for (const boat of boats) {
       const tr = translations.get(boat.id);
