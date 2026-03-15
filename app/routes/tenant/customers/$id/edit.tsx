@@ -36,6 +36,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return String(date);
   };
 
+  const firstCert = Array.isArray(customerData.certifications) && customerData.certifications.length > 0
+    ? customerData.certifications[0]
+    : null;
+
   const customer = {
     id: customerData.id,
     firstName: customerData.firstName,
@@ -43,6 +47,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     email: customerData.email,
     phone: customerData.phone || "",
     dateOfBirth: formatDate(customerData.dateOfBirth),
+    certAgency: firstCert?.agency || "",
+    certLevel: firstCert?.level || "",
+    certNumber: firstCert?.number || "",
     address: customerData.address || "",
     city: customerData.city || "",
     state: customerData.state || "",
@@ -78,6 +85,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
+  // Parse certifications from flat form fields
+  const certAgency = formData.get("certAgency") as string;
+  const certLevel = formData.get("certLevel") as string;
+  const certNumber = formData.get("certNumber") as string;
+  const certifications = certAgency && certLevel
+    ? [{ agency: certAgency, level: certLevel, number: certNumber || undefined }]
+    : null;
+
   // Update customer in database
   const { db, schema } = getTenantDb(organizationId);
 
@@ -89,6 +104,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       email: validation.data.email,
       phone: validation.data.phone,
       dateOfBirth: validation.data.dateOfBirth,
+      certifications,
       address: validation.data.address,
       city: validation.data.city,
       state: validation.data.state,
@@ -224,6 +240,62 @@ export default function EditCustomerPage() {
                 <option value="zh">Chinese</option>
                 <option value="ja">Japanese</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Certification */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">{t("tenant.customers.certificationSection")}</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="certAgency" className="block text-sm font-medium mb-1">
+                {t("tenant.customers.agency")}
+              </label>
+              <select
+                id="certAgency"
+                name="certAgency"
+                defaultValue={actionData?.values?.certAgency || customer.certAgency}
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              >
+                <option value="">{t("common.selectPlaceholder")}</option>
+                <option value="PADI">PADI</option>
+                <option value="SSI">SSI</option>
+                <option value="NAUI">NAUI</option>
+                <option value="SDI">SDI</option>
+                <option value="BSAC">BSAC</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="certLevel" className="block text-sm font-medium mb-1">
+                {t("tenant.customers.levelLabel")}
+              </label>
+              <select
+                id="certLevel"
+                name="certLevel"
+                defaultValue={actionData?.values?.certLevel || customer.certLevel}
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              >
+                <option value="">{t("common.selectPlaceholder")}</option>
+                <option value="Open Water">Open Water</option>
+                <option value="Advanced Open Water">Advanced Open Water</option>
+                <option value="Rescue Diver">Rescue Diver</option>
+                <option value="Divemaster">Divemaster</option>
+                <option value="Instructor">Instructor</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="certNumber" className="block text-sm font-medium mb-1">
+                {t("tenant.customers.certNumber")}
+              </label>
+              <input
+                type="text"
+                id="certNumber"
+                name="certNumber"
+                defaultValue={actionData?.values?.certNumber || customer.certNumber}
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              />
             </div>
           </div>
         </div>

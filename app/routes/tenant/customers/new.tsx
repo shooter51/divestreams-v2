@@ -100,6 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
       state: formData.get("state") as string || undefined,
       postalCode: formData.get("postalCode") as string || undefined,
       country: formData.get("country") as string || undefined,
+      preferredLanguage: formData.get("preferredLanguage") as string || undefined,
       notes: formData.get("notes") as string || undefined,
     });
 
@@ -125,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
 
       return redirect(redirectWithNotification(
-        "/tenant/customers",
+        `/tenant/customers/${customer.id}`,
         `Customer "${firstName} ${lastName}" has been created. An email has been sent to ${email} with instructions to set their password.`,
         "success"
       ));
@@ -133,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
       dbLogger.error({ err: emailError, organizationId }, "Failed to send password setup email");
       // Customer was created successfully, just email failed
       return redirect(redirectWithNotification(
-        "/tenant/customers",
+        `/tenant/customers/${customer.id}`,
         `Customer "${firstName} ${lastName}" has been created, but the password setup email could not be sent. Please contact support.`,
         "warning"
       ));
@@ -265,6 +266,24 @@ export default function NewCustomerPage() {
                 defaultValue={actionData?.values?.dateOfBirth}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
+            </div>
+            <div className="col-span-2">
+              <label htmlFor="preferredLanguage" className="block text-sm font-medium mb-1">
+                {t("tenant.customers.preferredLanguage")}
+              </label>
+              <select
+                id="preferredLanguage"
+                name="preferredLanguage"
+                defaultValue={actionData?.values?.preferredLanguage || "en"}
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              >
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+              </select>
             </div>
           </div>
         </div>

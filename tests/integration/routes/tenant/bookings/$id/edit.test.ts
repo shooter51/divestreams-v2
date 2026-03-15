@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
-import { loader, action } from "../../../../../app/routes/tenant/bookings/$id/edit";
-import * as orgContext from "../../../../../lib/auth/org-context.server";
-import * as queries from "../../../../../lib/db/queries.server";
-import * as tenantServer from "../../../../../lib/db/tenant.server";
+import { getRedirectPathname } from "../../../../../helpers/redirect";
+import { loader, action } from "../../../../../../app/routes/tenant/bookings/$id/edit";
+import * as orgContext from "../../../../../../lib/auth/org-context.server";
+import * as queries from "../../../../../../lib/db/queries.server";
+import * as tenantServer from "../../../../../../lib/db/tenant.server";
 
 // Mock dependencies
-vi.mock("../../../../../lib/auth/org-context.server");
-vi.mock("../../../../../lib/db/queries.server");
-vi.mock("../../../../../lib/db/tenant.server");
+vi.mock("../../../../../../lib/auth/org-context.server");
+vi.mock("../../../../../../lib/db/queries.server");
+vi.mock("../../../../../../lib/db/tenant.server");
 
 describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
   const mockOrganizationId = "org-123";
@@ -26,34 +26,39 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
   });
 
   describe("loader", () => {
+    const mockBookingBase = {
+      id: mockBookingId,
+      bookingNumber: "BK-001",
+      status: "confirmed",
+      participants: 2,
+      specialRequests: "Vegetarian meals",
+      internalNotes: "VIP customer",
+      participantDetails: [],
+      equipmentRental: [],
+      tripId: "trip-1",
+      customer: {
+        id: "cust-1",
+        firstName: "John",
+        lastName: "Doe",
+      },
+      trip: {
+        id: "trip-1",
+        tourId: "tour-1",
+        tourName: "Reef Dive",
+      },
+      pricing: {
+        total: "200.00",
+      },
+    };
+
     beforeEach(() => {
       vi.mocked(queries.getEquipment).mockResolvedValue([]);
+      vi.mocked(queries.getTripById).mockResolvedValue({ id: "trip-1", requiresTankSelection: false } as unknown);
+      vi.mocked(queries.getTankTypes).mockResolvedValue([]);
     });
 
     it("should fetch booking details for editing", async () => {
-      const mockBooking = {
-        id: mockBookingId,
-        bookingNumber: "BK-001",
-        status: "confirmed",
-        participants: 2,
-        specialRequests: "Vegetarian meals",
-        internalNotes: "VIP customer",
-        customer: {
-          id: "cust-1",
-          firstName: "John",
-          lastName: "Doe",
-        },
-        trip: {
-          id: "trip-1",
-          tourId: "tour-1",
-          tourName: "Reef Dive",
-        },
-        pricing: {
-          total: "200.00",
-        },
-      };
-
-      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as unknown);
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBookingBase as unknown);
 
       const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
@@ -72,6 +77,34 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
         specialRequests: "Vegetarian meals",
         internalNotes: "VIP customer",
       });
+    });
+
+    it("should return tankTypes and requiresTankSelection from the trip", async () => {
+      const mockTankTypes = [{ name: "12L", gasTypes: ["air", "nitrox32"], rentalPrice: "15.00", availableCount: 5 }];
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBookingBase as unknown);
+      vi.mocked(queries.getTripById).mockResolvedValue({ id: "trip-1", requiresTankSelection: true } as unknown);
+      vi.mocked(queries.getTankTypes).mockResolvedValue(mockTankTypes as unknown[]);
+
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
+      const result = await loader({ request, params: { id: mockBookingId }, context: {} });
+
+      expect(result.requiresTankSelection).toBe(true);
+      expect(result.tankTypes).toEqual(mockTankTypes);
+    });
+
+    it("should include existing participantDetails from booking", async () => {
+      const existingDetails = [
+        { name: "Participant 1", bringOwnTanks: false, tanks: [{ type: "12L", gasType: "air", quantity: 1 }] },
+      ];
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue({
+        ...mockBookingBase,
+        participantDetails: existingDetails,
+      } as unknown);
+
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
+      const result = await loader({ request, params: { id: mockBookingId }, context: {} });
+
+      expect(result.existingParticipantDetails).toEqual(existingDetails);
     });
 
     it("should throw 400 if booking ID is missing", async () => {
@@ -104,7 +137,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
 
     it("should handle null special requests and internal notes", async () => {
       const mockBooking = {
-        id: mockBookingId,
+        ...mockBookingBase,
         bookingNumber: "BK-002",
         status: "pending",
         participants: 1,
@@ -120,9 +153,6 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
           tourId: "tour-1",
           tourName: "Night Dive",
         },
-        pricing: {
-          total: "100.00",
-        },
       };
 
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as unknown);
@@ -136,25 +166,35 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
   });
 
   describe("action", () => {
-    it("should update booking and redirect", async () => {
-      const mockDb = {
-        update: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(undefined),
-      };
+    const mockDb = {
+      update: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue(undefined),
+    };
 
-      const mockSchema = {
-        bookings: {
-          organizationId: Symbol("organizationId"),
-          id: Symbol("id"),
-        },
-      };
+    const mockSchema = {
+      bookings: {
+        organizationId: Symbol("organizationId"),
+        id: Symbol("id"),
+      },
+    };
 
+    beforeEach(() => {
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue({
+        id: mockBookingId,
+        tripId: "trip-1",
+      } as unknown);
+      vi.mocked(queries.getTripById).mockResolvedValue({ id: "trip-1", requiresTankSelection: false } as unknown);
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
       } as unknown);
+      mockDb.update.mockClear();
+      mockDb.set.mockClear();
+      mockDb.where.mockClear();
+    });
 
+    it("should update booking and redirect", async () => {
       const formData = new FormData();
       formData.append("participants", "3");
       formData.append("status", "confirmed");
@@ -185,6 +225,75 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       expect(getRedirectPathname(result.headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
+    it("should save participantDetails when tank selections are submitted", async () => {
+      const formData = new FormData();
+      formData.append("participants", "1");
+      formData.append("status", "confirmed");
+      formData.append("specialRequests", "");
+      formData.append("internalNotes", "");
+      formData.append("participantTanks[0].bringOwn", "false");
+      formData.append("participantTanks[0].tanks[0].type", "12L");
+      formData.append("participantTanks[0].tanks[0].gasType", "air");
+      formData.append("participantTanks[0].tanks[0].quantity", "1");
+
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      await action({ request, params: { id: mockBookingId }, context: {} });
+
+      expect(mockDb.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          participantDetails: [{ name: "Participant 1", bringOwnTanks: false, tanks: [{ type: "12L", gasType: "air", quantity: 1 }] }],
+        })
+      );
+    });
+
+    it("should return validation error when requiresTankSelection and tanks are missing", async () => {
+      vi.mocked(queries.getTripById).mockResolvedValue({ id: "trip-1", requiresTankSelection: true } as unknown);
+
+      const formData = new FormData();
+      formData.append("participants", "2");
+      formData.append("status", "confirmed");
+      formData.append("specialRequests", "");
+      formData.append("internalNotes", "");
+
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: { id: mockBookingId }, context: {} });
+
+      expect(result).toEqual({
+        errors: {
+          tanks: "Tank and gas selection is required for each participant on this trip",
+        },
+      });
+    });
+
+    it("should allow submission when participant brings own tanks", async () => {
+      vi.mocked(queries.getTripById).mockResolvedValue({ id: "trip-1", requiresTankSelection: true } as unknown);
+
+      const formData = new FormData();
+      formData.append("participants", "1");
+      formData.append("status", "confirmed");
+      formData.append("specialRequests", "");
+      formData.append("internalNotes", "");
+      formData.append("participantTanks[0].bringOwn", "true");
+
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await action({ request, params: { id: mockBookingId }, context: {} });
+
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+    });
+
     it("should throw 400 if booking ID is missing in action", async () => {
       const formData = new FormData();
       formData.append("participants", "2");
@@ -206,24 +315,6 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
     });
 
     it("should handle invalid participants gracefully", async () => {
-      const mockDb = {
-        update: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockSchema = {
-        bookings: {
-          organizationId: Symbol("organizationId"),
-          id: Symbol("id"),
-        },
-      };
-
-      vi.mocked(tenantServer.getTenantDb).mockReturnValue({
-        db: mockDb,
-        schema: mockSchema,
-      } as unknown);
-
       const formData = new FormData();
       formData.append("participants", "invalid");
       formData.append("status", "pending");
@@ -245,24 +336,6 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
     });
 
     it("should update booking with empty special requests and notes", async () => {
-      const mockDb = {
-        update: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockSchema = {
-        bookings: {
-          organizationId: Symbol("organizationId"),
-          id: Symbol("id"),
-        },
-      };
-
-      vi.mocked(tenantServer.getTenantDb).mockReturnValue({
-        db: mockDb,
-        schema: mockSchema,
-      } as unknown);
-
       const formData = new FormData();
       formData.append("participants", "2");
       formData.append("status", "completed");
