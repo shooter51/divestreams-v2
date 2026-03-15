@@ -53,9 +53,8 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     context = await requireOrgContext(request);
   } catch (err) {
-    // requireOrgContext throws a redirect or Response for unauthenticated requests
-    if (err instanceof Response) throw err;
-    throw err;
+    // For API routes, return JSON 401 instead of redirecting
+    return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
   // Rate limit per user

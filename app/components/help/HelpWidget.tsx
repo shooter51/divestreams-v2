@@ -142,6 +142,7 @@ export function HelpWidget() {
       const response = await fetch("/api/help", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ question }),
       });
 
