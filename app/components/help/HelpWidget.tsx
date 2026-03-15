@@ -139,13 +139,10 @@ export function HelpWidget() {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("question", question);
-      formData.append(CSRF_FIELD_NAME, csrfToken);
-
       const response = await fetch("/api/help", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
       });
 
       let data: HelpApiResponse;
