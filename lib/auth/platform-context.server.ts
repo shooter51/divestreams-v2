@@ -14,6 +14,7 @@ import { organization, member, account } from "../db/schema/auth";
 import type { User, Session, Member } from "../db/schema/auth";
 import { isAdminSubdomain } from "./org-context.server";
 import { authLogger } from "../logger";
+import { requireCsrf } from "../security/csrf.server";
 
 // ============================================================================
 // CONSTANTS
@@ -145,6 +146,10 @@ export async function requirePlatformContext(
     const url = new URL(request.url);
     throw redirect(`/login?redirect=${encodeURIComponent(url.pathname)}`);
   }
+
+  // Enforce CSRF protection for mutation requests (POST, PUT, DELETE, PATCH).
+  // Skipped for GET/HEAD/OPTIONS and for exempt API routes.
+  await requireCsrf(request, context.session.id);
 
   // Check if user is forced to change password
   const [userAccount] = await db

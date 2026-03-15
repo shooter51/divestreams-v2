@@ -74,8 +74,6 @@ export function ImageManager({
         return;
       }
 
-      console.log("Upload response:", result);
-
       if (!result.image) {
         console.error("No image in response:", result);
         setError("Invalid response from server");
