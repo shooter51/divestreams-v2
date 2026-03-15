@@ -109,6 +109,7 @@ export async function createCustomer(organizationId: string, data: {
   state?: string;
   postalCode?: string;
   country?: string;
+  preferredLanguage?: string;
   notes?: string;
 }) {
   const [customer] = await db
@@ -131,6 +132,7 @@ export async function createCustomer(organizationId: string, data: {
       state: data.state || null,
       postalCode: data.postalCode || null,
       country: data.country || null,
+      preferredLanguage: data.preferredLanguage || "en",
       notes: data.notes || null,
     })
     .returning();
