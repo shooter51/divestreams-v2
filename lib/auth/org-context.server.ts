@@ -32,6 +32,10 @@ import {
   getSubdomainFromRequest,
   getSubdomainFromHost,
 } from "../utils/url";
+import {
+  getCachedOrgContext,
+  setCachedOrgContext,
+} from "../cache/org-context.server";
 
 /**
  * Plan details from subscription_plans table
@@ -189,15 +193,21 @@ export function isAdminSubdomain(request: Request): boolean {
 // ============================================================================
 
 /**
+ * Cacheable subset of OrgContext — everything except user and session.
+ * User/session come from Better Auth on every request; only the DB-derived
+ * org/membership/subscription/plan/usage data is worth caching.
+ */
+type CacheableOrgData = Omit<OrgContext, "user" | "session">;
+
+/**
  * Get the full organization context for the current request
  *
  * This is the main function for tenant routes. It:
  * 1. Extracts the subdomain from the request
  * 2. Gets the authenticated session
- * 3. Finds the organization by slug
- * 4. Verifies user membership
- * 5. Gets subscription status
- * 6. Calculates limits and usage
+ * 3. Checks Redis for a cached context (org+user key, 5-min TTL)
+ * 4. On cache miss: finds the organization, verifies user membership,
+ *    gets subscription status, calculates limits and usage, then caches
  *
  * @returns The full organization context or null if not applicable
  */
@@ -212,7 +222,7 @@ export async function getOrgContext(
     return null;
   }
 
-  // Get session from Better Auth
+  // Get session from Better Auth — always required; not cached
   const sessionData = await auth.api.getSession({
     headers: request.headers,
   });
@@ -220,6 +230,12 @@ export async function getOrgContext(
   if (!sessionData || !sessionData.user) {
     return null;
   }
+
+  // -------------------------------------------------------------------------
+  // Cache lookup: we need the orgId to build the key but only have the
+  // subdomain at this point. Resolve org first (single fast query), then
+  // check Redis for the remaining expensive DB queries.
+  // -------------------------------------------------------------------------
 
   let org: Organization | undefined;
 
@@ -246,6 +262,23 @@ export async function getOrgContext(
   if (!org) {
     return null;
   }
+
+  // Check Redis cache for the expensive membership/subscription/usage data
+  const cached = await getCachedOrgContext(org.id, sessionData.user.id);
+  if (cached) {
+    // Re-attach fresh session data (session.id changes on rotation; not cached)
+    return {
+      ...cached,
+      user: sessionData.user as User,
+      session: sessionData.session as Session,
+      // Re-attach org from our fast lookup above (avoids a stale object edge case)
+      org,
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Cache miss — run all DB queries, then cache the result
+  // -------------------------------------------------------------------------
 
   // Find user's membership in this organization
   const [membership] = await db
@@ -403,9 +436,8 @@ export async function getOrgContext(
       }
     : null;
 
-  return {
-    user: sessionData.user as User,
-    session: sessionData.session as Session,
+  // Assemble the cacheable data (excludes user/session)
+  const cacheableData: CacheableOrgData = {
     org,
     membership,
     subscription: subscriptionWithPlan,
@@ -416,6 +448,16 @@ export async function getOrgContext(
     canAddBooking,
     isPremium,
   };
+
+  // Cache the result for future requests (fire-and-forget; errors handled inside)
+  const contextForCache: OrgContext = {
+    ...cacheableData,
+    user: sessionData.user as User,
+    session: sessionData.session as Session,
+  };
+  void setCachedOrgContext(org.id, sessionData.user.id, contextForCache);
+
+  return contextForCache;
 }
 
 // ============================================================================
