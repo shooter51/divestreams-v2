@@ -159,8 +159,3 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 }
-
-// API routes don't render
-export default function HelpApi() {
-  return null;
-}
