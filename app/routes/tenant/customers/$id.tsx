@@ -458,7 +458,7 @@ export default function CustomerDetailPage() {
               {t("tenant.customers.sendEmailTo", { name: `${customer.firstName} ${customer.lastName}` })}
             </h2>
             <p className="text-sm text-foreground-muted mb-4">
-              {t("tenant.customers.toEmail")}: {customer.email}
+              {t("tenant.customers.toEmail", { email: customer.email })}
             </p>
 
             <form onSubmit={handleSendEmail} className="space-y-4">
