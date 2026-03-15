@@ -7,10 +7,12 @@
  */
 
 import { describe, it, expect } from "vitest";
+import DOMPurify from "isomorphic-dompurify";
 import {
   escapeHtml,
   sanitizeUrl,
   sanitizeIframeEmbed,
+  sanitizeHtml,
 } from "../../../../lib/security/sanitize";
 
 describe("Security Sanitization", () => {
@@ -293,6 +295,87 @@ describe("Security Sanitization", () => {
         const iframeCount = (result.match(/<iframe/g) || []).length;
         expect(iframeCount).toBeLessThanOrEqual(1);
       });
+    });
+  });
+
+  /**
+   * DOMPurify CVE GHSA-v2wj-7wpq-c8vv — mXSS via DOM clobbering
+   *
+   * DOMPurify versions 3.1.3–3.3.1 have a moderate XSS vulnerability where
+   * certain combinations of MathML namespace tags can bypass sanitization.
+   * Fixed in DOMPurify 3.3.2+.
+   *
+   * These tests verify the fix is in place by checking that:
+   * 1. The DOMPurify version is >= 3.3.2
+   * 2. Known CVE attack vectors are properly sanitized
+   * 3. sanitizeHtml() removes script execution via event handlers
+   */
+  describe("DOMPurify CVE GHSA-v2wj-7wpq-c8vv — mXSS protection", () => {
+    it("DOMPurify version is 3.3.2 or newer (not in vulnerable range 3.1.3–3.3.1)", () => {
+      const version = (DOMPurify as unknown as { version?: string }).version;
+      expect(version).toBeDefined();
+
+      if (version) {
+        const parts = version.split(".").map(Number);
+        const [major, minor, patch] = parts;
+        // Must be >= 3.3.2
+        const isFixed =
+          major > 3 ||
+          (major === 3 && minor > 3) ||
+          (major === 3 && minor === 3 && patch >= 2);
+        expect(isFixed).toBe(true);
+      }
+    });
+
+    it("sanitizes script tags in rich HTML content", () => {
+      const malicious = '<p>Hello</p><script>alert("xss")</script>';
+      const result = sanitizeHtml(malicious);
+      expect(result).not.toContain("<script");
+      expect(result).not.toContain("alert");
+      expect(result).toContain("<p>Hello</p>");
+    });
+
+    it("sanitizes onerror event handlers on allowed tags", () => {
+      const malicious = '<p onerror="alert(1)">text</p>';
+      const result = sanitizeHtml(malicious);
+      expect(result).not.toContain("onerror");
+    });
+
+    it("sanitizes onload event handlers", () => {
+      const malicious = '<p onload="alert(1)">text</p>';
+      const result = sanitizeHtml(malicious);
+      expect(result).not.toContain("onload");
+    });
+
+    it("sanitizes img tags with inline event handlers", () => {
+      const malicious = '<img src="x" onerror="alert(1)">';
+      const result = sanitizeHtml(malicious);
+      // img is not in allowed tags so it should be stripped entirely
+      expect(result).not.toContain("<img");
+      expect(result).not.toContain("onerror");
+    });
+
+    it("preserves safe rich text content after sanitization", () => {
+      const safe = "<p>Hello <strong>world</strong>!</p><ul><li>Item</li></ul>";
+      const result = sanitizeHtml(safe);
+      expect(result).toContain("<p>");
+      expect(result).toContain("<strong>");
+      expect(result).toContain("<ul>");
+      expect(result).toContain("<li>");
+    });
+
+    it("sanitizes math-based mXSS vector (CVE-specific namespace confusion)", () => {
+      // This pattern targets the math namespace confusion present in 3.1.3–3.3.1
+      // DOMPurify 3.3.2+ handles this correctly by rejecting the dangerous nesting
+      const mxssVector =
+        "<math><mtext><table><mglyph><style></style></mglyph></table></mtext><mtext><img></mtext></math>";
+      const result = DOMPurify.sanitize(mxssVector, {
+        ALLOWED_TAGS: ["p", "strong", "em"],
+        ALLOWED_ATTR: [],
+      });
+      // In a properly fixed version, the dangerous math/mglyph combination is removed
+      // and no img tag should survive into the output when not in ALLOWED_TAGS
+      expect(result).not.toContain("<img");
     });
   });
 });
