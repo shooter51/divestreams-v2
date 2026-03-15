@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouteLoaderData } from "react-router";
+import Markdown from "react-markdown";
 import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 import { HelpButton } from "./HelpButton";
 
@@ -246,7 +247,13 @@ export function HelpWidget() {
                       : "bg-surface-inset text-foreground rounded-bl-sm"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_strong]:text-foreground [&_a]:text-brand">
+                      <Markdown>{msg.content}</Markdown>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  )}
 
                   {msg.sources && msg.sources.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-border/30">
