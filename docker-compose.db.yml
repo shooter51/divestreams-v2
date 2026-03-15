@@ -7,11 +7,23 @@ services:
       POSTGRES_USER: divestreams
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
       POSTGRES_DB: divestreams
+    # WAL archiving: stage WAL files to /backups/wal (host-mounted volume).
+    # upload-wal-to-s3.sh (installed as a cron job) uploads them to S3.
+    # archive_timeout=60 forces a WAL switch every 60s so recent changes are
+    # archived promptly even under low write load.
+    command: >
+      postgres
+      -c wal_level=replica
+      -c archive_mode=on
+      -c archive_command='test ! -f /backups/wal/%f && cp %p /backups/wal/%f'
+      -c archive_timeout=60
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/infra/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+      # WAL archive staging directory — shared with the host cron job
+      - /backups/wal:/backups/wal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U divestreams"]
       interval: 10s
