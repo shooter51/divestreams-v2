@@ -60,7 +60,7 @@ async function processTranslationJob(data: TranslationJobData): Promise<void> {
       continue;
     }
 
-    const translated = await translateText(text, "en", targetLocale);
+    const translated = await translateText(text, data.sourceLocale || "en", targetLocale);
     await upsertContentTranslation(
       orgId,
       entityType,

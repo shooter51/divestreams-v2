@@ -6,7 +6,8 @@ import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Clien
 import { storageLogger } from "../../../../lib/logger";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
@@ -91,13 +92,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "name", text: name },
     ...(description?.trim() ? [{ field: "description", text: description }] : []),
   ];
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: ctx.org.id,
       entityType: "gallery_album",
       entityId: album.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }

@@ -63,13 +63,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "description", text: formData.get("description") as string },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "product",
       entityId: product.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }

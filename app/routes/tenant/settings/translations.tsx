@@ -9,7 +9,8 @@ import { contentTranslations } from "../../../../lib/db/schema/translations";
 import { eq, and } from "drizzle-orm";
 import { upsertContentTranslation } from "../../../../lib/db/translations.server";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, LOCALE_LABELS } from "../../../i18n/types";
+import { SUPPORTED_LOCALES, LOCALE_LABELS } from "../../../i18n/types";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { useT } from "../../../i18n/use-t";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -168,13 +169,15 @@ export async function action({ request }: ActionFunctionArgs) {
       .filter(([, text]) => text?.trim())
       .map(([field, text]) => ({ field, text: text! }));
 
+    const sourceLocale = resolveLocale(request);
     for (const locale of SUPPORTED_LOCALES) {
-      if (locale === DEFAULT_LOCALE) continue;
+      if (locale === sourceLocale) continue;
       await enqueueTranslation({
         orgId: ctx.org.id,
         entityType,
         entityId,
         fields,
+        sourceLocale,
         targetLocale: locale,
       });
     }
@@ -214,6 +217,7 @@ export async function action({ request }: ActionFunctionArgs) {
         entityType: row.entityType,
         entityId: row.entityId,
         fields: [{ field: row.field, text: sourceText }],
+        sourceLocale: resolveLocale(request),
         targetLocale: row.locale,
       });
     }
@@ -259,6 +263,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(eq(galleryAlbums.organizationId, ctx.org.id));
 
     let enqueued = 0;
+    const sourceLocale = resolveLocale(request);
 
     const enqueueEntity = async (entityType: string, entity: { id: string; name: string; description: string | null }) => {
       const fields = [
@@ -267,12 +272,13 @@ export async function action({ request }: ActionFunctionArgs) {
       ];
       if (fields.length === 0) return;
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType,
           entityId: entity.id,
           fields,
+          sourceLocale,
           targetLocale: locale,
         });
         enqueued++;
@@ -292,12 +298,13 @@ export async function action({ request }: ActionFunctionArgs) {
       ];
       if (tourFields.length === 0) continue;
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "tour",
           entityId: tour.id,
           fields: tourFields,
+          sourceLocale,
           targetLocale: locale,
         });
         enqueued++;
@@ -313,12 +320,13 @@ export async function action({ request }: ActionFunctionArgs) {
       if (!discount.description?.trim()) continue;
       const fields = [{ field: "description", text: discount.description }];
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "discount",
           entityId: discount.id,
           fields,
+          sourceLocale,
           targetLocale: locale,
         });
         enqueued++;

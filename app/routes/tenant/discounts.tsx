@@ -17,7 +17,7 @@ import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { CsrfInput } from "../../components/CsrfInput";
 import { enqueueTranslation } from "../../../lib/jobs/index";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../i18n/types";
+import { SUPPORTED_LOCALES } from "../../i18n/types";
 import { resolveLocale } from "../../i18n/resolve-locale";
 import { bulkGetContentTranslations } from "../../../lib/db/translations.server";
 import { useT } from "../../i18n/use-t";
@@ -123,13 +123,15 @@ export async function action({ request }: ActionFunctionArgs) {
       const fieldsToTranslate = [
         { field: "description", text: description },
       ];
+      const sourceLocale = resolveLocale(request);
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "discount",
           entityId: newDiscount.id,
           fields: fieldsToTranslate,
+          sourceLocale,
           targetLocale: locale,
         });
       }
@@ -219,13 +221,15 @@ export async function action({ request }: ActionFunctionArgs) {
       const fieldsToTranslate = [
         { field: "description", text: description },
       ];
+      const sourceLocale = resolveLocale(request);
       for (const locale of SUPPORTED_LOCALES) {
-        if (locale === DEFAULT_LOCALE) continue;
+        if (locale === sourceLocale) continue;
         await enqueueTranslation({
           orgId: ctx.org.id,
           entityType: "discount",
           entityId: id,
           fields: fieldsToTranslate,
+          sourceLocale,
           targetLocale: locale,
         });
       }
