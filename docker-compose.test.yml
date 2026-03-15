@@ -1,7 +1,6 @@
 services:
   app:
     image: ghcr.io/shooter51/divestreams-app:test
-    container_name: divestreams-test-app
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -44,6 +43,7 @@ services:
       retries: 3
       start_period: 30s
     deploy:
+      replicas: 1
       resources:
         limits:
           cpus: '3.0'

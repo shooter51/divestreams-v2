@@ -60,7 +60,7 @@ jobs:
 
       - name: Wait for containers
         run: |
-          EXPECTED=5
+          EXPECTED=6
           VPS_ID=${{ vars.PROD_VPS_ID }}
           for i in $(seq 1 15); do
             echo "Check $i/15..."
