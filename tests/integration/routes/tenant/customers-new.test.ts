@@ -172,7 +172,7 @@ describe("tenant/customers/new route", () => {
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(result).toHaveProperty("errors");
-      expect((result as { errors: Record<string, string> }).errors.email).toBe("Valid email required");
+      expect((result as { errors: Record<string, string> }).errors.email).toBe("Invalid email address");
     });
 
     it("returns multiple errors when multiple fields invalid", async () => {

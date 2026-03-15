@@ -20,6 +20,12 @@ vi.mock("../../../../../lib/plan-features", async (importOriginal) => {
   };
 });
 
+// Mock rate limiting
+vi.mock("../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 // Mock the db module to prevent real DB calls (user email check)
 vi.mock("../../../../../lib/db", () => {
   const mockSelectBuilder = {
@@ -150,7 +156,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(result).toHaveProperty("errors");
-      expect(result.errors).toHaveProperty("email", "Valid email required");
+      expect(result.errors).toHaveProperty("email", "Invalid email address");
     });
 
     it("should handle optional certification fields", async () => {

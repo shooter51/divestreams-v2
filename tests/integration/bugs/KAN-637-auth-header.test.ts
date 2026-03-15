@@ -14,6 +14,7 @@ vi.mock("../../../lib/db", () => ({
   db: {
     select: vi.fn(),
     insert: vi.fn(),
+    execute: vi.fn().mockRejectedValue(new Error("no DB")),
     delete: vi.fn().mockReturnValue({
       where: vi.fn().mockResolvedValue(undefined),
     }),
