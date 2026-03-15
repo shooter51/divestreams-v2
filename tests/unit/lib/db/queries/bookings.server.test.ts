@@ -4,27 +4,56 @@
  * DS-m5in: Duplicate booking numbers — sequence not incrementing correctly
  * DS-ktz5: Sequential BK-NNNN booking reference numbers
  * DS-45x1: Random suffix prevents prediction/enumeration
+ * DS-8p6q: Uses atomic sequence table for booking number generation
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock shape: select().from().where() — terminal, no orderBy/limit chain
-const mockWhere = vi.fn();
-const mockFrom = vi.fn(() => ({ where: mockWhere }));
-const mockSelect = vi.fn(() => ({ from: mockFrom }));
+// Mocks for the three key DB operations in getNextBookingNumber:
+// 1. update().set().where().returning()  — sequence table atomic increment
+// 2. select().from().where()             — fallback MAX scan
+// 3. insert().values().returning()       — fallback sequence row creation
+const mockUpdateReturning = vi.fn();
+const mockSelectWhere = vi.fn();
+const mockInsertReturning = vi.fn();
 
-const dbMock = {
-  select: mockSelect,
-};
+function makeDb() {
+  return {
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => ({
+          returning: mockUpdateReturning,
+        })),
+      })),
+    })),
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: mockSelectWhere,
+      })),
+    })),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => ({
+        returning: mockInsertReturning,
+      })),
+    })),
+  };
+}
+
+let dbMock = makeDb();
 
 vi.mock("../../../../../lib/db/index", () => ({
-  db: dbMock,
+  get db() { return dbMock; },
 }));
 
 vi.mock("../../../../../lib/db/schema", () => ({
   bookings: {
     organizationId: "organizationId",
     bookingNumber: "bookingNumber",
+  },
+  bookingNumberSequences: {
+    organizationId: "organization_id",
+    nextNumber: "next_number",
+    updatedAt: "updated_at",
   },
 }));
 
@@ -41,14 +70,17 @@ describe("getNextBookingNumber", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.resetModules();
-    mockWhere.mockResolvedValue([]);
-    mockFrom.mockReturnValue({ where: mockWhere });
-    mockSelect.mockReturnValue({ from: mockFrom });
+    dbMock = makeDb();
+    mockUpdateReturning.mockReset();
+    mockSelectWhere.mockReset();
+    mockInsertReturning.mockReset();
+    // Default: no sequence row (fallback path), no existing bookings
+    mockUpdateReturning.mockResolvedValue([]);
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
+    mockInsertReturning.mockResolvedValue([{ nextNumber: 1001 }]);
   });
 
   it("returns BK-1000-XXXX when no bookings exist for the org", async () => {
-    mockWhere.mockResolvedValue([]);
-
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
     );
@@ -59,7 +91,9 @@ describe("getNextBookingNumber", () => {
   });
 
   it("returns next sequential number after the highest existing booking", async () => {
-    mockWhere.mockResolvedValue([{ bookingNumber: "BK-1005-ABCD" }]);
+    // Fallback path: MAX scan returns 1005
+    mockSelectWhere.mockResolvedValue([{ maxNum: 1005 }]);
+    mockInsertReturning.mockResolvedValue([{ nextNumber: 1007 }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
@@ -71,16 +105,9 @@ describe("getNextBookingNumber", () => {
   });
 
   it("returns BK-1008-XXXX when bookings BK-1000..BK-1007 exist (DS-m5in regression)", async () => {
-    mockWhere.mockResolvedValue([
-      { bookingNumber: "BK-1000" },
-      { bookingNumber: "BK-1001" },
-      { bookingNumber: "BK-1002" },
-      { bookingNumber: "BK-1003" },
-      { bookingNumber: "BK-1004" },
-      { bookingNumber: "BK-1005" },
-      { bookingNumber: "BK-1006" },
-      { bookingNumber: "BK-1007" },
-    ]);
+    // Fallback path: MAX scan returns 1007 (the highest)
+    mockSelectWhere.mockResolvedValue([{ maxNum: 1007 }]);
+    mockInsertReturning.mockResolvedValue([{ nextNumber: 1009 }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
@@ -91,12 +118,10 @@ describe("getNextBookingNumber", () => {
     expect(result).toMatch(/^BK-1008-[A-Z0-9]{4}$/);
   });
 
-  it("picks the highest number from an unordered result set", async () => {
-    mockWhere.mockResolvedValue([
-      { bookingNumber: "BK-1003-XYZQ" },
-      { bookingNumber: "BK-1007-ABCD" },
-      { bookingNumber: "BK-1001-EFGH" },
-    ]);
+  it("picks the highest number from existing bookings via MAX scan", async () => {
+    // Fallback path: MAX scan returns 1007 regardless of result order
+    mockSelectWhere.mockResolvedValue([{ maxNum: 1007 }]);
+    mockInsertReturning.mockResolvedValue([{ nextNumber: 1009 }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
@@ -108,7 +133,8 @@ describe("getNextBookingNumber", () => {
   });
 
   it("falls back to BK-1000-XXXX when existing booking number cannot be parsed", async () => {
-    mockWhere.mockResolvedValue([{ bookingNumber: "BK-INVALID" }]);
+    // Fallback path: MAX scan returns null (no parseable booking numbers)
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
@@ -120,7 +146,8 @@ describe("getNextBookingNumber", () => {
   });
 
   it("produces BK-NNNN-XXXX format output", async () => {
-    mockWhere.mockResolvedValue([{ bookingNumber: "BK-1007-ABCD" }]);
+    // Fast path: sequence row exists
+    mockUpdateReturning.mockResolvedValue([{ nextNumber: 1008 }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
@@ -132,7 +159,11 @@ describe("getNextBookingNumber", () => {
   });
 
   it("DS-45x1: generates unique suffixes across multiple calls", async () => {
-    mockWhere.mockResolvedValue([]);
+    // Fast path: sequence row increments each call
+    let callCount = 1000;
+    mockUpdateReturning.mockImplementation(() =>
+      Promise.resolve([{ nextNumber: ++callCount }])
+    );
 
     const { getNextBookingNumber } = await import(
       "../../../../../lib/db/queries/bookings.server"
@@ -150,13 +181,21 @@ describe("getNextBookingNumber", () => {
   });
 
   it("uses the provided transaction dbInstance instead of module-level db", async () => {
-    const txWhere = vi.fn().mockResolvedValue([{ bookingNumber: "BK-1007-ZZZZ" }]);
-    const txFrom = vi.fn(() => ({ where: txWhere }));
-    const txSelect = vi.fn(() => ({ from: txFrom }));
-    const txMock = { select: txSelect };
+    // Create a separate tx mock with the sequence table chain
+    const txUpdateReturning = vi.fn().mockResolvedValue([{ nextNumber: 1008 }]);
+    const txMock = {
+      update: vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => ({
+            returning: txUpdateReturning,
+          })),
+        })),
+      })),
+    };
 
-    mockSelect.mockImplementation(() => {
-      throw new Error("db.select called instead of tx.select");
+    // Module-level db should NOT be called when tx is passed
+    dbMock.update = vi.fn().mockImplementation(() => {
+      throw new Error("db.update called instead of tx.update");
     });
 
     const { getNextBookingNumber } = await import(
@@ -166,7 +205,7 @@ describe("getNextBookingNumber", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await getNextBookingNumber("org-1", txMock as any);
 
-    expect(result).toMatch(/^BK-1008-[A-Z0-9]{4}$/);
-    expect(txSelect).toHaveBeenCalled();
+    expect(result).toMatch(/^BK-1007-[A-Z0-9]{4}$/);
+    expect(txMock.update).toHaveBeenCalled();
   });
 });

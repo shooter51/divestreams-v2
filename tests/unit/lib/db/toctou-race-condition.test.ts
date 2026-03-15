@@ -118,6 +118,11 @@ vi.mock("../../../../lib/db/schema", () => ({
     organizationId: "organization_id",
     currency: "currency",
   },
+  bookingNumberSequences: {
+    organizationId: "organization_id",
+    nextNumber: "next_number",
+    updatedAt: "updated_at",
+  },
 }));
 
 // ============================================================================
@@ -349,8 +354,11 @@ describe("DS-u39: createWidgetBooking() TOCTOU protection", () => {
       callCount++;
       if (callCount === 1) return { limit: limitMock }; // trip with FOR UPDATE
       if (callCount === 2) return Promise.resolve([{ total: 5 }]);  // booking count
-      // getNextBookingNumber: select().from().where() — terminal, must be awaitable
-      // customer lookup: select().from().where().limit()
+      // callCount === 3: customer lookup select().from().where().limit(1)
+      if (callCount === 3) return { limit: vi.fn().mockResolvedValue([]) };
+      // callCount === 4: getNextBookingNumber update().set().where().returning()
+      if (callCount === 4) return { returning: vi.fn().mockResolvedValue([{ nextNumber: 1001 }]) };
+      // any remaining queries
       const limitFn = vi.fn().mockResolvedValue([]);
       const result = Promise.resolve([]) as unknown as Record<string, unknown>;
       result.limit = limitFn;

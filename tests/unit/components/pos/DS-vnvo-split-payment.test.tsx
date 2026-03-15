@@ -19,6 +19,7 @@ vi.mock("react-router", () => ({
     state: "idle",
     data: undefined,
   }),
+  useRouteLoaderData: () => ({ csrfToken: "test-token" }),
 }));
 
 describe("DS-vnvo: SplitModal cash payment includes required tendered and change fields", () => {

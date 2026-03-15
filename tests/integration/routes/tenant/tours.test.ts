@@ -57,6 +57,13 @@ vi.mock("drizzle-orm", () => ({
   ilike: vi.fn((field, pattern) => ({ type: "ilike", field, pattern })),
   sql: vi.fn((strings, ...values) => ({ type: "sql", strings, values })),
   count: vi.fn(() => ({ type: "count" })),
+  inArray: vi.fn((field, values) => ({ type: "inArray", field, values })),
+}));
+
+vi.mock("../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+  getTranslatedEntity: vi.fn().mockImplementation((_o, _t, _i, _l, entity) => Promise.resolve(entity)),
 }));
 
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";

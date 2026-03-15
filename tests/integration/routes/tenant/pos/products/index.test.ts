@@ -6,6 +6,11 @@ import * as queries from "../../../../../../lib/db/queries.server";
 // Mock dependencies
 vi.mock("../../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../../lib/db/queries.server");
+vi.mock("../../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+  getTranslatedEntity: vi.fn().mockImplementation((_o, _t, _i, _l, entity) => Promise.resolve(entity)),
+}));
 
 describe("app/routes/tenant/pos/products/index.tsx", () => {
   const mockOrganizationId = "org-123";

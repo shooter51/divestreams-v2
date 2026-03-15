@@ -383,8 +383,6 @@ describe("admin/login route", () => {
     it("handles Better Auth API errors gracefully", async () => {
       signInEmailMock.mockRejectedValue(new Error("Network error"));
 
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
       const formData = new FormData();
       formData.append("email", "admin@example.com");
       formData.append("password", "password123");
@@ -396,10 +394,8 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
+      // Source uses authLogger.error (structured logging), not console.error
       expect(response).toEqual({ error: "An error occurred during login. Please try again.", email: "admin@example.com" });
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
     });
 
     it("returns error when platform organization not found", async () => {

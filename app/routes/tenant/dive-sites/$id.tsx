@@ -200,7 +200,7 @@ export default function DiveSiteDetailPage() {
     <div>
       <div className="mb-6">
         <Link to="/tenant/dive-sites" className="text-brand hover:underline text-sm">
-          ← {t("tenant.diveSites.backToSites")}
+          {t("tenant.diveSites.backToSites")}
         </Link>
       </div>
 

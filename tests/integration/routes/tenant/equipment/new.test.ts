@@ -10,6 +10,12 @@ vi.mock("../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../lib/db/queries.server");
 vi.mock("../../../../../lib/validation");
 
+// Mock rate limiting
+vi.mock("../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 describe("app/routes/tenant/equipment/new.tsx", () => {
   const mockOrganizationId = "org-123";
 

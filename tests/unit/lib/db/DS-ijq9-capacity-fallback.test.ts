@@ -65,6 +65,11 @@ vi.mock("../../../../lib/db/schema", () => ({
     createdAt: "createdAt",
     updatedAt: "updatedAt",
   },
+  bookingNumberSequences: {
+    organizationId: "organizationId",
+    nextNumber: "nextNumber",
+    updatedAt: "updatedAt",
+  },
   customers: { id: "id", email: "email", firstName: "firstName", lastName: "lastName" },
   tours: { id: "id", name: "name", maxParticipants: "maxParticipants", price: "price" },
   trips: { id: "id", organizationId: "organizationId", tourId: "tourId", maxParticipants: "maxParticipants", date: "date", startTime: "startTime", price: "price", status: "status" },

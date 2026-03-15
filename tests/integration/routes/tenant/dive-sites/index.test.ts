@@ -10,6 +10,11 @@ vi.mock("../../../../../lib/db", () => ({
     select: vi.fn(),
   },
 }));
+vi.mock("../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+  getTranslatedEntity: vi.fn().mockImplementation((_o, _t, _i, _l, entity) => Promise.resolve(entity)),
+}));
 
 describe("app/routes/tenant/dive-sites/index.tsx", () => {
   const mockOrganizationId = "org-123";

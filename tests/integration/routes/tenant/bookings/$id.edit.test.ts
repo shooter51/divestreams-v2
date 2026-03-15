@@ -71,6 +71,8 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
         totalAmount: "200.00",
         specialRequests: "Vegetarian meals",
         internalNotes: "VIP customer",
+        source: "direct",
+        participantDetails: [],
       });
     });
 

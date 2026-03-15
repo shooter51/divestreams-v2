@@ -83,7 +83,8 @@ function makeClaudeResponse(text: string) {
 describe("Help API — action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.AWS_ACCESS_KEY_ID = "test-key";
+    process.env.AWS_SECRET_ACCESS_KEY = "test-secret";
     mockRequireOrgContext.mockResolvedValue(makeOrgContext() as never);
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 19, resetAt: Date.now() + 3600000 });
     mockLoadHelpArticles.mockReturnValue([makeArticle()]);
@@ -110,13 +111,13 @@ describe("Help API — action", () => {
   });
 
   describe("authentication", () => {
-    it("re-throws redirect from requireOrgContext", async () => {
-      const redirectResponse = new Response(null, { status: 302, headers: { Location: "/auth/login" } });
-      mockRequireOrgContext.mockRejectedValue(redirectResponse);
+    it("returns 401 when requireOrgContext rejects", async () => {
+      mockRequireOrgContext.mockRejectedValue(new Error("Not authenticated"));
 
-      await expect(
-        action({ request: makeRequest({ question: "help" }), params: {}, context: {} })
-      ).rejects.toBe(redirectResponse);
+      const response = await action({ request: makeRequest({ question: "help" }), params: {}, context: {} });
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data.error).toContain("Authentication required");
     });
   });
 
@@ -216,10 +217,15 @@ describe("Help API — action", () => {
       expect(data.sources[0]).toEqual({ title: "Managing Bookings", path: "docs/help/bookings.md" });
     });
 
-    it("calls Claude with haiku model", async () => {
+    it("calls Claude with system prompt and user message", async () => {
       await action({ request: makeRequest({ question: "how do I add a booking?" }), params: {}, context: {} });
       expect(mockCallClaude).toHaveBeenCalledWith(
-        expect.objectContaining({ model: "claude-haiku-4-5" })
+        expect.objectContaining({
+          system: expect.stringContaining("DiveStreams"),
+          messages: expect.arrayContaining([
+            expect.objectContaining({ role: "user" }),
+          ]),
+        })
       );
     });
 
@@ -245,8 +251,8 @@ describe("Help API — action", () => {
   });
 
   describe("Claude API error handling", () => {
-    it("returns 503 when ANTHROPIC_API_KEY is not configured", async () => {
-      mockCallClaude.mockRejectedValue(new Error("ANTHROPIC_API_KEY environment variable is not set"));
+    it("returns 503 when AWS credentials are not configured", async () => {
+      mockCallClaude.mockRejectedValue(new Error("AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."));
 
       const response = await action({ request: makeRequest({ question: "help" }), params: {}, context: {} });
       expect(response.status).toBe(503);

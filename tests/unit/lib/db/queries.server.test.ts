@@ -141,6 +141,11 @@ vi.mock("../../../../lib/db/schema", () => ({
   tourDiveSites: {
     tourId: "tourId", diveSiteId: "diveSiteId",
   },
+  bookingNumberSequences: {
+    organizationId: "organizationId",
+    nextNumber: "nextNumber",
+    updatedAt: "updatedAt",
+  },
 }));
 
 // Mock drizzle-orm functions
@@ -599,7 +604,21 @@ describe("queries.server database functions", () => {
     it("should create new booking", async () => {
       // Reset db.where to return the chain (previous tests may have overridden it)
       (dbMock.where as unknown as Mock).mockReturnValue(dbMock);
-      mockReturning.mockResolvedValueOnce([{ id: "book-1" }]);
+      // getNextBookingNumber calls:
+      // 1. UPDATE bookingNumberSequences ... RETURNING -> .returning() wrapper + .then thenable
+      mockReturning
+        .mockResolvedValueOnce([])   // wrapper (ignored)
+        .mockResolvedValueOnce([]);  // thenable: no existing sequence row
+      // 2. Fallback: SELECT MAX from bookings -> .where() thenable via mockLimit
+      mockLimit.mockResolvedValueOnce([{ maxNum: null }]);
+      // 3. INSERT bookingNumberSequences ... RETURNING -> .returning() wrapper + .then thenable
+      mockReturning
+        .mockResolvedValueOnce([])                      // wrapper (ignored)
+        .mockResolvedValueOnce([{ nextNumber: 1001 }]); // thenable: sequence row
+      // createBooking: INSERT bookings ... RETURNING -> .returning() wrapper + .then thenable
+      mockReturning
+        .mockResolvedValueOnce([])                                              // wrapper (ignored)
+        .mockResolvedValueOnce([{ id: "book-1", bookingNumber: "BK-1000-ABCD" }]); // thenable: booking
 
       // Mock capacity validation dependencies
       const tripsModule = await import("../../../../lib/db/queries/trips.server");

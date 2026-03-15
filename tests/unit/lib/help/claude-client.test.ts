@@ -2,18 +2,24 @@
  * Unit tests for lib/help/claude-client.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
-const { mockCreate } = vi.hoisted(() => ({
-  mockCreate: vi.fn(),
+const { mockSend } = vi.hoisted(() => ({
+  mockSend: vi.fn(),
 }));
 
-// Mock @anthropic-ai/sdk using a class so `new Anthropic()` works
-vi.mock("@anthropic-ai/sdk", () => ({
-  default: class MockAnthropic {
-    messages = { create: mockCreate };
+// Mock @aws-sdk/client-bedrock-runtime
+vi.mock("@aws-sdk/client-bedrock-runtime", () => ({
+  BedrockRuntimeClient: class MockBedrockRuntimeClient {
+    send = mockSend;
     constructor(_options: unknown) {}
+  },
+  ConverseCommand: class MockConverseCommand {
+    input: unknown;
+    constructor(input: unknown) {
+      this.input = input;
+    }
   },
 }));
 
@@ -24,68 +30,80 @@ const originalEnv = { ...process.env };
 describe("callClaude", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv, ANTHROPIC_API_KEY: "test-key" };
+    process.env = {
+      ...originalEnv,
+      AWS_ACCESS_KEY_ID: "test-key",
+      AWS_SECRET_ACCESS_KEY: "test-secret",
+      AWS_REGION: "us-east-1",
+    };
   });
 
   afterEach(() => {
     process.env = originalEnv;
   });
 
-  it("throws when ANTHROPIC_API_KEY is not set", async () => {
-    delete process.env.ANTHROPIC_API_KEY;
+  it("throws when AWS credentials are not set", async () => {
+    delete process.env.AWS_ACCESS_KEY_ID;
+    delete process.env.AWS_SECRET_ACCESS_KEY;
 
     await expect(
       callClaude({
-        model: "claude-haiku-4-5",
-        max_tokens: 256,
         system: "You are a helper.",
         messages: [{ role: "user", content: "hi" }],
       })
-    ).rejects.toThrow("ANTHROPIC_API_KEY environment variable is not set");
+    ).rejects.toThrow("AWS credentials not configured");
   });
 
-  it("calls messages.create with the provided params", async () => {
-    mockCreate.mockResolvedValue({
-      content: [{ type: "text", text: "Hello!" }],
-      usage: { input_tokens: 10, output_tokens: 5 },
+  it("sends a ConverseCommand with the provided params", async () => {
+    mockSend.mockResolvedValue({
+      output: {
+        message: {
+          content: [{ text: "Hello!" }],
+        },
+      },
     });
 
     const params = {
-      model: "claude-haiku-4-5",
-      max_tokens: 256,
       system: "You are a helper.",
       messages: [{ role: "user" as const, content: "hi" }],
     };
 
     await callClaude(params);
 
-    expect(mockCreate).toHaveBeenCalledWith(params);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    const command = mockSend.mock.calls[0][0];
+    expect(command.input).toMatchObject({
+      modelId: "amazon.nova-micro-v1:0",
+      system: [{ text: "You are a helper." }],
+      messages: [{ role: "user", content: [{ text: "hi" }] }],
+      inferenceConfig: { maxTokens: 1024, temperature: 0.3 },
+    });
   });
 
-  it("returns the response from messages.create", async () => {
-    const expectedResponse = {
-      content: [{ type: "text", text: "Here is your answer." }],
-      usage: { input_tokens: 20, output_tokens: 10 },
-    };
-    mockCreate.mockResolvedValue(expectedResponse);
+  it("returns normalized response from Bedrock Converse API", async () => {
+    mockSend.mockResolvedValue({
+      output: {
+        message: {
+          content: [{ text: "Here is your answer." }],
+        },
+      },
+    });
 
     const result = await callClaude({
-      model: "claude-haiku-4-5",
-      max_tokens: 256,
       system: "System prompt.",
       messages: [{ role: "user", content: "question" }],
     });
 
-    expect(result).toEqual(expectedResponse);
+    expect(result).toEqual({
+      content: [{ type: "text", text: "Here is your answer." }],
+    });
   });
 
-  it("propagates errors from the Anthropic API", async () => {
-    mockCreate.mockRejectedValue(new Error("Rate limit exceeded"));
+  it("propagates errors from the Bedrock API", async () => {
+    mockSend.mockRejectedValue(new Error("Rate limit exceeded"));
 
     await expect(
       callClaude({
-        model: "claude-haiku-4-5",
-        max_tokens: 256,
         system: "System.",
         messages: [{ role: "user", content: "help" }],
       })

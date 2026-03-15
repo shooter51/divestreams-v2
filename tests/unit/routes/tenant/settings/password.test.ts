@@ -268,10 +268,8 @@ describe("Password Change Route - Action Validation", () => {
       consoleSpy.mockRestore();
     });
 
-    it("logs error when password change fails", async () => {
+    it("returns error when password change fails", async () => {
       mockChangePassword.mockRejectedValue(new Error("Auth service error"));
-
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const request = makeFormRequest({
         currentPassword: "OldPass123",
@@ -279,14 +277,11 @@ describe("Password Change Route - Action Validation", () => {
         confirmPassword: "NewValidPass123",
       });
 
-      await action(makeArgs(request));
+      const result = await action(makeArgs(request));
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Password update error:",
-        expect.any(Error)
-      );
-
-      consoleSpy.mockRestore();
+      // The source uses authLogger.error (structured logging), not console.error
+      // Verify the error response is returned correctly
+      expect(result).toEqual({ error: "Current password is incorrect" });
     });
   });
 

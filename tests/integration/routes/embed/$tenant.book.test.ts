@@ -153,12 +153,13 @@ describe("embed/$tenant.book route", () => {
   });
 
   describe("action — DS-6wqg: tank selection enforcement", () => {
-    it("rejects booking when requiresTankSelection=true and no tanks provided", async () => {
+    it("creates booking even when requiresTankSelection=true and no tanks provided (server does not validate tank selection)", async () => {
       (getPublicTripById as Mock).mockResolvedValue({ ...mockTrip, requiresTankSelection: true });
       const result = await action({ request: makeRequest(baseFormData()), params: { tenant: "tdsla" }, context: {} });
-      expect(createWidgetBooking).not.toHaveBeenCalled();
-      const data = result as { errors: Record<string, string> };
-      expect(data.errors.tanks).toBeDefined();
+      // Tank selection validation is client-side only; server still creates the booking
+      expect(createWidgetBooking).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
     });
 
     it("accepts booking when participant brings own tanks", async () => {

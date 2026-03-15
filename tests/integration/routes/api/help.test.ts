@@ -66,7 +66,8 @@ function post(body: unknown): Request {
 describe("Help API integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.ANTHROPIC_API_KEY = "test-api-key";
+    process.env.AWS_ACCESS_KEY_ID = "test-key";
+    process.env.AWS_SECRET_ACCESS_KEY = "test-secret";
     mockRequireOrgContext.mockResolvedValue(makeContext() as never);
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 19, resetAt: Date.now() + 3600000 });
   });
@@ -153,10 +154,10 @@ describe("Help API integration", () => {
       expect(data.error).toBeDefined();
     });
 
-    it("returns 503 when API key error is thrown", async () => {
+    it("returns 503 when AWS credentials error is thrown", async () => {
       mockLoadHelpArticles.mockReturnValue([makeArticle("Bookings", "Bookings", "content")]);
       mockSearchRelevantArticles.mockReturnValue([makeArticle("Bookings", "Bookings", "content")]);
-      mockCallClaude.mockRejectedValue(new Error("ANTHROPIC_API_KEY environment variable is not set"));
+      mockCallClaude.mockRejectedValue(new Error("AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."));
 
       const response = await action({ request: post({ question: "bookings" }), params: {}, context: {} });
 

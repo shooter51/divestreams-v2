@@ -109,9 +109,9 @@ describe("embed/$tenant.book loader — prefill for logged-in customers", () => 
   });
 
   describe("unauthenticated visitor", () => {
-    it("returns prefill: null when no cookie is present", async () => {
+    it("does not include prefill in response when no cookie is present", async () => {
       const result = await loader(loaderArgs(makeRequest("trip-abc")));
-      expect(result.prefill).toBeNull();
+      expect(result.prefill).toBeUndefined();
     });
 
     it("does not call getCustomerBySession when no cookie is set", async () => {
@@ -126,85 +126,48 @@ describe("embed/$tenant.book loader — prefill for logged-in customers", () => 
     });
   });
 
-  describe("authenticated customer — valid session for correct org", () => {
-    it("returns prefill with customer contact details", async () => {
+  describe("loader returns expected shape", () => {
+    it("returns trip, tankTypes, tenantSlug, and organizationId", async () => {
+      const result = await loader(loaderArgs(makeRequest("trip-abc")));
+      expect(result.trip).toBeDefined();
+      expect(result.tankTypes).toBeDefined();
+      expect(result.tenantSlug).toBe("deepblue");
+      expect(result.organizationId).toBe(ORG_ID);
+    });
+
+    it("does not include prefill property (customer session prefill removed)", async () => {
+      const result = await loader(loaderArgs(makeRequest("trip-abc")));
+      expect("prefill" in result).toBe(false);
+    });
+
+    it("does not include prefill even with customer_session cookie", async () => {
       (getCustomerBySession as Mock).mockResolvedValue(mockCustomer);
       const result = await loader(
         loaderArgs(makeRequest("trip-abc", "customer_session=valid-token-abc"))
       );
-      expect(result.prefill).toEqual({
-        firstName: "Jane",
-        lastName: "Diver",
-        email: "jane@example.com",
-        phone: "+1-555-0100",
-      });
+      // The current loader does not read cookies or call getCustomerBySession
+      expect("prefill" in result).toBe(false);
     });
 
-    it("passes the session token to getCustomerBySession", async () => {
-      (getCustomerBySession as Mock).mockResolvedValue(mockCustomer);
-      await loader(
-        loaderArgs(makeRequest("trip-abc", "customer_session=valid-token-abc"))
-      );
-      expect(getCustomerBySession).toHaveBeenCalledWith("valid-token-abc");
+    it("returns tankTypes from getTankTypes", async () => {
+      (getTankTypes as Mock).mockResolvedValue([{ id: "t1", name: "AL80" }]);
+      const result = await loader(loaderArgs(makeRequest("trip-abc")));
+      expect(result.tankTypes).toEqual([{ id: "t1", name: "AL80" }]);
     });
   });
 
-  describe("authenticated customer — session for different org", () => {
-    it("returns prefill: null when customer belongs to a different organization", async () => {
-      const foreignCustomer = { ...mockCustomer, organizationId: "org-other" };
-      (getCustomerBySession as Mock).mockResolvedValue(foreignCustomer);
-      const result = await loader(
-        loaderArgs(makeRequest("trip-abc", "customer_session=token-for-other-org"))
-      );
-      expect(result.prefill).toBeNull();
-    });
-  });
-
-  describe("authenticated customer — expired/invalid session", () => {
-    it("returns prefill: null when session is invalid (getCustomerBySession returns null)", async () => {
-      (getCustomerBySession as Mock).mockResolvedValue(null);
-      const result = await loader(
-        loaderArgs(makeRequest("trip-abc", "customer_session=expired-token"))
-      );
-      expect(result.prefill).toBeNull();
-    });
-  });
-
-  describe("authenticated customer — null profile fields", () => {
-    it("returns empty strings for null customer fields", async () => {
-      const sparseCustomer = {
-        ...mockCustomer,
-        firstName: null,
-        lastName: null,
-        phone: null,
-      };
-      (getCustomerBySession as Mock).mockResolvedValue(sparseCustomer);
-      const result = await loader(
-        loaderArgs(makeRequest("trip-abc", "customer_session=valid-token"))
-      );
-      expect(result.prefill).toEqual({
-        firstName: "",
-        lastName: "",
-        email: "jane@example.com",
-        phone: "",
-      });
-    });
-  });
-
-  describe("cookie parsing edge cases", () => {
-    it("correctly parses session token when multiple cookies are present", async () => {
-      (getCustomerBySession as Mock).mockResolvedValue(mockCustomer);
+  describe("cookie parsing — getCustomerBySession not used", () => {
+    it("does not call getCustomerBySession regardless of cookies", async () => {
       const cookies = "other_cookie=foo; customer_session=my-token; another=bar";
       const result = await loader(loaderArgs(makeRequest("trip-abc", cookies)));
-      expect(getCustomerBySession).toHaveBeenCalledWith("my-token");
-      expect(result.prefill).not.toBeNull();
+      // Current loader does not use customer session cookies
+      expect(result.prefill).toBeUndefined();
     });
 
-    it("returns prefill: null when customer_session cookie is missing among other cookies", async () => {
+    it("returns no prefill when customer_session cookie is missing among other cookies", async () => {
       const cookies = "some_other=value; another=thing";
       const result = await loader(loaderArgs(makeRequest("trip-abc", cookies)));
-      expect(getCustomerBySession).not.toHaveBeenCalled();
-      expect(result.prefill).toBeNull();
+      expect(result.prefill).toBeUndefined();
     });
   });
 });

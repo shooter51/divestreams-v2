@@ -52,6 +52,11 @@ vi.mock("../../../../../app/i18n/resolve-locale", () => ({
   resolveLocale: vi.fn().mockReturnValue("en"),
 }));
 
+vi.mock("../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 vi.mock("react-router", async () => {
   const actual = await vi.importActual("react-router");
   return {

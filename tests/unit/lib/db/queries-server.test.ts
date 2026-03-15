@@ -190,6 +190,11 @@ vi.mock("../../../../lib/db/schema", () => ({
     dailyRate: "dailyRate",
     totalCharge: "totalCharge",
   },
+  bookingNumberSequences: {
+    organizationId: "organizationId",
+    nextNumber: "nextNumber",
+    updatedAt: "updatedAt",
+  },
 }));
 
 describe("Server Queries Module", () => {
@@ -1094,10 +1099,16 @@ describe("Server Queries Module", () => {
 
   describe("createBooking", () => {
     it("creates booking and returns object", async () => {
+      // getNextBookingNumber: UPDATE bookingNumberSequences ... RETURNING -> no existing row
+      mockReturning.mockResolvedValueOnce([]);
+      // getNextBookingNumber: fallback SELECT MAX handled by where() thenable (returns [])
+      // getNextBookingNumber: INSERT bookingNumberSequences ... RETURNING -> sequence row
+      mockReturning.mockResolvedValueOnce([{ nextNumber: 1001 }]);
+      // createBooking: INSERT bookings ... RETURNING -> booking record
       mockReturning.mockResolvedValueOnce([{
         id: "booking-1",
         organizationId: "org-1",
-        bookingNumber: "BK-123",
+        bookingNumber: "BK-1000-ABCD",
         tripId: "trip-1",
         customerId: "cust-1",
         participants: 2,

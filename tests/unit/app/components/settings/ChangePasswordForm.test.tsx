@@ -14,6 +14,7 @@ const mockSubmit = vi.fn();
 
 vi.mock("react-router", () => ({
   useFetcher: () => ({ state: "idle", data: null, submit: mockSubmit }),
+  useRouteLoaderData: () => ({ csrfToken: "test-token" }),
 }));
 
 const defaultProps = {

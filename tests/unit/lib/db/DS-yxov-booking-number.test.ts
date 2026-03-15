@@ -3,34 +3,60 @@
  *
  * Root cause: The original ORDER BY used SUBSTRING/POSITION which fails when
  * a booking_number doesn't have a second '-' after position 4 (e.g. "BK-1A"
- * or "BK-1000" without a suffix). The fix replaces it with regexp_match which
- * safely returns NULL for non-matching rows.
+ * or "BK-1000" without a suffix). The fix replaced it with an atomic sequence
+ * table (DS-8p6q) and a regexp_match fallback scan for first-use initialisation.
  *
  * These tests verify the function handles edge-case booking number formats
- * gracefully when the DB returns them (e.g. after the ORDER BY change).
+ * gracefully when the fallback path runs (no sequence row yet).
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock db — same pattern as DS-ktz5-booking-numbers.test.ts
-const mockLimit = vi.fn();
-const mockOrderBy = vi.fn(() => ({ limit: mockLimit }));
-const mockWhere = vi.fn(() => ({ orderBy: mockOrderBy }));
-const mockFrom = vi.fn(() => ({ where: mockWhere }));
-const mockSelect = vi.fn(() => ({ from: mockFrom }));
+// Mocks for the three key DB operations in getNextBookingNumber:
+// 1. update().set().where().returning()  — sequence table atomic increment
+// 2. select().from().where()             — fallback MAX scan
+// 3. insert().values().returning()       — fallback sequence row creation
+const mockUpdateReturning = vi.fn();
+const mockSelectWhere = vi.fn();
+const mockInsertReturning = vi.fn();
 
-const dbMock = {
-  select: mockSelect,
-};
+function makeDb() {
+  return {
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => ({
+          returning: mockUpdateReturning,
+        })),
+      })),
+    })),
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: mockSelectWhere,
+      })),
+    })),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => ({
+        returning: mockInsertReturning,
+      })),
+    })),
+  };
+}
+
+let dbMock = makeDb();
 
 vi.mock("../../../../lib/db/index", () => ({
-  db: dbMock,
+  get db() { return dbMock; },
 }));
 
 vi.mock("../../../../lib/db/schema", () => ({
   bookings: {
     organizationId: "organizationId",
     bookingNumber: "bookingNumber",
+  },
+  bookingNumberSequences: {
+    organizationId: "organization_id",
+    nextNumber: "next_number",
+    updatedAt: "updated_at",
   },
 }));
 
@@ -45,11 +71,21 @@ const BOOKING_PATTERN = /^BK-\d+-[A-Z0-9]{4}$/;
 
 describe("DS-yxov: getNextBookingNumber handles non-standard booking number formats", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
+    dbMock = makeDb();
+    mockUpdateReturning.mockReset();
+    mockSelectWhere.mockReset();
+    mockInsertReturning.mockReset();
+    // Default: no sequence row (fallback path), no existing bookings
+    mockUpdateReturning.mockResolvedValue([]);
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
+    mockInsertReturning.mockResolvedValue([{ nextNumber: 1001 }]);
   });
 
-  it("handles normal BK-NNNN-XXXX format correctly", async () => {
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-1005-A3KP" }]);
+  it("handles normal BK-NNNN-XXXX format correctly (fast path)", async () => {
+    // Sequence row exists — fast path returns nextNumber=1006 → BK-1005
+    mockUpdateReturning.mockResolvedValue([{ nextNumber: 1006 }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -57,15 +93,14 @@ describe("DS-yxov: getNextBookingNumber handles non-standard booking number form
 
     const result = await getNextBookingNumber("org-1");
 
-    expect(result).toMatch(/^BK-1006-[A-Z0-9]{4}$/);
+    expect(result).toMatch(/^BK-1005-[A-Z0-9]{4}$/);
     expect(result).toMatch(BOOKING_PATTERN);
   });
 
-  it("handles old format without suffix (BK-1000) gracefully", async () => {
-    // Simulates a booking created before the -XXXX suffix was added.
-    // The function receives this as the top result from the DB after the
-    // ORDER BY is applied. It should parse the number part and increment.
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-1000" }]);
+  it("handles old format without suffix (BK-1000) gracefully via fallback scan", async () => {
+    // No sequence row; fallback MAX scan finds 1000
+    mockSelectWhere.mockResolvedValue([{ maxNum: 1000 }]);
+    mockInsertReturning.mockResolvedValue([{ nextNumber: 1002 }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -73,14 +108,13 @@ describe("DS-yxov: getNextBookingNumber handles non-standard booking number form
 
     const result = await getNextBookingNumber("org-1");
 
-    // Should extract "1000" and produce BK-1001-XXXX
     expect(result).toMatch(/^BK-1001-[A-Z0-9]{4}$/);
     expect(result).toMatch(BOOKING_PATTERN);
   });
 
-  it("falls back to BK-1000-XXXX when DB returns booking with non-numeric after BK- (BK-ABC)", async () => {
-    // This format doesn't match ^BK-(\d+) so match returns null → fallback
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-ABC" }]);
+  it("falls back to BK-1000-XXXX when DB MAX scan returns null (no parseable bookings)", async () => {
+    // No sequence row; fallback MAX returns null (non-parseable formats like BK-ABC)
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -92,12 +126,10 @@ describe("DS-yxov: getNextBookingNumber handles non-standard booking number form
     expect(result).toMatch(BOOKING_PATTERN);
   });
 
-  it("falls back to BK-1000-XXXX when DB returns mixed format (BK-1A-XYZ)", async () => {
-    // "BK-1A-XYZ" starts with a digit but doesn't have pure digits.
-    // The regex ^BK-(\d+) would match "1" only up to the 'A',
-    // or not match at all depending on implementation.
-    // Either way the function should produce a valid booking number.
-    mockLimit.mockResolvedValue([{ bookingNumber: "BK-1A-XYZ" }]);
+  it("falls back to BK-1000-XXXX when DB has mixed format bookings (MAX scan handles it)", async () => {
+    // The MAX regexp_match in the DB query handles mixed formats;
+    // non-matching rows return NULL and are excluded by MAX()
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -105,12 +137,11 @@ describe("DS-yxov: getNextBookingNumber handles non-standard booking number form
 
     const result = await getNextBookingNumber("org-1");
 
-    // Result must be a valid BK-NNNN-XXXX booking number
     expect(result).toMatch(BOOKING_PATTERN);
   });
 
   it("falls back to BK-1000-XXXX when no bookings exist", async () => {
-    mockLimit.mockResolvedValue([]);
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -122,8 +153,8 @@ describe("DS-yxov: getNextBookingNumber handles non-standard booking number form
     expect(result).toMatch(BOOKING_PATTERN);
   });
 
-  it("falls back to BK-1000-XXXX when result is null", async () => {
-    mockLimit.mockResolvedValue([{ bookingNumber: null }]);
+  it("falls back to BK-1000-XXXX when MAX result is null", async () => {
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
 
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
@@ -135,26 +166,29 @@ describe("DS-yxov: getNextBookingNumber handles non-standard booking number form
     expect(result).toMatch(BOOKING_PATTERN);
   });
 
-  it("uses regexp_match-style ORDER BY in the SQL query (not fragile SUBSTRING/POSITION)", async () => {
-    mockLimit.mockResolvedValue([]);
+  it("uses regexp_match-based SQL in the fallback MAX scan (not fragile SUBSTRING/POSITION)", async () => {
+    // Trigger fallback path (no sequence row)
+    mockUpdateReturning.mockResolvedValue([]);
+    mockSelectWhere.mockResolvedValue([{ maxNum: null }]);
 
+    const { sql: sqlMock } = await import("drizzle-orm");
     const { getNextBookingNumber } = await import(
       "../../../../lib/db/queries/bookings.server"
     );
 
     await getNextBookingNumber("org-1");
 
-    // Verify the orderBy call was made with an sql template containing regexp_match
-    expect(mockOrderBy).toHaveBeenCalledOnce();
-    const orderByArg = mockOrderBy.mock.calls[0][0];
+    // The sql template tag is called with strings containing regexp_match
+    const sqlCalls = (sqlMock as any).mock.calls;
+    const allStrings = sqlCalls
+      .map((call: any) => {
+        const strings = call[0];
+        return Array.isArray(strings) ? strings.join("") : String(strings);
+      })
+      .join(" ");
 
-    // The sql mock returns { type: "sql", strings, values }
-    // Check that the SQL strings array contains regexp_match (not SUBSTRING)
-    const sqlStrings = orderByArg?.strings ?? [];
-    const sqlText = Array.isArray(sqlStrings) ? sqlStrings.join("") : String(sqlStrings);
-
-    expect(sqlText).toContain("regexp_match");
-    expect(sqlText).not.toContain("SUBSTRING");
-    expect(sqlText).not.toContain("POSITION");
+    expect(allStrings).toContain("regexp_match");
+    expect(allStrings).not.toContain("SUBSTRING");
+    expect(allStrings).not.toContain("POSITION");
   });
 });

@@ -15,6 +15,12 @@ vi.mock("../../../../../lib/db/training.server", () => ({
   updateCourse: vi.fn(),
 }));
 
+vi.mock("../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+  getTranslatedEntity: vi.fn().mockImplementation((_o, _t, _i, _l, entity) => Promise.resolve(entity)),
+}));
+
 // Mock use-notification
 vi.mock("../../../../../lib/use-notification", () => ({
   redirectWithNotification: vi.fn(

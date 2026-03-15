@@ -508,8 +508,6 @@ describe("tenant/login route", () => {
       it("handles auth API errors gracefully", async () => {
         (auth.api.signInEmail as Mock).mockRejectedValue(new Error("Network error"));
 
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
         const formData = new FormData();
         formData.append("email", "user@example.com");
         formData.append("password", "password123");
@@ -521,10 +519,8 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
+        // Source uses authLogger.error (structured logging), not console.error
         expect(response).toEqual({ error: "auth.login.genericError", email: "user@example.com" });
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
       });
     });
   });

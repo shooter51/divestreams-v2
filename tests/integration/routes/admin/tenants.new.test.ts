@@ -555,8 +555,6 @@ describe("admin/tenants.new route", () => {
           throw new Error("Database error");
         });
 
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
         const formData = new FormData();
         formData.append("slug", "errorshop");
         formData.append("name", "Error Shop");
@@ -569,10 +567,8 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
+        // Source uses dbLogger.error (structured logging), not console.error
         expect((response as ActionErrorResponse).errors.form).toBe("Failed to create organization. Please try again or contact support.");
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
       });
     });
   });

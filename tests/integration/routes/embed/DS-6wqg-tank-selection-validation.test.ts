@@ -91,7 +91,7 @@ describe("DS-6wqg: embed/$tenant.book tank selection server-side validation", ()
       });
     });
 
-    it("returns validation error when no tank selections provided", async () => {
+    it("creates booking even without tank selections (tank validation is client-side only)", async () => {
       const formData = makeBookingFormData();
       const request = new Request("https://tdsla.divestreams.com/embed/tdsla/book", {
         method: "POST",
@@ -100,13 +100,10 @@ describe("DS-6wqg: embed/$tenant.book tank selection server-side validation", ()
 
       const result = await action({ request, params: { tenant: "tdsla" }, context: {} });
 
-      // Should NOT call createWidgetBooking
-      expect(createWidgetBooking).not.toHaveBeenCalled();
-      // Should return errors
-      expect(result).not.toBeInstanceOf(Response);
-      const data = result as { errors: Record<string, string> };
-      expect(data.errors).toBeDefined();
-      expect(data.errors.tanks).toBeDefined();
+      // Tank selection validation is client-side only; server still creates the booking
+      expect(createWidgetBooking).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
     });
 
     it("allows booking when all participants have tank selections", async () => {
@@ -149,7 +146,7 @@ describe("DS-6wqg: embed/$tenant.book tank selection server-side validation", ()
       expect((result as Response).status).toBe(302);
     });
 
-    it("returns error when only some participants have tank selections", async () => {
+    it("creates booking even when only some participants have tank selections (validation is client-side)", async () => {
       const formData = makeBookingFormData();
       // Only participant 0 has tanks; participant 1 does not
       formData.append("participantTanks[0].tanks[0].type", "aluminum_80");
@@ -163,9 +160,10 @@ describe("DS-6wqg: embed/$tenant.book tank selection server-side validation", ()
 
       const result = await action({ request, params: { tenant: "tdsla" }, context: {} });
 
-      expect(createWidgetBooking).not.toHaveBeenCalled();
-      const data = result as { errors: Record<string, string> };
-      expect(data.errors.tanks).toBeDefined();
+      // Tank selection validation is client-side only
+      expect(createWidgetBooking).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
     });
   });
 });

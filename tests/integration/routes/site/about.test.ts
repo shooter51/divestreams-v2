@@ -26,6 +26,12 @@ vi.mock("../../../../lib/db/page-content.server", () => ({
   getPublicPageContent: vi.fn(),
 }));
 
+vi.mock("../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+  getTranslatedEntity: vi.fn().mockImplementation((_o, _t, _i, _l, entity) => Promise.resolve(entity)),
+}));
+
 import { db } from "../../../../lib/db";
 import { getPublicPageContent } from "../../../../lib/db/page-content.server";
 import { loader } from "../../../../app/routes/site/about";

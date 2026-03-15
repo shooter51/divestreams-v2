@@ -101,6 +101,13 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions: unknown[]) => ({ type: "and", conditions })),
   asc: vi.fn((a) => ({ type: "asc", field: a })),
   sql: vi.fn((strings: unknown, ...values: unknown[]) => ({ type: "sql", strings, values })),
+  inArray: vi.fn((field, values) => ({ type: "inArray", field, values })),
+}));
+
+vi.mock("../../../../../lib/db/translations.server", () => ({
+  bulkGetContentTranslations: vi.fn().mockResolvedValue(new Map()),
+  getContentTranslations: vi.fn().mockResolvedValue({}),
+  getTranslatedEntity: vi.fn().mockImplementation((_o, _t, _i, _l, entity) => Promise.resolve(entity)),
 }));
 
 import { db } from "../../../../../lib/db";

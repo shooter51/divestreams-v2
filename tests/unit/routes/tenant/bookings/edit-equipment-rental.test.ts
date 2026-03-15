@@ -14,6 +14,7 @@ vi.mock("../../../../../lib/db/queries.server", () => ({
   getBookingWithFullDetails: vi.fn(),
   getEquipment: vi.fn(),
   getTripById: vi.fn(),
+  getTankTypes: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("../../../../../lib/db/tenant.server", () => {

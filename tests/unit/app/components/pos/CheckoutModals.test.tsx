@@ -31,6 +31,7 @@ vi.mock("react-router", () => ({
       <form {...props}>{children}</form>
     ),
   }),
+  useRouteLoaderData: () => ({ csrfToken: "test-token" }),
 }));
 
 // ---------------------------------------------------------------------------

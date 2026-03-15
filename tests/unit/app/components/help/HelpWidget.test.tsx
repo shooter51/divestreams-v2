@@ -233,7 +233,10 @@ describe("HelpWidget", () => {
         ok: true,
         json: async () => ({
           answer: "Here is the answer.",
-          sources: ["Getting started with bookings", "Tour management guide"],
+          sources: [
+            { title: "Getting started with bookings", path: "/help/bookings" },
+            { title: "Tour management guide", path: "/help/tours" },
+          ],
         }),
       });
 

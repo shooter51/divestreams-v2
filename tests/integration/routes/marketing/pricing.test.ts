@@ -61,13 +61,11 @@ describe("marketing/pricing route", () => {
 
     it("returns default plans when database query fails", async () => {
       (db.where as Mock).mockRejectedValue(new Error("DB error"));
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const result = await loader({ request: new Request("https://divestreams.com/pricing"), params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
+      // Source uses stripeLogger.error (structured logging), not console.error
       expect(result.plans).toHaveLength(2);
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
     });
   });
 });

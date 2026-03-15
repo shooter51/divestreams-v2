@@ -153,6 +153,11 @@ vi.mock("../../../../lib/db/schema", () => ({
     maxUses: "maxUses",
     usedCount: "usedCount",
   },
+  bookingNumberSequences: {
+    organizationId: "organizationId",
+    nextNumber: "nextNumber",
+    updatedAt: "updatedAt",
+  },
 }));
 
 // Mock drizzle-orm functions
@@ -504,7 +509,7 @@ describe("pos.server database functions", () => {
 
       await processPOSCheckout(tables, "org-1", checkoutData);
 
-      expect(dbMock.insert).toHaveBeenCalledTimes(2); // Transaction + booking
+      expect(dbMock.insert).toHaveBeenCalledTimes(3); // Transaction + booking + bookingNumberSequences insert
     });
 
     it("should process rental items", async () => {
