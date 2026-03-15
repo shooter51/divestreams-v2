@@ -80,7 +80,6 @@ const validSession = {
   expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
 };
 
-<<<<<<< HEAD
 // Skip this suite if no database is available (local dev without test DB)
 const dbAvailable = await db
   .execute("SELECT 1")
@@ -175,12 +174,6 @@ describe.skipIf(!dbAvailable)("KAN-637: Site layout auth header state", () => {
       await db.delete(customers).where(eq(customers.organizationId, testOrgId));
       await db.delete(organization).where(eq(organization.id, testOrgId));
     }
-=======
-describe("KAN-637: Site layout auth header state", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.AUTH_SECRET = "test-secret-for-integration-tests";
->>>>>>> worktree-agent-aee35569
   });
 
   it("should include customer in loader data when valid session exists", async () => {

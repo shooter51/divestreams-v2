@@ -149,13 +149,15 @@ export async function action({ request }: ActionFunctionArgs) {
     { field: "requirements", text: requirementsArr.join("\n") },
   ].filter((f) => f.text?.trim());
 
+  const sourceLocale = resolveLocale(request);
   for (const locale of SUPPORTED_LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue;
+    if (locale === sourceLocale) continue;
     await enqueueTranslation({
       orgId: organizationId,
       entityType: "tour",
       entityId: newTour.id,
       fields: fieldsToTranslate,
+      sourceLocale,
       targetLocale: locale,
     });
   }
