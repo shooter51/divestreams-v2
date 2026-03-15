@@ -282,18 +282,6 @@ describe("Tenant Server Module", () => {
   // ============================================================================
 
   describe("createTenant", () => {
-    it("should throw error when DATABASE_URL is not set", async () => {
-      delete process.env.DATABASE_URL;
-
-      await expect(
-        createTenant({
-          subdomain: "newshop",
-          name: "New Shop",
-          email: "new@shop.com",
-        })
-      ).rejects.toThrow("DATABASE_URL environment variable is not set");
-    });
-
     it("should create tenant with default values", async () => {
       const mockTenant = {
         id: "new-uuid",
@@ -414,34 +402,7 @@ describe("Tenant Server Module", () => {
       );
     });
 
-    it("should throw error when DATABASE_URL is not set", async () => {
-      const mockTenant = {
-        id: "uuid-123",
-        schemaName: "tenant_testshop",
-      };
-
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockWhere = vi.fn().mockReturnThis();
-      const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
-
-      (db.select as unknown as Mock).mockReturnValue({
-        from: mockFrom,
-      });
-      mockFrom.mockReturnValue({
-        where: mockWhere,
-      });
-      mockWhere.mockReturnValue({
-        limit: mockLimit,
-      });
-
-      delete process.env.DATABASE_URL;
-
-      await expect(deleteTenant("uuid-123")).rejects.toThrow(
-        "DATABASE_URL environment variable is not set"
-      );
-    });
-
-    it("should delete tenant and drop schema", async () => {
+    it("should delete tenant record", async () => {
       const mockTenant = {
         id: "uuid-123",
         schemaName: "tenant_testshop",
@@ -466,14 +427,11 @@ describe("Tenant Server Module", () => {
         where: mockDeleteWhere,
       });
 
-      mockClient.unsafe.mockResolvedValue([]);
-
       await deleteTenant("uuid-123");
 
-      expect(mockClient.unsafe).toHaveBeenCalledWith(
-        expect.stringContaining("DROP SCHEMA")
-      );
       expect(db.delete).toHaveBeenCalled();
+      // No schema DDL should be executed
+      expect(mockClient.unsafe).not.toHaveBeenCalled();
     });
   });
 
