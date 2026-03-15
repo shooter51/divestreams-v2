@@ -121,8 +121,6 @@ export async function action({ request }: ActionFunctionArgs) {
   // Call Claude API
   try {
     const message = await callClaude({
-      model: "claude-haiku-4-5",
-      max_tokens: 512,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],
     });
@@ -134,8 +132,6 @@ export async function action({ request }: ActionFunctionArgs) {
       {
         userId: context.user.id,
         articleCount: relevantArticles.length,
-        inputTokens: message.usage.input_tokens,
-        outputTokens: message.usage.output_tokens,
       },
       "Help API response generated"
     );
@@ -151,7 +147,7 @@ export async function action({ request }: ActionFunctionArgs) {
     );
 
     // If the Anthropic API key is missing, return a clear server error
-    if (err instanceof Error && err.message.includes("ANTHROPIC_API_KEY")) {
+    if (err instanceof Error && err.message.includes("AWS credentials")) {
       return Response.json(
         { error: "Help service is not configured" },
         { status: 503 }
