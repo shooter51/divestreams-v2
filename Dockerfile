@@ -25,6 +25,7 @@ RUN npm ci --omit=dev --legacy-peer-deps
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/lib ./lib
 COPY --from=builder /app/server ./server
+COPY --from=builder /app/docs/help ./docs/help
 
 # Copy migration files and scripts
 COPY --from=builder /app/drizzle ./drizzle

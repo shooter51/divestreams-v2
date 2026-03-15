@@ -8,11 +8,13 @@ build
 node_modules
 tests
 docs
+!docs/help
 playwright-report
 coverage
 coverage-summary.json
 *.md
 !README.md
+!docs/help/**/*.md
 docker-compose*.yml
 .beads
 .claude
