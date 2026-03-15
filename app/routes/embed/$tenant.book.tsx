@@ -160,6 +160,17 @@ export async function action({ params, request }: ActionFunctionArgs) {
     errors.form = "This trip is no longer available";
   } else if (trip.availableSpots < participants) {
     errors.participants = `Only ${trip.availableSpots} spot(s) available`;
+  } else if (trip.requiresTankSelection) {
+    // Enforce tank/gas selection for each participant when the tour requires it
+    const missingTankSelection = Array.from({ length: participants }, (_, i) => i).some(
+      (i) => {
+        const pd = participantDetails[i];
+        return !pd || (!pd.bringOwnTanks && (!pd.tanks || pd.tanks.length === 0));
+      }
+    );
+    if (missingTankSelection) {
+      errors.tanks = "Tank and gas selection is required for each participant on this trip";
+    }
   }
 
   if (Object.keys(errors).length > 0) {
