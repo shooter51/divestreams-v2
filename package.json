@@ -76,6 +76,7 @@
     "seed:full": "npm run seed:api && npm run seed:export"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@aws-sdk/client-bedrock-runtime": "^3.1004.0",
     "@aws-sdk/client-s3": "^3.967.0",
     "@fullcalendar/core": "^6.1.20",
