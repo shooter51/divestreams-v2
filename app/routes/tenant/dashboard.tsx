@@ -9,7 +9,7 @@ import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
 import { DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 import { StatusBadge, type BadgeStatus } from "../../components/ui";
-import { formatTime, formatCurrency, formatCapacity, formatLabel, formatDisplayDate } from "../../lib/format";
+import { formatTime, formatCurrency, formatLabel, formatDisplayDate } from "../../lib/format";
 import { dbLogger } from "../../../lib/logger";
 
 
@@ -295,7 +295,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium">
-                    {formatCapacity(trip.participants, trip.maxParticipants)}
+                    {trip.maxParticipants > 0
+                      ? `${trip.participants}/${trip.maxParticipants}`
+                      : `${trip.participants}/${t("common.unlimited")}`}
                   </p>
                   <p className="text-sm text-foreground-muted">{t("tenant.dashboard.participants")}</p>
                 </div>

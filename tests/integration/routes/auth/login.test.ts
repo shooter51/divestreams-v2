@@ -350,7 +350,7 @@ describe("auth/login route", () => {
 
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
       expect(result).toHaveProperty("errors");
-      expect((result as { errors: Record<string, string> }).errors.form).toBe("Invalid email or password");
+      expect((result as { errors: Record<string, string> }).errors.form).toBe("auth.login.invalidCredentials");
     });
   });
 });

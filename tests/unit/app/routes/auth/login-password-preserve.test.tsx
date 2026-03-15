@@ -70,7 +70,7 @@ describe("DS-ezbr: Login page password preservation", () => {
 
     // Simulate failed login - actionData returns error
     mockActionData.mockReturnValue({
-      errors: { form: "Invalid email or password" },
+      errors: { form: "auth.login.invalidCredentials" },
       email: "user@test.com",
     });
 
@@ -90,7 +90,7 @@ describe("DS-ezbr: Login page password preservation", () => {
       csrfToken: "test-csrf",
     });
     mockActionData.mockReturnValue({
-      errors: { form: "Invalid email or password" },
+      errors: { form: "auth.login.invalidCredentials" },
       email: "user@test.com",
     });
 
@@ -108,7 +108,7 @@ describe("DS-ezbr: Login page password preservation", () => {
       csrfToken: "test-csrf",
     });
     mockActionData.mockReturnValue({
-      errors: { form: "Invalid email or password" },
+      errors: { form: "auth.login.invalidCredentials" },
       email: "user@test.com",
     });
 

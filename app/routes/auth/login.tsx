@@ -170,7 +170,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (!response.ok || !userData?.user) {
       authLogger.warn({ email, reason: userData?.message }, "Login failed");
-      return { errors: { form: userData?.message || "Invalid email or password" }, email: email || "" };
+      return { errors: { form: "auth.login.invalidCredentials" }, email: email || "" };
     }
 
     const userId = userData?.user?.id;
@@ -215,7 +215,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     authLogger.error({ email, err: error }, "Login error");
-    return { errors: { form: "Invalid email or password" }, email: email || "" };
+    return { errors: { form: "auth.login.invalidCredentials" }, email: email || "" };
   }
 }
 
@@ -308,7 +308,7 @@ export default function LoginPage() {
           <CsrfTokenInput token={csrfToken} />
           {actionData?.errors?.form && (
             <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-4">
-              {actionData.errors.form}
+              {t(actionData.errors.form)}
             </div>
           )}
 
