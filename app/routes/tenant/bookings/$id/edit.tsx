@@ -1,11 +1,13 @@
+import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getBookingWithFullDetails, getEquipment, getTripById } from "../../../../../lib/db/queries.server";
+import { getBookingWithFullDetails, getEquipment, getTripById, getTankTypes } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { TankGasSelector } from "../../../../components/tank-gas-selector";
 import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
@@ -20,9 +22,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Booking ID required", { status: 400 });
   }
 
-  const [bookingData, equipmentData] = await Promise.all([
+  const [bookingData, equipmentData, tankTypes] = await Promise.all([
     getBookingWithFullDetails(organizationId, bookingId),
     getEquipment(organizationId, { isRentable: true, status: "available" }),
+    getTankTypes(organizationId),
   ]);
 
   if (!bookingData) {
@@ -47,6 +50,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const existingRentals = (bookingData.equipmentRental || []) as Array<{ item: string; price: number }>;
   const existingRentalNames = existingRentals.map((r) => r.item);
 
+  // Get requiresTankSelection from the trip's tour
+  const tripData = await getTripById(organizationId, bookingData.trip.id);
+  const requiresTankSelection = tripData?.requiresTankSelection ?? false;
+
   const booking = {
     id: bookingData.id,
     bookingNumber: bookingData.bookingNumber,
@@ -59,9 +66,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalAmount: bookingData.pricing.total,
     specialRequests: bookingData.specialRequests || "",
     internalNotes: bookingData.internalNotes || "",
+    source: bookingData.source || "direct",
+    participantDetails: bookingData.participantDetails || [],
   };
 
-  return { booking, rentalEquipment, existingRentalNames };
+  return { booking, rentalEquipment, existingRentalNames, tankTypes, requiresTankSelection };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -152,10 +161,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function EditBookingPage() {
-  const { booking, rentalEquipment, existingRentalNames } = useLoaderData<typeof loader>();
+  const { booking, rentalEquipment, existingRentalNames, tankTypes, requiresTankSelection } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const t = useT();
+  const [participants, setParticipants] = useState(booking.participants);
 
   return (
     <div className="max-w-2xl">
@@ -208,7 +218,8 @@ export default function EditBookingPage() {
                   required
                   min="1"
                   max="20"
-                  defaultValue={booking.participants}
+                  value={participants}
+                  onChange={(e) => setParticipants(parseInt(e.target.value) || 1)}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -262,6 +273,35 @@ export default function EditBookingPage() {
             </div>
           </div>
         </div>
+
+        {/* Tank & Gas Selection */}
+        {requiresTankSelection && tankTypes.length > 0 && (
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h3 className="text-sm font-medium mb-3">
+              Tank & Gas Selection *
+            </h3>
+            <p className="text-sm text-foreground-muted mb-3">
+              This tour requires tank and gas selection for each participant.
+            </p>
+            <div className="space-y-4">
+              {Array.from({ length: participants }, (_, i) => {
+                const existing = (booking.participantDetails as Array<{ bringOwnTanks?: boolean; tanks?: Array<{ type: string; gasType: string; quantity: number }> }>)?.[i];
+                return (
+                  <div key={i} className="p-3 bg-surface-inset rounded-lg">
+                    <p className="text-sm font-medium mb-2">Participant {i + 1}</p>
+                    <TankGasSelector
+                      tankTypes={tankTypes}
+                      participantIndex={i}
+                      required={true}
+                      defaultBringOwn={existing?.bringOwnTanks}
+                      defaultTanks={existing?.tanks}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Equipment Rental */}
         {rentalEquipment.length > 0 && (
