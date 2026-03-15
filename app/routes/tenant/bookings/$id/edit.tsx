@@ -76,6 +76,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalAmount: bookingData.pricing.total,
     specialRequests: bookingData.specialRequests || "",
     internalNotes: bookingData.internalNotes || "",
+    source: bookingData.source || "direct",
   };
 
   return { booking, rentalEquipment, existingRentalNames, tankTypes, requiresTankSelection, existingParticipantDetails };
@@ -98,6 +99,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const status = formData.get("status") as string;
   const specialRequests = formData.get("specialRequests") as string;
   const internalNotes = formData.get("internalNotes") as string;
+  const source = formData.get("source") as string || "direct";
 
   // Fetch booking to get tripId, then validate tank selection if required
   const booking = await getBookingWithFullDetails(organizationId, bookingId);
@@ -163,6 +165,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       status,
       specialRequests,
       internalNotes,
+      source,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       equipmentRental: equipmentRental as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -256,6 +259,25 @@ export default function EditBookingPage() {
                   <option value="no_show">{t("tenant.bookings.statusNoShow")}</option>
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="source" className="block text-sm font-medium mb-1">
+                {t("tenant.bookings.bookingSource")}
+              </label>
+              <select
+                id="source"
+                name="source"
+                defaultValue={booking.source}
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              >
+                <option value="direct">{t("tenant.bookings.sourceDirect")}</option>
+                <option value="website">{t("tenant.bookings.sourceWebsite")}</option>
+                <option value="partner">{t("tenant.bookings.sourcePartner")}</option>
+                <option value="repeat">{t("tenant.bookings.sourceRepeat")}</option>
+                <option value="referral">{t("tenant.bookings.sourceReferral")}</option>
+                <option value="other">{t("tenant.bookings.sourceOther")}</option>
+              </select>
             </div>
 
             <div>

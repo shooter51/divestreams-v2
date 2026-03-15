@@ -126,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
 
       return redirect(redirectWithNotification(
-        "/tenant/customers",
+        `/tenant/customers/${customer.id}`,
         `Customer "${firstName} ${lastName}" has been created. An email has been sent to ${email} with instructions to set their password.`,
         "success"
       ));
@@ -134,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
       dbLogger.error({ err: emailError, organizationId }, "Failed to send password setup email");
       // Customer was created successfully, just email failed
       return redirect(redirectWithNotification(
-        "/tenant/customers",
+        `/tenant/customers/${customer.id}`,
         `Customer "${firstName} ${lastName}" has been created, but the password setup email could not be sent. Please contact support.`,
         "warning"
       ));
