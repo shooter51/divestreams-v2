@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
-import { loader, action } from "../../../../../app/routes/tenant/bookings/$id/edit";
-import * as orgContext from "../../../../../lib/auth/org-context.server";
-import * as queries from "../../../../../lib/db/queries.server";
-import * as tenantServer from "../../../../../lib/db/tenant.server";
+import { getRedirectPathname } from "../../../../../helpers/redirect";
+import { loader, action } from "../../../../../../app/routes/tenant/bookings/$id/edit";
+import * as orgContext from "../../../../../../lib/auth/org-context.server";
+import * as queries from "../../../../../../lib/db/queries.server";
+import * as tenantServer from "../../../../../../lib/db/tenant.server";
 
 // Mock dependencies
-vi.mock("../../../../../lib/auth/org-context.server");
-vi.mock("../../../../../lib/db/queries.server");
-vi.mock("../../../../../lib/db/tenant.server");
+vi.mock("../../../../../../lib/auth/org-context.server");
+vi.mock("../../../../../../lib/db/queries.server");
+vi.mock("../../../../../../lib/db/tenant.server");
 
 describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
   const mockOrganizationId = "org-123";
@@ -161,6 +161,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       formData.append("status", "confirmed");
       formData.append("specialRequests", "Gluten-free meals");
       formData.append("internalNotes", "Regular customer");
+      formData.append("source", "website");
 
       const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
         method: "POST",
@@ -177,6 +178,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
           status: "confirmed",
           specialRequests: "Gluten-free meals",
           internalNotes: "Regular customer",
+          source: "website",
         })
       );
 

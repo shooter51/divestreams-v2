@@ -203,7 +203,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
+  return redirect(redirectWithNotification(`/tenant/bookings/${booking.id}`, "Booking has been successfully created", "success"));
 }
 
 function formatDisplayDate(d: string | null | undefined): string {

@@ -20,6 +20,15 @@ vi.mock("../../../../../lib/plan-features", async (importOriginal) => {
   };
 });
 
+// Mock dynamic imports used in the action
+vi.mock("../../../../../lib/auth/customer-auth.server", () => ({
+  createInitialCredentials: vi.fn().mockResolvedValue({ resetToken: "mock-token-123" }),
+}));
+
+vi.mock("../../../../../lib/email/triggers", () => ({
+  triggerCustomerSetPassword: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock the db module to prevent real DB calls (user email check)
 vi.mock("../../../../../lib/db", () => {
   const mockSelectBuilder = {
@@ -51,7 +60,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
 
   describe("action", () => {
     it("should create customer and redirect", async () => {
-      vi.mocked(queries.createCustomer).mockResolvedValue(undefined);
+      vi.mocked(queries.createCustomer).mockResolvedValue({ id: "customer-1" } as unknown);
 
       const formData = new FormData();
       formData.append("firstName", "John");
@@ -82,7 +91,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/customers");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/customers/customer-1");
     });
 
     it("should return error for missing first name", async () => {
