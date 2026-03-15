@@ -10,6 +10,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { syncAllTrips } from "../../../../../lib/integrations/google-calendar.server";
+import { integrationLogger } from "../../../../../lib/logger";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -60,7 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
           : `Successfully synced ${result.synced} trips`,
     });
   } catch (error) {
-    console.error("Google Calendar sync error:", error);
+    integrationLogger.error({ err: error }, "Google Calendar sync error");
     return Response.json(
       {
         error:

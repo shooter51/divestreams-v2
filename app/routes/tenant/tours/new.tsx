@@ -12,6 +12,7 @@ import { CsrfInput } from "../../../components/CsrfInput";
 import { enqueueTranslation } from "../../../../lib/jobs/index";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "../../../i18n/types";
 import { useT } from "../../../i18n/use-t";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -31,6 +32,17 @@ export async function action({ request }: ActionFunctionArgs) {
   requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const tenantSlug = ctx.org.slug;
+
+  // Rate limit tour creation: 10 per minute per IP
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`create-tour:${clientIp}:${organizationId}`, {
+    maxAttempts: 10,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return { error: "Too many requests. Please wait before creating more tours." };
+  }
+
   const formData = await request.formData();
 
   // Extract image files before processing other form data

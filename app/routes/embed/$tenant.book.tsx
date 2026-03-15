@@ -12,6 +12,7 @@ import { getOrganizationBySlug, getPublicTripById } from "../../../lib/db/querie
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
 import { triggerBookingConfirmation, getNotificationSettings } from "../../../lib/email/triggers";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { logger, emailLogger } from "../../../lib/logger";
 import { getTankTypes } from "../../../lib/db/queries/equipment.server";
 import { TankGasSelector } from "../../components/tank-gas-selector";
 import { useState } from "react";
@@ -173,7 +174,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
         });
       } catch (emailError) {
         // Log email error but don't fail the booking
-        console.error("Failed to send booking confirmation email:", emailError);
+        emailLogger.error({ err: emailError }, "Failed to send booking confirmation email");
       }
     }
 
@@ -181,7 +182,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
     // Phase 2 will integrate Stripe Checkout here
     return redirect(`/embed/${subdomain}/confirm?bookingId=${booking.id}&bookingNumber=${booking.bookingNumber}`);
   } catch (error) {
-    console.error("Booking creation failed:", error);
+    logger.error({ err: error }, "Booking creation failed");
     return {
       errors: { form: "Failed to create booking. Please try again." },
       values: {

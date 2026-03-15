@@ -479,7 +479,6 @@ export default function SiteRegisterPage() {
                     borderColor: actionData?.errors?.firstName
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.firstName ? "true" : undefined}
@@ -518,7 +517,6 @@ export default function SiteRegisterPage() {
                     borderColor: actionData?.errors?.lastName
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.lastName ? "true" : undefined}
@@ -558,7 +556,6 @@ export default function SiteRegisterPage() {
                   borderColor: actionData?.errors?.email
                     ? "var(--danger)"
                     : "var(--accent-color)",
-                  // @ts-expect-error -- CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
                 }}
                 aria-invalid={actionData?.errors?.email ? "true" : undefined}
@@ -596,7 +593,6 @@ export default function SiteRegisterPage() {
                   borderColor: actionData?.errors?.phone
                     ? "var(--danger)"
                     : "var(--accent-color)",
-                  // @ts-expect-error -- CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
                 }}
                 aria-invalid={actionData?.errors?.phone ? "true" : undefined}
@@ -647,7 +643,6 @@ export default function SiteRegisterPage() {
                     borderColor: actionData?.errors?.password
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.password ? "true" : undefined}
@@ -703,7 +698,6 @@ export default function SiteRegisterPage() {
                     borderColor: actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword")
                       ? "var(--danger)"
                       : "var(--accent-color)",
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.confirmPassword && !clearedErrors.has("confirmPassword") ? "true" : undefined}
@@ -743,7 +737,6 @@ export default function SiteRegisterPage() {
                   name="terms"
                   className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-2"
                   style={{
-                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                     accentColor: "var(--primary-color)",
                   }}

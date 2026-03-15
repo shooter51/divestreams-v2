@@ -20,6 +20,7 @@ import {
   handleQuickBooksCallback,
 } from "../../../../../lib/integrations/quickbooks.server";
 import { getSubdomainFromRequest } from "../../../../../lib/auth/org-context.server";
+import { integrationLogger } from "../../../../../lib/logger";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -43,7 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    console.error("QuickBooks OAuth error:", error, errorDescription);
+    integrationLogger.error({ error, errorDescription }, "QuickBooks OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the QuickBooks access request."
@@ -101,7 +102,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    console.error("QuickBooks OAuth callback error:", err);
+    integrationLogger.error({ err }, "QuickBooks OAuth callback error");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect QuickBooks";
     return redirect(

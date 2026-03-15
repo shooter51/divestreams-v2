@@ -44,6 +44,12 @@ vi.mock("../../lib/email/triggers", () => ({
   triggerBookingConfirmation: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock rate limiting to always allow in tests
+vi.mock("../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { action } from "../../app/routes/tenant/customers/new";
 import { requireOrgContext } from "../../lib/auth/org-context.server";
 import { createCustomer } from "../../lib/db/queries.server";

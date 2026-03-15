@@ -55,6 +55,7 @@ import { ReceiptModal } from "../../components/pos/TransactionModals";
 import type { CartItem } from "../../../lib/validation/pos";
 import { useToast } from "../../../lib/toast-context";
 import { useT } from "../../i18n/use-t";
+import { logger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
@@ -94,7 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     agreementNumber = await generateAgreementNumber(tables, organizationId);
   } catch (error) {
-    console.error("Could not generate agreement number:", error);
+    logger.error({ err: error }, "Could not generate agreement number");
     // Use default - rentals table may not exist yet
   }
 

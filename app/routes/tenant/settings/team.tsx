@@ -704,7 +704,7 @@ export default function TeamPage() {
                           onSubmit={(e) => {
                             if (
                               !confirm(
-                                `Are you sure you want to remove ${member.name} from the team?`
+                                t("tenant.settings.team.confirmRemoveMember", { name: member.name })
                               )
                             ) {
                               e.preventDefault();

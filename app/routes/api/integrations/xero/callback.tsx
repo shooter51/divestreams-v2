@@ -15,6 +15,7 @@ import {
   handleXeroCallback,
 } from "../../../../../lib/integrations/xero.server";
 import { getSubdomainFromRequest } from "../../../../../lib/auth/org-context.server";
+import { integrationLogger } from "../../../../../lib/logger";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -37,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Handle OAuth errors
   if (error) {
-    console.error("Xero OAuth error:", error, errorDescription);
+    integrationLogger.error({ error, errorDescription }, "Xero OAuth error");
     const errorMessage = encodeURIComponent(
       error === "access_denied"
         ? "You declined the Xero access request."
@@ -86,7 +87,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
     );
   } catch (err) {
-    console.error("Xero OAuth callback error:", err);
+    integrationLogger.error({ err }, "Xero OAuth callback error");
     const errorMessage =
       err instanceof Error ? err.message : "Failed to connect Xero";
     return redirect(

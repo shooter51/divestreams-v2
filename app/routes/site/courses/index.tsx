@@ -401,7 +401,6 @@ function FilterSection({
                 backgroundColor: "var(--color-card-bg)",
                 borderColor: "var(--color-border)",
                 color: "var(--text-color)",
-                // @ts-expect-error CSS custom property
                 "--tw-ring-color": "var(--primary-color)",
               }}
             >
@@ -430,7 +429,6 @@ function FilterSection({
                 backgroundColor: "var(--color-card-bg)",
                 borderColor: "var(--color-border)",
                 color: "var(--text-color)",
-                // @ts-expect-error CSS custom property
                 "--tw-ring-color": "var(--primary-color)",
               }}
             >

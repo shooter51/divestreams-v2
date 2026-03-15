@@ -8,6 +8,7 @@ import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
@@ -47,6 +48,17 @@ export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
+
+  // Rate limit equipment creation: 20 per minute per IP
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`create-equipment:${clientIp}:${organizationId}`, {
+    maxAttempts: 20,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return { errors: { form: "Too many requests. Please wait before adding more equipment." }, values: {} };
+  }
+
   const formData = await request.formData();
 
   const validation = validateFormData(formData, equipmentSchema);

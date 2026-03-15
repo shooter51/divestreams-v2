@@ -23,6 +23,7 @@ import {
   getPublicCourseById,
 } from "../../../lib/db/queries.public";
 import { createWidgetEnrollment } from "../../../lib/db/mutations.public";
+import { logger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Complete Your Enrollment" }];
 
@@ -127,7 +128,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
       `/embed/${subdomain}/courses/confirm?enrollmentId=${enrollment.id}`
     );
   } catch (error) {
-    console.error("Enrollment creation failed:", error);
+    logger.error({ err: error }, "Enrollment creation failed");
     const message =
       error instanceof Error
         ? error.message

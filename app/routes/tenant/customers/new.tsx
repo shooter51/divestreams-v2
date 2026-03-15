@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 import { useT } from "../../../i18n/use-t";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -28,6 +29,17 @@ export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
+
+  // Rate limit customer creation: 10 per minute per IP
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`create-customer:${clientIp}:${organizationId}`, {
+    maxAttempts: 10,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return { error: "Too many requests. Please wait before creating more customers." };
+  }
+
   const formData = await request.formData();
 
   const firstName = formData.get("firstName") as string;

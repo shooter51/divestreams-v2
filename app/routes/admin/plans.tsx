@@ -6,6 +6,7 @@ import { subscriptionPlans, subscription, tenants } from "../../../lib/db/schema
 import { eq, desc, count } from "drizzle-orm";
 import { useToast } from "../../../lib/toast-context";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
+import { logger } from "../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "Plans - DiveStreams Admin" }];
 
@@ -65,7 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
         .where(eq(subscriptionPlans.id, planId));
       return { success: true, deleted: true };
     } catch (error) {
-      console.error("Failed to delete plan:", error);
+      logger.error({ err: error }, "Failed to delete plan");
       // Check if it's a foreign key constraint violation
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes("foreign key constraint") || errorMessage.includes("is still referenced")) {

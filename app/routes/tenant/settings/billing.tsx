@@ -811,7 +811,7 @@ export default function BillingPage() {
           <fetcher.Form
             method="post"
             onSubmit={(e) => {
-              if (!confirm("Are you sure you want to cancel your subscription?")) {
+              if (!confirm(t("tenant.settings.billing.confirmCancelSubscription"))) {
                 e.preventDefault();
               }
             }}

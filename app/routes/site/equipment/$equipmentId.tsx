@@ -284,7 +284,6 @@ export default function SiteEquipmentDetailPage() {
                         : "opacity-60 hover:opacity-100"
                     }`}
                     style={{
-                      // @ts-expect-error CSS custom property
                       "--tw-ring-color": "var(--primary-color)",
                     }}
                   >

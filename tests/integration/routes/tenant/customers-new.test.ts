@@ -43,6 +43,12 @@ vi.mock("../../../../lib/plan-features", async (importOriginal) => {
   };
 });
 
+// Mock rate limiting to always allow in tests
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 // Mock the db module to prevent real DB calls (user email check)
 vi.mock("../../../../lib/db", () => {
   const mockSelectBuilder = {
