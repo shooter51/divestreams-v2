@@ -137,6 +137,9 @@ vi.mock("../../../../lib/db/schema", () => {
       "id", "organizationId", "sessionId", "customerId", "status",
       "paymentStatus", "amountPaid", "notes", "enrolledAt",
     ]),
+    bookingNumberSequences: createTable("bookingNumberSequences", [
+      "organizationId", "nextNumber", "updatedAt",
+    ]),
   };
 });
 
@@ -478,8 +481,10 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
         }],
         // 4. Booking count
         [{ total: 4 }],
-        // 5. getNextBookingNumber: no prior sequential bookings → returns "BK-1000"
+        // 5. getNextBookingNumber: UPDATE sequence (no row) → [], MAX scan → null, INSERT sequence row
         [],
+        [{ maxNum: null }],
+        [{ nextNumber: 1001 }],
         // 6. Insert booking returning
         [{
           id: "booking-1",
@@ -583,8 +588,10 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
         }],
         // 5. Booking count
         [{ total: 2 }],
-        // 6. getNextBookingNumber: no prior sequential bookings → returns "BK-1000"
+        // 6. getNextBookingNumber: UPDATE sequence (no row) → [], MAX scan → null, INSERT sequence row
         [],
+        [{ maxNum: null }],
+        [{ nextNumber: 1001 }],
         // 7. Insert booking
         [{
           id: "booking-2",
