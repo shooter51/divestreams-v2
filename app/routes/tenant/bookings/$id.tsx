@@ -73,7 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
-  requireRole(ctx, ["owner", "admin"]);
+  requireRole(ctx, ["owner", "admin", "staff"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
