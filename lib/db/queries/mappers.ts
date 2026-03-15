@@ -54,6 +54,8 @@ type TripInput = TripRow & {
   boat_name?: string | null;
   bookedParticipants?: number;
   booked_participants?: number;
+  requiresTankSelection?: boolean | null;
+  requires_tank_selection?: boolean | null;
 } & Record<string, unknown>;
 
 /** Booking row with possible snake_case column aliases and joined fields */
@@ -203,6 +205,7 @@ export function mapTrip(row: TripInput) {
     tourType: pick(row.tourType, row.tour_type),
     boatName: pick(row.boatName, row.boat_name),
     bookedParticipants: Number(pick(row.bookedParticipants, row.booked_participants) ?? 0),
+    requiresTankSelection: (pick(row.requiresTankSelection, row.requires_tank_selection) ?? false) as boolean,
     staffIds: (pick(row.staffIds, r.staff_ids) ?? null) as string[] | null,
     createdAt: pick(row.createdAt, r.created_at) as Date,
     updatedAt: pick(row.updatedAt, r.updated_at) as Date,

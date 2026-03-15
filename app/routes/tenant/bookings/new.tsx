@@ -52,6 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       startTime: t.startTime || "00:00",
       spotsAvailable,
       price: t.price ? t.price.toFixed(2) : "0.00",
+      requiresTankSelection: t.requiresTankSelection ?? false,
     };
   }).filter((t) => t.spotsAvailable === null || t.spotsAvailable > 0);
 
@@ -146,8 +147,9 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  // Validate tank selection when the trip requires it
-  if (trip.requiresTankSelection) {
+  // Validate tank selection when the trip requires it and tanks are configured
+  const tankTypesExist = (await getTankTypes(organizationId)).length > 0;
+  if (trip.requiresTankSelection && tankTypesExist) {
     const coveredParticipants = participantDetails.filter(
       (p) => p.bringOwnTanks === true || (p.tanks && p.tanks.length > 0)
     ).length;
@@ -221,6 +223,9 @@ export default function NewBookingPage() {
   const isSubmitting = navigation.state === "submitting";
   const t = useT();
   const [participants, setParticipants] = useState(Number(actionData?.values?.participants) || 1);
+  const [selectedTripId, setSelectedTripId] = useState(actionData?.values?.tripId || "");
+  const dropdownTrip = upcomingTrips.find((trip) => trip.id === selectedTripId);
+  const activeTrip = selectedTrip || dropdownTrip;
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
@@ -315,6 +320,7 @@ export default function NewBookingPage() {
                 defaultValue={actionData?.values?.tripId || ""}
                 className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
+                onChange={(e) => setSelectedTripId(e.target.value)}
               >
                 <option value="">{t("tenant.bookings.chooseTrip")}</option>
                 {upcomingTrips.map((trip) => (
@@ -343,15 +349,15 @@ export default function NewBookingPage() {
                 id="participants"
                 name="participants"
                 min="1"
-                max={selectedTrip?.spotsAvailable ?? undefined}
+                max={activeTrip?.spotsAvailable ?? undefined}
                 value={participants}
                 onChange={(e) => setParticipants(Math.max(1, parseInt(e.target.value, 10) || 1))}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
-              {selectedTrip && (
+              {activeTrip && (
                 <p className="text-sm text-foreground-muted mt-1">
-                  {selectedTrip.spotsAvailable !== null ? t("tenant.bookings.maxAvailable", { count: selectedTrip.spotsAvailable }) : t("tenant.bookings.unlimitedAvailability")}
+                  {activeTrip.spotsAvailable !== null ? t("tenant.bookings.maxAvailable", { count: activeTrip.spotsAvailable }) : t("tenant.bookings.unlimitedAvailability")}
                 </p>
               )}
             </div>
@@ -375,16 +381,14 @@ export default function NewBookingPage() {
           </div>
 
           {/* Tank & Gas Selection */}
-          {selectedTrip && tankTypes.length > 0 && (
+          {activeTrip?.requiresTankSelection && tankTypes.length > 0 && (
             <div className="mt-4 pt-4 border-t">
               <h3 className="text-sm font-medium mb-3">
-                {selectedTrip.requiresTankSelection ? "Tank & Gas Selection *" : "Tank & Gas Selection (optional)"}
+                Tank &amp; Gas Selection *
               </h3>
-              {selectedTrip.requiresTankSelection && (
-                <p className="text-sm text-foreground-muted mb-3">
-                  This tour requires tank and gas selection for each participant.
-                </p>
-              )}
+              <p className="text-sm text-foreground-muted mb-3">
+                This tour requires tank and gas selection for each participant.
+              </p>
               <div className="space-y-4">
                 {Array.from({ length: participants }, (_, i) => (
                   <div key={i} className="p-3 bg-surface-inset rounded-lg">
@@ -392,11 +396,14 @@ export default function NewBookingPage() {
                     <TankGasSelector
                       tankTypes={tankTypes}
                       participantIndex={i}
-                      required={selectedTrip.requiresTankSelection}
+                      required={true}
                     />
                   </div>
                 ))}
               </div>
+              {actionData?.errors?.tanks && (
+                <p className="text-danger text-sm mt-2">{actionData.errors.tanks}</p>
+              )}
             </div>
           )}
         </div>
@@ -486,14 +493,14 @@ export default function NewBookingPage() {
         </div>
 
         {/* Summary & Actions */}
-        {selectedTrip && (
+        {activeTrip && (
           <div className="bg-brand-muted rounded-xl p-6">
             <h3 className="font-semibold mb-2">{t("tenant.bookings.summary")}</h3>
             <div className="text-sm space-y-1">
-              <p>{selectedTrip.tourName}</p>
-              <p>{formatDisplayDate(selectedTrip.date)} at {formatTime(selectedTrip.startTime)}</p>
+              <p>{activeTrip.tourName}</p>
+              <p>{formatDisplayDate(activeTrip.date)} at {formatTime(activeTrip.startTime)}</p>
               <p className="text-lg font-bold mt-2">
-                {t("tenant.bookings.perPerson", { price: `$${parseFloat(selectedTrip.price).toFixed(2)}` })}
+                {t("tenant.bookings.perPerson", { price: `$${parseFloat(activeTrip.price).toFixed(2)}` })}
               </p>
             </div>
           </div>

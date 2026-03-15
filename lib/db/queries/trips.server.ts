@@ -92,6 +92,7 @@ export async function getTrips(
       tourType: schema.tours.type,
       tourPrice: schema.tours.price,
       boatName: schema.boats.name,
+      requiresTankSelection: schema.tours.requiresTankSelection,
     })
     .from(schema.trips)
     .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
@@ -125,6 +126,7 @@ export async function getTrips(
     tour_price: row.tourPrice,
     boat_name: row.boatName,
     booked_participants: countMap.get(row.trip.id) || 0,
+    requires_tank_selection: row.requiresTankSelection,
   }));
 }
 

@@ -30,6 +30,7 @@ vi.mock("../../lib/db/queries.server", () => ({
   createBooking: vi.fn(),
   getCustomerById: vi.fn(),
   getTripById: vi.fn(),
+  getTankTypes: vi.fn(),
 }));
 
 vi.mock("../../lib/email/triggers", () => ({
@@ -43,6 +44,7 @@ import {
   createBooking,
   getCustomerById,
   getTripById,
+  getTankTypes,
 } from "../../lib/db/queries.server";
 import { triggerBookingConfirmation } from "../../lib/email/triggers";
 
@@ -99,6 +101,7 @@ describe("Contract: POST /tenant/bookings/new", () => {
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getCustomerById as Mock).mockResolvedValue(mockCustomer);
     (getTripById as Mock).mockResolvedValue(mockTrip);
+    (getTankTypes as Mock).mockResolvedValue([]);
     (createBooking as Mock).mockResolvedValue({
       id: "booking-1",
       bookingNumber: "BK-0001",

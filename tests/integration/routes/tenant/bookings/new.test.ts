@@ -602,6 +602,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(validation.getFormValues).mockReturnValue({});
       vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
       vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+      vi.mocked(queries.getTankTypes).mockResolvedValue([{ id: "tank-1", name: "Aluminum 80" }] as unknown);
 
       const formData = new FormData();
       formData.append("customerId", "cust-1");
@@ -657,6 +658,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
 
       vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
       vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+      vi.mocked(queries.getTankTypes).mockResolvedValue([{ id: "tank-1", name: "Aluminum 80" }] as unknown);
       vi.mocked(queries.createBooking).mockResolvedValue(mockBooking as unknown);
       vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
 
@@ -713,6 +715,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
 
       vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as unknown);
       vi.mocked(queries.getTripById).mockResolvedValue(mockTrip as unknown);
+      vi.mocked(queries.getTankTypes).mockResolvedValue([{ id: "tank-1", name: "Aluminum 80" }] as unknown);
       vi.mocked(queries.createBooking).mockResolvedValue(mockBooking as unknown);
       vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
 
