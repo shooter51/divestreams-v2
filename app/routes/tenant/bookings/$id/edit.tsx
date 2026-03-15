@@ -1,11 +1,13 @@
+import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
-import { getBookingWithFullDetails, getEquipment, getTripById } from "../../../../../lib/db/queries.server";
+import { getBookingWithFullDetails, getEquipment, getTripById, getTankTypes } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 import { CsrfInput } from "../../../../components/CsrfInput";
+import { TankGasSelector } from "../../../../components/tank-gas-selector";
 import { useT } from "../../../../i18n/use-t";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
@@ -29,6 +31,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Booking not found", { status: 404 });
   }
 
+  // Fetch trip details and tank types in parallel now that we have the tripId
+  const [trip, tankTypes] = await Promise.all([
+    getTripById(organizationId, bookingData.tripId),
+    getTankTypes(organizationId),
+  ]);
+
+  const requiresTankSelection = trip?.requiresTankSelection ?? false;
+
   // Group equipment by name+price (same pattern as new.tsx)
   const equipmentGroups = new Map<string, { name: string; price: string; count: number; ids: string[] }>();
   for (const e of equipmentData) {
@@ -47,6 +57,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const existingRentals = (bookingData.equipmentRental || []) as Array<{ item: string; price: number }>;
   const existingRentalNames = existingRentals.map((r) => r.item);
 
+  // Extract existing participant tank selections
+  const existingParticipantDetails = (bookingData.participantDetails || []) as Array<{
+    name: string;
+    bringOwnTanks?: boolean;
+    tanks?: { type: string; gasType: string; quantity: number }[];
+  }>;
+
   const booking = {
     id: bookingData.id,
     bookingNumber: bookingData.bookingNumber,
@@ -61,7 +78,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     internalNotes: bookingData.internalNotes || "",
   };
 
-  return { booking, rentalEquipment, existingRentalNames };
+  return { booking, rentalEquipment, existingRentalNames, tankTypes, requiresTankSelection, existingParticipantDetails };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -89,23 +106,27 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   const trip = await getTripById(organizationId, booking.tripId);
-  if (trip?.requiresTankSelection) {
-    const participantDetails: { bringOwn: boolean; hasTanks: boolean }[] = [];
-    for (let i = 0; i < participants; i++) {
-      const bringOwn = formData.get(`participantTanks[${i}].bringOwn`) === "true";
-      let hasTanks = false;
-      for (let j = 0; j < 4; j++) {
-        const tankType = formData.get(`participantTanks[${i}].tanks[${j}].type`) as string | null;
-        const gasType = formData.get(`participantTanks[${i}].tanks[${j}].gasType`) as string | null;
-        const qty = formData.get(`participantTanks[${i}].tanks[${j}].quantity`) as string | null;
-        if (tankType && gasType && qty) {
-          hasTanks = true;
-          break;
-        }
+
+  // Parse tank selections for all participants
+  const participantDetails: { name: string; bringOwnTanks?: boolean; tanks?: { type: string; gasType: string; quantity: number }[] }[] = [];
+  for (let i = 0; i < participants; i++) {
+    const bringOwn = formData.get(`participantTanks[${i}].bringOwn`) === "true";
+    const tanks: { type: string; gasType: string; quantity: number }[] = [];
+    for (let j = 0; j < 4; j++) {
+      const tankType = formData.get(`participantTanks[${i}].tanks[${j}].type`) as string | null;
+      const gasType = formData.get(`participantTanks[${i}].tanks[${j}].gasType`) as string | null;
+      const qty = formData.get(`participantTanks[${i}].tanks[${j}].quantity`) as string | null;
+      if (tankType && gasType && qty) {
+        tanks.push({ type: tankType, gasType, quantity: parseInt(qty, 10) || 1 });
       }
-      participantDetails.push({ bringOwn, hasTanks });
     }
-    const coveredParticipants = participantDetails.filter((p) => p.bringOwn || p.hasTanks).length;
+    if (tanks.length > 0 || bringOwn) {
+      participantDetails.push({ name: `Participant ${i + 1}`, bringOwnTanks: bringOwn, tanks: bringOwn ? undefined : tanks });
+    }
+  }
+
+  if (trip?.requiresTankSelection) {
+    const coveredParticipants = participantDetails.filter((p) => p.bringOwnTanks === true || (p.tanks && p.tanks.length > 0)).length;
     if (coveredParticipants < participants) {
       return {
         errors: {
@@ -144,6 +165,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       internalNotes,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       equipmentRental: equipmentRental as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      participantDetails: participantDetails.length > 0 ? (participantDetails as any) : null,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.bookings.organizationId, organizationId), eq(schema.bookings.id, bookingId)));
@@ -152,10 +175,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function EditBookingPage() {
-  const { booking, rentalEquipment, existingRentalNames } = useLoaderData<typeof loader>();
+  const { booking, rentalEquipment, existingRentalNames, tankTypes, requiresTankSelection, existingParticipantDetails } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const t = useT();
+  const [participants, setParticipants] = useState(booking.participants);
 
   return (
     <div className="max-w-2xl">
@@ -208,7 +232,8 @@ export default function EditBookingPage() {
                   required
                   min="1"
                   max="20"
-                  defaultValue={booking.participants}
+                  value={participants}
+                  onChange={(e) => setParticipants(Math.max(1, parseInt(e.target.value, 10) || 1))}
                   className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
@@ -262,6 +287,32 @@ export default function EditBookingPage() {
             </div>
           </div>
         </div>
+
+        {/* Tank & Gas Selection */}
+        {requiresTankSelection && tankTypes.length > 0 && (
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">
+              Tank &amp; Gas Selection *
+            </h2>
+            <p className="text-sm text-foreground-muted mb-3">
+              This tour requires tank and gas selection for each participant.
+            </p>
+            <div className="space-y-4">
+              {Array.from({ length: participants }, (_, i) => (
+                <div key={i} className="p-3 bg-surface-inset rounded-lg">
+                  <p className="text-sm font-medium mb-2">Participant {i + 1}</p>
+                  <TankGasSelector
+                    tankTypes={tankTypes}
+                    participantIndex={i}
+                    required={requiresTankSelection}
+                    defaultBringOwn={existingParticipantDetails[i]?.bringOwnTanks ?? false}
+                    defaultTanks={existingParticipantDetails[i]?.tanks}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Equipment Rental */}
         {rentalEquipment.length > 0 && (
