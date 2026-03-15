@@ -11,6 +11,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
+import { resolveLocale } from "../../../i18n/resolve-locale";
 import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
@@ -138,13 +139,15 @@ export async function action({ request }: ActionFunctionArgs) {
           { field: "title", text: imageTitle },
           ...(description?.trim() ? [{ field: "description", text: description }] : []),
         ];
+        const srcLocale = resolveLocale(request);
         for (const locale of SUPPORTED_LOCALES) {
-          if (locale === DEFAULT_LOCALE) continue;
+          if (locale === srcLocale) continue;
           await enqueueTranslation({
             orgId: ctx.org.id,
             entityType: "gallery_image",
             entityId: createdImage.id,
             fields: imageFields,
+            sourceLocale: srcLocale,
             targetLocale: locale,
           });
         }
